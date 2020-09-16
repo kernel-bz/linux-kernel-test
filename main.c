@@ -11,6 +11,8 @@ DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 #define task_rq(p)              cpu_rq(task_cpu(p))
 #define cpu_curr(cpu)           (cpu_rq(cpu)->curr)
 #define raw_rq()                raw_cpu_ptr(&runqueues)
+
+Studing in load_balance()...
 */
 
 int main(void)
