@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "include/test/test.h"
+#include "test/test.h"
 
 struct CONFIG
 {
