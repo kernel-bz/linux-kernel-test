@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-int cpus_mask_test();
+int cpus_mask_test(void);
 
 
 #ifdef __cplusplus

@@ -4,10 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        main.c \
-    cpu/cpus-mask-test.c \
-    sched/rq-test.c \
-    lib/ptr-test.c
+    test/cpu/cpus-mask-test.c \
+    test/lib/ptr-test.c \
+    test/sched/rq-test.c \
+    main.c
 
 HEADERS += \
-    include/test.h
+    include/test/test.h

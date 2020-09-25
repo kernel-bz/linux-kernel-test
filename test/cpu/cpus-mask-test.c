@@ -87,7 +87,7 @@ static inline size_t cpumask_size(void)
         return BITS_TO_LONGS(nr_cpumask_bits) * sizeof(long);
 }
 
-int cpus_mask_test()
+int cpus_mask_test(void)
 {
     unsigned int bits;
     for (bits=0; bits<=128; bits+=8)

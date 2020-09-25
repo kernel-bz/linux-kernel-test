@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "include/test.h"
+#include "include/test/test.h"
 
 /*
 //kernel/sched/sched.h
