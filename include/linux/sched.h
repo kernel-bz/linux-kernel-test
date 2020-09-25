@@ -13,7 +13,9 @@ extern "C" {
 #include "linux/cpumask.h"
 #include "linux/restart_block.h"
 #include "linux/pid.h"
+#include "linux/spinlock.h"
 #include "linux/spinlock_types.h"
+#include "linux/lockdep.h"
 
 
 /* task_struct member predeclarations (sorted alphabetically): */
@@ -1058,6 +1060,9 @@ struct task_struct {
          * Do not put anything below here!
          */
 };
+
+
+
 
 
 #ifdef __cplusplus

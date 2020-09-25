@@ -1,6 +1,10 @@
 #ifndef __LINUX_SPINLOCK_TYPES_H
 #define __LINUX_SPINLOCK_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * include/linux/spinlock_types.h - generic spinlock type definitions
  *                                  and initializers
@@ -81,5 +85,10 @@ typedef struct spinlock {
 #define DEFINE_SPINLOCK(x)	spinlock_t x = __SPIN_LOCK_UNLOCKED(x)
 
 #include <linux/rwlock_types.h>
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __LINUX_SPINLOCK_TYPES_H */

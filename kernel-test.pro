@@ -3,6 +3,8 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
+unix|win32: LIBS += -lpthread
+
 INCLUDEPATH += \
         include/
 
@@ -291,4 +293,5 @@ HEADERS += \
     include/linux/xarray.h \
     include/linux/zalloc.h \
     include/nolibc/nolibc.h \
-    include/linux/pfn.h
+    include/linux/pfn.h \
+    kernel/sched/sched.h
