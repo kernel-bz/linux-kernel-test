@@ -10,6 +10,32 @@
 #include <asm/types.h>
 #include <asm/posix_types.h>
 
+//typedef u32 __kernel_dev_t;
+
+//typedef __kernel_fd_set		fd_set;
+//typedef __kernel_dev_t		dev_t;
+typedef __kernel_ino_t		ino_t;
+//typedef __kernel_mode_t		mode_t;		//sys/types.h
+typedef unsigned short		umode_t;
+//typedef u32			nlink_t;
+typedef __kernel_off_t		off_t;
+typedef __kernel_pid_t		pid_t;
+typedef __kernel_daddr_t	daddr_t;
+//typedef __kernel_key_t		key_t;
+typedef __kernel_suseconds_t	suseconds_t;
+//typedef __kernel_timer_t	timer_t;
+typedef __kernel_clockid_t	clockid_t;
+//typedef __kernel_mqd_t		mqd_t;
+
+//typedef _Bool			bool;
+
+typedef __kernel_uid32_t	uid_t;
+typedef __kernel_gid32_t	gid_t;
+typedef __kernel_uid16_t        uid16_t;
+typedef __kernel_gid16_t        gid16_t;
+
+//typedef unsigned long		uintptr_t;
+
 struct page;
 struct kmem_cache;
 
@@ -77,5 +103,41 @@ struct hlist_head {
 struct hlist_node {
 	struct hlist_node *next, **pprev;
 };
+
+
+struct ustat {
+        __kernel_daddr_t        f_tfree;
+        __kernel_ino_t          f_tinode;
+        char                    f_fname[6];
+        char                    f_fpack[6];
+};
+
+/**
+ * struct callback_head - callback structure for use with RCU and task_work
+ * @next: next update requests in a list
+ * @func: actual update function to call after the grace period.
+ *
+ * The struct is aligned to size of pointer. On most architectures it happens
+ * naturally due ABI requirements, but some architectures (like CRIS) have
+ * weird ABI and we need to ask it explicitly.
+ *
+ * The alignment is required to guarantee that bit 0 of @next will be
+ * clear under normal conditions -- as long as we use call_rcu() or
+ * call_srcu() to queue the callback.
+ *
+ * This guarantee is important for few reasons:
+ *  - future call_rcu_lazy() will make use of lower bits in the pointer;
+ *  - the structure shares storage space in struct page with @compound_head,
+ *    which encode PageTail() in bit 0. The guarantee is needed to avoid
+ *    false-positive PageTail().
+ */
+struct callback_head {
+        struct callback_head *next;
+        void (*func)(struct callback_head *head);
+} __attribute__((aligned(sizeof(void *))));
+#define rcu_head callback_head
+
+typedef void (*rcu_callback_t)(struct rcu_head *head);
+typedef void (*call_rcu_func_t)(struct rcu_head *head, rcu_callback_t func);
 
 #endif /* _TOOLS_LINUX_TYPES_H_ */

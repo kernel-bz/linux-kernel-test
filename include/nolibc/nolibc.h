@@ -98,7 +98,7 @@
 #define NOLIBC
 
 /* this way it will be removed if unused */
-static int errno;
+//static int errno;
 
 #ifndef NOLIBC_IGNORE_ERRNO
 #define SET_ERRNO(v) do { errno = (v); } while (0)
@@ -126,20 +126,20 @@ typedef unsigned int       uint32_t;
 typedef   signed int        int32_t;
 typedef unsigned long long uint64_t;
 typedef   signed long long  int64_t;
-typedef unsigned long        size_t;
-typedef   signed long       ssize_t;
-typedef unsigned long     uintptr_t;
-typedef   signed long      intptr_t;
-typedef   signed long     ptrdiff_t;
+//typedef unsigned long        size_t;
+//typedef   signed long       ssize_t;
+//typedef unsigned long     uintptr_t;
+//typedef   signed long      intptr_t;
+//typedef   signed long     ptrdiff_t;
 
 /* for stat() */
-typedef unsigned int          dev_t;
+//typedef unsigned int          dev_t;
 typedef unsigned long         ino_t;
-typedef unsigned int         mode_t;
+//typedef unsigned int         mode_t;
 typedef   signed int          pid_t;
 typedef unsigned int          uid_t;
 typedef unsigned int          gid_t;
-typedef unsigned long       nlink_t;
+//typedef unsigned long       nlink_t;
 typedef   signed long         off_t;
 typedef   signed long     blksize_t;
 typedef   signed long      blkcnt_t;
@@ -152,17 +152,17 @@ struct pollfd {
 	short int revents;
 };
 
-/* for select() */
+/*
 struct timeval {
 	long    tv_sec;
 	long    tv_usec;
 };
 
-/* for pselect() */
 struct timespec {
 	long    tv_sec;
 	long    tv_nsec;
 };
+*/
 
 /* for gettimeofday() */
 struct timezone {
@@ -181,7 +181,7 @@ struct linux_dirent64 {
 
 /* commonly an fd_set represents 256 FDs */
 #define FD_SETSIZE 256
-typedef struct { uint32_t fd32[FD_SETSIZE/32]; } fd_set;
+//typedef struct { uint32_t fd32[FD_SETSIZE/32]; } fd_set;
 
 /* needed by wait4() */
 struct rusage {
@@ -248,7 +248,7 @@ struct rusage {
 #define LINUX_REBOOT_CMD_RESTART    0x01234567
 #define LINUX_REBOOT_CMD_SW_SUSPEND 0xd000fce2
 
-
+#if 0
 /* The format of the struct as returned by the libc to the application, which
  * significantly differs from the format returned by the stat() syscall flavours.
  */
@@ -267,6 +267,7 @@ struct stat {
 	time_t    st_mtime;   /* time of last modification */
 	time_t    st_ctime;   /* time of last status change */
 };
+#endif
 
 #define WEXITSTATUS(status)   (((status) & 0xff00) >> 8)
 #define WIFEXITED(status)     (((status) & 0x7f) == 0)
@@ -1464,6 +1465,7 @@ int sys_chdir(const char *path)
 	return my_syscall1(__NR_chdir, path);
 }
 
+#if 0
 static __attribute__((unused))
 int sys_chmod(const char *path, mode_t mode)
 {
@@ -1473,6 +1475,7 @@ int sys_chmod(const char *path, mode_t mode)
 	return my_syscall2(__NR_chmod, path, mode);
 #endif
 }
+#endif
 
 static __attribute__((unused))
 int sys_chown(const char *path, uid_t owner, gid_t group)
@@ -1578,6 +1581,8 @@ off_t sys_lseek(int fd, off_t offset, int whence)
 	return my_syscall3(__NR_lseek, fd, offset, whence);
 }
 
+#if 0
+
 static __attribute__((unused))
 int sys_mkdir(const char *path, mode_t mode)
 {
@@ -1598,6 +1603,8 @@ long sys_mknod(const char *path, mode_t mode, dev_t dev)
 #endif
 }
 
+#endif
+
 static __attribute__((unused))
 int sys_mount(const char *src, const char *tgt, const char *fst,
 	      unsigned long flags, const void *data)
@@ -1605,6 +1612,7 @@ int sys_mount(const char *src, const char *tgt, const char *fst,
 	return my_syscall5(__NR_mount, src, tgt, fst, flags, data);
 }
 
+#if 0
 static __attribute__((unused))
 int sys_open(const char *path, int flags, mode_t mode)
 {
@@ -1614,6 +1622,7 @@ int sys_open(const char *path, int flags, mode_t mode)
 	return my_syscall3(__NR_open, path, flags, mode);
 #endif
 }
+#endif
 
 static __attribute__((unused))
 int sys_pivot_root(const char *new, const char *old)
@@ -1627,6 +1636,7 @@ int sys_poll(struct pollfd *fds, int nfds, int timeout)
 	return my_syscall3(__NR_poll, fds, nfds, timeout);
 }
 
+#if 0
 static __attribute__((unused))
 ssize_t sys_read(int fd, void *buf, size_t count)
 {
@@ -1638,6 +1648,7 @@ ssize_t sys_reboot(int magic1, int magic2, int cmd, void *arg)
 {
 	return my_syscall4(__NR_reboot, magic1, magic2, cmd, arg);
 }
+#endif
 
 static __attribute__((unused))
 int sys_sched_yield(void)
@@ -1645,6 +1656,7 @@ int sys_sched_yield(void)
 	return my_syscall0(__NR_sched_yield);
 }
 
+#if 0
 static __attribute__((unused))
 int sys_select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeout)
 {
@@ -1670,6 +1682,7 @@ int sys_select(int nfds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeva
 	return my_syscall5(__NR__newselect, nfds, rfds, wfds, efds, timeout);
 #endif
 }
+#endif
 
 static __attribute__((unused))
 int sys_setpgid(pid_t pid, pid_t pgid)
@@ -1683,6 +1696,7 @@ pid_t sys_setsid(void)
 	return my_syscall0(__NR_setsid);
 }
 
+#if 0
 static __attribute__((unused))
 int sys_stat(const char *path, struct stat *buf)
 {
@@ -1710,7 +1724,7 @@ int sys_stat(const char *path, struct stat *buf)
 	buf->st_ctime   = stat.st_ctime;
 	return ret;
 }
-
+#endif
 
 static __attribute__((unused))
 int sys_symlink(const char *old, const char *new)
@@ -1722,11 +1736,13 @@ int sys_symlink(const char *old, const char *new)
 #endif
 }
 
+#if 0
 static __attribute__((unused))
 mode_t sys_umask(mode_t mode)
 {
 	return my_syscall1(__NR_umask, mode);
 }
+#endif
 
 static __attribute__((unused))
 int sys_umount2(const char *path, int flags)
@@ -1762,6 +1778,8 @@ pid_t sys_wait(int *status)
 	return sys_waitpid(-1, status, 0);
 }
 
+#if 0
+
 static __attribute__((unused))
 ssize_t sys_write(int fd, const void *buf, size_t count)
 {
@@ -1786,11 +1804,13 @@ int brk(void *addr)
 	return 0;
 }
 
+/*
 static __attribute__((noreturn,unused))
 void exit(int status)
 {
 	sys_exit(status);
 }
+*/
 
 static __attribute__((unused))
 int chdir(const char *path)
@@ -2455,3 +2475,6 @@ dev_t makedev(unsigned int major, unsigned int minor)
 {
 	return ((major & 0xfff) << 8) | (minor & 0xff);
 }
+
+#endif
+

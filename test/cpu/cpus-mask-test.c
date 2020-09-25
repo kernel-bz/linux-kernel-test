@@ -42,6 +42,7 @@
 #define test_and_clear_bit(nr,p)        ATOMIC_BITOP(test_and_clear_bit,nr,p)
 #define test_and_change_bit(nr,p)       ATOMIC_BITOP(test_and_change_bit,nr,p)
 */
+
 //tools/include/asm-generic/bitops/atomic.h
 static inline void set_bit(unsigned int nr, unsigned long *addr)
 {
