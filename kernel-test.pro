@@ -12,7 +12,10 @@ SOURCES += \
     test/cpu/cpus-mask-test.c \
     test/lib/ptr-test.c \
     test/sched/rq-test.c \
-    main.c
+    main.c \
+    test/sched/decay_load.c \
+    test/sched/taskset.c \
+    test/sched/update_load_avg.c
 
 HEADERS += \
     include/test/test.h \
