@@ -109,12 +109,14 @@ static inline void free_page(unsigned long page)
 	free((void *)page);
 }
 
+#if 0
 static inline void *kmalloc(unsigned int size, unsigned int flags)
 {
 	return malloc(size);
 }
 
 #define kfree(x) free(x)
+#endif
 
 #define kmemleak_alloc(a, b, c, d)
 #define kmemleak_free(a)

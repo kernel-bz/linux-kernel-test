@@ -38,4 +38,6 @@ extern char * __must_check skip_spaces(const char *);
 
 extern char *strim(char *);
 
+char *strchrnul(const char *s, int c);
+
 #endif /* _TOOLS_LINUX_STRING_H_ */

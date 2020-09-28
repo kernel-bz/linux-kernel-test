@@ -8,8 +8,8 @@
 #include <linux/stddef.h>
 #include <linux/spinlock.h>
 
-#include <asm/current.h>
-#include <uapi/linux/wait.h>
+//#include <asm/current.h>
+//#include <uapi/linux/wait.h>
 
 typedef struct wait_queue_entry wait_queue_entry_t;
 

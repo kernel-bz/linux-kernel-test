@@ -22,6 +22,8 @@
 #define arch_spinlock_t pthread_mutex_t
 #define __ARCH_SPIN_LOCK_UNLOCKED PTHREAD_MUTEX_INITIALIZER
 
+#define raw_spinlock_t	pthread_mutex_t
+
 static inline void arch_spin_lock(arch_spinlock_t *mutex)
 {
 	pthread_mutex_lock(mutex);

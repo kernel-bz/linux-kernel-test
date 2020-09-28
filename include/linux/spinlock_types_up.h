@@ -14,15 +14,18 @@
 
 #ifdef CONFIG_DEBUG_SPINLOCK
 
+//#ifndef pthread_mutext_t
+#if 0
 typedef struct {
 	volatile unsigned int slock;
 } arch_spinlock_t;
+#endif
 
 #define __ARCH_SPIN_LOCK_UNLOCKED { 1 }
 
 #else
 
-typedef struct { } arch_spinlock_t;
+//typedef struct { } arch_spinlock_t;
 
 #define __ARCH_SPIN_LOCK_UNLOCKED { }
 

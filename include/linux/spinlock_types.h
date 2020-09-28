@@ -14,13 +14,16 @@ extern "C" {
  */
 
 #if defined(CONFIG_SMP)
-# include <asm/spinlock_types.h>
+//# include <asm/spinlock_types.h>
+# include <linux/spinlock_types.h>
 #else
 # include <linux/spinlock_types_up.h>
 #endif
 
 #include <linux/lockdep.h>
 
+//#ifndef pthread_mutext_t
+#if 0
 typedef struct raw_spinlock {
 	arch_spinlock_t raw_lock;
 #ifdef CONFIG_DEBUG_SPINLOCK
@@ -31,6 +34,7 @@ typedef struct raw_spinlock {
 	struct lockdep_map dep_map;
 #endif
 } raw_spinlock_t;
+#endif
 
 #define SPINLOCK_MAGIC		0xdead4ead
 
@@ -62,6 +66,8 @@ typedef struct raw_spinlock {
 
 #define DEFINE_RAW_SPINLOCK(x)	raw_spinlock_t x = __RAW_SPIN_LOCK_UNLOCKED(x)
 
+//#ifndef pthread_mutext_t
+#if 0
 typedef struct spinlock {
 	union {
 		struct raw_spinlock rlock;
@@ -75,6 +81,7 @@ typedef struct spinlock {
 #endif
 	};
 } spinlock_t;
+#endif
 
 #define __SPIN_LOCK_INITIALIZER(lockname) \
 	{ { .rlock = __RAW_SPIN_LOCK_INITIALIZER(lockname) } }

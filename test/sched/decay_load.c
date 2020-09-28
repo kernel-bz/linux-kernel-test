@@ -1,9 +1,10 @@
 #include <stdio.h>
-
-typedef unsigned long long u64;
-typedef unsigned int u32;
+//#include "kernel/sched/sched-pelt.h"
 
 #define __maybe_unused
+typedef unsigned long long u64;
+typedef signed long long s64;
+typedef unsigned int u32;
 
 //kernel/sched/sched-pelt.h
 static const u32 runnable_avg_yN_inv[] __maybe_unused = {
@@ -15,15 +16,20 @@ static const u32 runnable_avg_yN_inv[] __maybe_unused = {
         0x85aac367, 0x82cd8698,
 };
 
-#define LOAD_AVG_PERIOD 32
-#define LOAD_AVG_MAX 47742
+#define LOAD_AVG_PERIOD 		32
+#define LOAD_AVG_MAX 		 47742
 
 
 static inline u64 mul_u64_u32_shr(u64 a, u32 mul, unsigned int shift)
 {
+#ifdef __int128
         return (u64)(((unsigned __int128)a * mul) >> shift);
+#else
+        return (u64)((a * mul) >> shift);
+#endif
 }
 
+//kernel/sched/pelt.c
 static u64 decay_load(u64 val, u64 n)
 {
         unsigned int local_n;
@@ -49,9 +55,6 @@ static u64 decay_load(u64 val, u64 n)
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
         return val;
 }
-
-//kernel/sched/fair.c
-//entity_tick
 
 int decay_load_test(void)
 {

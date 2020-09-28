@@ -1,6 +1,8 @@
 #ifndef _LINUX_SCHED_H
 #define _LINUX_SCHED_H
 
+#include "test/config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,7 +18,11 @@ extern "C" {
 #include "linux/spinlock.h"
 #include "linux/spinlock_types.h"
 #include "linux/lockdep.h"
+#include "linux/seqlock.h"
+#include "linux/llist.h"
+#include "linux/plist.h"
 
+#include <urcu.h>
 
 /* task_struct member predeclarations (sorted alphabetically): */
 struct audit_context;

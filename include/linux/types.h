@@ -37,6 +37,16 @@ typedef __kernel_gid16_t        gid16_t;
 //typedef unsigned long		uintptr_t;
 
 struct page;
+#ifdef CONFIG_HAVE_UID16
+/* This is defined by include/asm-{arch}/posix_types.h */
+typedef __kernel_old_uid_t	old_uid_t;
+typedef __kernel_old_gid_t	old_gid_t;
+#endif /* CONFIG_UID16 */
+
+#if defined(__GNUC__)
+typedef __kernel_loff_t		loff_t;
+#endif
+
 struct kmem_cache;
 
 typedef enum {
@@ -135,7 +145,7 @@ struct callback_head {
         struct callback_head *next;
         void (*func)(struct callback_head *head);
 } __attribute__((aligned(sizeof(void *))));
-#define rcu_head callback_head
+//#define rcu_head callback_head
 
 typedef void (*rcu_callback_t)(struct rcu_head *head);
 typedef void (*call_rcu_func_t)(struct rcu_head *head, rcu_callback_t func);

@@ -15,7 +15,12 @@ SOURCES += \
     main.c \
     test/sched/decay_load.c \
     test/sched/taskset.c \
-    test/sched/update_load_avg.c
+    test/sched/update_load_avg.c \
+    kernel/sched/core.c \
+    kernel/sched/pelt.c \
+    lib/string.c \
+    lib/math/div64.c \
+    mm/slab_user.c
 
 HEADERS += \
     include/test/test.h \
@@ -281,7 +286,6 @@ HEADERS += \
     include/linux/sched.h \
     include/linux/seq_file.h \
     include/linux/sizes.h \
-    include/linux/slab_def.h \
     include/linux/slab.h \
     include/linux/spinlock_types_up.h \
     include/linux/spinlock_types.h \
@@ -297,4 +301,18 @@ HEADERS += \
     include/linux/zalloc.h \
     include/nolibc/nolibc.h \
     include/linux/pfn.h \
-    kernel/sched/sched.h
+    kernel/sched/sched.h \
+    kernel/sched/pelt.h \
+    kernel/sched/sched-pelt.h \
+    include/linux/seqlock.h \
+    include/linux/llist.h \
+    include/linux/plist.h \
+    include/linux/sched/prio.h \
+    include/linux/sched/sysctl.h \
+    include/linux/math64.h \
+    include/asm-generic/div64.h \
+    include/linux/cgroup.h \
+    include/linux/kernel_stat.h \
+    include/linux/sched/autogroup.h \
+    include/linux/radix-tree.h \
+    include/linux/radix-tree-user.h
