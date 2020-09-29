@@ -20,7 +20,37 @@ SOURCES += \
     kernel/sched/pelt.c \
     lib/string.c \
     lib/math/div64.c \
-    mm/slab_user.c
+    mm/slab_user.c \
+    kernel/sched/deadline.c \
+    kernel/sched/fair.c \
+    kernel/sched/rt.c \
+    kernel/sched/stats.c \
+    kernel/sched/autogroup.c \
+    kernel/sched/clock.c \
+    kernel/sched/completion.c \
+    kernel/sched/core.c \
+    kernel/sched/cpuacct.c \
+    kernel/sched/cpudeadline.c \
+    kernel/sched/cpufreq_schedutil.c \
+    kernel/sched/cpufreq.c \
+    kernel/sched/cpupri.c \
+    kernel/sched/cputime.c \
+    kernel/sched/deadline.c \
+    kernel/sched/debug.c \
+    kernel/sched/fair.c \
+    kernel/sched/idle.c \
+    kernel/sched/isolation.c \
+    kernel/sched/loadavg.c \
+    kernel/sched/membarrier.c \
+    kernel/sched/pelt.c \
+    kernel/sched/psi.c \
+    kernel/sched/rt.c \
+    kernel/sched/stats.c \
+    kernel/sched/stop_task.c \
+    kernel/sched/swait.c \
+    kernel/sched/topology.c \
+    kernel/sched/wait_bit.c \
+    kernel/sched/wait.c
 
 HEADERS += \
     include/test/test.h \
@@ -74,7 +104,6 @@ HEADERS += \
     include/linux/string.h \
     include/linux/stringify.h \
     include/linux/time64.h \
-    include/linux/types.h \
     include/linux/zalloc.h \
     include/asm/alternative-asm.h \
     include/asm/atomic.h \
@@ -99,7 +128,6 @@ HEADERS += \
     include/asm-generic/bitsperlong.h \
     include/asm-generic/hugetlb_encode.h \
     include/linux/sched/clock.h \
-    include/linux/sched/mm.h \
     include/linux/sched/task.h \
     include/linux/unaligned/packed_struct.h \
     include/linux/atomic.h \
@@ -151,7 +179,6 @@ HEADERS += \
     include/linux/string.h \
     include/linux/stringify.h \
     include/linux/time64.h \
-    include/linux/types.h \
     include/linux/zalloc.h \
     include/uapi/asm/bitsperlong.h \
     include/uapi/asm/bpf_perf_event.h \
@@ -295,11 +322,9 @@ HEADERS += \
     include/linux/stringify.h \
     include/linux/threads.h \
     include/linux/time64.h \
-    include/linux/types.h \
     include/linux/wait.h \
     include/linux/xarray.h \
     include/linux/zalloc.h \
-    include/nolibc/nolibc.h \
     include/linux/pfn.h \
     kernel/sched/sched.h \
     kernel/sched/pelt.h \
@@ -315,4 +340,60 @@ HEADERS += \
     include/linux/kernel_stat.h \
     include/linux/sched/autogroup.h \
     include/linux/radix-tree.h \
-    include/linux/radix-tree-user.h
+    include/linux/radix-tree-user.h \
+    kernel/sched/stats.h \
+    include/test/debug.h \
+    include/linux/sched/topology.h \
+    include/linux/topology.h \
+    include/linux/arch_topology.h \
+    include/linux/sched/idle.h \
+    include/linux/sched/autogroup.h \
+    include/linux/sched/clock.h \
+    include/linux/sched/coredump.h \
+    include/linux/sched/cpufreq.h \
+    include/linux/sched/deadline.h \
+    include/linux/sched/debug.h \
+    include/linux/sched/hotplug.h \
+    include/linux/sched/idle.h \
+    include/linux/sched/init.h \
+    include/linux/sched/isolation.h \
+    include/linux/sched/jobctl.h \
+    include/linux/sched/loadavg.h \
+    include/linux/sched/nohz.h \
+    include/linux/sched/numa_balancing.h \
+    include/linux/sched/prio.h \
+    include/linux/sched/rt.h \
+    include/linux/sched/smt.h \
+    include/linux/sched/stat.h \
+    include/linux/sched/sysctl.h \
+    include/linux/sched/task_stack.h \
+    include/linux/sched/task.h \
+    include/linux/sched/topology.h \
+    include/linux/sched/types.h \
+    include/linux/sched/user.h \
+    include/linux/sched/wake_q.h \
+    include/linux/sched/xacct.h \
+    include/uapi/linux/sched/types.h \
+    kernel/sched/autogroup.h \
+    kernel/sched/cpudeadline.h \
+    kernel/sched/cpupri.h \
+    kernel/sched/features.h \
+    kernel/sched/pelt.h \
+    kernel/sched/sched-pelt.h \
+    kernel/sched/sched.h \
+    kernel/sched/stats.h \
+    include/test/define-usr.h \
+    include/linux/smp.h \
+    include/linux/thread_info.h \
+    include/linux/smp.h \
+    include/asm-generic/current.h \
+    include/asm/thread_info.h \
+    include/asm/current.h \
+    include/asm-generic/percpu.h \
+    include/linux/percpu-defs.h \
+    include/linux/seqlock.h \
+    include/linux/types-user.h \
+    include/linux/ktime.h \
+    include/linux/jiffies.h \
+    include/generated/timeconst.h \
+    include/linux/typecheck.h

@@ -12,7 +12,7 @@
 
 #include <linux/limits.h>
 #include <linux/ioctl.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #ifndef __KERNEL__
 #include <linux/fscrypt.h>
 #endif

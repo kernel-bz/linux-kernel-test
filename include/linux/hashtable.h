@@ -8,7 +8,7 @@
 #define _LINUX_HASHTABLE_H
 
 #include <linux/list.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/kernel.h>
 #include <linux/bitops.h>
 #include <linux/hash.h>

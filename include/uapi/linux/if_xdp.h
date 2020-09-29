@@ -10,7 +10,7 @@
 #ifndef _LINUX_IF_XDP_H
 #define _LINUX_IF_XDP_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /* Options for the sxdp_flags field */
 #define XDP_SHARED_UMEM	(1 << 0)

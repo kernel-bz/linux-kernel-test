@@ -15,7 +15,7 @@
 #define _UAPI_LINUX_ETHTOOL_H
 
 #include <linux/kernel.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/if_ether.h>
 
 #define ETHTOOL_GCHANNELS       0x0000003c /* Get no of channels */

@@ -3,7 +3,7 @@
 #define __TOOLS_LINUX_ERR_H
 
 #include <linux/compiler.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 #include <asm/errno.h>
 

@@ -2,7 +2,7 @@
 #ifndef _LINUX_PRCTL_H
 #define _LINUX_PRCTL_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /* Values to pass as first argument to prctl() */
 

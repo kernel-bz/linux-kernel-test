@@ -2,7 +2,7 @@
 #ifndef SLAB_H
 #define SLAB_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/gfp.h>
 #include "linux/mm.h"
 

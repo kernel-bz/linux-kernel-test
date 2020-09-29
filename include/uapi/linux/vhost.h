@@ -12,7 +12,7 @@
  */
 
 #include <linux/vhost_types.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/ioctl.h>
 
 /* ioctls */

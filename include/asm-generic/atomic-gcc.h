@@ -3,7 +3,7 @@
 #define __TOOLS_ASM_GENERIC_ATOMIC_H
 
 #include <linux/compiler.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /*
  * Atomic operations that C can't guarantee us.  Useful for

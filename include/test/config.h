@@ -15,6 +15,9 @@ extern "C" {
 #define CONFIG_BASE_SMALL		0
 #define CONFIG_XARRAY_MULTI		0
 
+
+#define CONFIG_THREAD_INFO_IN_TASK
+
 #ifdef __cplusplus
 }
 #endif

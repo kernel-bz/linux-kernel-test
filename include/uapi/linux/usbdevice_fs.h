@@ -30,7 +30,7 @@
 #ifndef _UAPI_LINUX_USBDEVICE_FS_H
 #define _UAPI_LINUX_USBDEVICE_FS_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/magic.h>
 
 /* --------------------------------------------------------------------- */

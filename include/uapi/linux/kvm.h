@@ -8,7 +8,7 @@
  * Note: you must update KVM_API_VERSION if you change this interface.
  */
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/compiler.h>
 #include <linux/ioctl.h>
 #include <asm/kvm.h>

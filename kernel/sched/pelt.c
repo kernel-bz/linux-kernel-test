@@ -26,7 +26,7 @@
 
 #include <stdint.h>
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/sched.h>
 #include "sched-pelt.h"
 #include "sched.h"

@@ -6,7 +6,7 @@
 #define __LINUX_RESTART_BLOCK_H
 
 #include <linux/compiler.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/time64.h>
 
 struct timespec;

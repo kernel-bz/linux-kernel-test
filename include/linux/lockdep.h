@@ -22,6 +22,9 @@ static inline void lockdep_set_class(spinlock_t *lock,
 {
 }
 
+#define SINGLE_DEPTH_NESTING			1
+
+
 #ifdef __cplusplus
 }
 #endif

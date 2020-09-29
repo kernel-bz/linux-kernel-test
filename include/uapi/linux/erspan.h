@@ -13,7 +13,7 @@
 #ifndef _UAPI_ERSPAN_H
 #define _UAPI_ERSPAN_H
 
-#include <linux/types.h>	/* For __beXX in userspace */
+#include <linux/types-user.h>	/* For __beXX in userspace */
 #include <asm/byteorder.h>
 
 /* ERSPAN version 2 metadata header */

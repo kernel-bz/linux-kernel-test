@@ -1,7 +1,7 @@
 #ifndef _ASM_GENERIC_FCNTL_H
 #define _ASM_GENERIC_FCNTL_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /*
  * FMODE_EXEC is 0x20

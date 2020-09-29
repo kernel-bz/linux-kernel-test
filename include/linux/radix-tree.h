@@ -14,7 +14,7 @@
 #include <linux/preempt.h>
 #include <linux/rcupdate.h>
 #include <linux/spinlock.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 #include <linux/xarray.h>
 
 /* Keep unconverted code working */

@@ -3,7 +3,7 @@
 #define _LINUX_PFN_H_
 
 #ifndef __ASSEMBLY__
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /*
  * pfn_t: encapsulates a page-frame number that is optionally backed
