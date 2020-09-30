@@ -7,8 +7,12 @@
 #include <linux/param.h>
 #include <linux/types.h>
 
+//usr/include/asm-generic/param.h
+//HZ = 100
+#if 0
 #if HZ != 250
 #error "include/generated/timeconst.h has the wrong HZ value!"
+#endif
 #endif
 
 #define HZ_TO_MSEC_MUL32	U64_C(0x80000000)

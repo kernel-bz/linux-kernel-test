@@ -4,7 +4,6 @@
  * policies)
  */
 #include "sched.h"
-
 #include "pelt.h"
 
 int sched_rr_timeslice = RR_TIMESLICE;
@@ -2648,10 +2647,10 @@ int sched_rt_handler(struct ctl_table *table, int write,
 		loff_t *ppos)
 {
 	int old_period, old_runtime;
-	static DEFINE_MUTEX(mutex);
+    //static DEFINE_MUTEX(mutex);
 	int ret;
 
-	mutex_lock(&mutex);
+    //mutex_lock(&mutex);
 	old_period = sysctl_sched_rt_period;
 	old_runtime = sysctl_sched_rt_runtime;
 
@@ -2678,7 +2677,7 @@ undo:
 		sysctl_sched_rt_period = old_period;
 		sysctl_sched_rt_runtime = old_runtime;
 	}
-	mutex_unlock(&mutex);
+    //mutex_unlock(&mutex);
 
 	return ret;
 }
@@ -2688,9 +2687,9 @@ int sched_rr_handler(struct ctl_table *table, int write,
 		loff_t *ppos)
 {
 	int ret;
-	static DEFINE_MUTEX(mutex);
+    //static DEFINE_MUTEX(mutex);
 
-	mutex_lock(&mutex);
+    //mutex_lock(&mutex);
 	ret = proc_dointvec(table, write, buffer, lenp, ppos);
 	/*
 	 * Make sure that internally we keep jiffies.
@@ -2701,7 +2700,7 @@ int sched_rr_handler(struct ctl_table *table, int write,
 			sysctl_sched_rr_timeslice <= 0 ? RR_TIMESLICE :
 			msecs_to_jiffies(sysctl_sched_rr_timeslice);
 	}
-	mutex_unlock(&mutex);
+    //mutex_unlock(&mutex);
 
 	return ret;
 }

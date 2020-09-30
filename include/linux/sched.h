@@ -10,6 +10,7 @@
 #include <uapi/linux/sched.h>
 
 #include <asm/current.h>
+#include <asm/thread_info.h>
 
 #include <linux/pid.h>
 #include <linux/sem.h>
@@ -17,7 +18,7 @@
 #include <linux/kcov.h>
 #include <linux/mutex.h>
 #include <linux/plist.h>
-//#include <linux/hrtimer.h>
+#include <linux/hrtimer.h>
 #include <linux/seccomp.h>
 //#include <linux/nodemask.h>
 #include <linux/rcupdate.h>
@@ -30,7 +31,7 @@
 //#include <linux/mm_types_task.h>
 //#include <linux/task_io_accounting.h>
 //#include <linux/posix-timers.h>
-#include <linux/rseq.h>
+//#include <linux/rseq.h>
 
 #include <linux/seqlock.h>
 #include <linux/rbtree.h>
@@ -38,6 +39,8 @@
 #include <linux/llist.h>
 #include <linux/compiler_types.h>
 #include <linux/cpumask.h>
+
+#include <asm-generic/signal.h>
 
 /* task_struct member predeclarations (sorted alphabetically): */
 struct audit_context;
@@ -560,7 +563,7 @@ struct sched_dl_entity {
 	 * Bandwidth enforcement timer. Each -deadline task has its
 	 * own bandwidth to be enforced, thus we need one timer per task.
 	 */
-    //struct hrtimer			dl_timer;
+    struct hrtimer			dl_timer;
 
 	/*
 	 * Inactive timer, responsible for decreasing the active utilization
@@ -569,7 +572,7 @@ struct sched_dl_entity {
 	 * timer is needed to decrease the active utilization at the correct
 	 * time.
 	 */
-    //struct hrtimer inactive_timer;
+    struct hrtimer inactive_timer;
 };
 
 #ifdef CONFIG_UCLAMP_TASK
@@ -1610,7 +1613,7 @@ extern int can_nice(const struct task_struct *p, const int nice);
 extern int task_curr(const struct task_struct *p);
 extern int idle_cpu(int cpu);
 extern int available_idle_cpu(int cpu);
-extern int sched_setscheduler(struct task_struct *, int, const struct sched_param *);
+//extern int sched_setscheduler(struct task_struct *, int, const struct sched_param *);
 extern int sched_setscheduler_nocheck(struct task_struct *, int, const struct sched_param *);
 extern int sched_setattr(struct task_struct *, const struct sched_attr *);
 extern int sched_setattr_nocheck(struct task_struct *, const struct sched_attr *);

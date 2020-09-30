@@ -1,6 +1,3 @@
-#include "test/config.h"
-#include "test/debug.h"
-
 // SPDX-License-Identifier: GPL-2.0
 /*
  * /proc/schedstat implementation
@@ -30,7 +27,7 @@ static int show_schedstat(struct seq_file *seq, void *v)
 #endif
 		cpu = (unsigned long)(v - 2);
 		rq = cpu_rq(cpu);
-
+#if 0
 		/* runqueue-specific stats */
 		seq_printf(seq,
 		    "cpu%d %u 0 %u %u %u %u %llu %llu %lu",
@@ -39,7 +36,7 @@ static int show_schedstat(struct seq_file *seq, void *v)
 		    rq->ttwu_count, rq->ttwu_local,
 		    rq->rq_cpu_time,
 		    rq->rq_sched_info.run_delay, rq->rq_sched_info.pcount);
-
+#endif
 		seq_printf(seq, "\n");
 
 #ifdef CONFIG_SMP
@@ -50,6 +47,7 @@ static int show_schedstat(struct seq_file *seq, void *v)
 
 			seq_printf(seq, "domain%d %*pb", dcount++,
 				   cpumask_pr_args(sched_domain_span(sd)));
+#if 0
 			for (itype = CPU_IDLE; itype < CPU_MAX_IDLE_TYPES;
 					itype++) {
 				seq_printf(seq, " %u %u %u %u %u %u %u %u",
@@ -69,6 +67,7 @@ static int show_schedstat(struct seq_file *seq, void *v)
 			    sd->sbf_count, sd->sbf_balanced, sd->sbf_pushed,
 			    sd->ttwu_wake_remote, sd->ttwu_move_affine,
 			    sd->ttwu_move_balance);
+#endif
 		}
 		rcu_read_unlock();
 #endif
@@ -116,16 +115,18 @@ static void schedstat_stop(struct seq_file *file, void *data)
 {
 }
 
+#if 0
 static const struct seq_operations schedstat_sops = {
 	.start = schedstat_start,
 	.next  = schedstat_next,
 	.stop  = schedstat_stop,
 	.show  = show_schedstat,
 };
+#endif
 
 static int __init proc_schedstat_init(void)
 {
-	proc_create_seq("schedstat", 0, NULL, &schedstat_sops);
+    //proc_create_seq("schedstat", 0, NULL, &schedstat_sops);
 	return 0;
 }
 subsys_initcall(proc_schedstat_init);

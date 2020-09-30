@@ -192,8 +192,8 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 				SD_SHARE_PKG_RESOURCES |
 				SD_PREFER_SIBLING |
 				SD_SHARE_POWERDOMAIN);
-		if (nr_node_ids == 1)
-			pflags &= ~SD_SERIALIZE;
+//		if (nr_node_ids == 1)
+//			pflags &= ~SD_SERIALIZE;
 	}
 	if (~cflags & pflags)
 		return 0;
@@ -1191,7 +1191,7 @@ static int __init setup_relax_domain_level(char *str)
 
 	return 1;
 }
-__setup("relax_domain_level=", setup_relax_domain_level);
+//__setup("relax_domain_level=", setup_relax_domain_level);
 
 static void set_domain_attribute(struct sched_domain *sd,
 				 struct sched_domain_attr *attr)
@@ -1243,7 +1243,7 @@ __visit_domain_allocation_hell(struct s_data *d, const struct cpumask *cpu_map)
 
 	if (__sdt_alloc(cpu_map))
 		return sa_sd_storage;
-	d->sd = alloc_percpu(struct sched_domain *);
+    //d->sd = alloc_percpu(struct sched_domain *);
 	if (!d->sd)
 		return sa_sd_storage;
 	d->rd = alloc_rootdomain();
@@ -1754,7 +1754,7 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 
 	for_each_sd_topology(tl) {
 		struct sd_data *sdd = &tl->data;
-
+#if 0
 		sdd->sd = alloc_percpu(struct sched_domain *);
 		if (!sdd->sd)
 			return -ENOMEM;
@@ -1770,7 +1770,7 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 		sdd->sgc = alloc_percpu(struct sched_group_capacity *);
 		if (!sdd->sgc)
 			return -ENOMEM;
-
+#endif
 		for_each_cpu(j, cpu_map) {
 			struct sched_domain *sd;
 			struct sched_domain_shared *sds;

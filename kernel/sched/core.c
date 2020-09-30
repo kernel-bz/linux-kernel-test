@@ -6,33 +6,26 @@
  *
  *  Copyright (C) 1991-2002  Linus Torvalds
  */
-#include "test/config.h"
-
 #include "sched.h"
+#include "pelt.h"
+//#include "../workqueue_internal.h"
+//#include "../smpboot.h"
 
 //#include <linux/nospec.h>
 //#include <linux/kcov.h>
 //#include <asm/switch_to.h>
 //#include <asm/tlb.h>
 
-//#include "../workqueue_internal.h"
-//#include "../smpboot.h"
-
-#include "pelt.h"
-
+#include <linux/types-user.h>
 #include <linux/gfp.h>
 #include <linux/slab.h>
-#include <kernel/sched/sched.h>
 #include <linux/sched.h>
 
 #define CREATE_TRACE_POINTS
 #define const_debug
 
-/*
- * Number of tasks to iterate in a single balance run.
- * Limited because this is done with IRQs disabled.
- */
-const_debug unsigned int sysctl_sched_nr_migrate = 32;
+//DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+DEFINE_PER_CPU(struct rq, runqueues);
 
 /*
  * period over which we measure -rt task CPU usage in us.
@@ -63,7 +56,6 @@ static struct kmem_cache *task_group_cache __read_mostly;
 
 DECLARE_PER_CPU(cpumask_var_t, load_balance_mask);
 DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
-
 
 void __init sched_init(void)
 {
@@ -208,6 +200,3 @@ void __init sched_init(void)
 
         scheduler_running = 1;
 }
-
-
-

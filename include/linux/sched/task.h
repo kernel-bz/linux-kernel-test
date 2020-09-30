@@ -9,6 +9,7 @@
 
 #include <linux/sched.h>
 //#include <linux/uaccess.h>
+#include <linux/rwlock_types.h>
 
 struct task_struct;
 struct rusage;

@@ -11,6 +11,7 @@
  * typically be used for exclusion which gives rise to priority inversion.
  * Waiting for completion is a typically sync point, but not an exclusion point.
  */
+#include <linux/completion.h>
 #include "sched.h"
 
 /**
@@ -29,12 +30,12 @@ void complete(struct completion *x)
 {
 	unsigned long flags;
 
-	spin_lock_irqsave(&x->wait.lock, flags);
+	//spin_lock_irqsave(&x->wait.lock, flags);
 
 	if (x->done != UINT_MAX)
 		x->done++;
-	__wake_up_locked(&x->wait, TASK_NORMAL, 1);
-	spin_unlock_irqrestore(&x->wait.lock, flags);
+    __wake_up_locked(&x->wait, TASK_NORMAL, 1);
+	//spin_unlock_irqrestore(&x->wait.lock, flags);
 }
 EXPORT_SYMBOL(complete);
 

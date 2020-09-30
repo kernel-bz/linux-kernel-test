@@ -1,3 +1,11 @@
+#ifndef __SCHED_FEATURES_H
+#define __SCHED_FEATURES_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Only give sleepers 50% of their service deficit. This allows
@@ -89,3 +97,10 @@ SCHED_FEAT(WA_BIAS, true)
  * UtilEstimation. Use estimated CPU utilization.
  */
 SCHED_FEAT(UTIL_EST, true)
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

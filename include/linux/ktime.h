@@ -104,7 +104,7 @@ static struct timespec ns_to_timespec(const s64 nsec)
     return ts;
 }
 
-struct timespec64 ns_to_timespec64(const s64 nsec)
+static struct timespec64 ns_to_timespec64(const s64 nsec)
 {
     struct timespec64 ts;
     s32 rem;

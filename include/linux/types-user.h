@@ -18,7 +18,7 @@ typedef __kernel_ino_t		ino_t;
 //typedef __kernel_mode_t		mode_t;		//sys/types.h
 typedef unsigned short		umode_t;
 //typedef u32			nlink_t;
-typedef __kernel_off_t		off_t;
+//typedef __kernel_off_t		off_t;
 typedef __kernel_pid_t		pid_t;
 typedef __kernel_daddr_t	daddr_t;
 //typedef __kernel_key_t		key_t;
@@ -36,7 +36,6 @@ typedef __kernel_gid16_t        gid16_t;
 
 //typedef unsigned long		uintptr_t;
 
-struct page;
 #ifdef CONFIG_HAVE_UID16
 /* This is defined by include/asm-{arch}/posix_types.h */
 typedef __kernel_old_uid_t	old_uid_t;
@@ -48,6 +47,7 @@ typedef __kernel_loff_t		loff_t;
 #endif
 
 struct kmem_cache;
+struct page;
 
 typedef enum {
 	GFP_KERNEL,
@@ -93,6 +93,32 @@ typedef __u32 __bitwise __le32;
 typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
+
+
+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+typedef u64 dma_addr_t;
+#else
+typedef u32 dma_addr_t;
+#endif
+
+//typedef unsigned int __bitwise gfp_t;
+typedef unsigned int __bitwise slab_flags_t;
+typedef unsigned int __bitwise fmode_t;
+
+#ifdef CONFIG_PHYS_ADDR_T_64BIT
+typedef u64 phys_addr_t;
+#else
+typedef u32 phys_addr_t;
+#endif
+
+typedef phys_addr_t resource_size_t;
+
+/*
+ * This type is the placeholder for a hardware interrupt number. It has to be
+ * big enough to enclose whatever representation is used by a given platform.
+ */
+typedef unsigned long irq_hw_number_t;
+
 
 typedef struct {
 	int counter;

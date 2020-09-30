@@ -5,6 +5,11 @@
 extern "C" {
 #endif
 
+#if !defined(HAVE_STRUCT_TIMESPEC)
+#define HAVE_STRUCT_TIMESPEC
+#endif
+//#if !defined(_TIMESPEC_DEFINED)
+
 #define CONFIG_NR_CPUS		4
 #define CONFIG_SMP
 
@@ -15,6 +20,7 @@ extern "C" {
 #define CONFIG_BASE_SMALL		0
 #define CONFIG_XARRAY_MULTI		0
 
+#define CONFIG_CPU_FREQ
 
 #define CONFIG_THREAD_INFO_IN_TASK
 

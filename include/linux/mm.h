@@ -8,7 +8,7 @@
 #include <limits.h>
 #include <stdio.h>
 
-typedef unsigned long dma_addr_t;
+//typedef unsigned long dma_addr_t;
 
 #define unlikely
 

@@ -1,10 +1,15 @@
 #ifndef __PELT_H
 #define __PELT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <linux/sched.h>
 #include "sched.h"
+#include "sched-pelt.h"
 
 #ifdef CONFIG_SMP
-#include "sched-pelt.h"
 
 int __update_load_avg_blocked_se(u64 now, struct sched_entity *se);
 int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se);
@@ -180,6 +185,11 @@ update_rq_clock_pelt(struct rq *rq, s64 delta) { }
 static inline void
 update_idle_rq_clock_pelt(struct rq *rq) { }
 
+#endif
+
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

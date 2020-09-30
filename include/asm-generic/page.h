@@ -22,6 +22,8 @@
 #define PAGE_MASK	(~(PAGE_SIZE-1))
 
 #include <asm/setup.h>
+#include <linux/types-user.h>
+#include <linux/mm.h>
 
 #ifndef __ASSEMBLY__
 

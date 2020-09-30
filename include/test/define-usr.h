@@ -8,6 +8,12 @@ extern "C" {
 #define notrace
 #define __randomize_layout
 #define ____cacheline_aligned
+#define __cpuidle
+#define __init
+#define __maybe_unused
+
+
+#define lockdep_assert_held(l)			do { (void)(l); } while (0)
 
 #ifdef __cplusplus
 }

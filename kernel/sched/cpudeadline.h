@@ -1,3 +1,10 @@
+#ifndef __SCHED_CPUDEADLINE_H
+#define __SCHED_CPUDEADLINE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #define IDX_INVALID		-1
@@ -24,3 +31,10 @@ void cpudl_set_freecpu(struct cpudl *cp, int cpu);
 void cpudl_clear_freecpu(struct cpudl *cp, int cpu);
 void cpudl_cleanup(struct cpudl *cp);
 #endif /* CONFIG_SMP */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -2,6 +2,7 @@
 #ifndef _LINUX_SCHED_CPUFREQ_H
 #define _LINUX_SCHED_CPUFREQ_H
 
+#include "test/config.h"
 #include <linux/types-user.h>
 
 /*

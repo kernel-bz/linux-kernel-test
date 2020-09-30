@@ -3,7 +3,8 @@
 #define __TOOLS_LINUX_ASM_ATOMIC_H
 
 #if defined(__i386__) || defined(__x86_64__)
-#include "../../arch/x86/include/asm/atomic.h"
+//#include "../../arch/x86/include/asm/atomic.h"
+#include <asm-generic/atomic-gcc.h>
 #else
 #include <asm-generic/atomic-gcc.h>
 #endif

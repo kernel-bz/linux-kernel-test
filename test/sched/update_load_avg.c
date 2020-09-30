@@ -261,7 +261,7 @@ int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
                                 cfs_rq->curr != NULL)) {
 
                 ___update_load_avg(&cfs_rq->avg, 1, 1);
-                trace_pelt_cfs_tp(cfs_rq);
+                //trace_pelt_cfs_tp(cfs_rq);
                 return 1;
         }
 
@@ -277,7 +277,7 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
 
                 ___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
                 cfs_se_util_change(&se->avg);
-                trace_pelt_se_tp(se);
+                //trace_pelt_se_tp(se);
                 return 1;
         }
 

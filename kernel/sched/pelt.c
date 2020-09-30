@@ -24,8 +24,6 @@
  *  Author: Vincent Guittot <vincent.guittot@linaro.org>
  */
 
-#include <stdint.h>
-
 #include <linux/types-user.h>
 #include <linux/sched.h>
 #include "sched-pelt.h"

@@ -3,6 +3,7 @@
  * Simple CPU accounting cgroup controller
  */
 #include "sched.h"
+#include <linux/kernel_stat.h>
 
 #ifdef CONFIG_IRQ_TIME_ACCOUNTING
 
@@ -138,7 +139,8 @@ void account_user_time(struct task_struct *p, u64 cputime)
  */
 void account_guest_time(struct task_struct *p, u64 cputime)
 {
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
+    //u64 *cpustat = kcpustat_this_cpu->cpustat;
+    u64 *cpustat = kernel_cpustat.cpustat;
 
 	/* Add guest time to process. */
 	p->utime += cputime;
@@ -206,7 +208,8 @@ void account_system_time(struct task_struct *p, int hardirq_offset, u64 cputime)
  */
 void account_steal_time(u64 cputime)
 {
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
+    //u64 *cpustat = kcpustat_this_cpu->cpustat;
+    u64 *cpustat = kernel_cpustat.cpustat;
 
 	cpustat[CPUTIME_STEAL] += cputime;
 }
@@ -217,8 +220,10 @@ void account_steal_time(u64 cputime)
  */
 void account_idle_time(u64 cputime)
 {
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
-	struct rq *rq = this_rq();
+    //u64 *cpustat = kcpustat_this_cpu->cpustat;
+    u64 *cpustat = kernel_cpustat.cpustat;
+
+    struct rq *rq = this_rq();
 
 	if (atomic_read(&rq->nr_iowait) > 0)
 		cpustat[CPUTIME_IOWAIT] += cputime;
@@ -309,6 +314,7 @@ void thread_group_cputime(struct task_struct *tsk, struct task_cputime *times)
 	if (same_thread_group(current, tsk))
 		(void) task_sched_runtime(current);
 
+#if 0
 	rcu_read_lock();
 	/* Attempt a lockless read on the first round. */
 	nextseq = 0;
@@ -330,6 +336,7 @@ void thread_group_cputime(struct task_struct *tsk, struct task_cputime *times)
 	} while (need_seqretry(&sig->stats_lock, seq));
 	done_seqretry_irqrestore(&sig->stats_lock, seq, flags);
 	rcu_read_unlock();
+#endif
 }
 
 #ifdef CONFIG_IRQ_TIME_ACCOUNTING
@@ -676,7 +683,7 @@ void thread_group_cputime_adjusted(struct task_struct *p, u64 *ut, u64 *st)
 	struct task_cputime cputime;
 
 	thread_group_cputime(p, &cputime);
-	cputime_adjust(&cputime, &p->signal->prev_cputime, ut, st);
+    //cputime_adjust(&cputime, &p->signal->prev_cputime, ut, st);
 }
 #endif /* !CONFIG_VIRT_CPU_ACCOUNTING_NATIVE */
 

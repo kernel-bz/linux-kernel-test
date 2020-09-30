@@ -1,8 +1,14 @@
-#ifndef __KERNEL_SCHED_SCHED_H
-#define __KERNEL_SCHED_SCHED_H
+#ifndef __SCHED_SCHED_H
+#define __SCHED_SCHED_H
 
 #include "test/config.h"
 #include "test/define-usr.h"
+#include "test/debug.h"
+#include <urcu.h>
+#include <urcu/urcu-memb.h>
+//#include <urcu-bp.h>
+//#include <urcu-call-rcu.h>
+//#include <urcu-pointer.h>
 #include <linux/types-user.h>
 #include <uapi/linux/sched.h>
 
@@ -69,7 +75,7 @@
 //#include <linux/security.h>
 //#include <linux/stop_machine.h>
 //#include <linux/suspend.h>
-//#include <linux/swait.h>
+#include <linux/swait.h>
 //#include <linux/syscalls.h>
 //#include <linux/task_work.h>
 //#include <linux/tsacct_kern.h>
@@ -85,6 +91,9 @@
 
 #include <linux/ktime.h>
 #include <linux/lockdep.h>
+#include <linux/hrtimer.h>
+#include <linux/spinlock.h>
+#include <linux/rbtree.h>
 
 #ifdef CONFIG_SCHED_DEBUG
 # define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
@@ -93,7 +102,33 @@
 #endif
 
 struct rq;
-struct cpuidle_state;
+//struct cpuidle_state;
+//include/linux/cpuidle.h
+struct cpuidle_state {
+    char		name[16];
+    char		desc[32];
+
+    unsigned int	flags;
+    unsigned int	exit_latency; /* in US */
+    int		power_usage; /* in mW */
+    unsigned int	target_residency; /* in US */
+    bool		disabled; /* disabled on all CPUs */
+
+    int (*enter)	(struct cpuidle_device *dev,
+            struct cpuidle_driver *drv,
+            int index);
+
+    int (*enter_dead) (struct cpuidle_device *dev, int index);
+
+    /*
+     * CPUs execute ->enter_s2idle with the local tick or entire timekeeping
+     * suspended, so it must not re-enable interrupts at any point (even
+     * temporarily) or attempt to change states of clock event devices.
+     */
+    void (*enter_s2idle) (struct cpuidle_device *dev,
+                  struct cpuidle_driver *drv,
+                  int index);
+};
 
 /* task_struct::on_rq states: */
 #define TASK_ON_RQ_QUEUED	1
@@ -246,7 +281,7 @@ struct rt_bandwidth {
 	raw_spinlock_t		rt_runtime_lock;
 	ktime_t			rt_period;
 	u64			rt_runtime;
-    //struct hrtimer		rt_period_timer;
+    struct hrtimer		rt_period_timer;
 	unsigned int		rt_period_active;
 };
 
@@ -942,7 +977,7 @@ struct rq {
 	/* For active balancing */
 	int			active_balance;
 	int			push_cpu;
-	struct cpu_stop_work	active_balance_work;
+    //struct cpu_stop_work	active_balance_work;
 
 	/* CPU of this runqueue: */
 	int			cpu;
@@ -1137,7 +1172,7 @@ static inline void rq_clock_cancel_skipupdate(struct rq *rq)
 
 struct rq_flags {
 	unsigned long flags;
-	struct pin_cookie cookie;
+    //struct pin_cookie cookie;
 #ifdef CONFIG_SCHED_DEBUG
 	/*
 	 * A copy of (rq::clock_update_flags & RQCF_UPDATED) for the
@@ -1150,7 +1185,7 @@ struct rq_flags {
 
 static inline void rq_pin_lock(struct rq *rq, struct rq_flags *rf)
 {
-	rf->cookie = lockdep_pin_lock(&rq->lock);
+    //rf->cookie = lockdep_pin_lock(&rq->lock);
 
 #ifdef CONFIG_SCHED_DEBUG
 	rq->clock_update_flags &= (RQCF_REQ_SKIP|RQCF_ACT_SKIP);
@@ -1165,12 +1200,12 @@ static inline void rq_unpin_lock(struct rq *rq, struct rq_flags *rf)
 		rf->clock_update_flags = RQCF_UPDATED;
 #endif
 
-	lockdep_unpin_lock(&rq->lock, rf->cookie);
+    //lockdep_unpin_lock(&rq->lock, rf->cookie);
 }
 
 static inline void rq_repin_lock(struct rq *rq, struct rq_flags *rf)
 {
-	lockdep_repin_lock(&rq->lock, rf->cookie);
+    //lockdep_repin_lock(&rq->lock, rf->cookie);
 
 #ifdef CONFIG_SCHED_DEBUG
 	/*
@@ -2070,7 +2105,7 @@ static inline void double_unlock_balance(struct rq *this_rq, struct rq *busiest)
 	__releases(busiest->lock)
 {
 	raw_spin_unlock(&busiest->lock);
-	lock_set_subclass(&this_rq->lock.dep_map, 0, _RET_IP_);
+    //lock_set_subclass(&this_rq->lock.dep_map, 0, _RET_IP_);
 }
 
 static inline void double_lock(spinlock_t *l1, spinlock_t *l2)

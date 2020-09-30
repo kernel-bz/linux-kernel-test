@@ -430,9 +430,9 @@ extern void jiffies_to_timespec64(const unsigned long jiffies,
 				  struct timespec64 *value);
 static inline unsigned long timespec_to_jiffies(const struct timespec *value)
 {
-	struct timespec64 ts = timespec_to_timespec64(*value);
+    //struct timespec64 ts = timespec_to_timespec64(*value);
 
-	return timespec64_to_jiffies(&ts);
+    //return timespec64_to_jiffies(&ts);
 }
 
 static inline void jiffies_to_timespec(const unsigned long jiffies,

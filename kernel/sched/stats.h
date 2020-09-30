@@ -1,3 +1,10 @@
+#ifndef __SCHED_STATS_H
+#define __SCHED_STATS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #ifdef CONFIG_SCHEDSTATS
@@ -252,3 +259,10 @@ sched_info_switch(struct rq *rq, struct task_struct *prev, struct task_struct *n
 # define sched_info_arrive(rq, next)	do { } while (0)
 # define sched_info_switch(rq, t, next)	do { } while (0)
 #endif /* CONFIG_SCHED_INFO */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

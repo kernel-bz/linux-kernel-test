@@ -1,3 +1,10 @@
+#ifndef __SCHED_AUTOGROUP_H
+#define __SCHED_AUTOGROUP_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SPDX-License-Identifier: GPL-2.0 */
 #ifdef CONFIG_SCHED_AUTOGROUP
 
@@ -58,3 +65,11 @@ static inline int autogroup_path(struct task_group *tg, char *buf, int buflen)
 }
 
 #endif /* CONFIG_SCHED_AUTOGROUP */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+

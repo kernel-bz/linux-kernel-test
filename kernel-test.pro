@@ -3,7 +3,11 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-unix|win32: LIBS += -lpthread
+DEFINES += _POSIX_SOURCE  _STRUCT_TIMESPEC
+
+LIBS += -Lpthread
+
+QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC
 
 INCLUDEPATH += \
         include/
@@ -25,31 +29,24 @@ SOURCES += \
     kernel/sched/fair.c \
     kernel/sched/rt.c \
     kernel/sched/stats.c \
-    kernel/sched/autogroup.c \
     kernel/sched/clock.c \
     kernel/sched/completion.c \
     kernel/sched/core.c \
     kernel/sched/cpuacct.c \
     kernel/sched/cpudeadline.c \
-    kernel/sched/cpufreq_schedutil.c \
     kernel/sched/cpufreq.c \
     kernel/sched/cpupri.c \
     kernel/sched/cputime.c \
     kernel/sched/deadline.c \
-    kernel/sched/debug.c \
     kernel/sched/fair.c \
     kernel/sched/idle.c \
-    kernel/sched/isolation.c \
     kernel/sched/loadavg.c \
-    kernel/sched/membarrier.c \
     kernel/sched/pelt.c \
-    kernel/sched/psi.c \
     kernel/sched/rt.c \
     kernel/sched/stats.c \
     kernel/sched/stop_task.c \
     kernel/sched/swait.c \
     kernel/sched/topology.c \
-    kernel/sched/wait_bit.c \
     kernel/sched/wait.c
 
 HEADERS += \
@@ -396,4 +393,16 @@ HEADERS += \
     include/linux/ktime.h \
     include/linux/jiffies.h \
     include/generated/timeconst.h \
-    include/linux/typecheck.h
+    include/linux/typecheck.h \
+    include/uapi/asm-generic/signal.h \
+    include/uapi/asm-generic/signal-defs.h \
+    include/linux/rwlock_types.h \
+    include/linux/hrtimer.h \
+    include/linux/sched_clock.h \
+    include/linux/errno.h \
+    include/uapi/linux/errno.h \
+    include/linux/completion.h \
+    include/linux/cgroup-defs.h \
+    include/linux/kernel_stat.h \
+    include/linux/cpuhotplug.h \
+    include/linux/swait.h

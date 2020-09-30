@@ -7,6 +7,8 @@
  */
 #include "sched.h"
 
+#ifdef CONFIG_CGROUPS
+
 /* Time spent by the tasks of the CPU accounting group executing in ... */
 enum cpuacct_stat_index {
 	CPUACCT_STAT_USER,	/* ... user mode */
@@ -373,3 +375,5 @@ struct cgroup_subsys cpuacct_cgrp_subsys = {
 	.legacy_cftypes	= files,
 	.early_init	= true,
 };
+
+#endif

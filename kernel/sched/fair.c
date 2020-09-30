@@ -279,12 +279,13 @@ static inline void cfs_rq_tg_path(struct cfs_rq *cfs_rq, char *path, int len)
 {
 	if (!path)
 		return;
-
+#if 0
 	if (cfs_rq && task_group_is_autogroup(cfs_rq->tg))
 		autogroup_path(cfs_rq->tg, path, len);
 	else if (cfs_rq && cfs_rq->tg->css.cgroup)
 		cgroup_path(cfs_rq->tg->css.cgroup, path, len);
 	else
+#endif
 		strlcpy(path, "(null)", len);
 }
 
@@ -977,12 +978,14 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 			 * Blocking time is in units of nanosecs, so shift by
 			 * 20 to get a milliseconds-range estimation of the
 			 * amount of time that the task spent sleeping:
-			 */
+             */
+#if 0
 			if (unlikely(prof_on == SLEEP_PROFILING)) {
 				profile_hits(SLEEP_PROFILING,
 						(void *)get_wchan(tsk),
 						delta >> 20);
 			}
+#endif
 			account_scheduler_latency(tsk, delta >> 10, 0);
 		}
 	}
@@ -3401,8 +3404,8 @@ static inline int propagate_entity_load_avg(struct sched_entity *se)
 	update_tg_cfs_util(cfs_rq, se, gcfs_rq);
 	update_tg_cfs_runnable(cfs_rq, se, gcfs_rq);
 
-	trace_pelt_cfs_tp(cfs_rq);
-	trace_pelt_se_tp(se);
+    //trace_pelt_cfs_tp(cfs_rq);
+    //trace_pelt_se_tp(se);
 
 	return 1;
 }
@@ -3477,12 +3480,12 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
 		unsigned long r;
 		u32 divider = LOAD_AVG_MAX - 1024 + sa->period_contrib;
 
-		raw_spin_lock(&cfs_rq->removed.lock);
+        //raw_spin_lock(&cfs_rq->removed.lock);
 		swap(cfs_rq->removed.util_avg, removed_util);
 		swap(cfs_rq->removed.load_avg, removed_load);
 		swap(cfs_rq->removed.runnable_sum, removed_runnable_sum);
 		cfs_rq->removed.nr = 0;
-		raw_spin_unlock(&cfs_rq->removed.lock);
+        //raw_spin_unlock(&cfs_rq->removed.lock);
 
 		r = removed_load;
 		sub_positive(&sa->load_avg, r);
@@ -3557,7 +3560,7 @@ static void attach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 
 	cfs_rq_util_change(cfs_rq, flags);
 
-	trace_pelt_cfs_tp(cfs_rq);
+    //trace_pelt_cfs_tp(cfs_rq);
 }
 
 /**
@@ -3578,7 +3581,7 @@ static void detach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 
 	cfs_rq_util_change(cfs_rq, 0);
 
-	trace_pelt_cfs_tp(cfs_rq);
+    //trace_pelt_cfs_tp(cfs_rq);
 }
 
 /*
@@ -3671,12 +3674,12 @@ static void remove_entity_load_avg(struct sched_entity *se)
 
 	sync_entity_load_avg(se);
 
-	raw_spin_lock_irqsave(&cfs_rq->removed.lock, flags);
+    //raw_spin_lock_irqsave(&cfs_rq->removed.lock, flags);
 	++cfs_rq->removed.nr;
 	cfs_rq->removed.util_avg	+= se->avg.util_avg;
 	cfs_rq->removed.load_avg	+= se->avg.load_avg;
 	cfs_rq->removed.runnable_sum	+= se->avg.load_sum; /* == runnable_sum */
-	raw_spin_unlock_irqrestore(&cfs_rq->removed.lock, flags);
+    //raw_spin_unlock_irqrestore(&cfs_rq->removed.lock, flags);
 }
 
 static inline unsigned long cfs_rq_runnable_load_avg(struct cfs_rq *cfs_rq)
@@ -5947,7 +5950,7 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
 	 * Due to large variance we need a large fuzz factor; hackbench in
 	 * particularly is sensitive here.
 	 */
-	avg_idle = this_rq()->avg_idle / 512;
+    //avg_idle = this_rq()->avg_idle / 512;
 	avg_cost = this_sd->avg_scan_cost + 1;
 
 	if (sched_feat(SIS_AVG_CPU) && avg_idle < avg_cost)
@@ -8989,13 +8992,13 @@ more_balance:
 				active_balance = 1;
 			}
 			raw_spin_unlock_irqrestore(&busiest->lock, flags);
-
+#if 0
 			if (active_balance) {
 				stop_one_cpu_nowait(cpu_of(busiest),
 					active_load_balance_cpu_stop, busiest,
 					&busiest->active_balance_work);
 			}
-
+#endif
 			/* We've kicked active balancing, force task migration. */
 			sd->nr_balance_failed = sd->cache_nice_tries+1;
 		}
@@ -10182,7 +10185,7 @@ void init_cfs_rq(struct cfs_rq *cfs_rq)
 	cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
 #endif
 #ifdef CONFIG_SMP
-	raw_spin_lock_init(&cfs_rq->removed.lock);
+    //raw_spin_lock_init(&cfs_rq->removed.lock);
 #endif
 }
 
@@ -10366,7 +10369,7 @@ int sched_group_set_shares(struct task_group *tg, unsigned long shares)
 
 	shares = clamp(shares, scale_load(MIN_SHARES), scale_load(MAX_SHARES));
 
-	mutex_lock(&shares_mutex);
+    //mutex_lock(&shares_mutex);
 	if (tg->shares == shares)
 		goto done;
 
@@ -10387,7 +10390,7 @@ int sched_group_set_shares(struct task_group *tg, unsigned long shares)
 	}
 
 done:
-	mutex_unlock(&shares_mutex);
+    //mutex_unlock(&shares_mutex);
 	return 0;
 }
 #else /* CONFIG_FAIR_GROUP_SCHED */

@@ -1,3 +1,10 @@
+#ifndef __SCHED_CPUPRI_H
+#define __SCHED_CPUPRI_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #define CPUPRI_NR_PRIORITIES	(MAX_RT_PRIO + 2)
@@ -22,4 +29,11 @@ int  cpupri_find(struct cpupri *cp, struct task_struct *p, struct cpumask *lowes
 void cpupri_set(struct cpupri *cp, int cpu, int pri);
 int  cpupri_init(struct cpupri *cp);
 void cpupri_cleanup(struct cpupri *cp);
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

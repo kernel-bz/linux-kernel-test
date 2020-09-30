@@ -1,8 +1,7 @@
 #ifndef __LINUX_RWLOCK_TYPES_H
 #define __LINUX_RWLOCK_TYPES_H
 
-
-#include "linux/spinlock_types_up.h"
+#include <linux/spinlock.h>
 
 /*
  * include/linux/rwlock_types.h - generic rwlock type definitions

@@ -16,10 +16,19 @@
 #define spin_unlock_bh(x)		pthread_mutex_unlock(x)
 #define spin_lock_irq(x)		pthread_mutex_lock(x)
 #define spin_unlock_irq(x)		pthread_mutex_unlock(x)
-#define spin_lock_irqsave(x, f)		(void)f, pthread_mutex_lock(x)
+#define spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
 #define spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
 
+#define raw_spin_lock(x)			pthread_mutex_lock(x)
+#define raw_spin_unlock(x)			pthread_mutex_unlock(x)
+#define raw_spin_lock_irq(x)		pthread_mutex_lock(x)
+#define raw_spin_unlock_irq(x)		pthread_mutex_unlock(x)
+#define raw_spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
+#define raw_spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
+
 #define arch_spinlock_t pthread_mutex_t
+#define arch_rwlock_t pthread_mutex_t
+
 #define __ARCH_SPIN_LOCK_UNLOCKED PTHREAD_MUTEX_INITIALIZER
 
 #define raw_spinlock_t	pthread_mutex_t

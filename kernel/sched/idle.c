@@ -7,8 +7,10 @@
  *        tasks which are handled in sched/fair.c )
  */
 #include "sched.h"
+#include <linux/cpuhotplug.h>
+#include <linux/kern_levels.h>
 
-#include <trace/events/power.h>
+//#include <trace/events/power.h>
 
 /* Linker adds these: start and end of __cpuidle functions */
 extern char __cpuidle_text_start[], __cpuidle_text_end[];
@@ -63,7 +65,7 @@ static noinline int __cpuidle cpu_idle_poll(void)
 		(cpu_idle_force_poll || tick_check_broadcast_expired()))
 		cpu_relax();
 	start_critical_timings();
-	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
+    //trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
 	rcu_idle_exit();
 
 	return 1;
@@ -104,7 +106,7 @@ static int call_cpuidle(struct cpuidle_driver *drv, struct cpuidle_device *dev,
 	 * update no idle residency and return.
 	 */
 	if (current_clr_polling_and_test()) {
-		dev->last_residency = 0;
+        //dev->last_residency = 0;
 		local_irq_enable();
 		return -EBUSY;
 	}
@@ -165,8 +167,9 @@ static void cpuidle_idle_call(void)
 	 * until a proper wakeup interrupt happens.
 	 */
 
-	if (idle_should_enter_s2idle() || dev->use_deepest_state) {
-		if (idle_should_enter_s2idle()) {
+    //if (idle_should_enter_s2idle() || dev->use_deepest_state) {
+    if (idle_should_enter_s2idle()) {
+        if (idle_should_enter_s2idle()) {
 			rcu_idle_enter();
 
 			entered_state = cpuidle_enter_s2idle(drv, dev);
