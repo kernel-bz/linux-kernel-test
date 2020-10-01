@@ -3,14 +3,14 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _POSIX_SOURCE  _STRUCT_TIMESPEC
+DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC __USE_MISC \
+                __timeval_defined
 
 LIBS += -Lpthread
 
 QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC
 
-INCLUDEPATH += \
-        include/
+INCLUDEPATH += include/ lib/ lib/traceevent/
 
 SOURCES += \
     test/cpu/cpus-mask-test.c \
@@ -47,7 +47,34 @@ SOURCES += \
     kernel/sched/stop_task.c \
     kernel/sched/swait.c \
     kernel/sched/topology.c \
-    kernel/sched/wait.c
+    kernel/sched/wait.c \
+    lib/api/fd/array.c \
+    lib/api/fs/fs.c \
+    lib/api/fs/tracing_path.c \
+    lib/api/cpu.c \
+    lib/api/debug.c \
+    lib/math/div64.c \
+    lib/subcmd/exec-cmd.c \
+    lib/subcmd/help.c \
+    lib/subcmd/pager.c \
+    lib/subcmd/parse-options.c \
+    lib/subcmd/run-command.c \
+    lib/subcmd/sigchain.c \
+    lib/subcmd/subcmd-config.c \
+    lib/symbol/kallsyms.c \
+    lib/argv_split.c \
+    lib/bitmap.c \
+    lib/ctype.c \
+    lib/find_bit.c \
+    lib/hweight.c \
+    lib/idr.c \
+    lib/radix-tree.c \
+    lib/rbtree.c \
+    lib/str_error_r.c \
+    lib/string.c \
+    lib/test_ida.c \
+    lib/vsprintf.c \
+    lib/zalloc.c
 
 HEADERS += \
     include/test/test.h \
@@ -405,4 +432,105 @@ HEADERS += \
     include/linux/cgroup-defs.h \
     include/linux/kernel_stat.h \
     include/linux/cpuhotplug.h \
-    include/linux/swait.h
+    include/linux/swait.h \
+    lib/api/fd/array.h \
+    lib/api/fs/fs.h \
+    lib/api/fs/tracing_path.h \
+    lib/api/cpu.h \
+    lib/api/debug-internal.h \
+    lib/api/debug.h \
+    lib/bpf/btf.h \
+    lib/bpf/hashmap.h \
+    lib/bpf/libbpf.h \
+    lib/bpf/libbpf_internal.h \
+    lib/bpf/libbpf_util.h \
+    lib/bpf/nlattr.h \
+    lib/bpf/str_error.h \
+    lib/bpf/xsk.h \
+    lib/lockdep/include/liblockdep/common.h \
+    lib/lockdep/include/liblockdep/mutex.h \
+    lib/lockdep/include/liblockdep/rwlock.h \
+    lib/lockdep/tests/common.h \
+    lib/lockdep/lockdep_internals.h \
+    lib/lockdep/lockdep_states.h \
+    lib/subcmd/exec-cmd.h \
+    lib/subcmd/help.h \
+    lib/subcmd/pager.h \
+    lib/subcmd/parse-options.h \
+    lib/subcmd/run-command.h \
+    lib/subcmd/sigchain.h \
+    lib/subcmd/subcmd-config.h \
+    lib/subcmd/subcmd-util.h \
+    lib/symbol/kallsyms.h \
+    include/linux/btf.h
+
+DISTFILES += \
+    lib/bpf/libbpf.a \
+    lib/traceevent/libtraceevent.a \
+    lib/traceevent/plugin_cfg80211.so \
+    lib/traceevent/plugin_function.so \
+    lib/traceevent/plugin_hrtimer.so \
+    lib/traceevent/plugin_jbd2.so \
+    lib/traceevent/plugin_kmem.so \
+    lib/traceevent/plugin_kvm.so \
+    lib/traceevent/plugin_mac80211.so \
+    lib/traceevent/plugin_sched_switch.so \
+    lib/traceevent/plugin_scsi.so \
+    lib/traceevent/plugin_xen.so \
+    lib/lockdep/tests/AA.sh \
+    lib/lockdep/tests/ABA.sh \
+    lib/lockdep/tests/ABBA.sh \
+    lib/lockdep/tests/ABBA_2threads.sh \
+    lib/lockdep/tests/ABBCCA.sh \
+    lib/lockdep/tests/ABBCCDDA.sh \
+    lib/lockdep/tests/ABCABC.sh \
+    lib/lockdep/tests/ABCDBCDA.sh \
+    lib/lockdep/tests/ABCDBDDA.sh \
+    lib/lockdep/tests/unlock_balance.sh \
+    lib/lockdep/tests/WW.sh \
+    lib/lockdep/lockdep \
+    lib/lockdep/run_tests.sh \
+    lib/traceevent/Documentation/manpage-1.72.xsl \
+    lib/traceevent/Documentation/manpage-base.xsl \
+    lib/traceevent/Documentation/manpage-bold-literal.xsl \
+    lib/traceevent/Documentation/manpage-normal.xsl \
+    lib/traceevent/Documentation/manpage-suppress-sp.xsl \
+    lib/bpf/Build \
+    lib/bpf/libbpf.map \
+    lib/bpf/libbpf.pc.template \
+    lib/lockdep/Build \
+    lib/traceevent/Documentation/libtraceevent-commands.txt \
+    lib/traceevent/Documentation/libtraceevent-cpus.txt \
+    lib/traceevent/Documentation/libtraceevent-endian_read.txt \
+    lib/traceevent/Documentation/libtraceevent-event_find.txt \
+    lib/traceevent/Documentation/libtraceevent-event_get.txt \
+    lib/traceevent/Documentation/libtraceevent-event_list.txt \
+    lib/traceevent/Documentation/libtraceevent-event_print.txt \
+    lib/traceevent/Documentation/libtraceevent-field_find.txt \
+    lib/traceevent/Documentation/libtraceevent-field_get_val.txt \
+    lib/traceevent/Documentation/libtraceevent-field_print.txt \
+    lib/traceevent/Documentation/libtraceevent-field_read.txt \
+    lib/traceevent/Documentation/libtraceevent-fields.txt \
+    lib/traceevent/Documentation/libtraceevent-file_endian.txt \
+    lib/traceevent/Documentation/libtraceevent-filter.txt \
+    lib/traceevent/Documentation/libtraceevent-func_apis.txt \
+    lib/traceevent/Documentation/libtraceevent-func_find.txt \
+    lib/traceevent/Documentation/libtraceevent-handle.txt \
+    lib/traceevent/Documentation/libtraceevent-header_page.txt \
+    lib/traceevent/Documentation/libtraceevent-host_endian.txt \
+    lib/traceevent/Documentation/libtraceevent-long_size.txt \
+    lib/traceevent/Documentation/libtraceevent-page_size.txt \
+    lib/traceevent/Documentation/libtraceevent-parse_event.txt \
+    lib/traceevent/Documentation/libtraceevent-parse_head.txt \
+    lib/traceevent/Documentation/libtraceevent-plugins.txt \
+    lib/traceevent/Documentation/libtraceevent-record_parse.txt \
+    lib/traceevent/Documentation/libtraceevent-reg_event_handler.txt \
+    lib/traceevent/Documentation/libtraceevent-reg_print_func.txt \
+    lib/traceevent/Documentation/libtraceevent-set_flag.txt \
+    lib/traceevent/Documentation/libtraceevent-strerror.txt \
+    lib/traceevent/Documentation/libtraceevent-tseq.txt \
+    lib/traceevent/Documentation/libtraceevent.txt \
+    lib/traceevent/libtraceevent-dynamic-list \
+    lib/traceevent/libtraceevent.pc.template \
+    lib/traceevent/Documentation/asciidoc.conf \
+    lib/bpf/README.rst

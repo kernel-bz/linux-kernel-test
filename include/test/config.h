@@ -24,6 +24,8 @@ extern "C" {
 
 #define CONFIG_THREAD_INFO_IN_TASK
 
+#define __USE_MISC
+
 #ifdef __cplusplus
 }
 #endif

@@ -2,7 +2,7 @@
 #ifndef _UAPI__ASM_GENERIC_SIGNAL_H
 #define _UAPI__ASM_GENERIC_SIGNAL_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 #define __user
 
@@ -89,9 +89,14 @@
 #endif
 
 #ifndef __ASSEMBLY__
+
+typedef struct {
+    unsigned long sig[_NSIG_WORDS];
+} sigset_t;
+
 typedef struct {
 	unsigned long sig[_NSIG_WORDS];
-} sigset_t;
+} __sigset_t;
 
 /* not actually used, but required for linux/syscalls.h */
 typedef unsigned long old_sigset_t;
