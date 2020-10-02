@@ -61,6 +61,11 @@ static inline int atomic_dec_and_test(atomic_t *v)
 	return __sync_sub_and_fetch(&v->counter, 1) == 0;
 }
 
+static inline void atomic_dec(atomic_t *v)
+{
+    __sync_sub_and_fetch(&v->counter, 1);
+}
+
 #define cmpxchg(ptr, oldval, newval) \
 	__sync_val_compare_and_swap(ptr, oldval, newval)
 

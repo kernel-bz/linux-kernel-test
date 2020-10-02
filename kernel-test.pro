@@ -61,7 +61,9 @@ SOURCES += \
     kernel/sched/rt.c \
     kernel/sched/fair.c \
     kernel/sched/idle.c \
-    kernel/sched/core.c
+    kernel/sched/core.c \
+    kernel/sched/topology.c \
+    kernel/sched/cpupri.c
 
 HEADERS += \
     include/test/test.h \

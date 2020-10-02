@@ -13,9 +13,46 @@ static int do_sched_rt_period_timer(struct rt_bandwidth *rt_b, int overrun);
 
 struct rt_bandwidth def_rt_bandwidth;
 
+static enum hrtimer_restart sched_rt_period_timer(struct hrtimer *timer)
+{
+    struct rt_bandwidth *rt_b =
+        container_of(timer, struct rt_bandwidth, rt_period_timer);
+    int idle = 0;
+    int overrun;
+
+    raw_spin_lock(&rt_b->rt_runtime_lock);
+    for (;;) {
+        overrun = hrtimer_forward_now(timer, rt_b->rt_period);
+        if (!overrun)
+            break;
+
+        raw_spin_unlock(&rt_b->rt_runtime_lock);
+        //idle = do_sched_rt_period_timer(rt_b, overrun);
+        raw_spin_lock(&rt_b->rt_runtime_lock);
+    }
+    if (idle)
+        rt_b->rt_period_active = 0;
+    raw_spin_unlock(&rt_b->rt_runtime_lock);
+
+    return idle ? HRTIMER_NORESTART : HRTIMER_RESTART;
+}
+//40 lines
+void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime)
+{
+    rt_b->rt_period = ns_to_ktime(period);
+    rt_b->rt_runtime = runtime;
+
+    raw_spin_lock_init(&rt_b->rt_runtime_lock);
+
+    hrtimer_init(&rt_b->rt_period_timer, CLOCK_MONOTONIC,
+             HRTIMER_MODE_REL_HARD);
+    rt_b->rt_period_timer.function = sched_rt_period_timer;
+}
 
 
 
+
+//2356 lines
 const struct sched_class rt_sched_class = {
     .next			= &fair_sched_class,
 #if 0

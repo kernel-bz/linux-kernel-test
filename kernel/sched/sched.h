@@ -99,6 +99,8 @@
 #include <linux/jiffies.h>
 #include <linux/atomic.h>
 
+#include <asm/barrier.h>
+
 #ifdef CONFIG_SCHED_DEBUG
 # define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
 #else
@@ -285,7 +287,7 @@ struct rt_bandwidth {
 	raw_spinlock_t		rt_runtime_lock;
 	ktime_t			rt_period;
 	u64			rt_runtime;
-    struct hrtimer		rt_period_timer;
+        struct hrtimer		rt_period_timer;
 	unsigned int		rt_period_active;
 };
 
