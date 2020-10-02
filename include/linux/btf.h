@@ -4,7 +4,7 @@
 #ifndef _LINUX_BTF_H
 #define _LINUX_BTF_H 1
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 struct btf;
 struct btf_member;

@@ -11,6 +11,7 @@
  * See Documentation/core-api/xarray.rst for how to use the XArray.
  */
 
+#include <linux/types-user.h>
 #include <linux/bug.h>
 #include <linux/compiler.h>
 #include <linux/gfp.h>
@@ -18,7 +19,6 @@
 #include <linux/kernel.h>
 #include <linux/rcupdate.h>
 #include <linux/spinlock.h>
-#include <linux/types-user.h>
 
 #include <linux/err.h>
 
@@ -1081,6 +1081,8 @@ static inline void xa_release(struct xarray *xa, unsigned long index)
 #define XA_MAX_MARKS		3
 #define XA_MARK_LONGS		DIV_ROUND_UP(XA_CHUNK_SIZE, BITS_PER_LONG)
 
+#define rcu_head callback_head
+
 /*
  * @count is the count of every non-NULL element in the ->slots array
  * whether that is a value entry, a retry entry, a user pointer,
@@ -1097,7 +1099,7 @@ struct xa_node {
 	struct xarray	*array;		/* The array we belong to */
 	union {
 		struct list_head private_list;	/* For tree user */
-		struct rcu_head	rcu_head;	/* Used when freeing node */
+        struct rcu_head	rcu_head;	/* Used when freeing node */
 	};
 	void __rcu	*slots[XA_CHUNK_SIZE];
 	union {

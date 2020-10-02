@@ -3,8 +3,8 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC __USE_MISC \
-                __timeval_defined
+DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC \
+                __timeval_defined  __sigset_t_defined
 
 LIBS += -Lpthread
 
@@ -50,7 +50,6 @@ SOURCES += \
     kernel/sched/wait.c \
     lib/api/fd/array.c \
     lib/api/fs/fs.c \
-    lib/api/fs/tracing_path.c \
     lib/api/cpu.c \
     lib/api/debug.c \
     lib/math/div64.c \
@@ -421,8 +420,6 @@ HEADERS += \
     include/linux/jiffies.h \
     include/generated/timeconst.h \
     include/linux/typecheck.h \
-    include/uapi/asm-generic/signal.h \
-    include/uapi/asm-generic/signal-defs.h \
     include/linux/rwlock_types.h \
     include/linux/hrtimer.h \
     include/linux/sched_clock.h \
@@ -466,71 +463,3 @@ HEADERS += \
 
 DISTFILES += \
     lib/bpf/libbpf.a \
-    lib/traceevent/libtraceevent.a \
-    lib/traceevent/plugin_cfg80211.so \
-    lib/traceevent/plugin_function.so \
-    lib/traceevent/plugin_hrtimer.so \
-    lib/traceevent/plugin_jbd2.so \
-    lib/traceevent/plugin_kmem.so \
-    lib/traceevent/plugin_kvm.so \
-    lib/traceevent/plugin_mac80211.so \
-    lib/traceevent/plugin_sched_switch.so \
-    lib/traceevent/plugin_scsi.so \
-    lib/traceevent/plugin_xen.so \
-    lib/lockdep/tests/AA.sh \
-    lib/lockdep/tests/ABA.sh \
-    lib/lockdep/tests/ABBA.sh \
-    lib/lockdep/tests/ABBA_2threads.sh \
-    lib/lockdep/tests/ABBCCA.sh \
-    lib/lockdep/tests/ABBCCDDA.sh \
-    lib/lockdep/tests/ABCABC.sh \
-    lib/lockdep/tests/ABCDBCDA.sh \
-    lib/lockdep/tests/ABCDBDDA.sh \
-    lib/lockdep/tests/unlock_balance.sh \
-    lib/lockdep/tests/WW.sh \
-    lib/lockdep/lockdep \
-    lib/lockdep/run_tests.sh \
-    lib/traceevent/Documentation/manpage-1.72.xsl \
-    lib/traceevent/Documentation/manpage-base.xsl \
-    lib/traceevent/Documentation/manpage-bold-literal.xsl \
-    lib/traceevent/Documentation/manpage-normal.xsl \
-    lib/traceevent/Documentation/manpage-suppress-sp.xsl \
-    lib/bpf/Build \
-    lib/bpf/libbpf.map \
-    lib/bpf/libbpf.pc.template \
-    lib/lockdep/Build \
-    lib/traceevent/Documentation/libtraceevent-commands.txt \
-    lib/traceevent/Documentation/libtraceevent-cpus.txt \
-    lib/traceevent/Documentation/libtraceevent-endian_read.txt \
-    lib/traceevent/Documentation/libtraceevent-event_find.txt \
-    lib/traceevent/Documentation/libtraceevent-event_get.txt \
-    lib/traceevent/Documentation/libtraceevent-event_list.txt \
-    lib/traceevent/Documentation/libtraceevent-event_print.txt \
-    lib/traceevent/Documentation/libtraceevent-field_find.txt \
-    lib/traceevent/Documentation/libtraceevent-field_get_val.txt \
-    lib/traceevent/Documentation/libtraceevent-field_print.txt \
-    lib/traceevent/Documentation/libtraceevent-field_read.txt \
-    lib/traceevent/Documentation/libtraceevent-fields.txt \
-    lib/traceevent/Documentation/libtraceevent-file_endian.txt \
-    lib/traceevent/Documentation/libtraceevent-filter.txt \
-    lib/traceevent/Documentation/libtraceevent-func_apis.txt \
-    lib/traceevent/Documentation/libtraceevent-func_find.txt \
-    lib/traceevent/Documentation/libtraceevent-handle.txt \
-    lib/traceevent/Documentation/libtraceevent-header_page.txt \
-    lib/traceevent/Documentation/libtraceevent-host_endian.txt \
-    lib/traceevent/Documentation/libtraceevent-long_size.txt \
-    lib/traceevent/Documentation/libtraceevent-page_size.txt \
-    lib/traceevent/Documentation/libtraceevent-parse_event.txt \
-    lib/traceevent/Documentation/libtraceevent-parse_head.txt \
-    lib/traceevent/Documentation/libtraceevent-plugins.txt \
-    lib/traceevent/Documentation/libtraceevent-record_parse.txt \
-    lib/traceevent/Documentation/libtraceevent-reg_event_handler.txt \
-    lib/traceevent/Documentation/libtraceevent-reg_print_func.txt \
-    lib/traceevent/Documentation/libtraceevent-set_flag.txt \
-    lib/traceevent/Documentation/libtraceevent-strerror.txt \
-    lib/traceevent/Documentation/libtraceevent-tseq.txt \
-    lib/traceevent/Documentation/libtraceevent.txt \
-    lib/traceevent/libtraceevent-dynamic-list \
-    lib/traceevent/libtraceevent.pc.template \
-    lib/traceevent/Documentation/asciidoc.conf \
-    lib/bpf/README.rst

@@ -26,6 +26,11 @@
 #define raw_spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
 #define raw_spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
 
+#define raw_spin_trylock(x)			raw_spin_lock(x)
+
+# define raw_spin_lock_nested(lock, subclass)		\
+    raw_spin_lock(((void)(subclass), (lock)))
+
 #define arch_spinlock_t pthread_mutex_t
 #define arch_rwlock_t pthread_mutex_t
 

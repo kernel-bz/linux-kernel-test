@@ -3,7 +3,7 @@
 #define _TOOLS_LINUX_STRING_H_
 
 #include "test/define-usr.h"
-#include <linux/types.h>	/* for size_t */
+#include <linux/types-user.h>	/* for size_t */
 #include <string.h>
 #include <stdbool.h>
 

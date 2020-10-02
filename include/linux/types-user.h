@@ -1,14 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifndef _TOOLS_LINUX_TYPES_H_
-#define _TOOLS_LINUX_TYPES_H_
+#ifndef _TOOLS_LINUX_TYPES_USER_H_
+#define _TOOLS_LINUX_TYPES_USER_H_
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #define __SANE_USERSPACE_TYPES__	/* For PPC64, to get LL64 types */
+
+//#include <linux/types-user.h>
 #include <asm/types.h>
 #include <asm/posix_types.h>
+
+#include <bits/types/__sigset_t.h>
 
 //typedef u32 __kernel_dev_t;
 
@@ -95,6 +99,8 @@ typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 
+typedef unsigned long        size_t;
+typedef   signed long       ssize_t;
 
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 typedef u64 dma_addr_t;
@@ -182,6 +188,7 @@ struct callback_head {
         struct callback_head *next;
         void (*func)(struct callback_head *head);
 } __attribute__((aligned(sizeof(void *))));
+
 //#define rcu_head callback_head
 
 typedef void (*rcu_callback_t)(struct rcu_head *head);

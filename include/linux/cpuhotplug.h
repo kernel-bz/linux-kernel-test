@@ -2,7 +2,7 @@
 #ifndef __CPUHOTPLUG_H
 #define __CPUHOTPLUG_H
 
-#include <linux/types.h>
+#include <linux/types-user.h>
 
 /*
  * CPU-up			CPU-down

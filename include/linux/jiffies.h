@@ -5,7 +5,7 @@
 #include <linux/cache.h>
 #include <linux/math64.h>
 #include <linux/kernel.h>
-#include <linux/types.h>
+#include <linux/types-user.h>
 //#include <linux/time.h>
 //#include <linux/timex.h>
 #include <asm/param.h>			/* for HZ */
