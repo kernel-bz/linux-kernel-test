@@ -3,6 +3,7 @@
 #define _LINUX_XARRAY_H
 
 #include "test/config.h"
+#include "test/debug.h"
 /*
  * eXtensible Arrays
  * Copyright (c) 2017 Microsoft Corporation

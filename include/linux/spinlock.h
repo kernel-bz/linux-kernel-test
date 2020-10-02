@@ -19,6 +19,8 @@
 #define spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
 #define spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
 
+#define raw_spin_lock_init(lock)	do { } while(0)
+
 #define raw_spin_lock(x)			pthread_mutex_lock(x)
 #define raw_spin_unlock(x)			pthread_mutex_unlock(x)
 #define raw_spin_lock_irq(x)		pthread_mutex_lock(x)

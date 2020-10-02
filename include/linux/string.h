@@ -4,7 +4,6 @@
 
 #include "test/define-usr.h"
 #include <linux/types-user.h>	/* for size_t */
-#include <string.h>
 #include <stdbool.h>
 
 void *memdup(const void *src, size_t len);

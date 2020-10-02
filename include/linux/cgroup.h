@@ -29,8 +29,6 @@
 
 #include <uapi/asm-generic/errno-base.h>
 
-#ifdef CONFIG_CGROUPS
-
 /*
  * All weight knobs on the default hierarhcy should use the following min,
  * default and max values.  The default value is the logarithmic center of
@@ -69,6 +67,8 @@ struct css_task_iter {
 	struct task_struct		*cur_task;
 	struct list_head		iters_node;	/* css_set->task_iters */
 };
+
+#ifdef CONFIG_CGROUPS
 
 extern struct cgroup_root cgrp_dfl_root;
 extern struct css_set init_css_set;

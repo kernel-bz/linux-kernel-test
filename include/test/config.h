@@ -21,10 +21,14 @@ extern "C" {
 #define CONFIG_XARRAY_MULTI		0
 
 #define CONFIG_CPU_FREQ
+#define CONFIG_CPUSETS
 
 #define CONFIG_THREAD_INFO_IN_TASK
 
-#define __USE_MISC
+#define CONFIG_DEBUG_PREEMPT
+
+
+//#define __USE_MISC
 
 #ifdef __cplusplus
 }

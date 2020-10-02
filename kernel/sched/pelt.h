@@ -1,5 +1,5 @@
-#ifndef __PELT_H
-#define __PELT_H
+#ifndef __KENEL_SCHED_PELT_H__
+#define __KENEL_SCHED_PELT_H__
 
 #ifdef __cplusplus
 extern "C" {

@@ -18,6 +18,12 @@ static inline void *kzalloc(size_t size, gfp_t gfp)
         return kmalloc(size, gfp | __GFP_ZERO);
 }
 
+static inline int kcalloc(int nr, size_t size, gfp_t gfp)
+{
+        kmalloc(nr*size, gfp | __GFP_ZERO);
+        return nr;
+}
+
 void *kmem_cache_alloc(struct kmem_cache *cachep, int flags);
 void kmem_cache_free(struct kmem_cache *cachep, void *objp);
 

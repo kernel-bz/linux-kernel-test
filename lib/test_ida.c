@@ -6,6 +6,7 @@
  * Author: Matthew Wilcox <willy@infradead.org>
  */
 
+#include "test/define-usr.h"
 #include <linux/idr.h>
 #include <linux/module.h>
 

@@ -6,6 +6,9 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/xarray.h>
+#include <linux/log2.h>
+
+#include "test/debug.h"
 
 /**
  * idr_alloc_u32() - Allocate an ID.

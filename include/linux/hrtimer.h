@@ -80,6 +80,20 @@ enum  hrtimer_base_type {
 
 struct hrtimer_cpu_base;
 
+static void hrtimer_init(struct hrtimer *timer, clockid_t which_clock,
+                  enum hrtimer_mode mode) { }
+static bool hrtimer_active(const struct hrtimer *timer) { }
+static inline void hrtimer_start(struct hrtimer *timer, ktime_t tim,
+                                 const enum hrtimer_mode mode) { }
+
+static inline int hrtimer_is_queued(struct hrtimer *timer) { }
+static inline ktime_t hrtimer_cb_get_time(struct hrtimer *timer) { }
+
+static int hrtimer_cancel(struct hrtimer *timer) { }
+static int hrtimer_try_to_cancel(struct hrtimer *timer) { }
+
+static inline u64 hrtimer_forward_now(struct hrtimer *timer,
+                                      ktime_t interval) { }
 
 
 #ifdef __cplusplus

@@ -40,8 +40,6 @@
 #include <linux/compiler_types.h>
 #include <linux/cpumask.h>
 
-#include <asm-generic/signal.h>
-
 /* task_struct member predeclarations (sorted alphabetically): */
 struct audit_context;
 struct backing_dev_info;
@@ -226,7 +224,9 @@ extern void scheduler_tick(void);
 
 #define	MAX_SCHEDULE_TIMEOUT		LONG_MAX
 
-extern long schedule_timeout(long timeout);
+//extern long schedule_timeout(long timeout);i
+static inline long schedule_timeout(long timeout) { }
+
 extern long schedule_timeout_interruptible(long timeout);
 extern long schedule_timeout_killable(long timeout);
 extern long schedule_timeout_uninterruptible(long timeout);
@@ -237,7 +237,10 @@ asmlinkage void preempt_schedule_irq(void);
 
 extern int __must_check io_schedule_prepare(void);
 extern void io_schedule_finish(int token);
-extern long io_schedule_timeout(long timeout);
+
+//extern long io_schedule_timeout(long timeout);
+static inline long io_schedule_timeout(long timeout) { }
+
 extern void io_schedule(void);
 
 /**

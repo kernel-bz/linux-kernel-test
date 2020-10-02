@@ -21,7 +21,7 @@ static int count_argc(const char *str)
 	int count = 0;
 
 	while (*str) {
-		str = skip_spaces(str);
+        str = skip_spaces(str);
 		if (*str) {
 			count++;
 			str = skip_arg(str);
@@ -75,7 +75,7 @@ char **argv_split(const char *str, int *argcp)
 	argvp = argv;
 
 	while (*str) {
-		str = skip_spaces(str);
+        str = skip_spaces(str);
 
 		if (*str) {
 			const char *p = str;

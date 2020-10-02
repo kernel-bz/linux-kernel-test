@@ -4,7 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC \
-                __timeval_defined  __sigset_t_defined
+                __timeval_defined
 
 LIBS += -Lpthread
 
@@ -20,34 +20,15 @@ SOURCES += \
     test/sched/decay_load.c \
     test/sched/taskset.c \
     test/sched/update_load_avg.c \
-    kernel/sched/core.c \
-    kernel/sched/pelt.c \
-    lib/string.c \
-    lib/math/div64.c \
     mm/slab_user.c \
-    kernel/sched/deadline.c \
-    kernel/sched/fair.c \
-    kernel/sched/rt.c \
+    kernel/sched/pelt.c \
     kernel/sched/stats.c \
-    kernel/sched/clock.c \
     kernel/sched/completion.c \
-    kernel/sched/core.c \
     kernel/sched/cpuacct.c \
     kernel/sched/cpudeadline.c \
-    kernel/sched/cpufreq.c \
-    kernel/sched/cpupri.c \
-    kernel/sched/cputime.c \
-    kernel/sched/deadline.c \
-    kernel/sched/fair.c \
-    kernel/sched/idle.c \
     kernel/sched/loadavg.c \
-    kernel/sched/pelt.c \
-    kernel/sched/rt.c \
     kernel/sched/stats.c \
     kernel/sched/stop_task.c \
-    kernel/sched/swait.c \
-    kernel/sched/topology.c \
-    kernel/sched/wait.c \
     lib/api/fd/array.c \
     lib/api/fs/fs.c \
     lib/api/cpu.c \
@@ -73,7 +54,14 @@ SOURCES += \
     lib/string.c \
     lib/test_ida.c \
     lib/vsprintf.c \
-    lib/zalloc.c
+    lib/zalloc.c \
+    lib/cpumask.c \
+    lib/xarray.c \
+    kernel/sched/deadline.c \
+    kernel/sched/rt.c \
+    kernel/sched/fair.c \
+    kernel/sched/idle.c \
+    kernel/sched/core.c
 
 HEADERS += \
     include/test/test.h \
@@ -153,56 +141,6 @@ HEADERS += \
     include/linux/sched/clock.h \
     include/linux/sched/task.h \
     include/linux/unaligned/packed_struct.h \
-    include/linux/atomic.h \
-    include/linux/bitmap.h \
-    include/linux/bitops.h \
-    include/linux/bits.h \
-    include/linux/bug.h \
-    include/linux/compiler-gcc.h \
-    include/linux/compiler.h \
-    include/linux/const.h \
-    include/linux/coresight-pmu.h \
-    include/linux/ctype.h \
-    include/linux/debug_locks.h \
-    include/linux/delay.h \
-    include/linux/err.h \
-    include/linux/export.h \
-    include/linux/filter.h \
-    include/linux/ftrace.h \
-    include/linux/gfp.h \
-    include/linux/hardirq.h \
-    include/linux/hash.h \
-    include/linux/hashtable.h \
-    include/linux/interrupt.h \
-    include/linux/irqflags.h \
-    include/linux/jhash.h \
-    include/linux/kallsyms.h \
-    include/linux/kern_levels.h \
-    include/linux/kernel.h \
-    include/linux/linkage.h \
-    include/linux/list.h \
-    include/linux/lockdep.h \
-    include/linux/log2.h \
-    include/linux/module.h \
-    include/linux/mutex.h \
-    include/linux/nmi.h \
-    include/linux/numa.h \
-    include/linux/overflow.h \
-    include/linux/poison.h \
-    include/linux/proc_fs.h \
-    include/linux/rbtree.h \
-    include/linux/rbtree_augmented.h \
-    include/linux/rcu.h \
-    include/linux/refcount.h \
-    include/linux/ring_buffer.h \
-    include/linux/seq_file.h \
-    include/linux/sizes.h \
-    include/linux/spinlock.h \
-    include/linux/stacktrace.h \
-    include/linux/string.h \
-    include/linux/stringify.h \
-    include/linux/time64.h \
-    include/linux/zalloc.h \
     include/uapi/asm/bitsperlong.h \
     include/uapi/asm/bpf_perf_event.h \
     include/uapi/asm/errno.h \
@@ -275,79 +213,6 @@ HEADERS += \
     include/asm-generic/memory_model.h \
     include/asm-generic/getorder.h \
     include/linux/mm.h \
-    include/linux/atomic.h \
-    include/linux/bitmap.h \
-    include/linux/bitops.h \
-    include/linux/bits.h \
-    include/linux/bug.h \
-    include/linux/cache.h \
-    include/linux/compiler_types.h \
-    include/linux/compiler-gcc.h \
-    include/linux/compiler.h \
-    include/linux/const.h \
-    include/linux/coresight-pmu.h \
-    include/linux/cpumask.h \
-    include/linux/ctype.h \
-    include/linux/debug_locks.h \
-    include/linux/delay.h \
-    include/linux/err.h \
-    include/linux/export.h \
-    include/linux/filter.h \
-    include/linux/ftrace.h \
-    include/linux/gfp.h \
-    include/linux/hardirq.h \
-    include/linux/hash.h \
-    include/linux/hashtable.h \
-    include/linux/idr.h \
-    include/linux/init.h \
-    include/linux/interrupt.h \
-    include/linux/irqflags.h \
-    include/linux/jhash.h \
-    include/linux/kallsyms.h \
-    include/linux/kern_levels.h \
-    include/linux/kernel.h \
-    include/linux/linkage.h \
-    include/linux/list.h \
-    include/linux/lockdep.h \
-    include/linux/log2.h \
-    include/linux/mm.h \
-    include/linux/module.h \
-    include/linux/mutex.h \
-    include/linux/nmi.h \
-    include/linux/numa.h \
-    include/linux/overflow.h \
-    include/linux/percpu.h \
-    include/linux/pid.h \
-    include/linux/poison.h \
-    include/linux/preempt.h \
-    include/linux/proc_fs.h \
-    include/linux/radix-tree.h \
-    include/linux/rbtree_augmented.h \
-    include/linux/rbtree.h \
-    include/linux/rcu.h \
-    include/linux/rculist.h \
-    include/linux/rcupdate.h \
-    include/linux/refcount.h \
-    include/linux/restart_block.h \
-    include/linux/ring_buffer.h \
-    include/linux/rwlock_api_smp.h \
-    include/linux/rwlock_types.h \
-    include/linux/rwlock.h \
-    include/linux/sched.h \
-    include/linux/seq_file.h \
-    include/linux/sizes.h \
-    include/linux/slab.h \
-    include/linux/spinlock_types_up.h \
-    include/linux/spinlock_types.h \
-    include/linux/spinlock.h \
-    include/linux/stacktrace.h \
-    include/linux/string.h \
-    include/linux/stringify.h \
-    include/linux/threads.h \
-    include/linux/time64.h \
-    include/linux/wait.h \
-    include/linux/xarray.h \
-    include/linux/zalloc.h \
     include/linux/pfn.h \
     kernel/sched/sched.h \
     kernel/sched/pelt.h \
@@ -401,8 +266,6 @@ HEADERS += \
     kernel/sched/cpudeadline.h \
     kernel/sched/cpupri.h \
     kernel/sched/features.h \
-    kernel/sched/pelt.h \
-    kernel/sched/sched-pelt.h \
     kernel/sched/sched.h \
     kernel/sched/stats.h \
     include/test/define-usr.h \

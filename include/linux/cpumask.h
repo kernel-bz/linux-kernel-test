@@ -38,7 +38,9 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 #if NR_CPUS == 1
 #define nr_cpu_ids		1U
 #else
-extern unsigned int nr_cpu_ids;
+//extern unsigned int nr_cpu_ids;
+//const unsigned int nr_cpu_ids = 4;
+#define nr_cpu_ids		4U
 #endif
 
 #ifdef CONFIG_CPUMASK_OFFSTACK
@@ -89,16 +91,23 @@ extern unsigned int nr_cpu_ids;
  *    only one CPU.
  */
 
+#if 0
 extern struct cpumask __cpu_possible_mask;
 extern struct cpumask __cpu_online_mask;
 extern struct cpumask __cpu_present_mask;
 extern struct cpumask __cpu_active_mask;
+#endif
+struct cpumask __cpu_possible_mask;
+struct cpumask __cpu_online_mask;
+struct cpumask __cpu_present_mask;
+struct cpumask __cpu_active_mask;
 #define cpu_possible_mask ((const struct cpumask *)&__cpu_possible_mask)
 #define cpu_online_mask   ((const struct cpumask *)&__cpu_online_mask)
 #define cpu_present_mask  ((const struct cpumask *)&__cpu_present_mask)
 #define cpu_active_mask   ((const struct cpumask *)&__cpu_active_mask)
 
-extern atomic_t __num_online_cpus;
+//extern atomic_t __num_online_cpus;
+atomic_t __num_online_cpus;
 
 #if NR_CPUS > 1
 /**

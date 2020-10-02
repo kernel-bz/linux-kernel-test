@@ -14,7 +14,8 @@
 typedef struct wait_queue_entry wait_queue_entry_t;
 
 typedef int (*wait_queue_func_t)(struct wait_queue_entry *wq_entry, unsigned mode, int flags, void *key);
-int default_wake_function(struct wait_queue_entry *wq_entry, unsigned mode, int flags, void *key);
+//int default_wake_function(struct wait_queue_entry *wq_entry, unsigned mode, int flags, void *key);
+static inline int default_wake_function(struct wait_queue_entry *wq_entry, unsigned mode, int flags, void *key) { }
 
 /* wait_queue_entry::flags */
 #define WQ_FLAG_EXCLUSIVE	0x01
@@ -202,7 +203,8 @@ void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, vo
 void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
 		unsigned int mode, void *key, wait_queue_entry_t *bookmark);
 void __wake_up_sync_key(struct wait_queue_head *wq_head, unsigned int mode, int nr, void *key);
-void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
+//void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
+static inline void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr) { }
 void __wake_up_sync(struct wait_queue_head *wq_head, unsigned int mode, int nr);
 
 #define wake_up(x)			__wake_up(x, TASK_NORMAL, 1, NULL)

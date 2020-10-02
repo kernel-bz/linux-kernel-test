@@ -6,9 +6,6 @@
 #include "test/debug.h"
 #include <urcu.h>
 #include <urcu/urcu-memb.h>
-//#include <urcu-bp.h>
-//#include <urcu-call-rcu.h>
-//#include <urcu-pointer.h>
 #include <linux/types-user.h>
 #include <uapi/linux/sched.h>
 
@@ -94,6 +91,13 @@
 #include <linux/hrtimer.h>
 #include <linux/spinlock.h>
 #include <linux/rbtree.h>
+#include <linux/rcupdate.h>
+#include <linux/cpumask.h>
+#include <linux/kern_levels.h>
+#include <linux/gfp.h>
+#include <linux/slab.h>
+#include <linux/jiffies.h>
+#include <linux/atomic.h>
 
 #ifdef CONFIG_SCHED_DEBUG
 # define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
@@ -399,7 +403,7 @@ struct cfs_bandwidth {
 
 /* Task group related information */
 struct task_group {
-//	struct cgroup_subsys_state css;
+    struct cgroup_subsys_state css;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	/* schedulable entities of this group on each CPU */
@@ -1874,7 +1878,8 @@ extern void update_group_capacity(struct sched_domain *sd, int cpu);
 
 extern void trigger_load_balance(struct rq *rq);
 
-extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask);
+//extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask);
+static inline void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask) { }
 
 #endif
 
