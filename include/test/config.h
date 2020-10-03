@@ -15,6 +15,9 @@ extern "C" {
 
 #define CONFIG_CGROUP_SCHED
 #define CONFIG_FAIR_GROUP_SCHED
+#define CONFIG_CFS_BANDWIDTH
+//#define CONFIG_SCHED_AUTOGROUP
+
 
 //xarray.h
 #define CONFIG_BASE_SMALL		0
@@ -22,6 +25,7 @@ extern "C" {
 
 #define CONFIG_CPU_FREQ
 #define CONFIG_CPUSETS
+#define CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
 
 #define CONFIG_THREAD_INFO_IN_TASK
 

@@ -57,7 +57,7 @@
 //#include <linux/debugfs.h>
 //#include <linux/delayacct.h>
 //#include <linux/energy_model.h>
-//#include <linux/init_task.h>
+#include <linux/init_task.h>
 //#include <linux/kprobes.h>
 //#include <linux/kthread.h>
 #include <linux/membarrier.h>
@@ -1092,8 +1092,7 @@ static inline void update_idle_core(struct rq *rq)
 static inline void update_idle_core(struct rq *rq) { }
 #endif
 
-//DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
-DECLARE_PER_CPU(struct rq, runqueues);
+DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 #define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
 #define this_rq()		this_cpu_ptr(&runqueues)

@@ -1,12 +1,10 @@
-#ifndef __SCHED_AUTOGROUP_H
-#define __SCHED_AUTOGROUP_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifdef CONFIG_SCHED_AUTOGROUP
+#ifndef __KERNEL_SCHED_AUTOGROUP_H
+#define __KERNEL_SCHED_AUTOGROUP_H
+
+#include "test/config.h"
+#include <linux/kref.h>
+#include <linux/rwsem.h>
 
 struct autogroup {
 	/*
@@ -20,6 +18,8 @@ struct autogroup {
 	unsigned long		id;
 	int			nice;
 };
+
+#ifdef CONFIG_SCHED_AUTOGROUP
 
 extern void autogroup_init(struct task_struct *init_task);
 extern void autogroup_free(struct task_group *tg);
@@ -36,8 +36,8 @@ autogroup_task_group(struct task_struct *p, struct task_group *tg)
 {
 	int enabled = READ_ONCE(sysctl_sched_autogroup_enabled);
 
-	if (enabled && task_wants_autogroup(p, tg))
-		return p->signal->autogroup->tg;
+    //if (enabled && task_wants_autogroup(p, tg))
+        //return p->signal->autogroup->tg;
 
 	return tg;
 }
@@ -66,10 +66,4 @@ static inline int autogroup_path(struct task_group *tg, char *buf, int buflen)
 
 #endif /* CONFIG_SCHED_AUTOGROUP */
 
-
-#ifdef __cplusplus
-}
 #endif
-
-#endif
-

@@ -4,7 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC \
-                __timeval_defined
+           __timeval_defined
 
 LIBS += -Lpthread
 
@@ -13,22 +13,14 @@ QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC
 INCLUDEPATH += include/ lib/ lib/traceevent/
 
 SOURCES += \
+    main.c \
     test/cpu/cpus-mask-test.c \
     test/lib/ptr-test.c \
     test/sched/rq-test.c \
-    main.c \
     test/sched/decay_load.c \
     test/sched/taskset.c \
     test/sched/update_load_avg.c \
     mm/slab_user.c \
-    kernel/sched/pelt.c \
-    kernel/sched/stats.c \
-    kernel/sched/completion.c \
-    kernel/sched/cpuacct.c \
-    kernel/sched/cpudeadline.c \
-    kernel/sched/loadavg.c \
-    kernel/sched/stats.c \
-    kernel/sched/stop_task.c \
     lib/api/fd/array.c \
     lib/api/fs/fs.c \
     lib/api/cpu.c \
@@ -57,13 +49,22 @@ SOURCES += \
     lib/zalloc.c \
     lib/cpumask.c \
     lib/xarray.c \
+    kernel/sched/pelt.c \
+    kernel/sched/stats.c \
+    kernel/sched/completion.c \
+    kernel/sched/cpuacct.c \
+    kernel/sched/cpudeadline.c \
+    kernel/sched/loadavg.c \
+    kernel/sched/stats.c \
+    kernel/sched/stop_task.c \
     kernel/sched/deadline.c \
     kernel/sched/rt.c \
     kernel/sched/fair.c \
     kernel/sched/idle.c \
     kernel/sched/core.c \
     kernel/sched/topology.c \
-    kernel/sched/cpupri.c
+    kernel/sched/cpupri.c \
+    init/init_task.c
 
 HEADERS += \
     include/test/test.h \
@@ -237,7 +238,6 @@ HEADERS += \
     include/linux/topology.h \
     include/linux/arch_topology.h \
     include/linux/sched/idle.h \
-    include/linux/sched/autogroup.h \
     include/linux/sched/clock.h \
     include/linux/sched/coredump.h \
     include/linux/sched/cpufreq.h \
@@ -268,7 +268,6 @@ HEADERS += \
     kernel/sched/cpudeadline.h \
     kernel/sched/cpupri.h \
     kernel/sched/features.h \
-    kernel/sched/sched.h \
     kernel/sched/stats.h \
     include/test/define-usr.h \
     include/linux/smp.h \
@@ -324,7 +323,11 @@ HEADERS += \
     lib/subcmd/subcmd-config.h \
     lib/subcmd/subcmd-util.h \
     lib/symbol/kallsyms.h \
-    include/linux/btf.h
+    include/linux/btf.h \
+    include/linux/nospec.h \
+    include/linux/kref.h \
+    include/linux/rwsem.h \
+    include/linux/init_task.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \
