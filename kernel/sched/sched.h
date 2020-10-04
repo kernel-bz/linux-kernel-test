@@ -98,6 +98,7 @@
 #include <linux/slab.h>
 #include <linux/jiffies.h>
 #include <linux/atomic.h>
+#include <linux/interrupt.h>
 
 #include <asm/barrier.h>
 
@@ -2352,8 +2353,8 @@ static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
 {
 	struct update_util_data *data;
 
-	data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
-						  cpu_of(rq)));
+    //data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
+    //						  cpu_of(rq)));
 	if (data)
 		data->func(data, rq_clock(rq), flags);
 }

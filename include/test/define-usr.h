@@ -21,6 +21,8 @@ typedef struct {
 #define __init
 #define __maybe_unused
 #define __must_check
+#define __always_inline		inline
+
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 

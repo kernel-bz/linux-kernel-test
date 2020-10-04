@@ -29,7 +29,7 @@ extern "C" {
 
 #define CONFIG_THREAD_INFO_IN_TASK
 
-#define CONFIG_DEBUG_PREEMPT
+//#define CONFIG_DEBUG_PREEMPT
 
 
 //#define __USE_MISC

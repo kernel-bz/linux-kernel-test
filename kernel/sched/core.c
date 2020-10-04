@@ -60,6 +60,140 @@ __read_mostly int scheduler_running;
  * default: 0.95s
  */
 int sysctl_sched_rt_runtime = 950000;
+//74 lines
+
+
+
+
+
+//140 lines
+/*
+ * RQ-clock updating methods:
+ */
+
+static void update_rq_clock_task(struct rq *rq, s64 delta)
+{
+/*
+ * In theory, the compile should just see 0 here, and optimize out the call
+ * to sched_rt_avg_update. But I don't trust it...
+ */
+    s64 __maybe_unused steal = 0, irq_delta = 0;
+
+#ifdef CONFIG_IRQ_TIME_ACCOUNTING
+    irq_delta = irq_time_read(cpu_of(rq)) - rq->prev_irq_time;
+
+    /*
+     * Since irq_time is only updated on {soft,}irq_exit, we might run into
+     * this case when a previous update_rq_clock() happened inside a
+     * {soft,}irq region.
+     *
+     * When this happens, we stop ->clock_task and only update the
+     * prev_irq_time stamp to account for the part that fit, so that a next
+     * update will consume the rest. This ensures ->clock_task is
+     * monotonic.
+     *
+     * It does however cause some slight miss-attribution of {soft,}irq
+     * time, a more accurate solution would be to update the irq_time using
+     * the current rq->clock timestamp, except that would require using
+     * atomic ops.
+     */
+    if (irq_delta > delta)
+        irq_delta = delta;
+
+    rq->prev_irq_time += irq_delta;
+    delta -= irq_delta;
+#endif
+#ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING
+    if (static_key_false((&paravirt_steal_rq_enabled))) {
+        steal = paravirt_steal_clock(cpu_of(rq));
+        steal -= rq->prev_steal_time_rq;
+
+        if (unlikely(steal > delta))
+            steal = delta;
+
+        rq->prev_steal_time_rq += steal;
+        delta -= steal;
+    }
+#endif
+
+    rq->clock_task += delta;
+
+#ifdef CONFIG_HAVE_SCHED_AVG_IRQ
+    if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
+        update_irq_load_avg(rq, irq_delta + steal);
+#endif
+    update_rq_clock_pelt(rq, delta);
+}
+
+void update_rq_clock(struct rq *rq)
+{
+    s64 delta;
+
+    lockdep_assert_held(&rq->lock);
+
+    if (rq->clock_update_flags & RQCF_ACT_SKIP)
+        return;
+
+#ifdef CONFIG_SCHED_DEBUG
+    if (sched_feat(WARN_DOUBLE_CLOCK))
+        SCHED_WARN_ON(rq->clock_update_flags & RQCF_UPDATED);
+    rq->clock_update_flags |= RQCF_UPDATED;
+#endif
+
+    delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
+    if (delta < 0)
+        return;
+    rq->clock += delta;
+    update_rq_clock_task(rq, delta);
+}
+//220 lines
+
+
+
+//499 lines
+/*
+ * resched_curr - mark rq's current task 'to be rescheduled now'.
+ *
+ * On UP this means the setting of the need_resched flag, on SMP it
+ * might also involve a cross-CPU call to trigger the scheduler on
+ * the target CPU.
+ */
+void resched_curr(struct rq *rq)
+{
+    struct task_struct *curr = rq->curr;
+    int cpu;
+
+    lockdep_assert_held(&rq->lock);
+
+    if (test_tsk_need_resched(curr))
+        return;
+
+    cpu = cpu_of(rq);
+
+    if (cpu == smp_processor_id()) {
+        set_tsk_need_resched(curr);
+        //set_preempt_need_resched();
+        return;
+    }
+#if 0
+    if (set_nr_and_not_polling(curr))
+        smp_send_reschedule(cpu);
+    else
+        trace_sched_wake_idle_without_ipi(cpu);
+#endif //0
+}
+
+void resched_cpu(int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    unsigned long flags;
+
+    raw_spin_lock_irqsave(&rq->lock, flags);
+    if (cpu_online(cpu) || cpu == smp_processor_id())
+        resched_curr(rq);
+    raw_spin_unlock_irqrestore(&rq->lock, flags);
+}
+//541 lines
 
 
 
@@ -288,7 +422,7 @@ void __init sched_init(void)
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
     #endif
-        //init_sched_fair_class();
+        init_sched_fair_class();
 
         //init_schedstats();
 

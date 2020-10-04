@@ -4,6 +4,7 @@
 #include <linux/compiler.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,8 +13,13 @@ extern "C" {
 #define printk			printf
 #define seq_printf		printf
 #define pr_warning		printf
-#define pr_cont			printf
 #define pr_debug		printf
+#define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
+#define pr_err(format, ...) fprintf (stderr, format, ## __VA_ARGS__)
+#define pr_warn pr_err
+#define pr_cont pr_err
+#define print_tainted() ""
+
 
 #define __WARN_printf(arg...)	do { fprintf(stderr, arg); } while (0)
 

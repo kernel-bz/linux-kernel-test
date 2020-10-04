@@ -22,4 +22,9 @@ enum
 #define SOFTIRQ_STOP_IDLE_MASK (~(1 << RCU_SOFTIRQ))
 
 
+//kernel/softirq.c
+static inline void open_softirq(int nr, void (*action)(struct softirq_action *)) { }
+
+
+
 #endif /* _TOOLS_INCLUDE_LINUX_INTERRUPT_H */

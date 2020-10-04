@@ -24,6 +24,29 @@ static inline void lockdep_set_class(spinlock_t *lock,
 
 #define SINGLE_DEPTH_NESTING			1
 
+extern struct task_struct *__curr(void);
+
+#define current (__curr())
+
+static inline int debug_locks_off(void)
+{
+    return 1;
+}
+
+#define KSYM_NAME_LEN 128
+
+#define list_del_rcu list_del
+
+#define static_obj(x) 1
+
+#define debug_show_all_locks()
+extern void debug_check_no_locks_held(void);
+
+static __used bool __is_kernel_percpu_address(unsigned long addr, void *can_addr)
+{
+    return false;
+}
+
 
 #ifdef __cplusplus
 }
