@@ -8,11 +8,14 @@
 #ifndef _LINUX_RADIX_TREE_H
 #define _LINUX_RADIX_TREE_H
 
+#include <urcu.h>
+#include <urcu-pointer.h>
+
 #include <linux/bitops.h>
 #include <linux/kernel.h>
 #include <linux/list.h>
 #include <linux/preempt.h>
-#include <linux/rcupdate.h>
+//#include <linux/rcupdate.h>
 #include <linux/spinlock.h>
 #include <linux/types-user.h>
 #include <linux/xarray.h>

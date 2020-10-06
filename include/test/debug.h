@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#define printk			printf
+//#define printk			printf
 #define seq_printf		printf
 #define pr_warning		printf
 #define pr_debug		printf

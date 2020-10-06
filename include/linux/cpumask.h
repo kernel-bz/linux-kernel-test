@@ -2,6 +2,8 @@
 #ifndef __LINUX_CPUMASK_H
 #define __LINUX_CPUMASK_H
 
+#include <unistd.h>
+
 /*
  * Cpumasks provide a bitmap suitable for representing the
  * set of CPU's in a system, one bit position per CPU number.  In general,

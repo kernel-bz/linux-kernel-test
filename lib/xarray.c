@@ -8,11 +8,16 @@
 #include "test/debug.h"
 #include "test/define-usr.h"
 
+#include <urcu.h>
+#include <urcu-pointer.h>
+#include <linux/rcupdate.h>
+
 #include <linux/bitmap.h>
 #include <linux/export.h>
 #include <linux/list.h>
 #include <linux/slab.h>
 #include <linux/xarray.h>
+#include <linux/radix-tree-user.h>
 
 #define XA_DEBUG
 

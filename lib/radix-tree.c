@@ -10,6 +10,7 @@
  */
 
 #include <urcu.h>
+#include <urcu-pointer.h>
 
 #include <linux/bitmap.h>
 #include <linux/bitops.h>
@@ -31,6 +32,7 @@
 
 #include <linux/cpuhotplug.h>
 
+#include <linux/radix-tree-user.h>
 
 /*
  * Radix tree node cache.

@@ -12,7 +12,7 @@
 
 
 /* PAGE_SHIFT determines the page size */
-
+#if 0
 #define PAGE_SHIFT	12
 #ifdef __ASSEMBLY__
 #define PAGE_SIZE	(1 << PAGE_SHIFT)
@@ -20,6 +20,7 @@
 #define PAGE_SIZE	(1UL << PAGE_SHIFT)
 #endif
 #define PAGE_MASK	(~(PAGE_SIZE-1))
+#endif
 
 #include <asm/setup.h>
 #include <linux/types-user.h>

@@ -5,7 +5,9 @@
 #include "test/define-usr.h"
 #include "test/debug.h"
 #include <urcu.h>
-#include <urcu/urcu-memb.h>
+#include <urcu-pointer.h>
+#include <linux/rcupdate.h>
+
 #include <linux/types-user.h>
 #include <uapi/linux/sched.h>
 
@@ -91,7 +93,6 @@
 #include <linux/hrtimer.h>
 #include <linux/spinlock.h>
 #include <linux/rbtree.h>
-#include <linux/rcupdate.h>
 #include <linux/cpumask.h>
 #include <linux/kern_levels.h>
 #include <linux/gfp.h>

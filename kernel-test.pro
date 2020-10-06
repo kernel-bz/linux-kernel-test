@@ -3,12 +3,14 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC \
-           __timeval_defined
+#sys/time.h
+DEFINES += _POSIX_SOURCE \
+        HAVE_STRUCT_TIMESPEC __timeval_defined _SYS_TIME_H \
+        HAS_CAA_GET_CYCLES
 
 LIBS += -Lpthread
 
-QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC
+QMAKE_CFLAGS += -Wno-unused-parameter
 
 INCLUDEPATH += include/ lib/ lib/traceevent/
 
@@ -327,7 +329,8 @@ HEADERS += \
     include/linux/nospec.h \
     include/linux/kref.h \
     include/linux/rwsem.h \
-    include/linux/init_task.h
+    include/linux/init_task.h \
+    include/linux/rcupdate.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

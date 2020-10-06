@@ -23,5 +23,6 @@ static inline void trace_call_rcu(struct rcu_head *head,
 
 #undef call_rcu
 #define call_rcu(x, y) trace_call_rcu(x, y)
+#define call_rcu_memb	call_rcu
 
 #endif

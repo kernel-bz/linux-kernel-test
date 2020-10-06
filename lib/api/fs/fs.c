@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <sys/mount.h>
 
+#include <linux/types-user.h>
+
 #include "fs.h"
 //#include "debug-internal.h"
 #include "test/debug.h"

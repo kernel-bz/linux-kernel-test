@@ -8,12 +8,15 @@
 #ifndef _LINUX_CGROUP_DEFS_H
 #define _LINUX_CGROUP_DEFS_H
 
+#include <urcu.h>
+#include <urcu-pointer.h>
+
 #include <linux/limits.h>
 #include <linux/list.h>
 #include <linux/idr.h>
 #include <linux/wait.h>
 #include <linux/mutex.h>
-#include <linux/rcupdate.h>
+//#include <linux/rcupdate.h>
 #include <linux/refcount.h>
 //#include <linux/percpu-refcount.h>
 //#include <linux/percpu-rwsem.h>

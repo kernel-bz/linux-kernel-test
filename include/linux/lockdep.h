@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <linux/spinlock.h>
+#include <linux/compiler.h>
 
 #define MAX_LOCK_DEPTH	63UL
 

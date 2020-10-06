@@ -10,6 +10,7 @@
 
 //typedef unsigned long dma_addr_t;
 
+#if 0
 #define unlikely
 
 #define BUG_ON(x) assert(!(x))
@@ -25,6 +26,7 @@
 		assert(0);                                      \
 	unlikely(__ret_warn_on);                                \
 })
+#endif
 
 #define PAGE_SIZE	(4096)
 #define PAGE_SHIFT	(12)
@@ -38,7 +40,8 @@
 
 #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
 
-#define virt_to_page(x)	((void *)x)
+//include/asm-generic/page.h
+//#define virt_to_page(x)	((void *)x)
 #define page_address(x)	((void *)x)
 
 static inline unsigned long page_to_phys(struct page *page)
@@ -73,7 +76,8 @@ static inline unsigned long page_to_phys(struct page *page)
 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),   \
 	      x, y)
 
-#define preemptible() (1)
+//include/linux/preempt.h
+//#define preemptible() (1)
 
 static inline void *kmap(struct page *page)
 {

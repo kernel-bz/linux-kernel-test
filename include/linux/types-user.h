@@ -31,6 +31,7 @@ typedef __kernel_suseconds_t	suseconds_t;
 typedef __kernel_clockid_t	clockid_t;
 //typedef __kernel_mqd_t		mqd_t;
 
+//stdbool.h
 //typedef _Bool			bool;
 
 typedef __kernel_uid32_t	uid_t;
@@ -46,10 +47,10 @@ typedef __kernel_old_uid_t	old_uid_t;
 typedef __kernel_old_gid_t	old_gid_t;
 #endif /* CONFIG_UID16 */
 
-//#if defined(__GNUC__)
+#if defined(__GNUC__)
 //#ifndef loff_t
-//typedef __kernel_loff_t		loff_t;
-//#endif
+typedef __kernel_loff_t		loff_t;
+#endif
 
 struct kmem_cache;
 struct page;
@@ -99,8 +100,9 @@ typedef __u32 __bitwise __be32;
 typedef __u64 __bitwise __le64;
 typedef __u64 __bitwise __be64;
 
-typedef unsigned long        size_t;
-typedef   signed long       ssize_t;
+//unistd.h
+//typedef unsigned long        size_t;
+//typedef   signed long       ssize_t;
 
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 typedef u64 dma_addr_t;

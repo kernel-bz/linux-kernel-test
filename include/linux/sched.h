@@ -12,6 +12,9 @@
 #include <asm/current.h>
 #include <asm/thread_info.h>
 
+#include <urcu.h>
+#include <urcu-pointer.h>
+
 #include <linux/pid.h>
 #include <linux/sem.h>
 #include <linux/shm.h>
@@ -21,7 +24,7 @@
 #include <linux/hrtimer.h>
 #include <linux/seccomp.h>
 //#include <linux/nodemask.h>
-#include <linux/rcupdate.h>
+//#include <linux/rcupdate.h>
 #include <linux/refcount.h>
 #include <linux/resource.h>
 //#include <linux/latencytop.h>
