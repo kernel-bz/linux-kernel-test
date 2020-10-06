@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#include "test/config.h"
+#include "sched.h"
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #ifdef CONFIG_SCHEDSTATS

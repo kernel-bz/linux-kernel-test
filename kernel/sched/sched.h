@@ -4,6 +4,7 @@
 #include "test/config.h"
 #include "test/define-usr.h"
 #include "test/debug.h"
+
 #include <urcu.h>
 #include <urcu-pointer.h>
 #include <linux/rcupdate.h>
@@ -100,6 +101,7 @@
 #include <linux/jiffies.h>
 #include <linux/atomic.h>
 #include <linux/interrupt.h>
+#include <linux/jump_label.h>
 
 #include <asm/barrier.h>
 

@@ -232,6 +232,89 @@ static void set_load_weight(struct task_struct *p, bool update_load)
 
 
 
+//2758 lines
+#ifdef CONFIG_SCHEDSTATS
+
+DEFINE_STATIC_KEY_FALSE(sched_schedstats);
+static bool __initdata __sched_schedstats = false;
+
+static void set_schedstats(bool enabled)
+{
+    if (enabled)
+        static_branch_enable(&sched_schedstats);
+    else
+        static_branch_disable(&sched_schedstats);
+}
+
+void force_schedstat_enabled(void)
+{
+    if (!schedstat_enabled()) {
+        pr_info("kernel profiling enabled schedstats, disable via kernel.sched_schedstats.\n");
+        static_branch_enable(&sched_schedstats);
+    }
+}
+
+static int __init setup_schedstats(char *str)
+{
+    int ret = 0;
+    if (!str)
+        goto out;
+
+    /*
+     * This code is called before jump labels have been set up, so we can't
+     * change the static branch directly just yet.  Instead set a temporary
+     * variable so init_schedstats() can do it later.
+     */
+    if (!strcmp(str, "enable")) {
+        __sched_schedstats = true;
+        ret = 1;
+    } else if (!strcmp(str, "disable")) {
+        __sched_schedstats = false;
+        ret = 1;
+    }
+out:
+    if (!ret)
+        pr_warn("Unable to parse schedstats=\n");
+
+    return ret;
+}
+//__setup("schedstats=", setup_schedstats);
+
+static void __init init_schedstats(void)
+{
+    set_schedstats(__sched_schedstats);
+}
+
+#ifdef CONFIG_PROC_SYSCTL
+int sysctl_schedstats(struct ctl_table *table, int write,
+             void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+    struct ctl_table t;
+    int err;
+    int state = static_branch_likely(&sched_schedstats);
+
+    if (write && !capable(CAP_SYS_ADMIN))
+        return -EPERM;
+
+    t = *table;
+    t.data = &state;
+    err = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
+    if (err < 0)
+        return err;
+    if (write)
+        set_schedstats(state);
+    return err;
+}
+#endif /* CONFIG_PROC_SYSCTL */
+#else  /* !CONFIG_SCHEDSTATS */
+static inline void init_schedstats(void) {}
+#endif /* CONFIG_SCHEDSTATS */
+//2835 lines
+
+
+
+
+
 //2919 lines
 unsigned long to_ratio(u64 period, u64 runtime)
 {
@@ -424,8 +507,10 @@ void __init sched_init(void)
     #endif
         init_sched_fair_class();
 
-        //init_schedstats();
+        //CONFIG_SCHEDSTATS
+        init_schedstats();
 
+        //kernel/sched/psi.c
         //psi_init();
 
         //init_uclamp();

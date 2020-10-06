@@ -17,7 +17,8 @@ extern "C" {
 #define CONFIG_FAIR_GROUP_SCHED
 #define CONFIG_CFS_BANDWIDTH
 //#define CONFIG_SCHED_AUTOGROUP
-
+#define CONFIG_SCHEDSTATS
+#define CONFIG_SCHED_INFO
 
 //xarray.h
 #define CONFIG_BASE_SMALL		0

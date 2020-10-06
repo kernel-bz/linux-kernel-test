@@ -66,7 +66,8 @@ SOURCES += \
     kernel/sched/core.c \
     kernel/sched/topology.c \
     kernel/sched/cpupri.c \
-    init/init_task.c
+    init/init_task.c \
+    init/main-init.c
 
 HEADERS += \
     include/test/test.h \
@@ -330,7 +331,9 @@ HEADERS += \
     include/linux/kref.h \
     include/linux/rwsem.h \
     include/linux/init_task.h \
-    include/linux/rcupdate.h
+    include/linux/rcupdate.h \
+    include/linux/jump_label.h \
+    include/uapi/asm-generic/setup.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \
