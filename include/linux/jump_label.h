@@ -75,6 +75,7 @@
 
 #include <linux/types.h>
 #include <linux/compiler.h>
+#include <asm/bug.h>
 
 extern bool static_key_initialized;
 

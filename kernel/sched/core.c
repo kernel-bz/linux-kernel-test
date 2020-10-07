@@ -365,16 +365,19 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
+        pr_info("kzalloc size = %u\n", ptr);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
+                pr_info("addr=0x%X\n", ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
+                pr_info("root_task_group.se = %p\n", root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-
+                pr_info("root_task_group.cfs_rq = %p\n", root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
@@ -415,10 +418,14 @@ void __init sched_init(void)
         autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
+        printf("__cpu_possible_mask.bits = 0x%X\n", __cpu_possible_mask.bits);
+
         for_each_possible_cpu(i) {
             struct rq *rq;
 
             rq = cpu_rq(i);
+            pr_info("cpu=%d, rq=%p\n", i, rq);
+
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
             rq->calc_load_active = 0;

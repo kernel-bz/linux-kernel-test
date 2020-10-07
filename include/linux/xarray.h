@@ -26,6 +26,7 @@
 #include <linux/spinlock.h>
 
 #include <linux/err.h>
+#include <asm/bug.h>
 
 /*
  * The bottom two bits of the entry determine how the XArray interprets

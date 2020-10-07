@@ -15,12 +15,15 @@ extern "C" {
 #define pr_warning		printf
 #define pr_debug		printf
 #define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
-#define pr_err(format, ...) fprintf (stderr, format, ## __VA_ARGS__)
-#define pr_warn pr_err
-#define pr_cont pr_err
+#define pr_err(format, ...) do { fprintf (stderr, format, ## __VA_ARGS__); } while (0)
+#define pr_warn 		pr_err
+#define pr_cont 		pr_err
 #define print_tainted() ""
 
+#define pr_info(...)	do { printf("INFO:%s:%d: ", __FILE__, __LINE__); \
+                                printf(__VA_ARGS__); } while (0)
 
+#if 0
 #define __WARN_printf(arg...)	do { fprintf(stderr, arg); } while (0)
 
 #define WARN(condition, format...) ({		\
@@ -59,7 +62,7 @@ extern "C" {
     unlikely(__ret_warn_once);		\
 })
 
-
+#endif
 
 #ifdef __cplusplus
 }

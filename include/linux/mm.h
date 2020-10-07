@@ -10,24 +10,6 @@
 
 //typedef unsigned long dma_addr_t;
 
-#if 0
-#define unlikely
-
-#define BUG_ON(x) assert(!(x))
-
-#define WARN_ON(condition) ({                                           \
-	int __ret_warn_on = !!(condition);                              \
-	unlikely(__ret_warn_on);                                        \
-})
-
-#define WARN_ON_ONCE(condition) ({                              \
-	int __ret_warn_on = !!(condition);                      \
-	if (unlikely(__ret_warn_on))                            \
-		assert(0);                                      \
-	unlikely(__ret_warn_on);                                \
-})
-#endif
-
 #define PAGE_SIZE	(4096)
 #define PAGE_SHIFT	(12)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
@@ -112,15 +94,6 @@ static inline void free_page(unsigned long page)
 {
 	free((void *)page);
 }
-
-#if 0
-static inline void *kmalloc(unsigned int size, unsigned int flags)
-{
-	return malloc(size);
-}
-
-#define kfree(x) free(x)
-#endif
 
 #define kmemleak_alloc(a, b, c, d)
 #define kmemleak_free(a)

@@ -185,15 +185,9 @@ enum cpuhp_state {
 	CPUHP_ONLINE,
 };
 
-#if 0
-int __cpuhp_setup_state(enum cpuhp_state state,	const char *name, bool invoke,
+static inline int __cpuhp_setup_state(enum cpuhp_state state,	const char *name, bool invoke,
 			int (*startup)(unsigned int cpu),
-			int (*teardown)(unsigned int cpu), bool multi_instance);
-#endif //0
-int __cpuhp_setup_state(enum cpuhp_state state,	const char *name, bool invoke,
-            int (*startup)(unsigned int cpu),
-            int (*teardown)(unsigned int cpu), bool multi_instance)
-{ }
+                                      int (*teardown)(unsigned int cpu), bool multi_instance) { }
 
 int __cpuhp_setup_state_cpuslocked(enum cpuhp_state state, const char *name,
 				   bool invoke,

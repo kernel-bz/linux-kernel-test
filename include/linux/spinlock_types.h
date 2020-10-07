@@ -83,11 +83,13 @@ typedef struct spinlock {
 } spinlock_t;
 #endif
 
+#if 0
 #define __SPIN_LOCK_INITIALIZER(lockname) \
-	{ { .rlock = __RAW_SPIN_LOCK_INITIALIZER(lockname) } }
+    { { .rlock = __RAW_SPIN_LOCK_INITIALIZER(lockname) } }
 
 #define __SPIN_LOCK_UNLOCKED(lockname) \
 	(spinlock_t ) __SPIN_LOCK_INITIALIZER(lockname)
+#endif
 
 #define DEFINE_SPINLOCK(x)	spinlock_t x = __SPIN_LOCK_UNLOCKED(x)
 
