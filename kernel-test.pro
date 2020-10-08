@@ -3,10 +3,10 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-#sys/time.h
-DEFINES += _POSIX_SOURCE \
-        HAVE_STRUCT_TIMESPEC __timeval_defined _SYS_TIME_H \
-        HAS_CAA_GET_CYCLES
+#linux/time.h sys/time.h
+DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
+        __timespec_defined \
+        _SYS_TIME_H HAS_CAA_GET_CYCLES
 
 LIBS += -Lpthread
 
