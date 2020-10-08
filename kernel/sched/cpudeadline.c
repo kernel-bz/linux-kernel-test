@@ -241,6 +241,8 @@ int cpudl_init(struct cpudl *cp)
 {
 	int i;
 
+    pr_fn_start();
+
 	raw_spin_lock_init(&cp->lock);
 	cp->size = 0;
 
@@ -255,8 +257,10 @@ int cpudl_init(struct cpudl *cp)
 		return -ENOMEM;
 	}
 
-	for_each_possible_cpu(i)
+    for_each_possible_cpu(i)
 		cp->elements[i].idx = IDX_INVALID;
+
+    pr_fn_end();
 
 	return 0;
 }

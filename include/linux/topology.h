@@ -31,9 +31,11 @@
 #include <linux/cpumask.h>
 #include <linux/bitops.h>
 //#include <linux/mmzone.h>
-//#include <linux/smp.h>
+#include <linux/smp.h>
 #include <linux/percpu.h>
 //#include <asm/topology.h>
+
+#include <linux/percpu.h>
 
 #ifndef nr_cpus_node
 #define nr_cpus_node(node) cpumask_weight(cpumask_of_node(node))

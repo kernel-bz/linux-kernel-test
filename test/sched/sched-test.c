@@ -9,15 +9,14 @@
 #include <stdlib.h>
 
 #include "test/test.h"
+#include "test/debug.h"
 #include <linux/sched/init.h>
 
 int sched_test(void)
 {
-    printf("Starting sched_test()...\n");
-    decay_load_test();
-    update_load_avg_test();
-
-    printf("Starting sched_init()...\n");
+    pr_fn_start();
     sched_init();
+    pr_fn_end();
+
     return 0;
 }

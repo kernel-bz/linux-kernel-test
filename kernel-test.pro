@@ -337,7 +337,8 @@ HEADERS += \
     include/uapi/asm-generic/setup.h \
     include/linux/cpu.h \
     include/linux/mutex.h \
-    include/linux/percpu-rwsem.h
+    include/linux/percpu-rwsem.h \
+    include/linux/memblock.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

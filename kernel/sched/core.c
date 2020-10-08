@@ -9,8 +9,9 @@
 #include "sched.h"
 
 #include <linux/nospec.h>
-
 #include <linux/kcov.h>
+
+#include <linux/topology.h>
 
 //#include <asm/switch_to.h>
 //#include <asm/tlb.h>
@@ -357,6 +358,8 @@ void __init sched_init(void)
         unsigned long ptr = 0;
         int i;
 
+        pr_fn_start();
+
         //wait_bit_init();
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -400,6 +403,8 @@ void __init sched_init(void)
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
 
+        pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+
 #ifdef CONFIG_SMP
         init_defrootdomain();
 #endif
@@ -418,7 +423,7 @@ void __init sched_init(void)
         autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
-        printf("__cpu_possible_mask.bits = 0x%X\n", __cpu_possible_mask.bits);
+        pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
 
         for_each_possible_cpu(i) {
             struct rq *rq;
@@ -523,6 +528,8 @@ void __init sched_init(void)
         //init_uclamp();
 
         scheduler_running = 1;
+
+        pr_fn_end();
 }
 
 

@@ -14,7 +14,7 @@
 
 int nr_allocated;
 int preempt_count;
-int kmalloc_verbose = 1;
+int kmalloc_verbose;
 int test_verbose;
 
 struct kmem_cache {

@@ -18,10 +18,16 @@ extern "C" {
 #define pr_err(format, ...) do { fprintf (stderr, format, ## __VA_ARGS__); } while (0)
 #define pr_warn 		pr_err
 #define pr_cont 		pr_err
+#define panic 			pr_err
 #define print_tainted() ""
 
-#define pr_info(...)	do { printf("INFO:%s:%d: ", __FILE__, __LINE__); \
+#define pr_info(...)	do { printf("INFO:%s: ", __func__); \
                                 printf(__VA_ARGS__); } while (0)
+
+#define pr_info_view(format, args) printf(format, #args, args)
+
+#define pr_fn_start()	printf("-->Starting of %s()...\n", __func__)
+#define pr_fn_end()		printf("<--End of %s().\n", __func__)
 
 #if 0
 #define __WARN_printf(arg...)	do { fprintf(stderr, arg); } while (0)
