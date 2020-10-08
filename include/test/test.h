@@ -14,6 +14,9 @@ int decay_load_test(void);
 //test/sched/update_load_avg.c
 int update_load_avg_test(void);
 
+//test/sched/sched-test.c
+int sched_test(void);
+
 #ifdef __cplusplus
 }
 #endif

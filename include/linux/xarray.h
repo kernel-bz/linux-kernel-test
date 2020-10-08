@@ -4,6 +4,9 @@
 
 #include "test/config.h"
 #include "test/debug.h"
+
+#include <urcu.h>
+
 /*
  * eXtensible Arrays
  * Copyright (c) 2017 Microsoft Corporation
@@ -14,6 +17,7 @@
 
 #include <linux/types-user.h>
 #include <linux/bug.h>
+#include <linux/time.h>
 #include <linux/compiler.h>
 #include <linux/gfp.h>
 //#include <linux/kconfig.h>
@@ -22,6 +26,7 @@
 #include <linux/spinlock.h>
 
 #include <linux/err.h>
+#include <asm/bug.h>
 
 /*
  * The bottom two bits of the entry determine how the XArray interprets

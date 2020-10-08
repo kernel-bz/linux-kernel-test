@@ -75,8 +75,8 @@ void *kmalloc(size_t size, gfp_t gfp)
 {
 	void *ret;
 
-	if (!(gfp & __GFP_DIRECT_RECLAIM))
-		return NULL;
+    //if (!(gfp & __GFP_DIRECT_RECLAIM))
+    //	return NULL;
 
 	ret = malloc(size);
     uatomic_inc(&nr_allocated);
@@ -84,7 +84,7 @@ void *kmalloc(size_t size, gfp_t gfp)
 		printf("Allocating %p from malloc\n", ret);
 	if (gfp & __GFP_ZERO)
 		memset(ret, 0, size);
-	return ret;
+    return ret;
 }
 
 void kfree(void *p)

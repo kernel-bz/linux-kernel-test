@@ -4,8 +4,11 @@
 #include "test/config.h"
 #include "test/define-usr.h"
 #include "test/debug.h"
+
 #include <urcu.h>
-#include <urcu/urcu-memb.h>
+#include <urcu-pointer.h>
+#include <linux/rcupdate.h>
+
 #include <linux/types-user.h>
 #include <uapi/linux/sched.h>
 
@@ -91,15 +94,17 @@
 #include <linux/hrtimer.h>
 #include <linux/spinlock.h>
 #include <linux/rbtree.h>
-#include <linux/rcupdate.h>
 #include <linux/cpumask.h>
 #include <linux/kern_levels.h>
 #include <linux/gfp.h>
 #include <linux/slab.h>
 #include <linux/jiffies.h>
 #include <linux/atomic.h>
+#include <linux/interrupt.h>
+#include <linux/jump_label.h>
 
 #include <asm/barrier.h>
+#include <asm/bug.h>
 
 #ifdef CONFIG_SCHED_DEBUG
 # define SCHED_WARN_ON(x)	WARN_ONCE(x, #x)
@@ -921,7 +926,7 @@ struct rq {
 #endif /* CONFIG_NO_HZ_COMMON */
 
 	unsigned long		nr_load_updates;
-	u64			nr_switches;
+    u64					nr_switches;
 
 #ifdef CONFIG_UCLAMP_TASK
 	/* Utilization clamp values based on CPU's RUNNABLE tasks */
@@ -955,20 +960,20 @@ struct rq {
 	struct mm_struct	*prev_mm;
 
 	unsigned int		clock_update_flags;
-	u64			clock;
+    u64					clock;
 	/* Ensure that all clocks are in the same cache line */
-	u64			clock_task ____cacheline_aligned;
-	u64			clock_pelt;
+    u64					clock_task ____cacheline_aligned;
+    u64					clock_pelt;
 	unsigned long		lost_idle_time;
 
-	atomic_t		nr_iowait;
+    atomic_t			nr_iowait;
 
 #ifdef CONFIG_MEMBARRIER
 	int membarrier_state;
 #endif
 
 #ifdef CONFIG_SMP
-	struct root_domain		*rd;
+    struct root_domain			*rd;
 	struct sched_domain __rcu	*sd;
 
 	unsigned long		cpu_capacity;
@@ -1014,7 +1019,7 @@ struct rq {
 #endif
 
 	/* calc_load related fields */
-	unsigned long		calc_load_update;
+    unsigned long	calc_load_update;
 	long			calc_load_active;
 
 #ifdef CONFIG_SCHED_HRTICK
@@ -2352,8 +2357,8 @@ static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
 {
 	struct update_util_data *data;
 
-	data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
-						  cpu_of(rq)));
+    //data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
+    //						  cpu_of(rq)));
 	if (data)
 		data->func(data, rq_clock(rq), flags);
 }

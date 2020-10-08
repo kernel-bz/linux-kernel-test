@@ -1,6 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+﻿/* SPDX-License-Identifier: GPL-2.0 */
 #ifndef __LINUX_CPUMASK_H
 #define __LINUX_CPUMASK_H
+
+#include <unistd.h>
 
 /*
  * Cpumasks provide a bitmap suitable for representing the
@@ -14,6 +16,7 @@
 #include <linux/atomic.h>
 #include <linux/bug.h>
 #include <linux/string.h>
+
 
 /* Don't assign or return these: may not be this big! */
 typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
@@ -50,6 +53,98 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 #else
 #define nr_cpumask_bits	((unsigned int)NR_CPUS)
 #endif
+
+
+#if NR_CPUS <= BITS_PER_LONG
+#define CPU_BITS_ALL						\
+{								\
+    [BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
+}
+
+#else /* NR_CPUS > BITS_PER_LONG */
+
+#define CPU_BITS_ALL						\
+{								\
+    [0 ... BITS_TO_LONGS(NR_CPUS)-2] = ~0UL,		\
+    [BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
+}
+#endif /* NR_CPUS > BITS_PER_LONG */
+
+/**
+ * cpumap_print_to_pagebuf  - copies the cpumask into the buffer either
+ *	as comma-separated list of cpus or hex values of cpumask
+ * @list: indicates whether the cpumap must be list
+ * @mask: the cpumask to copy
+ * @buf: the buffer to copy into
+ *
+ * Returns the length of the (null-terminated) @buf string, zero if
+ * nothing is copied.
+ */
+static inline ssize_t
+cpumap_print_to_pagebuf(bool list, char *buf, const struct cpumask *mask)
+{
+    return bitmap_print_to_pagebuf(list, buf, cpumask_bits(mask),
+                      nr_cpu_ids);
+}
+
+#if NR_CPUS <= BITS_PER_LONG
+#define CPU_MASK_ALL							\
+(cpumask_t) { {								\
+    [BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
+} }
+#else
+#define CPU_MASK_ALL							\
+(cpumask_t) { {								\
+    [0 ... BITS_TO_LONGS(NR_CPUS)-2] = ~0UL,			\
+    [BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
+} }
+#endif /* NR_CPUS > BITS_PER_LONG */
+
+#define CPU_MASK_NONE							\
+(cpumask_t) { {								\
+    [0 ... BITS_TO_LONGS(NR_CPUS)-1] =  0UL				\
+} }
+
+#define CPU_MASK_CPU0							\
+(cpumask_t) { {								\
+    [0] =  1UL							\
+} }
+
+
+//kernel/cpu.c
+
+/* cpu_bit_bitmap[0] is empty - so we can back into it */
+#define MASK_DECLARE_1(x)	[x+1][0] = (1UL << (x))
+#define MASK_DECLARE_2(x)	MASK_DECLARE_1(x), MASK_DECLARE_1(x+1)
+#define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
+#define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
+
+#if 0
+const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
+
+    MASK_DECLARE_8(0),	MASK_DECLARE_8(8),
+    MASK_DECLARE_8(16),	MASK_DECLARE_8(24),
+#if BITS_PER_LONG > 32
+    MASK_DECLARE_8(32),	MASK_DECLARE_8(40),
+    MASK_DECLARE_8(48),	MASK_DECLARE_8(56),
+#endif
+};
+const DECLARE_BITMAP(cpu_all_bits, NR_CPUS) = CPU_BITS_ALL;
+#endif //0
+
+#ifdef CONFIG_INIT_ALL_POSSIBLE
+static struct cpumask __cpu_possible_mask __read_mostly
+    = {CPU_BITS_ALL};
+#else
+static struct cpumask __cpu_possible_mask __read_mostly;
+#endif
+
+static struct cpumask __cpu_online_mask __read_mostly;
+static struct cpumask __cpu_present_mask __read_mostly;
+static struct cpumask __cpu_active_mask __read_mostly;
+
+atomic_t __num_online_cpus __read_mostly;
+
 
 /*
  * The following particular system cpumasks and operations manage
@@ -97,10 +192,7 @@ extern struct cpumask __cpu_online_mask;
 extern struct cpumask __cpu_present_mask;
 extern struct cpumask __cpu_active_mask;
 #endif
-struct cpumask __cpu_possible_mask;
-struct cpumask __cpu_online_mask;
-struct cpumask __cpu_present_mask;
-struct cpumask __cpu_active_mask;
+
 #define cpu_possible_mask ((const struct cpumask *)&__cpu_possible_mask)
 #define cpu_online_mask   ((const struct cpumask *)&__cpu_online_mask)
 #define cpu_present_mask  ((const struct cpumask *)&__cpu_present_mask)
@@ -896,59 +988,6 @@ static inline const struct cpumask *get_cpu_mask(unsigned int cpu)
 
 #define cpu_is_offline(cpu)	unlikely(!cpu_online(cpu))
 
-#if NR_CPUS <= BITS_PER_LONG
-#define CPU_BITS_ALL						\
-{								\
-	[BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
-}
 
-#else /* NR_CPUS > BITS_PER_LONG */
-
-#define CPU_BITS_ALL						\
-{								\
-	[0 ... BITS_TO_LONGS(NR_CPUS)-2] = ~0UL,		\
-	[BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
-}
-#endif /* NR_CPUS > BITS_PER_LONG */
-
-/**
- * cpumap_print_to_pagebuf  - copies the cpumask into the buffer either
- *	as comma-separated list of cpus or hex values of cpumask
- * @list: indicates whether the cpumap must be list
- * @mask: the cpumask to copy
- * @buf: the buffer to copy into
- *
- * Returns the length of the (null-terminated) @buf string, zero if
- * nothing is copied.
- */
-static inline ssize_t
-cpumap_print_to_pagebuf(bool list, char *buf, const struct cpumask *mask)
-{
-	return bitmap_print_to_pagebuf(list, buf, cpumask_bits(mask),
-				      nr_cpu_ids);
-}
-
-#if NR_CPUS <= BITS_PER_LONG
-#define CPU_MASK_ALL							\
-(cpumask_t) { {								\
-	[BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
-} }
-#else
-#define CPU_MASK_ALL							\
-(cpumask_t) { {								\
-	[0 ... BITS_TO_LONGS(NR_CPUS)-2] = ~0UL,			\
-	[BITS_TO_LONGS(NR_CPUS)-1] = BITMAP_LAST_WORD_MASK(NR_CPUS)	\
-} }
-#endif /* NR_CPUS > BITS_PER_LONG */
-
-#define CPU_MASK_NONE							\
-(cpumask_t) { {								\
-	[0 ... BITS_TO_LONGS(NR_CPUS)-1] =  0UL				\
-} }
-
-#define CPU_MASK_CPU0							\
-(cpumask_t) { {								\
-	[0] =  1UL							\
-} }
 
 #endif /* __LINUX_CPUMASK_H */

@@ -1,12 +1,13 @@
 #include <stdio.h>
-//#include "kernel/sched/sched-pelt.h"
 
-#define __maybe_unused
-typedef unsigned long long u64;
-typedef signed long long s64;
-typedef unsigned int u32;
+#include "test/debug.h"
+
+#include <linux/types-user.h>
+#include <linux/math64.h>
+#include "kernel/sched/sched-pelt.h"
 
 //kernel/sched/sched-pelt.h
+/*
 static const u32 runnable_avg_yN_inv[] __maybe_unused = {
         0xffffffff, 0xfa83b2da, 0xf5257d14, 0xefe4b99a, 0xeac0c6e6, 0xe5b906e6,
         0xe0ccdeeb, 0xdbfbb796, 0xd744fcc9, 0xd2a81d91, 0xce248c14, 0xc9b9bd85,
@@ -18,16 +19,7 @@ static const u32 runnable_avg_yN_inv[] __maybe_unused = {
 
 #define LOAD_AVG_PERIOD 		32
 #define LOAD_AVG_MAX 		 47742
-
-
-static inline u64 mul_u64_u32_shr(u64 a, u32 mul, unsigned int shift)
-{
-#ifdef __int128
-        return (u64)(((unsigned __int128)a * mul) >> shift);
-#else
-        return (u64)((a * mul) >> shift);
-#endif
-}
+*/
 
 //kernel/sched/pelt.c
 static u64 decay_load(u64 val, u64 n)
@@ -61,10 +53,14 @@ int decay_load_test(void)
     //u64 val=LOAD_AVG_MAX, n;
     u64 val=1024, sum=0, n;
 
-    for (n=1; n<640; n++) {
+    pr_fn_start();
+
+    for (n=1; n<360; n++) {
         val = decay_load(1024, n);
         sum += val;
-        printf("n=%u, val=%u, sum=%u\n", n, val, sum);
+        printf("n=%llu, val=%llu, sum=%llu\n", n, val, sum);
     }
+
+    pr_fn_end();
     return 0;
 }

@@ -14,13 +14,18 @@ typedef struct {
 } sigset_t;
 #endif
 
+
+//include/linux/compiler.h
 #define notrace
-#define __randomize_layout
-#define ____cacheline_aligned
-#define __cpuidle
-#define __init
-#define __maybe_unused
-#define __must_check
+//#define __randomize_layout
+//#define ____cacheline_aligned
+//#define __cpuidle
+//#define __init
+//#define __maybe_unused
+//#define __must_check
+//#define __always_inline		inline
+#define __initdata
+#define __ref
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 

@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#include <linux/types-user.h>
+#include <linux/spinlock.h>
+#include <linux/cpumask.h>
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #define IDX_INVALID		-1
@@ -17,7 +21,7 @@ struct cpudl_item {
 
 struct cpudl {
 	raw_spinlock_t		lock;
-	int			size;
+    int					size;
 	cpumask_var_t		free_cpus;
 	struct cpudl_item	*elements;
 };

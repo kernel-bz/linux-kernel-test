@@ -3,7 +3,10 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC __timeval_defined
+#linux/time.h sys/time.h
+DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
+        __timespec_defined \
+        _SYS_TIME_H HAS_CAA_GET_CYCLES
 
 LIBS += -Lpthread
 
@@ -15,9 +18,7 @@ SOURCES += \
     main.c \
     test/cpu/cpus-mask-test.c \
     test/lib/ptr-test.c \
-    test/sched/rq-test.c \
     test/sched/decay_load.c \
-    test/sched/taskset.c \
     test/sched/update_load_avg.c \
     mm/slab_user.c \
     lib/api/fd/array.c \
@@ -63,7 +64,9 @@ SOURCES += \
     kernel/sched/core.c \
     kernel/sched/topology.c \
     kernel/sched/cpupri.c \
-    init/init_task.c
+    init/init_task.c \
+    init/main-init.c \
+    test/sched/sched-test.c
 
 HEADERS += \
     include/test/test.h \
@@ -326,7 +329,14 @@ HEADERS += \
     include/linux/nospec.h \
     include/linux/kref.h \
     include/linux/rwsem.h \
-    include/linux/init_task.h
+    include/linux/init_task.h \
+    include/linux/rcupdate.h \
+    include/linux/jump_label.h \
+    include/uapi/asm-generic/setup.h \
+    include/linux/cpu.h \
+    include/linux/mutex.h \
+    include/linux/percpu-rwsem.h \
+    include/linux/memblock.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

@@ -255,7 +255,7 @@ int cpudl_init(struct cpudl *cp)
 		return -ENOMEM;
 	}
 
-	for_each_possible_cpu(i)
+    for_each_possible_cpu(i)
 		cp->elements[i].idx = IDX_INVALID;
 
 	return 0;

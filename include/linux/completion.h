@@ -9,6 +9,7 @@
  * See kernel/sched/completion.c for details.
  */
 
+#include <linux/time.h>
 #include <linux/wait.h>
 
 /*

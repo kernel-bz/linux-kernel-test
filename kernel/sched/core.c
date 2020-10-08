@@ -9,8 +9,9 @@
 #include "sched.h"
 
 #include <linux/nospec.h>
-
 #include <linux/kcov.h>
+
+#include <linux/topology.h>
 
 //#include <asm/switch_to.h>
 //#include <asm/tlb.h>
@@ -60,6 +61,140 @@ __read_mostly int scheduler_running;
  * default: 0.95s
  */
 int sysctl_sched_rt_runtime = 950000;
+//74 lines
+
+
+
+
+
+//140 lines
+/*
+ * RQ-clock updating methods:
+ */
+
+static void update_rq_clock_task(struct rq *rq, s64 delta)
+{
+/*
+ * In theory, the compile should just see 0 here, and optimize out the call
+ * to sched_rt_avg_update. But I don't trust it...
+ */
+    s64 __maybe_unused steal = 0, irq_delta = 0;
+
+#ifdef CONFIG_IRQ_TIME_ACCOUNTING
+    irq_delta = irq_time_read(cpu_of(rq)) - rq->prev_irq_time;
+
+    /*
+     * Since irq_time is only updated on {soft,}irq_exit, we might run into
+     * this case when a previous update_rq_clock() happened inside a
+     * {soft,}irq region.
+     *
+     * When this happens, we stop ->clock_task and only update the
+     * prev_irq_time stamp to account for the part that fit, so that a next
+     * update will consume the rest. This ensures ->clock_task is
+     * monotonic.
+     *
+     * It does however cause some slight miss-attribution of {soft,}irq
+     * time, a more accurate solution would be to update the irq_time using
+     * the current rq->clock timestamp, except that would require using
+     * atomic ops.
+     */
+    if (irq_delta > delta)
+        irq_delta = delta;
+
+    rq->prev_irq_time += irq_delta;
+    delta -= irq_delta;
+#endif
+#ifdef CONFIG_PARAVIRT_TIME_ACCOUNTING
+    if (static_key_false((&paravirt_steal_rq_enabled))) {
+        steal = paravirt_steal_clock(cpu_of(rq));
+        steal -= rq->prev_steal_time_rq;
+
+        if (unlikely(steal > delta))
+            steal = delta;
+
+        rq->prev_steal_time_rq += steal;
+        delta -= steal;
+    }
+#endif
+
+    rq->clock_task += delta;
+
+#ifdef CONFIG_HAVE_SCHED_AVG_IRQ
+    if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
+        update_irq_load_avg(rq, irq_delta + steal);
+#endif
+    update_rq_clock_pelt(rq, delta);
+}
+
+void update_rq_clock(struct rq *rq)
+{
+    s64 delta;
+
+    lockdep_assert_held(&rq->lock);
+
+    if (rq->clock_update_flags & RQCF_ACT_SKIP)
+        return;
+
+#ifdef CONFIG_SCHED_DEBUG
+    if (sched_feat(WARN_DOUBLE_CLOCK))
+        SCHED_WARN_ON(rq->clock_update_flags & RQCF_UPDATED);
+    rq->clock_update_flags |= RQCF_UPDATED;
+#endif
+
+    delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
+    if (delta < 0)
+        return;
+    rq->clock += delta;
+    update_rq_clock_task(rq, delta);
+}
+//220 lines
+
+
+
+//499 lines
+/*
+ * resched_curr - mark rq's current task 'to be rescheduled now'.
+ *
+ * On UP this means the setting of the need_resched flag, on SMP it
+ * might also involve a cross-CPU call to trigger the scheduler on
+ * the target CPU.
+ */
+void resched_curr(struct rq *rq)
+{
+    struct task_struct *curr = rq->curr;
+    int cpu;
+
+    lockdep_assert_held(&rq->lock);
+
+    if (test_tsk_need_resched(curr))
+        return;
+
+    cpu = cpu_of(rq);
+
+    if (cpu == smp_processor_id()) {
+        set_tsk_need_resched(curr);
+        //set_preempt_need_resched();
+        return;
+    }
+#if 0
+    if (set_nr_and_not_polling(curr))
+        smp_send_reschedule(cpu);
+    else
+        trace_sched_wake_idle_without_ipi(cpu);
+#endif //0
+}
+
+void resched_cpu(int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    unsigned long flags;
+
+    raw_spin_lock_irqsave(&rq->lock, flags);
+    if (cpu_online(cpu) || cpu == smp_processor_id())
+        resched_curr(rq);
+    raw_spin_unlock_irqrestore(&rq->lock, flags);
+}
+//541 lines
 
 
 
@@ -93,6 +228,89 @@ static void set_load_weight(struct task_struct *p, bool update_load)
         p->se.runnable_weight = load->weight;
     }
 }
+
+
+
+
+
+//2758 lines
+#ifdef CONFIG_SCHEDSTATS
+
+DEFINE_STATIC_KEY_FALSE(sched_schedstats);
+static bool __initdata __sched_schedstats = false;
+
+static void set_schedstats(bool enabled)
+{
+    if (enabled)
+        static_branch_enable(&sched_schedstats);
+    else
+        static_branch_disable(&sched_schedstats);
+}
+
+void force_schedstat_enabled(void)
+{
+    if (!schedstat_enabled()) {
+        pr_info("kernel profiling enabled schedstats, disable via kernel.sched_schedstats.\n");
+        static_branch_enable(&sched_schedstats);
+    }
+}
+
+static int __init setup_schedstats(char *str)
+{
+    int ret = 0;
+    if (!str)
+        goto out;
+
+    /*
+     * This code is called before jump labels have been set up, so we can't
+     * change the static branch directly just yet.  Instead set a temporary
+     * variable so init_schedstats() can do it later.
+     */
+    if (!strcmp(str, "enable")) {
+        __sched_schedstats = true;
+        ret = 1;
+    } else if (!strcmp(str, "disable")) {
+        __sched_schedstats = false;
+        ret = 1;
+    }
+out:
+    if (!ret)
+        pr_warn("Unable to parse schedstats=\n");
+
+    return ret;
+}
+//__setup("schedstats=", setup_schedstats);
+
+static void __init init_schedstats(void)
+{
+    set_schedstats(__sched_schedstats);
+}
+
+#ifdef CONFIG_PROC_SYSCTL
+int sysctl_schedstats(struct ctl_table *table, int write,
+             void __user *buffer, size_t *lenp, loff_t *ppos)
+{
+    struct ctl_table t;
+    int err;
+    int state = static_branch_likely(&sched_schedstats);
+
+    if (write && !capable(CAP_SYS_ADMIN))
+        return -EPERM;
+
+    t = *table;
+    t.data = &state;
+    err = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
+    if (err < 0)
+        return err;
+    if (write)
+        set_schedstats(state);
+    return err;
+}
+#endif /* CONFIG_PROC_SYSCTL */
+#else  /* !CONFIG_SCHEDSTATS */
+static inline void init_schedstats(void) {}
+#endif /* CONFIG_SCHEDSTATS */
+//2835 lines
 
 
 
@@ -140,6 +358,8 @@ void __init sched_init(void)
         unsigned long ptr = 0;
         int i;
 
+        pr_fn_start();
+
         //wait_bit_init();
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -148,16 +368,19 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
+        pr_info("kzalloc size = %u\n", ptr);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
+                pr_info("addr=0x%X\n", ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
+                pr_info_view("%30s : %p\n", root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-
+                pr_info_view("%30s : %p\n", root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
@@ -180,6 +403,9 @@ void __init sched_init(void)
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
 
+        pr_info_view("%30s : %p\n", &def_rt_bandwidth);
+        pr_info_view("%30s : %p\n", &def_dl_bandwidth);
+
 #ifdef CONFIG_SMP
         init_defrootdomain();
 #endif
@@ -198,10 +424,14 @@ void __init sched_init(void)
         autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
+        pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+
         for_each_possible_cpu(i) {
             struct rq *rq;
 
             rq = cpu_rq(i);
+            pr_info("cpu=%d, rq=%p\n", i, rq);
+
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
             rq->calc_load_active = 0;
@@ -268,6 +498,8 @@ void __init sched_init(void)
         }
 
         set_load_weight(&init_task, false);
+        pr_info_view("%30s : %lu\n", init_task.se.load.weight);
+        pr_info_view("%30s : %u\n", init_task.se.load.inv_weight);
 
         /*
          * The boot idle thread does lazy MMU switching as well:
@@ -284,19 +516,25 @@ void __init sched_init(void)
         //init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
+        pr_info_view("%20s : %lu\n", jiffies);
+        pr_info_view("%20s : %lu\n", calc_load_update);
 
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
     #endif
-        //init_sched_fair_class();
+        init_sched_fair_class();
 
-        //init_schedstats();
+        //CONFIG_SCHEDSTATS
+        init_schedstats();
 
+        //kernel/sched/psi.c
         //psi_init();
 
         //init_uclamp();
 
         scheduler_running = 1;
+
+        pr_fn_end();
 }
 
 

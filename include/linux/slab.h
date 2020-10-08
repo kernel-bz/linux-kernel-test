@@ -18,10 +18,9 @@ static inline void *kzalloc(size_t size, gfp_t gfp)
         return kmalloc(size, gfp | __GFP_ZERO);
 }
 
-static inline int kcalloc(int nr, size_t size, gfp_t gfp)
+static inline void *kcalloc(int nr, size_t size, gfp_t gfp)
 {
-        kmalloc(nr*size, gfp | __GFP_ZERO);
-        return nr;
+        return kmalloc(nr*size, gfp | __GFP_ZERO);
 }
 
 void *kmem_cache_alloc(struct kmem_cache *cachep, int flags);
@@ -55,6 +54,21 @@ kmem_cache_create(const char *name, size_t size, size_t offset,
             offsetof(struct __struct, __field),		\
             sizeof_field(struct __struct, __field), NULL)
 
+
+static __always_inline void *__kmalloc_node(size_t size, gfp_t flags, int node)
+{
+    return kmalloc(size, flags);
+}
+
+static __always_inline void *kmalloc_node(size_t size, gfp_t flags, int node)
+{
+    return __kmalloc_node(size, flags, node);
+}
+
+static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
+{
+    return kmalloc_node(size, flags | __GFP_ZERO, node);
+}
 
 
 #endif		/* SLAB_H */

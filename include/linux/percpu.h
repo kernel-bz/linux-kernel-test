@@ -2,7 +2,8 @@
 #ifndef __LINUX_PERCPU_H
 #define __LINUX_PERCPU_H
 
-#define DECLARE_PER_CPU(type, val) extern type val
+//#define DECLARE_PER_CPU(type, val) extern type val
+#define DECLARE_PER_CPU(type, val) type val
 #define DEFINE_PER_CPU(type, val) type val
 
 //include/linux/percpu-defs.h

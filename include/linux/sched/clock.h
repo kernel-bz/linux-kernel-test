@@ -20,7 +20,12 @@ extern unsigned long long notrace sched_clock(void);
  * See the comment in kernel/sched/clock.c
  */
 extern u64 running_clock(void);
-extern u64 sched_clock_cpu(int cpu);
+//extern u64 sched_clock_cpu(int cpu);
+//kernel/sched/clock.c
+static inline u64 sched_clock_cpu(int cpu)
+{
+    return 0;
+}
 
 
 extern void sched_clock_init(void);

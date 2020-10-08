@@ -31,9 +31,11 @@ typedef struct {
 
 #endif
 
+#if 0
 typedef struct {
 	/* no debug version on UP */
 } arch_rwlock_t;
+#endif
 
 #define __ARCH_RW_LOCK_UNLOCKED { }
 

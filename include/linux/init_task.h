@@ -4,7 +4,10 @@
 
 #include "test/config.h"
 
-#include <linux/rcupdate.h>
+#include <urcu.h>
+#include <urcu-pointer.h>
+
+//#include <linux/rcupdate.h>
 #include <linux/irqflags.h>
 #include <linux/utsname.h>
 #include <linux/lockdep.h>

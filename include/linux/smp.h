@@ -203,6 +203,8 @@ static inline int get_boot_cpu_id(void)
  * when smp_processor_id() is used when the CPU id is not stable.
  */
 
+#define raw_smp_processor_id()			0
+
 /*
  * Allow the architecture to differentiate between a stable and unstable read.
  * For example, x86 uses an IRQ-safe asm-volatile read for the unstable but a
