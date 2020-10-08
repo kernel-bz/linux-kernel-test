@@ -18,9 +18,7 @@ SOURCES += \
     main.c \
     test/cpu/cpus-mask-test.c \
     test/lib/ptr-test.c \
-    test/sched/rq-test.c \
     test/sched/decay_load.c \
-    test/sched/taskset.c \
     test/sched/update_load_avg.c \
     mm/slab_user.c \
     lib/api/fd/array.c \

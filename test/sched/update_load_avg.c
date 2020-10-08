@@ -4,54 +4,16 @@
  */
 
 #include <stdio.h>
+
+#include "test/config.h"
+#include "test/debug.h"
+
+#include <linux/types-user.h>
+#include <linux/sched.h>
+#include <linux/math64.h>
 #include "kernel/sched/sched-pelt.h"
-/*
-typedef unsigned long long u64;
-typedef signed long long s64;
-typedef unsigned int u32;
-*/
-#define __maybe_unused
 
-//include/linux/sched.h
-# define SCHED_FIXEDPOINT_SHIFT         10
-# define SCHED_FIXEDPOINT_SCALE         (1L << SCHED_FIXEDPOINT_SHIFT)
-
-/* Increase resolution of cpu_capacity calculations */
-# define SCHED_CAPACITY_SHIFT           SCHED_FIXEDPOINT_SHIFT
-# define SCHED_CAPACITY_SCALE           (1L << SCHED_CAPACITY_SHIFT)
-
-#define CONFIG_64BIT
-
-#ifdef CONFIG_64BIT
-# define NICE_0_LOAD_SHIFT      (SCHED_FIXEDPOINT_SHIFT + SCHED_FIXEDPOINT_SHIFT)
-# define scale_load(w)          ((w) << SCHED_FIXEDPOINT_SHIFT)
-# define scale_load_down(w)     ((w) >> SCHED_FIXEDPOINT_SHIFT)
-#else
-# define NICE_0_LOAD_SHIFT      (SCHED_FIXEDPOINT_SHIFT)
-# define scale_load(w)          (w)
-# define scale_load_down(w)     (w)
-#endif
-
-struct util_est {
-    unsigned int			enqueued;
-    unsigned int			ewma;
-#define UTIL_EST_WEIGHT_SHIFT		2
-};
-//__attribute__((__aligned__(sizeof(u64))));
-
-struct sched_avg {
-        u64                             last_update_time;
-        u64                             load_sum;
-        u64                             runnable_load_sum;
-        u32                             util_sum;
-        u32                             period_contrib;
-        unsigned long                   load_avg;
-        unsigned long                   runnable_load_avg;
-        unsigned long                   util_avg;
-        struct util_est                 util_est;
-};
-
-struct sched_avg avg = {
+static struct sched_avg avg = {
     .load_sum = 20000,
     .runnable_load_sum = 400000,
     .util_sum = 22907904
@@ -59,7 +21,7 @@ struct sched_avg avg = {
 
 int Seq=0;
 
-void pr_info(int i)
+static void _pr_this_info(int i)
 {
     printf("i=%d\n", i);
     printf("avg.last_update_time=%llu\n", avg.last_update_time);
@@ -72,15 +34,6 @@ void pr_info(int i)
     printf("avg.util_avg=%lu\n", avg.util_avg);
     //printf("avg.util_est=%llu\n", avg.util_est);
     printf("\n");
-}
-
-static inline u64 mul_u64_u32_shr(u64 a, u32 mul, unsigned int shift)
-{
-#ifdef __int128
-        return (u64)(((unsigned __int128)a * mul) >> shift);
-#else
-        return (u64)((a * mul) >> shift);
-#endif
 }
 
 static u64 decay_load(u64 val, u64 n)
@@ -180,7 +133,7 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
         sa->util_sum = decay_load((u64)(sa->util_sum), periods);
 
         printf("accumulate_sum(): Step1:\n");
-        pr_info(Seq);
+        _pr_this_info(Seq);
         /*
          * Step 2
          */
@@ -252,23 +205,7 @@ ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runna
         sa->util_avg = sa->util_sum / divider;
 }
 
-/**
-int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
-{
-        if (___update_load_sum(now, &cfs_rq->avg,
-                                scale_load_down(cfs_rq->load.weight),
-                                scale_load_down(cfs_rq->runnable_weight),
-                                cfs_rq->curr != NULL)) {
-
-                ___update_load_avg(&cfs_rq->avg, 1, 1);
-                //trace_pelt_cfs_tp(cfs_rq);
-                return 1;
-        }
-
-        return 0;
-}
-*/
-
+//kernel/sched/pelt.c
 /*
 int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
@@ -285,7 +222,7 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
 }
 */
 
-
+//kernel/sched/fair.c
 //update_load_avg()
 int update_load_avg_test(void)
 {
@@ -295,18 +232,22 @@ int update_load_avg_test(void)
     //unsigned long	weight;
     //unsigned long	runnable_weight;
 
+    pr_fn_start();
+
     int i;
-    pr_info(0);
+    _pr_this_info(0);
     for (i=0; i<10; i++) {
         Seq = i;
         //now += (i+1) * 10000000;	//+10ms
         now += 10000000;	//+10ms
         if (___update_load_sum(now, &avg, runnable[i], runnable[i], running[i])) {
-            pr_info(i);
+            _pr_this_info(i);
             ___update_load_avg(&avg, 1024, 1024);
-            pr_info(i);
+            _pr_this_info(i);
         }
     }
+
+    pr_fn_end();
 
     return 0;
 }

@@ -15,7 +15,9 @@
 int sched_test(void)
 {
     pr_fn_start();
+
     sched_init();
+
     pr_fn_end();
 
     return 0;

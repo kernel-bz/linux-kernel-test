@@ -376,11 +376,11 @@ void __init sched_init(void)
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info("root_task_group.se = %p\n", root_task_group.se);
+                pr_info_view("%30s : %p\n", root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info("root_task_group.cfs_rq = %p\n", root_task_group.cfs_rq);
+                pr_info_view("%30s : %p\n", root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
@@ -403,7 +403,8 @@ void __init sched_init(void)
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
 
-        pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+        pr_info_view("%30s : %p\n", &def_rt_bandwidth);
+        pr_info_view("%30s : %p\n", &def_dl_bandwidth);
 
 #ifdef CONFIG_SMP
         init_defrootdomain();
@@ -497,6 +498,8 @@ void __init sched_init(void)
         }
 
         set_load_weight(&init_task, false);
+        pr_info_view("%30s : %lu\n", init_task.se.load.weight);
+        pr_info_view("%30s : %u\n", init_task.se.load.inv_weight);
 
         /*
          * The boot idle thread does lazy MMU switching as well:
@@ -513,6 +516,8 @@ void __init sched_init(void)
         //init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
+        pr_info_view("%20s : %lu\n", jiffies);
+        pr_info_view("%20s : %lu\n", calc_load_update);
 
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
