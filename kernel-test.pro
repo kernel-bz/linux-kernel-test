@@ -3,12 +3,11 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC \
-           __timeval_defined
+DEFINES += _POSIX_SOURCE _STRUCT_TIMESPEC __timeval_defined
 
 LIBS += -Lpthread
 
-QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC
+QMAKE_CFLAGS += -Wno-unused-parameter
 
 INCLUDEPATH += include/ lib/ lib/traceevent/
 
