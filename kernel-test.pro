@@ -336,7 +336,8 @@ HEADERS += \
     include/linux/cpu.h \
     include/linux/mutex.h \
     include/linux/percpu-rwsem.h \
-    include/linux/memblock.h
+    include/linux/memblock.h \
+    include/linux/profile.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

@@ -335,9 +335,69 @@ unsigned long to_ratio(u64 period, u64 runtime)
 
 
 
+//6078 lines
+#ifdef CONFIG_SMP
 
 
-//6541 lines
+
+
+
+//6496 lines
+//init/main.c:
+//  start_kernel()
+//    rest_init()
+//      kernel_thread(kernel_init, NULL, CLONE_FS)
+//        kernel_init()
+//          kernel_init_freeable()
+#if 0
+void __init sched_init_smp(void)
+{
+    sched_init_numa();
+
+    /*
+     * There's no userspace yet to cause hotplug operations; hence all the
+     * CPU masks are stable and all blatant races in the below code cannot
+     * happen.
+     */
+    mutex_lock(&sched_domains_mutex);
+    sched_init_domains(cpu_active_mask);
+    mutex_unlock(&sched_domains_mutex);
+
+    /* Move init over to a non-isolated CPU */
+    if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
+        BUG();
+    sched_init_granularity();
+
+    init_sched_rt_class();
+    init_sched_dl_class();
+
+    sched_smp_initialized = true;
+}
+
+static int __init migration_init(void)
+{
+    sched_cpu_starting(smp_processor_id());
+    return 0;
+}
+early_initcall(migration_init);
+#endif //0
+
+#else
+void __init sched_init_smp(void)
+{
+    sched_init_granularity();
+}
+#endif /* CONFIG_SMP */
+
+#if 0
+int in_sched_functions(unsigned long addr)
+{
+    return in_lock_functions(addr) ||
+        (addr >= (unsigned long)__sched_text_start
+        && addr < (unsigned long)__sched_text_end);
+}
+#endif //0
+//6541
 #ifdef CONFIG_CGROUP_SCHED
 /*
  * Default task group.
@@ -353,6 +413,8 @@ static struct kmem_cache *task_group_cache __read_mostly;
 DECLARE_PER_CPU(cpumask_var_t, load_balance_mask);
 DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
 
+//init/main.c:
+//  start_kernel()
 void __init sched_init(void)
 {
         unsigned long ptr = 0;
@@ -536,7 +598,7 @@ void __init sched_init(void)
 
         pr_fn_end();
 }
-
+//6720 lines
 
 
 

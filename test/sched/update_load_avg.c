@@ -222,9 +222,28 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
 }
 */
 
+/*
+ * open_softirq(SCHED_SOFTIRQ, run_rebalance_domains);
+ *	 run_rebalance_domains();
+ * 		update_blocked_averages(this_rq->cpu);
+ *			  update_load_avg(cfs_rq_of(se), se, 0);
+ * Call:
+ * 	enqueue_entity();
+ * 	dequeue_entity();
+ * 	set_next_entity();
+ * 	put_prev_entity();
+ * 	entity_tick();
+ * 	enqueue_task_fair();
+ * 	dequeue_task_fair();
+ * 	update_blocked_averages();
+ * 	propagate_entity_cfs_rq();
+ * 	detach_entity_cfs_rq();
+ * 	attach_entity_cfs_rq();
+ * 	sched_group_set_shares();
+ */
 //kernel/sched/fair.c
 //update_load_avg()
-int update_load_avg_test(void)
+void update_load_avg_test(void)
 {
     int runnable[] = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
     int running[] = {1, 1, 0, 0, 0, 0, 0, 0, 1, 1};
@@ -248,6 +267,4 @@ int update_load_avg_test(void)
     }
 
     pr_fn_end();
-
-    return 0;
 }

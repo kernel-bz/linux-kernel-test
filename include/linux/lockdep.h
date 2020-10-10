@@ -36,7 +36,7 @@ static inline int debug_locks_off(void)
 
 #define KSYM_NAME_LEN 128
 
-#define list_del_rcu list_del
+//#define list_del_rcu list_del
 
 #define static_obj(x) 1
 

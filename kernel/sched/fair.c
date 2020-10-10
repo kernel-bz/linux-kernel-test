@@ -836,11 +836,189 @@ static void update_curr_fair(struct rq *rq)
 {
     update_curr(cfs_rq_of(&rq->curr->se));
 }
-//872 lines
+//872
+static inline void
+update_stats_wait_start(struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+    u64 wait_start, prev_wait_start;
+
+    if (!schedstat_enabled())
+        return;
+
+    wait_start = rq_clock(rq_of(cfs_rq));
+    prev_wait_start = schedstat_val(se->statistics.wait_start);
+
+    if (entity_is_task(se) && task_on_rq_migrating(task_of(se)) &&
+        likely(wait_start > prev_wait_start))
+        wait_start -= prev_wait_start;
+
+    __schedstat_set(se->statistics.wait_start, wait_start);
+}
+
+static inline void
+update_stats_wait_end(struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+    struct task_struct *p;
+    u64 delta;
+
+    if (!schedstat_enabled())
+        return;
+
+    delta = rq_clock(rq_of(cfs_rq)) - schedstat_val(se->statistics.wait_start);
+
+    if (entity_is_task(se)) {
+        p = task_of(se);
+        if (task_on_rq_migrating(p)) {
+            /*
+             * Preserve migrating task's wait time so wait_start
+             * time stamp can be adjusted to accumulate wait time
+             * prior to migration.
+             */
+            __schedstat_set(se->statistics.wait_start, delta);
+            return;
+        }
+        trace_sched_stat_wait(p, delta);
+    }
+
+    __schedstat_set(se->statistics.wait_max,
+              max(schedstat_val(se->statistics.wait_max), delta));
+    __schedstat_inc(se->statistics.wait_count);
+    __schedstat_add(se->statistics.wait_sum, delta);
+    __schedstat_set(se->statistics.wait_start, 0);
+}
+
+static inline void
+update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+    struct task_struct *tsk = NULL;
+    u64 sleep_start, block_start;
+
+    if (!schedstat_enabled())
+        return;
+
+    sleep_start = schedstat_val(se->statistics.sleep_start);
+    block_start = schedstat_val(se->statistics.block_start);
+
+    if (entity_is_task(se))
+        tsk = task_of(se);
+
+    if (sleep_start) {
+        u64 delta = rq_clock(rq_of(cfs_rq)) - sleep_start;
+
+        if ((s64)delta < 0)
+            delta = 0;
+
+        if (unlikely(delta > schedstat_val(se->statistics.sleep_max)))
+            __schedstat_set(se->statistics.sleep_max, delta);
+
+        __schedstat_set(se->statistics.sleep_start, 0);
+        __schedstat_add(se->statistics.sum_sleep_runtime, delta);
+
+        if (tsk) {
+            //account_scheduler_latency(tsk, delta >> 10, 1);
+            //trace_sched_stat_sleep(tsk, delta);
+        }
+    }
+    if (block_start) {
+        u64 delta = rq_clock(rq_of(cfs_rq)) - block_start;
+
+        if ((s64)delta < 0)
+            delta = 0;
+
+        if (unlikely(delta > schedstat_val(se->statistics.block_max)))
+            __schedstat_set(se->statistics.block_max, delta);
+
+        __schedstat_set(se->statistics.block_start, 0);
+        __schedstat_add(se->statistics.sum_sleep_runtime, delta);
+
+        if (tsk) {
+            if (tsk->in_iowait) {
+                __schedstat_add(se->statistics.iowait_sum, delta);
+                __schedstat_inc(se->statistics.iowait_count);
+                //trace_sched_stat_iowait(tsk, delta);
+            }
+
+            //trace_sched_stat_blocked(tsk, delta);
+
+            /*
+             * Blocking time is in units of nanosecs, so shift by
+             * 20 to get a milliseconds-range estimation of the
+             * amount of time that the task spent sleeping:
+             */
+            if (unlikely(prof_on == SLEEP_PROFILING)) {
+                profile_hits(SLEEP_PROFILING,
+                        (void *)get_wchan(tsk),
+                        delta >> 20);
+            }
+            //account_scheduler_latency(tsk, delta >> 10, 0);
+        }
+    }
+}
+//990
+/*
+ * Task is being enqueued - update stats:
+ */
+static inline void
+update_stats_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+{
+    if (!schedstat_enabled())
+        return;
+
+    /*
+     * Are we enqueueing a waiting task? (for current tasks
+     * a dequeue/enqueue event is a NOP)
+     */
+    if (se != cfs_rq->curr)
+        update_stats_wait_start(cfs_rq, se);
+
+    if (flags & ENQUEUE_WAKEUP)
+        update_stats_enqueue_sleeper(cfs_rq, se);
+}
+
+static inline void
+update_stats_dequeue(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+{
+
+    if (!schedstat_enabled())
+        return;
+
+    /*
+     * Mark the end of the wait period if dequeueing a
+     * waiting task:
+     */
+    if (se != cfs_rq->curr)
+        update_stats_wait_end(cfs_rq, se);
+
+    if ((flags & DEQUEUE_SLEEP) && entity_is_task(se)) {
+        struct task_struct *tsk = task_of(se);
+
+        if (tsk->state & TASK_INTERRUPTIBLE)
+            __schedstat_set(se->statistics.sleep_start,
+                      rq_clock(rq_of(cfs_rq)));
+        if (tsk->state & TASK_UNINTERRUPTIBLE)
+            __schedstat_set(se->statistics.block_start,
+                      rq_clock(rq_of(cfs_rq)));
+    }
+}
+
+/*
+ * We are picking a new current task - update its stats:
+ */
+static inline void
+update_stats_curr_start(struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+    /*
+     * We are starting a new run period:
+     */
+    se->exec_start = rq_clock_task(rq_of(cfs_rq));
+}
+
+/**************************************************
+ * Scheduling class queueing methods:
+ */
+//1052 lines
 
 
-
-//CONFIG_NUMA_
 
 
 
@@ -1950,6 +2128,131 @@ static inline void update_misfit_status(struct task_struct *p, struct rq *rq) {}
 
 #endif /* CONFIG_SMP */
 //3861 lines
+static void check_spread(struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+#ifdef CONFIG_SCHED_DEBUG
+    s64 d = se->vruntime - cfs_rq->min_vruntime;
+
+    if (d < 0)
+        d = -d;
+
+    if (d > 3*sysctl_sched_latency)
+        schedstat_inc(cfs_rq->nr_spread_over);
+#endif
+}
+
+static void
+place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
+{
+    u64 vruntime = cfs_rq->min_vruntime;
+
+    /*
+     * The 'current' period is already promised to the current tasks,
+     * however the extra weight of the new task will slow them down a
+     * little, place the new task so that it fits in the slot that
+     * stays open at the end.
+     */
+    if (initial && sched_feat(START_DEBIT))
+        vruntime += sched_vslice(cfs_rq, se);
+
+    /* sleeps up to a single latency don't count. */
+    if (!initial) {
+        unsigned long thresh = sysctl_sched_latency;
+
+        /*
+         * Halve their sleep time's effect, to allow
+         * for a gentler effect of sleepers:
+         */
+        if (sched_feat(GENTLE_FAIR_SLEEPERS))
+            thresh >>= 1;
+
+        vruntime -= thresh;
+    }
+
+    /* ensure we never gain time by being placed backwards. */
+    se->vruntime = max_vruntime(se->vruntime, vruntime);
+}
+
+static void check_enqueue_throttle(struct cfs_rq *cfs_rq);
+
+static inline void check_schedstat_required(void)
+{
+#ifdef CONFIG_SCHEDSTATS
+    if (schedstat_enabled())
+        return;
+#if 0
+    /* Force schedstat enabled if a dependent tracepoint is active */
+    if (trace_sched_stat_wait_enabled()    ||
+            trace_sched_stat_sleep_enabled()   ||
+            trace_sched_stat_iowait_enabled()  ||
+            trace_sched_stat_blocked_enabled() ||
+            trace_sched_stat_runtime_enabled())  {
+        printk_deferred_once("Scheduler tracepoints stat_sleep, stat_iowait, "
+                 "stat_blocked and stat_runtime require the "
+                 "kernel parameter schedstats=enable or "
+                 "kernel.sched_schedstats=1\n");
+    }
+#endif //0
+#endif
+}
+//3928 lines
+
+
+//3959 lines
+static void
+enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+{
+    bool renorm = !(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_MIGRATED);
+    bool curr = cfs_rq->curr == se;
+
+    /*
+     * If we're the current task, we must renormalise before calling
+     * update_curr().
+     */
+    if (renorm && curr)
+        se->vruntime += cfs_rq->min_vruntime;
+
+    update_curr(cfs_rq);
+
+    /*
+     * Otherwise, renormalise after, such that we're placed at the current
+     * moment in time, instead of some random moment in the past. Being
+     * placed in the past could significantly boost this task to the
+     * fairness detriment of existing tasks.
+     */
+    if (renorm && !curr)
+        se->vruntime += cfs_rq->min_vruntime;
+
+    /*
+     * When enqueuing a sched_entity, we must:
+     *   - Update loads to have both entity and cfs_rq synced with now.
+     *   - Add its load to cfs_rq->runnable_avg
+     *   - For group_entity, update its weight to reflect the new share of
+     *     its group cfs_rq
+     *   - Add its new weight to cfs_rq->load.weight
+     */
+    update_load_avg(cfs_rq, se, UPDATE_TG | DO_ATTACH);
+    update_cfs_group(se);
+    enqueue_runnable_load_avg(cfs_rq, se);
+    account_entity_enqueue(cfs_rq, se);
+
+    if (flags & ENQUEUE_WAKEUP)
+        place_entity(cfs_rq, se, 0);
+
+    check_schedstat_required();
+    update_stats_enqueue(cfs_rq, se, flags);
+    check_spread(cfs_rq, se);
+    if (!curr)
+        __enqueue_entity(cfs_rq, se);
+    se->on_rq = 1;
+
+    if (cfs_rq->nr_running == 1) {
+        list_add_leaf_cfs_rq(cfs_rq);
+        //check_enqueue_throttle(cfs_rq);
+    }
+}
+//4012 lines
+
 
 
 
@@ -2190,10 +2493,190 @@ static inline void update_runtime_enabled(struct rq *rq) {}
 static inline void unthrottle_offline_cfs_rqs(struct rq *rq) {}
 
 #endif /* CONFIG_CFS_BANDWIDTH */
-//5110 lines
+//5110
 /**************************************************
  * CFS operations on tasks:
  */
+
+#ifdef CONFIG_SCHED_HRTICK
+static void hrtick_start_fair(struct rq *rq, struct task_struct *p)
+{
+    struct sched_entity *se = &p->se;
+    struct cfs_rq *cfs_rq = cfs_rq_of(se);
+
+    SCHED_WARN_ON(task_rq(p) != rq);
+
+    if (rq->cfs.h_nr_running > 1) {
+        u64 slice = sched_slice(cfs_rq, se);
+        u64 ran = se->sum_exec_runtime - se->prev_sum_exec_runtime;
+        s64 delta = slice - ran;
+
+        if (delta < 0) {
+            if (rq->curr == p)
+                resched_curr(rq);
+            return;
+        }
+        hrtick_start(rq, delta);
+    }
+}
+
+/*
+ * called from enqueue/dequeue and updates the hrtick when the
+ * current task is from our class and nr_running is low enough
+ * to matter.
+ */
+static void hrtick_update(struct rq *rq)
+{
+    struct task_struct *curr = rq->curr;
+
+    if (!hrtick_enabled(rq) || curr->sched_class != &fair_sched_class)
+        return;
+
+    if (cfs_rq_of(&curr->se)->nr_running < sched_nr_latency)
+        hrtick_start_fair(rq, curr);
+}
+#else /* !CONFIG_SCHED_HRTICK */
+static inline void
+hrtick_start_fair(struct rq *rq, struct task_struct *p)
+{
+}
+
+static inline void hrtick_update(struct rq *rq)
+{
+}
+#endif
+
+#ifdef CONFIG_SMP
+static inline unsigned long cpu_util(int cpu);
+
+static inline bool cpu_overutilized(int cpu)
+{
+    //return !fits_capacity(cpu_util(cpu), capacity_of(cpu));
+}
+
+static inline void update_overutilized_status(struct rq *rq)
+{
+    if (!READ_ONCE(rq->rd->overutilized) && cpu_overutilized(rq->cpu)) {
+        WRITE_ONCE(rq->rd->overutilized, SG_OVERUTILIZED);
+        //trace_sched_overutilized_tp(rq->rd, SG_OVERUTILIZED);
+    }
+}
+#else
+static inline void update_overutilized_status(struct rq *rq) { }
+#endif
+//5181
+/*
+ * The enqueue_task method is called before nr_running is
+ * increased. Here we update the fair scheduling stats and
+ * then put the task into the rbtree:
+ */
+static void
+enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+{
+    struct cfs_rq *cfs_rq;
+    struct sched_entity *se = &p->se;
+    int idle_h_nr_running = task_has_idle_policy(p);
+
+    /*
+     * The code below (indirectly) updates schedutil which looks at
+     * the cfs_rq utilization to select a frequency.
+     * Let's add the task's estimated utilization to the cfs_rq's
+     * estimated utilization, before we update schedutil.
+     */
+    util_est_enqueue(&rq->cfs, p);
+
+    /*
+     * If in_iowait is set, the code below may not trigger any cpufreq
+     * utilization updates, so do it here explicitly with the IOWAIT flag
+     * passed.
+     */
+    if (p->in_iowait)
+        cpufreq_update_util(rq, SCHED_CPUFREQ_IOWAIT);
+
+    for_each_sched_entity(se) {
+        if (se->on_rq)
+            break;
+        cfs_rq = cfs_rq_of(se);
+        enqueue_entity(cfs_rq, se, flags);
+
+        /*
+         * end evaluation on encountering a throttled cfs_rq
+         *
+         * note: in the case of encountering a throttled cfs_rq we will
+         * post the final h_nr_running increment below.
+         */
+        if (cfs_rq_throttled(cfs_rq))
+            break;
+        cfs_rq->h_nr_running++;
+        cfs_rq->idle_h_nr_running += idle_h_nr_running;
+
+        flags = ENQUEUE_WAKEUP;
+    }
+
+    for_each_sched_entity(se) {
+        cfs_rq = cfs_rq_of(se);
+        cfs_rq->h_nr_running++;
+        cfs_rq->idle_h_nr_running += idle_h_nr_running;
+
+        if (cfs_rq_throttled(cfs_rq))
+            break;
+
+        update_load_avg(cfs_rq, se, UPDATE_TG);
+        update_cfs_group(se);
+    }
+
+    if (!se) {
+        add_nr_running(rq, 1);
+        /*
+         * Since new tasks are assigned an initial util_avg equal to
+         * half of the spare capacity of their CPU, tiny tasks have the
+         * ability to cross the overutilized threshold, which will
+         * result in the load balancer ruining all the task placement
+         * done by EAS. As a way to mitigate that effect, do not account
+         * for the first enqueue operation of new tasks during the
+         * overutilized flag detection.
+         *
+         * A better way of solving this problem would be to wait for
+         * the PELT signals of tasks to converge before taking them
+         * into account, but that is not straightforward to implement,
+         * and the following generally works well enough in practice.
+         */
+        if (flags & ENQUEUE_WAKEUP)
+            update_overutilized_status(rq);
+
+    }
+
+    if (cfs_bandwidth_used()) {
+        /*
+         * When bandwidth control is enabled; the cfs_rq_throttled()
+         * breaks in the above iteration can result in incomplete
+         * leaf list maintenance, resulting in triggering the assertion
+         * below.
+         */
+        for_each_sched_entity(se) {
+            cfs_rq = cfs_rq_of(se);
+
+            if (list_add_leaf_cfs_rq(cfs_rq))
+                break;
+        }
+    }
+
+    assert_list_leaf_cfs_rq(rq);
+
+    hrtick_update(rq);
+}
+
+void enqueue_task_fair_test(struct task_struct *p)
+{
+    //struct rq_flags rf;
+    struct rq *rq;
+    //rq = task_rq_lock(p, &rf);
+    rq = task_rq(p);
+    int flags = ENQUEUE_NOCLOCK;
+
+    enqueue_task_fair(rq, p, flags);
+}
+//5282 lines
 
 
 

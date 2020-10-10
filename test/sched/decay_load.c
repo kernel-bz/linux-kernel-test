@@ -48,7 +48,7 @@ static u64 decay_load(u64 val, u64 n)
         return val;
 }
 
-int decay_load_test(void)
+void decay_load_test(void)
 {
     //u64 val=LOAD_AVG_MAX, n;
     u64 val=1024, sum=0, n;
@@ -62,5 +62,4 @@ int decay_load_test(void)
     }
 
     pr_fn_end();
-    return 0;
 }

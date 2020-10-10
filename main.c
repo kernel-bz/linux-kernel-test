@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  *  main.c
- *  Linux Kernel Source Test Main
+ *  Linux Kernel Source(v5.4) Test Main
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -20,10 +20,7 @@ static int _main_menu(void)
     printf("********** Test Menu (www.kernel.bz) **********\n");
     printf("0: help.\n");
     printf("1: cpu mask test.\n");
-    printf("---------- Schedular Source Test --------------\n");
-    printf("2: decay load test.\n");
-    printf("3: update load_avg test.\n");
-    printf("4: sched_init test.\n");
+    printf("2: ++ Schedular Source Test ++\n");
     printf("other: exit.\n");
     printf("\n");
     return 0;
@@ -33,8 +30,7 @@ static int _main_menu(void)
 int main(void)
 {
     int (*fn[])(void) = { _main_menu
-                , cpus_mask_test
-                , decay_load_test, update_load_avg_test, sched_test
+                , cpus_mask_test, sched_test
         };
     int idx = -1;
     int asize = sizeof (fn) / sizeof (fn[0]);

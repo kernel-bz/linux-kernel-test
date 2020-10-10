@@ -8,14 +8,15 @@ extern "C" {
 //test/cpu/cpus-mask-test.c
 int cpus_mask_test(void);
 
-//test/sched/decay_load.c
-int decay_load_test(void);
-
-//test/sched/update_load_avg.c
-int update_load_avg_test(void);
-
 //test/sched/sched-test.c
 int sched_test(void);
+
+//test/sched/decay_load.c
+void decay_load_test(void);
+
+//test/sched/update_load_avg.c
+void update_load_avg_test(void);
+
 
 #ifdef __cplusplus
 }
