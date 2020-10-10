@@ -341,3 +341,4 @@ HEADERS += \
 
 DISTFILES += \
     lib/bpf/libbpf.a \
+    docs/study-history.txt

@@ -1,0 +1,56 @@
+//D20201010 Scheduler Study ===============================
+
+CONFIG_PREEMPT_RT
+
+Prio Inv (boost)
+
+irq --> rt-thread (hardirq, softirq)
+
+http://jake.dothome.co.kr/preemption/
+
+//include/linux/preempt.h
+preempt_count --> 32bits
+preempt_disable() / _enable()
+local_bh_disable() / _enable()
+
+schedule out --> prev
+schedule in --> next
+
+__schedule(bool preempt)
+
+$ ps -e -o cmd,ni,pri,rtprio
+
+http://jake.dothome.co.kr/scheduler-core/
+
+rt_priority: [99, 1]: User
+static_prio: [100, 139]: CFS
+prio:        [0, 139]
+normal_prio: [0, 139]
+
+$ renice
+$ chrt
+$ cgcreate
+$ cgdelete
+$ cgexec
+$ taskset
+
+context_switch
+switch_mm()
+init_mm
+ASID
+mm->context.id = asid
+
+wakeup_process()
+schedule_timeout()
+
+$ nice --help
+$ renice --help
+
+set_one_prio()
+  set_user_nice(p, nice)
+
+
+
+
+
+
