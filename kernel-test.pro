@@ -66,7 +66,8 @@ SOURCES += \
     kernel/sched/cpupri.c \
     init/init_task.c \
     init/main-init.c \
-    test/sched/sched-test.c
+    test/sched/sched-test.c \
+    lib/lockdep/common.c
 
 HEADERS += \
     include/test/test.h \

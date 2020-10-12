@@ -228,7 +228,685 @@ static void set_load_weight(struct task_struct *p, bool update_load)
         p->se.runnable_weight = load->weight;
     }
 }
+//774
+#ifdef CONFIG_UCLAMP_TASK
+/*
+ * Serializes updates of utilization clamp values
+ *
+ * The (slow-path) user-space triggers utilization clamp value updates which
+ * can require updates on (fast-path) scheduler's data structures used to
+ * support enqueue/dequeue operations.
+ * While the per-CPU rq lock protects fast-path update operations, user-space
+ * requests are serialized using a mutex to reduce the risk of conflicting
+ * updates or API abuses.
+ */
+static DEFINE_MUTEX(uclamp_mutex);
 
+/* Max allowed minimum utilization */
+unsigned int sysctl_sched_uclamp_util_min = SCHED_CAPACITY_SCALE;
+
+/* Max allowed maximum utilization */
+unsigned int sysctl_sched_uclamp_util_max = SCHED_CAPACITY_SCALE;
+
+/* All clamps are required to be less or equal than these values */
+static struct uclamp_se uclamp_default[UCLAMP_CNT];
+
+/* Integer rounded range for each bucket */
+#define UCLAMP_BUCKET_DELTA DIV_ROUND_CLOSEST(SCHED_CAPACITY_SCALE, UCLAMP_BUCKETS)
+
+#define for_each_clamp_id(clamp_id) \
+    for ((clamp_id) = 0; (clamp_id) < UCLAMP_CNT; (clamp_id)++)
+
+static inline unsigned int uclamp_bucket_id(unsigned int clamp_value)
+{
+    return clamp_value / UCLAMP_BUCKET_DELTA;
+}
+
+static inline unsigned int uclamp_bucket_base_value(unsigned int clamp_value)
+{
+    return UCLAMP_BUCKET_DELTA * uclamp_bucket_id(clamp_value);
+}
+
+static inline enum uclamp_id uclamp_none(enum uclamp_id clamp_id)
+{
+    if (clamp_id == UCLAMP_MIN)
+        return 0;
+    return SCHED_CAPACITY_SCALE;
+}
+
+static inline void uclamp_se_set(struct uclamp_se *uc_se,
+                 unsigned int value, bool user_defined)
+{
+    uc_se->value = value;
+    uc_se->bucket_id = uclamp_bucket_id(value);
+    uc_se->user_defined = user_defined;
+}
+
+static inline unsigned int
+uclamp_idle_value(struct rq *rq, enum uclamp_id clamp_id,
+          unsigned int clamp_value)
+{
+    /*
+     * Avoid blocked utilization pushing up the frequency when we go
+     * idle (which drops the max-clamp) by retaining the last known
+     * max-clamp.
+     */
+    if (clamp_id == UCLAMP_MAX) {
+        rq->uclamp_flags |= UCLAMP_FLAG_IDLE;
+        return clamp_value;
+    }
+
+    return uclamp_none(UCLAMP_MIN);
+}
+
+static inline void uclamp_idle_reset(struct rq *rq, enum uclamp_id clamp_id,
+                     unsigned int clamp_value)
+{
+    /* Reset max-clamp retention only on idle exit */
+    if (!(rq->uclamp_flags & UCLAMP_FLAG_IDLE))
+        return;
+
+    WRITE_ONCE(rq->uclamp[clamp_id].value, clamp_value);
+}
+
+static inline
+enum uclamp_id uclamp_rq_max_value(struct rq *rq, enum uclamp_id clamp_id,
+                   unsigned int clamp_value)
+{
+    struct uclamp_bucket *bucket = rq->uclamp[clamp_id].bucket;
+    int bucket_id = UCLAMP_BUCKETS - 1;
+
+    /*
+     * Since both min and max clamps are max aggregated, find the
+     * top most bucket with tasks in.
+     */
+    for ( ; bucket_id >= 0; bucket_id--) {
+        if (!bucket[bucket_id].tasks)
+            continue;
+        return bucket[bucket_id].value;
+    }
+
+    /* No tasks -- default clamp values */
+    return uclamp_idle_value(rq, clamp_id, clamp_value);
+}
+
+static inline struct uclamp_se
+uclamp_tg_restrict(struct task_struct *p, enum uclamp_id clamp_id)
+{
+    struct uclamp_se uc_req = p->uclamp_req[clamp_id];
+#ifdef CONFIG_UCLAMP_TASK_GROUP
+    struct uclamp_se uc_max;
+
+    /*
+     * Tasks in autogroups or root task group will be
+     * restricted by system defaults.
+     */
+    if (task_group_is_autogroup(task_group(p)))
+        return uc_req;
+    if (task_group(p) == &root_task_group)
+        return uc_req;
+
+    uc_max = task_group(p)->uclamp[clamp_id];
+    if (uc_req.value > uc_max.value || !uc_req.user_defined)
+        return uc_max;
+#endif
+
+    return uc_req;
+}
+
+/*
+ * The effective clamp bucket index of a task depends on, by increasing
+ * priority:
+ * - the task specific clamp value, when explicitly requested from userspace
+ * - the task group effective clamp value, for tasks not either in the root
+ *   group or in an autogroup
+ * - the system default clamp value, defined by the sysadmin
+ */
+static inline struct uclamp_se
+uclamp_eff_get(struct task_struct *p, enum uclamp_id clamp_id)
+{
+    struct uclamp_se uc_req = uclamp_tg_restrict(p, clamp_id);
+    struct uclamp_se uc_max = uclamp_default[clamp_id];
+
+    /* System default restrictions always apply */
+    if (unlikely(uc_req.value > uc_max.value))
+        return uc_max;
+
+    return uc_req;
+}
+
+enum uclamp_id uclamp_eff_value(struct task_struct *p, enum uclamp_id clamp_id)
+{
+    struct uclamp_se uc_eff;
+
+    /* Task currently refcounted: use back-annotated (effective) value */
+    if (p->uclamp[clamp_id].active)
+        return p->uclamp[clamp_id].value;
+
+    uc_eff = uclamp_eff_get(p, clamp_id);
+
+    return uc_eff.value;
+}
+
+/*
+ * When a task is enqueued on a rq, the clamp bucket currently defined by the
+ * task's uclamp::bucket_id is refcounted on that rq. This also immediately
+ * updates the rq's clamp value if required.
+ *
+ * Tasks can have a task-specific value requested from user-space, track
+ * within each bucket the maximum value for tasks refcounted in it.
+ * This "local max aggregation" allows to track the exact "requested" value
+ * for each bucket when all its RUNNABLE tasks require the same clamp.
+ */
+static inline void uclamp_rq_inc_id(struct rq *rq, struct task_struct *p,
+                    enum uclamp_id clamp_id)
+{
+    struct uclamp_rq *uc_rq = &rq->uclamp[clamp_id];
+    struct uclamp_se *uc_se = &p->uclamp[clamp_id];
+    struct uclamp_bucket *bucket;
+
+    lockdep_assert_held(&rq->lock);
+
+    /* Update task effective clamp */
+    p->uclamp[clamp_id] = uclamp_eff_get(p, clamp_id);
+
+    bucket = &uc_rq->bucket[uc_se->bucket_id];
+    bucket->tasks++;
+    uc_se->active = true;
+
+    uclamp_idle_reset(rq, clamp_id, uc_se->value);
+
+    /*
+     * Local max aggregation: rq buckets always track the max
+     * "requested" clamp value of its RUNNABLE tasks.
+     */
+    if (bucket->tasks == 1 || uc_se->value > bucket->value)
+        bucket->value = uc_se->value;
+
+    if (uc_se->value > READ_ONCE(uc_rq->value))
+        WRITE_ONCE(uc_rq->value, uc_se->value);
+}
+
+/*
+ * When a task is dequeued from a rq, the clamp bucket refcounted by the task
+ * is released. If this is the last task reference counting the rq's max
+ * active clamp value, then the rq's clamp value is updated.
+ *
+ * Both refcounted tasks and rq's cached clamp values are expected to be
+ * always valid. If it's detected they are not, as defensive programming,
+ * enforce the expected state and warn.
+ */
+static inline void uclamp_rq_dec_id(struct rq *rq, struct task_struct *p,
+                    enum uclamp_id clamp_id)
+{
+    struct uclamp_rq *uc_rq = &rq->uclamp[clamp_id];
+    struct uclamp_se *uc_se = &p->uclamp[clamp_id];
+    struct uclamp_bucket *bucket;
+    unsigned int bkt_clamp;
+    unsigned int rq_clamp;
+
+    lockdep_assert_held(&rq->lock);
+
+    bucket = &uc_rq->bucket[uc_se->bucket_id];
+    SCHED_WARN_ON(!bucket->tasks);
+    if (likely(bucket->tasks))
+        bucket->tasks--;
+    uc_se->active = false;
+
+    /*
+     * Keep "local max aggregation" simple and accept to (possibly)
+     * overboost some RUNNABLE tasks in the same bucket.
+     * The rq clamp bucket value is reset to its base value whenever
+     * there are no more RUNNABLE tasks refcounting it.
+     */
+    if (likely(bucket->tasks))
+        return;
+
+    rq_clamp = READ_ONCE(uc_rq->value);
+    /*
+     * Defensive programming: this should never happen. If it happens,
+     * e.g. due to future modification, warn and fixup the expected value.
+     */
+    SCHED_WARN_ON(bucket->value > rq_clamp);
+    if (bucket->value >= rq_clamp) {
+        bkt_clamp = uclamp_rq_max_value(rq, clamp_id, uc_se->value);
+        WRITE_ONCE(uc_rq->value, bkt_clamp);
+    }
+}
+
+static inline void uclamp_rq_inc(struct rq *rq, struct task_struct *p)
+{
+    enum uclamp_id clamp_id;
+
+    if (unlikely(!p->sched_class->uclamp_enabled))
+        return;
+
+    for_each_clamp_id(clamp_id)
+        uclamp_rq_inc_id(rq, p, clamp_id);
+
+    /* Reset clamp idle holding when there is one RUNNABLE task */
+    if (rq->uclamp_flags & UCLAMP_FLAG_IDLE)
+        rq->uclamp_flags &= ~UCLAMP_FLAG_IDLE;
+}
+
+static inline void uclamp_rq_dec(struct rq *rq, struct task_struct *p)
+{
+    enum uclamp_id clamp_id;
+
+    if (unlikely(!p->sched_class->uclamp_enabled))
+        return;
+
+    for_each_clamp_id(clamp_id)
+        uclamp_rq_dec_id(rq, p, clamp_id);
+}
+
+static inline void
+uclamp_update_active(struct task_struct *p, enum uclamp_id clamp_id)
+{
+    struct rq_flags rf;
+    struct rq *rq;
+
+    /*
+     * Lock the task and the rq where the task is (or was) queued.
+     *
+     * We might lock the (previous) rq of a !RUNNABLE task, but that's the
+     * price to pay to safely serialize util_{min,max} updates with
+     * enqueues, dequeues and migration operations.
+     * This is the same locking schema used by __set_cpus_allowed_ptr().
+     */
+    rq = task_rq_lock(p, &rf);
+
+    /*
+     * Setting the clamp bucket is serialized by task_rq_lock().
+     * If the task is not yet RUNNABLE and its task_struct is not
+     * affecting a valid clamp bucket, the next time it's enqueued,
+     * it will already see the updated clamp bucket value.
+     */
+    if (p->uclamp[clamp_id].active) {
+        uclamp_rq_dec_id(rq, p, clamp_id);
+        uclamp_rq_inc_id(rq, p, clamp_id);
+    }
+
+    task_rq_unlock(rq, p, &rf);
+}
+
+#ifdef CONFIG_UCLAMP_TASK_GROUP
+static inline void
+uclamp_update_active_tasks(struct cgroup_subsys_state *css,
+               unsigned int clamps)
+{
+    enum uclamp_id clamp_id;
+    struct css_task_iter it;
+    struct task_struct *p;
+
+    css_task_iter_start(css, 0, &it);
+    while ((p = css_task_iter_next(&it))) {
+        for_each_clamp_id(clamp_id) {
+            if ((0x1 << clamp_id) & clamps)
+                uclamp_update_active(p, clamp_id);
+        }
+    }
+    css_task_iter_end(&it);
+}
+
+static void cpu_util_update_eff(struct cgroup_subsys_state *css);
+static void uclamp_update_root_tg(void)
+{
+    struct task_group *tg = &root_task_group;
+
+    uclamp_se_set(&tg->uclamp_req[UCLAMP_MIN],
+              sysctl_sched_uclamp_util_min, false);
+    uclamp_se_set(&tg->uclamp_req[UCLAMP_MAX],
+              sysctl_sched_uclamp_util_max, false);
+
+    rcu_read_lock();
+    cpu_util_update_eff(&root_task_group.css);
+    rcu_read_unlock();
+}
+#else
+static void uclamp_update_root_tg(void) { }
+#endif
+
+int sysctl_sched_uclamp_handler(struct ctl_table *table, int write,
+                void __user *buffer, size_t *lenp,
+                loff_t *ppos)
+{
+    bool update_root_tg = false;
+    int old_min, old_max;
+    int result;
+
+    mutex_lock(&uclamp_mutex);
+    old_min = sysctl_sched_uclamp_util_min;
+    old_max = sysctl_sched_uclamp_util_max;
+
+    result = proc_dointvec(table, write, buffer, lenp, ppos);
+    if (result)
+        goto undo;
+    if (!write)
+        goto done;
+
+    if (sysctl_sched_uclamp_util_min > sysctl_sched_uclamp_util_max ||
+        sysctl_sched_uclamp_util_max > SCHED_CAPACITY_SCALE) {
+        result = -EINVAL;
+        goto undo;
+    }
+
+    if (old_min != sysctl_sched_uclamp_util_min) {
+        uclamp_se_set(&uclamp_default[UCLAMP_MIN],
+                  sysctl_sched_uclamp_util_min, false);
+        update_root_tg = true;
+    }
+    if (old_max != sysctl_sched_uclamp_util_max) {
+        uclamp_se_set(&uclamp_default[UCLAMP_MAX],
+                  sysctl_sched_uclamp_util_max, false);
+        update_root_tg = true;
+    }
+
+    if (update_root_tg)
+        uclamp_update_root_tg();
+
+    /*
+     * We update all RUNNABLE tasks only when task groups are in use.
+     * Otherwise, keep it simple and do just a lazy update at each next
+     * task enqueue time.
+     */
+
+    goto done;
+
+undo:
+    sysctl_sched_uclamp_util_min = old_min;
+    sysctl_sched_uclamp_util_max = old_max;
+done:
+    mutex_unlock(&uclamp_mutex);
+
+    return result;
+}
+
+static int uclamp_validate(struct task_struct *p,
+               const struct sched_attr *attr)
+{
+    unsigned int lower_bound = p->uclamp_req[UCLAMP_MIN].value;
+    unsigned int upper_bound = p->uclamp_req[UCLAMP_MAX].value;
+
+    if (attr->sched_flags & SCHED_FLAG_UTIL_CLAMP_MIN)
+        lower_bound = attr->sched_util_min;
+    if (attr->sched_flags & SCHED_FLAG_UTIL_CLAMP_MAX)
+        upper_bound = attr->sched_util_max;
+
+    if (lower_bound > upper_bound)
+        return -EINVAL;
+    if (upper_bound > SCHED_CAPACITY_SCALE)
+        return -EINVAL;
+
+    return 0;
+}
+
+static void __setscheduler_uclamp(struct task_struct *p,
+                  const struct sched_attr *attr)
+{
+    enum uclamp_id clamp_id;
+
+    /*
+     * On scheduling class change, reset to default clamps for tasks
+     * without a task-specific value.
+     */
+    for_each_clamp_id(clamp_id) {
+        struct uclamp_se *uc_se = &p->uclamp_req[clamp_id];
+        unsigned int clamp_value = uclamp_none(clamp_id);
+
+        /* Keep using defined clamps across class changes */
+        if (uc_se->user_defined)
+            continue;
+
+        /* By default, RT tasks always get 100% boost */
+        if (unlikely(rt_task(p) && clamp_id == UCLAMP_MIN))
+            clamp_value = uclamp_none(UCLAMP_MAX);
+
+        uclamp_se_set(uc_se, clamp_value, false);
+    }
+
+    if (likely(!(attr->sched_flags & SCHED_FLAG_UTIL_CLAMP)))
+        return;
+
+    if (attr->sched_flags & SCHED_FLAG_UTIL_CLAMP_MIN) {
+        uclamp_se_set(&p->uclamp_req[UCLAMP_MIN],
+                  attr->sched_util_min, true);
+    }
+
+    if (attr->sched_flags & SCHED_FLAG_UTIL_CLAMP_MAX) {
+        uclamp_se_set(&p->uclamp_req[UCLAMP_MAX],
+                  attr->sched_util_max, true);
+    }
+}
+
+static void uclamp_fork(struct task_struct *p)
+{
+    enum uclamp_id clamp_id;
+
+    for_each_clamp_id(clamp_id)
+        p->uclamp[clamp_id].active = false;
+
+    if (likely(!p->sched_reset_on_fork))
+        return;
+
+    for_each_clamp_id(clamp_id) {
+        unsigned int clamp_value = uclamp_none(clamp_id);
+
+        /* By default, RT tasks always get 100% boost */
+        if (unlikely(rt_task(p) && clamp_id == UCLAMP_MIN))
+            clamp_value = uclamp_none(UCLAMP_MAX);
+
+        uclamp_se_set(&p->uclamp_req[clamp_id], clamp_value, false);
+    }
+}
+
+static void __init init_uclamp(void)
+{
+    struct uclamp_se uc_max = {};
+    enum uclamp_id clamp_id;
+    int cpu;
+
+    mutex_init(&uclamp_mutex);
+
+    for_each_possible_cpu(cpu) {
+        memset(&cpu_rq(cpu)->uclamp, 0, sizeof(struct uclamp_rq));
+        cpu_rq(cpu)->uclamp_flags = 0;
+    }
+
+    for_each_clamp_id(clamp_id) {
+        uclamp_se_set(&init_task.uclamp_req[clamp_id],
+                  uclamp_none(clamp_id), false);
+    }
+
+    /* System defaults allow max clamp values for both indexes */
+    uclamp_se_set(&uc_max, uclamp_none(UCLAMP_MAX), false);
+    for_each_clamp_id(clamp_id) {
+        uclamp_default[clamp_id] = uc_max;
+#ifdef CONFIG_UCLAMP_TASK_GROUP
+        root_task_group.uclamp_req[clamp_id] = uc_max;
+        root_task_group.uclamp[clamp_id] = uc_max;
+#endif
+    }
+}
+
+#else /* CONFIG_UCLAMP_TASK */
+static inline void uclamp_rq_inc(struct rq *rq, struct task_struct *p) { }
+static inline void uclamp_rq_dec(struct rq *rq, struct task_struct *p) { }
+static inline int uclamp_validate(struct task_struct *p,
+                  const struct sched_attr *attr)
+{
+    return -EOPNOTSUPP;
+}
+static void __setscheduler_uclamp(struct task_struct *p,
+                  const struct sched_attr *attr) { }
+static inline void uclamp_fork(struct task_struct *p) { }
+static inline void init_uclamp(void) { }
+#endif /* CONFIG_UCLAMP_TASK */
+//1288 lines
+
+
+
+
+
+//1336 lines
+/*
+ * __normal_prio - return the priority that is based on the static prio
+ */
+static inline int __normal_prio(struct task_struct *p)
+{
+    return p->static_prio;
+}
+
+/*
+ * Calculate the expected normal priority: i.e. priority
+ * without taking RT-inheritance into account. Might be
+ * boosted by interactivity modifiers. Changes upon fork,
+ * setprio syscalls, and whenever the interactivity
+ * estimator recalculates.
+ */
+static inline int normal_prio(struct task_struct *p)
+{
+    int prio;
+
+    if (task_has_dl_policy(p))
+        prio = MAX_DL_PRIO-1;
+    else if (task_has_rt_policy(p))
+        prio = MAX_RT_PRIO-1 - p->rt_priority;
+    else
+        prio = __normal_prio(p);
+    return prio;
+}
+
+/*
+ * Calculate the current priority, i.e. the priority
+ * taken into account by the scheduler. This value might
+ * be boosted by RT tasks, or might be boosted by
+ * interactivity modifiers. Will be RT if the task got
+ * RT-boosted. If not then it returns p->normal_prio.
+ */
+static int effective_prio(struct task_struct *p)
+{
+    p->normal_prio = normal_prio(p);
+    /*
+     * If we are RT tasks or we were boosted to RT priority,
+     * keep the priority unchanged. Otherwise, update priority
+     * to the normal priority:
+     */
+    if (!rt_prio(p->prio))
+        return p->normal_prio;
+    return p->prio;
+}
+
+/**
+ * task_curr - is this task currently executing on a CPU?
+ * @p: the task in question.
+ *
+ * Return: 1 if the task is currently executing. 0 otherwise.
+ */
+inline int task_curr(const struct task_struct *p)
+{
+    return cpu_curr(task_cpu(p)) == p;
+}
+
+/*
+ * switched_from, switched_to and prio_changed must _NOT_ drop rq->lock,
+ * use the balance_callback list if you want balancing.
+ *
+ * this means any call to check_class_changed() must be followed by a call to
+ * balance_callback().
+ */
+static inline void check_class_changed(struct rq *rq, struct task_struct *p,
+                       const struct sched_class *prev_class,
+                       int oldprio)
+{
+    if (prev_class != p->sched_class) {
+        if (prev_class->switched_from)
+            prev_class->switched_from(rq, p);
+
+        p->sched_class->switched_to(rq, p);
+    } else if (oldprio != p->prio || dl_task(p))
+        p->sched_class->prio_changed(rq, p, oldprio);
+}
+
+void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
+{
+    const struct sched_class *class;
+
+    if (p->sched_class == rq->curr->sched_class) {
+        rq->curr->sched_class->check_preempt_curr(rq, p, flags);
+    } else {
+        for_each_class(class) {
+            if (class == rq->curr->sched_class)
+                break;
+            if (class == p->sched_class) {
+                resched_curr(rq);
+                break;
+            }
+        }
+    }
+
+    /*
+     * A queue event has occurred, and we're going to schedule.  In
+     * this case, we can save a useless back to back clock update.
+     */
+    if (task_on_rq_queued(rq->curr) && test_tsk_need_resched(rq->curr))
+        rq_clock_skip_update(rq);
+}
+//1440 lines
+
+
+
+
+
+//2675 lines
+/*
+ * Perform scheduler related setup for a newly forked process p.
+ * p is forked by current.
+ *
+ * __sched_fork() is basic setup used by init_idle() too:
+ */
+static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
+{
+    p->on_rq			= 0;
+
+    p->se.on_rq			= 0;
+    p->se.exec_start		= 0;
+    p->se.sum_exec_runtime		= 0;
+    p->se.prev_sum_exec_runtime	= 0;
+    p->se.nr_migrations		= 0;
+    p->se.vruntime			= 0;
+    INIT_LIST_HEAD(&p->se.group_node);
+
+#ifdef CONFIG_FAIR_GROUP_SCHED
+    //p->se.cfs_rq			= NULL;
+#endif
+
+#ifdef CONFIG_SCHEDSTATS
+    /* Even if schedstat is disabled, there should not be garbage */
+    memset(&p->se.statistics, 0, sizeof(p->se.statistics));
+#endif
+
+    RB_CLEAR_NODE(&p->dl.rb_node);
+    //init_dl_task_timer(&p->dl);
+    //init_dl_inactive_task_timer(&p->dl);
+    //__dl_clear_params(p);
+
+    INIT_LIST_HEAD(&p->rt.run_list);
+    p->rt.timeout		= 0;
+    p->rt.time_slice	= sched_rr_timeslice;
+    p->rt.on_rq		= 0;
+    p->rt.on_list		= 0;
+
+#ifdef CONFIG_PREEMPT_NOTIFIERS
+    INIT_HLIST_HEAD(&p->preempt_notifiers);
+#endif
+
+#ifdef CONFIG_COMPACTION
+    p->capture_control = NULL;
+#endif
+    init_numa_balancing(clone_flags, p);
+}
+//2723 lines
 
 
 
@@ -310,13 +988,101 @@ int sysctl_schedstats(struct ctl_table *table, int write,
 #else  /* !CONFIG_SCHEDSTATS */
 static inline void init_schedstats(void) {}
 #endif /* CONFIG_SCHEDSTATS */
-//2835 lines
+//2835
+/*
+ * fork()/clone()-time setup:
+ */
+int sched_fork(unsigned long clone_flags, struct task_struct *p)
+{
+    unsigned long flags;
 
+    __sched_fork(clone_flags, p);
+    /*
+     * We mark the process as NEW here. This guarantees that
+     * nobody will actually run it, and a signal or other external
+     * event cannot wake it up and insert it on the runqueue either.
+     */
+    p->state = TASK_NEW;
 
+    /*
+     * Make sure we do not leak PI boosting priority to the child.
+     */
+    //p->prio = current->normal_prio;
 
+    uclamp_fork(p);
 
+    /*
+     * Revert to default priority/policy on fork if requested.
+     */
+    if (unlikely(p->sched_reset_on_fork)) {
+        if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
+            p->policy = SCHED_NORMAL;
+            p->static_prio = NICE_TO_PRIO(0);
+            p->rt_priority = 0;
+        } else if (PRIO_TO_NICE(p->static_prio) < 0)
+            p->static_prio = NICE_TO_PRIO(0);
 
-//2919 lines
+        p->prio = p->normal_prio = __normal_prio(p);
+        set_load_weight(p, false);
+
+        /*
+         * We don't need the reset flag anymore after the fork. It has
+         * fulfilled its duty:
+         */
+        p->sched_reset_on_fork = 0;
+    }
+
+    pr_info_view("%30s : %d\n", p->prio);
+
+    if (dl_prio(p->prio))
+        return -EAGAIN;
+    else if (rt_prio(p->prio))
+        p->sched_class = &rt_sched_class;
+    else
+        p->sched_class = &fair_sched_class;
+
+    init_entity_runnable_average(&p->se);
+
+    pr_info_view("%30s : %p\n", &rt_sched_class);
+    pr_info_view("%30s : %p\n", &fair_sched_class);
+    pr_info_view("%30s : %p\n", p->sched_class);
+
+    /*
+     * The child is not yet in the pid-hash so no cgroup attach races,
+     * and the cgroup is pinned to this child due to cgroup_fork()
+     * is ran before sched_fork().
+     *
+     * Silence PROVE_RCU.
+     */
+    raw_spin_lock_irqsave(&p->pi_lock, flags);
+    /*
+     * We're setting the CPU for the first time, we don't migrate,
+     * so use __set_task_cpu().
+     */
+    //__set_task_cpu(p, smp_processor_id());	//error
+
+    pr_info_view("%30s : %p\n", p->sched_class->task_fork);
+    pr_info_view("%30s : %p\n", p->se.cfs_rq);
+
+    if (p->sched_class->task_fork)
+        p->sched_class->task_fork(p);
+    raw_spin_unlock_irqrestore(&p->pi_lock, flags);
+
+#ifdef CONFIG_SCHED_INFO
+    if (likely(sched_info_on()))
+        memset(&p->sched_info, 0, sizeof(p->sched_info));
+#endif
+#if defined(CONFIG_SMP)
+    p->on_cpu = 0;
+#endif
+    //init_task_preempt_count(p);
+#ifdef CONFIG_SMP
+    plist_node_init(&p->pushable_tasks, MAX_PRIO);
+    RB_CLEAR_NODE(&p->pushable_dl_tasks);
+#endif
+    return 0;
+}
+//2919
 unsigned long to_ratio(u64 period, u64 runtime)
 {
     if (runtime == RUNTIME_INF)

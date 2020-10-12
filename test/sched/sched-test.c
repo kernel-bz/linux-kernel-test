@@ -15,6 +15,8 @@
 #include <linux/sched/task.h>
 #include <linux/sched.h>
 
+#include <kernel/sched/sched.h>
+
 #if 0
 /* Walk up scheduling entities hierarchy */
 #define for_each_sched_entity(se) \
@@ -51,7 +53,8 @@ static void _sched_init_test(void)
 #if 0
 _do_fork()
   struct task_struct *p;
-  p = copy_process();
+  p = copy_process()
+    sched_fork(flags, p);
   wake_up_new_task(p)
     activate_task(rq, p, ENQUEUE_NOCLOCK)
       enqueue_task(rq, p, flags)
@@ -63,13 +66,22 @@ static void _enqueue_task_fair_test(void)
     struct task_struct *p;
 
     pr_fn_start();
-    p = (struct task_struct *)malloc(sizeof(*p));
+    //1280 Bytes
     pr_info_view("%30s : %d\n", sizeof(struct task_struct));
     pr_info_view("%30s : %d\n", sizeof(*p));
     pr_info_view("%30s : %d\n", sizeof(init_task));
     p = (struct task_struct *)malloc(sizeof(init_task));
     memcpy(p, &init_task, sizeof(init_task));
-    enqueue_task_fair_test(p);
+    //p = &init_task;
+    pr_info_view("%30s : %p\n", &p->thread_info);
+    pr_info_view("%30s : %p\n", &p->se);
+    pr_info_view("%30s : %d\n", p->prio);
+
+    p->se.cfs_rq = &cpu_rq(0)->cfs;
+    pr_info_view("%30s : %p\n", p->se.cfs_rq);
+
+    if (sched_fork(0, p) == 0)
+        enqueue_task_fair_test(p);
 
     pr_fn_end();
 }

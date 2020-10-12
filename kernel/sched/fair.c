@@ -2577,6 +2577,8 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
     struct sched_entity *se = &p->se;
     int idle_h_nr_running = task_has_idle_policy(p);
 
+    pr_info_view("%30s : %p\n", (void*)se);
+
     /*
      * The code below (indirectly) updates schedutil which looks at
      * the cfs_rq utilization to select a frequency.
@@ -2594,9 +2596,13 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         cpufreq_update_util(rq, SCHED_CPUFREQ_IOWAIT);
 
     for_each_sched_entity(se) {
+        pr_info_view("%30s : %p\n", (void*)se);
+        pr_info_view("%30s : %d\n", se->on_rq);
         if (se->on_rq)
             break;
         cfs_rq = cfs_rq_of(se);
+        pr_info_view("%30s : %p\n", (void*)cfs_rq);
+        WARN_ON (!cfs_rq);
         enqueue_entity(cfs_rq, se, flags);
 
         /*
@@ -2911,6 +2917,80 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 
 
 
+//9957 lines
+/*
+ * called on fork with the child task as argument from the parent's context
+ *  - child not yet on the tasklist
+ *  - preemption disabled
+ */
+static void task_fork_fair(struct task_struct *p)
+{
+    struct cfs_rq *cfs_rq;
+    struct sched_entity *se = &p->se, *curr;
+    struct rq *rq = this_rq();
+    struct rq_flags rf;
+
+    pr_fn_start();
+
+    pr_info_view("%30s : %p\n", rq);
+    rq_lock(rq, &rf);
+    //update_rq_clock(rq);	//error
+
+    pr_info_view("%30s : %p\n", current);
+    //cfs_rq = task_cfs_rq(current);	//NULL
+    cfs_rq = p->se.cfs_rq;
+    pr_info_view("%30s : %p\n", cfs_rq);
+
+    curr = cfs_rq->curr;
+    if (curr) {
+        update_curr(cfs_rq);
+        se->vruntime = curr->vruntime;
+    }
+    place_entity(cfs_rq, se, 1);
+
+    if (sysctl_sched_child_runs_first && curr && entity_before(curr, se)) {
+        /*
+         * Upon rescheduling, sched_class::put_prev_task() will place
+         * 'current' within the tree based on its new key value.
+         */
+        swap(curr->vruntime, se->vruntime);
+        resched_curr(rq);
+    }
+
+    se->vruntime -= cfs_rq->min_vruntime;
+    rq_unlock(rq, &rf);
+
+    pr_fn_end();
+}
+
+/*
+ * Priority of the task has changed. Check to see if we preempt
+ * the current task.
+ */
+static void
+prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
+{
+    if (!task_on_rq_queued(p))
+        return;
+
+    /*
+     * Reschedule if we are currently running on this runqueue and
+     * our priority decreased, or if we are not currently running on
+     * this runqueue and our priority is higher than the current's
+     */
+    if (rq->curr == p) {
+        if (p->prio > oldprio)
+            resched_curr(rq);
+    } else
+        check_preempt_curr(rq, p, 0);
+}
+//10015 lines
+
+
+
+
+
+
 //10043 lines
 #ifdef CONFIG_FAIR_GROUP_SCHED
 /*
@@ -3021,51 +3101,49 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
  */
 const struct sched_class fair_sched_class = {
     .next			= &idle_sched_class,
-#if 0
     .enqueue_task		= enqueue_task_fair,
-    .dequeue_task		= dequeue_task_fair,
-    .yield_task		= yield_task_fair,
-    .yield_to_task		= yield_to_task_fair,
+    //.dequeue_task		= dequeue_task_fair,
+    //.yield_task		= yield_task_fair,
+    //.yield_to_task		= yield_to_task_fair,
 
-    .check_preempt_curr	= check_preempt_wakeup,
+    //.check_preempt_curr	= check_preempt_wakeup,
 
-    .pick_next_task		= pick_next_task_fair,
-    .put_prev_task		= put_prev_task_fair,
-    .set_next_task          = set_next_task_fair,
+    //.pick_next_task		= pick_next_task_fair,
+    //.put_prev_task		= put_prev_task_fair,
+    //.set_next_task          = set_next_task_fair,
 
 #ifdef CONFIG_SMP
-    .balance		= balance_fair,
-    .select_task_rq		= select_task_rq_fair,
-    .migrate_task_rq	= migrate_task_rq_fair,
+    //.balance		= balance_fair,
+    //.select_task_rq		= select_task_rq_fair,
+    //.migrate_task_rq	= migrate_task_rq_fair,
 
-    .rq_online		= rq_online_fair,
-    .rq_offline		= rq_offline_fair,
+    //.rq_online		= rq_online_fair,
+    //.rq_offline		= rq_offline_fair,
 
-    .task_dead		= task_dead_fair,
+    //.task_dead		= task_dead_fair,
     .set_cpus_allowed	= set_cpus_allowed_common,
 #endif
 
-    .task_tick		= task_tick_fair,
+    //.task_tick		= task_tick_fair,
     .task_fork		= task_fork_fair,
 
     .prio_changed		= prio_changed_fair,
-    .switched_from		= switched_from_fair,
-    .switched_to		= switched_to_fair,
+    //.switched_from		= switched_from_fair,
+    //.switched_to		= switched_to_fair,
 
-    .get_rr_interval	= get_rr_interval_fair,
+    //.get_rr_interval	= get_rr_interval_fair,
 
     .update_curr		= update_curr_fair,
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
-    .task_change_group	= task_change_group_fair,
+    //.task_change_group	= task_change_group_fair,
 #endif
 
 #ifdef CONFIG_UCLAMP_TASK
     .uclamp_enabled		= 1,
 #endif
-
-#endif //0
 };
+//10471 lines
 
 
 
