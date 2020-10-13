@@ -37,7 +37,7 @@ static void _cpus_mask_info(void)
     printf("\n");
 }
 
-int cpus_mask_test(void)
+void cpus_mask_test(void)
 {
     unsigned int bits;
 
@@ -66,5 +66,4 @@ int cpus_mask_test(void)
     printf("<--End of %s().\n", __func__);
 
     pr_fn_end();
-    return 0;
 }

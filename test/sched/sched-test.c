@@ -6,6 +6,7 @@
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -76,8 +77,6 @@ static void _enqueue_task_fair_test(void)
     pr_info_view("%30s : %p\n", &p->thread_info);
     pr_info_view("%30s : %p\n", &p->se);
     pr_info_view("%30s : %d\n", p->prio);
-
-    p->se.cfs_rq = &cpu_rq(0)->cfs;
     pr_info_view("%30s : %p\n", p->se.cfs_rq);
 
     if (sched_fork(0, p) == 0)
@@ -88,6 +87,7 @@ static void _enqueue_task_fair_test(void)
 
 static void _sched_test_menu(void)
 {
+    printf("\n");
     printf("---------- Schedular Source Test --------------\n");
     printf("1: decay load test.\n");
     printf("2: update load_avg test.\n");
@@ -97,9 +97,9 @@ static void _sched_test_menu(void)
     printf("\n");
 }
 
-int sched_test(void)
+void sched_test(void)
 {
-    int (*fn[])(void) = { _sched_test_menu
+    void (*fn[])(void) = { _sched_test_menu
                 , decay_load_test, update_load_avg_test
                 , _sched_init_test, _enqueue_task_fair_test
         };
@@ -115,6 +115,4 @@ _retry:
         fn[idx]();
         goto _retry;
     }
-
-    return 0;
 }

@@ -17,7 +17,6 @@ INCLUDEPATH += include/ lib/ lib/traceevent/
 SOURCES += \
     main.c \
     test/cpu/cpus-mask-test.c \
-    test/lib/ptr-test.c \
     test/sched/decay_load.c \
     test/sched/update_load_avg.c \
     mm/slab_user.c \
@@ -67,7 +66,9 @@ SOURCES += \
     init/init_task.c \
     init/main-init.c \
     test/sched/sched-test.c \
-    lib/lockdep/common.c
+    lib/lockdep/common.c \
+    test/basic/ptr-test.c \
+    test/basic/types-test.c
 
 HEADERS += \
     include/test/test.h \
@@ -338,7 +339,12 @@ HEADERS += \
     include/linux/mutex.h \
     include/linux/percpu-rwsem.h \
     include/linux/memblock.h \
-    include/linux/profile.h
+    include/linux/profile.h \
+    include/test/basic.h \
+    test/basic/type01.h \
+    test/basic/type02.h \
+    test/basic/type03.h \
+    test/basic/type-limits.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

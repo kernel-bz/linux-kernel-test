@@ -570,6 +570,9 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     struct sched_entity *entry;
     bool leftmost = true;
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", (void*)*link);
+
     /*
      * Find the right place in the rbtree:
      */
@@ -582,8 +585,10 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
          */
         if (entity_before(se, entry)) {
             link = &parent->rb_left;
+            pr_info_view("%30s : %p\n", (void*)&parent->rb_left);
         } else {
             link = &parent->rb_right;
+            pr_info_view("%30s : %p\n", (void*)&parent->rb_right);
             leftmost = false;
         }
     }
@@ -591,6 +596,8 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     rb_link_node(&se->run_node, parent, link);
     rb_insert_color_cached(&se->run_node,
                    &cfs_rq->tasks_timeline, leftmost);
+
+    pr_fn_end();
 }
 
 static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
@@ -1443,6 +1450,12 @@ void set_task_rq_fair(struct sched_entity *se,
     u64 p_last_update_time;
     u64 n_last_update_time;
 
+    pr_fn_start();
+
+    pr_info_view("%30s : %p\n", se);
+    pr_info_view("%30s : %p\n", prev);
+    pr_info_view("%30s : %p\n", next);
+
     if (!sched_feat(ATTACH_AGE_LOAD))
         return;
 
@@ -1479,6 +1492,8 @@ void set_task_rq_fair(struct sched_entity *se,
 #endif
     __update_load_avg_blocked_se(p_last_update_time, se);
     se->avg.last_update_time = n_last_update_time;
+
+    pr_fn_end();
 }
 
 /*
@@ -2205,6 +2220,12 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
     bool renorm = !(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_MIGRATED);
     bool curr = cfs_rq->curr == se;
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", (void*)cfs_rq);
+    pr_info_view("%30s : %llu\n", cfs_rq->min_vruntime);
+    pr_info_view("%30s : %p\n", (void*)se);
+    pr_info_view("%30s : %llu\n", se->vruntime);
+
     /*
      * If we're the current task, we must renormalise before calling
      * update_curr().
@@ -2250,6 +2271,8 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
         list_add_leaf_cfs_rq(cfs_rq);
         //check_enqueue_throttle(cfs_rq);
     }
+
+    pr_fn_end();
 }
 //4012 lines
 
@@ -2577,7 +2600,9 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
     struct sched_entity *se = &p->se;
     int idle_h_nr_running = task_has_idle_policy(p);
 
-    pr_info_view("%30s : %p\n", (void*)se);
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", (void*)p);
+    pr_info_view("%30s : %p\n", (void*)rq);
 
     /*
      * The code below (indirectly) updates schedutil which looks at
@@ -2619,6 +2644,8 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         flags = ENQUEUE_WAKEUP;
     }
 
+    pr_info_view("%30s : %p\n", (void*)se);
+
     for_each_sched_entity(se) {
         cfs_rq = cfs_rq_of(se);
         cfs_rq->h_nr_running++;
@@ -2647,9 +2674,10 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
          * into account, but that is not straightforward to implement,
          * and the following generally works well enough in practice.
          */
-        if (flags & ENQUEUE_WAKEUP)
-            update_overutilized_status(rq);
-
+        if (flags & ENQUEUE_WAKEUP) {
+            pr_info_view("%30s : 0x%X\n", flags);
+            //update_overutilized_status(rq);	//error
+        }
     }
 
     if (cfs_bandwidth_used()) {
@@ -2670,6 +2698,8 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
     assert_list_leaf_cfs_rq(rq);
 
     hrtick_update(rq);
+
+    pr_fn_end();
 }
 
 void enqueue_task_fair_test(struct task_struct *p)
@@ -2937,8 +2967,8 @@ static void task_fork_fair(struct task_struct *p)
     //update_rq_clock(rq);	//error
 
     pr_info_view("%30s : %p\n", current);
-    //cfs_rq = task_cfs_rq(current);	//NULL
-    cfs_rq = p->se.cfs_rq;
+    //cfs_rq = task_cfs_rq(current);
+    cfs_rq = task_cfs_rq(p);
     pr_info_view("%30s : %p\n", cfs_rq);
 
     curr = cfs_rq->curr;

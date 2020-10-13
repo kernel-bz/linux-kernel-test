@@ -1,8 +1,14 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/basic/ptr-test.c
+ *  Pointer Test
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "test/test.h"
 
 struct CONFIG
 {
@@ -132,8 +138,7 @@ void ptr_test_start(int8_t Table_No)
     //TBL.Config->Fsize 	= MAIN_Rx_FIFO_SIZE / 16;
 }
 
-int ptr_test(void)
+void ptr_test(void)
 {
     ptr_test_start(0);
-    return 0;
 }

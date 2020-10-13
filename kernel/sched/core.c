@@ -867,9 +867,8 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
  */
 static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 {
-    p->on_rq			= 0;
-
-    p->se.on_rq			= 0;
+    p->on_rq				= 0;
+    p->se.on_rq				= 0;
     p->se.exec_start		= 0;
     p->se.sum_exec_runtime		= 0;
     p->se.prev_sum_exec_runtime	= 0;
@@ -878,7 +877,7 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
     INIT_LIST_HEAD(&p->se.group_node);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
-    //p->se.cfs_rq			= NULL;
+    p->se.cfs_rq			= NULL;
 #endif
 
 #ifdef CONFIG_SCHEDSTATS
@@ -1007,7 +1006,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     /*
      * Make sure we do not leak PI boosting priority to the child.
      */
-    //p->prio = current->normal_prio;
+    //p->prio = current->normal_prio;	//current error
 
     uclamp_fork(p);
 
@@ -1046,6 +1045,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     pr_info_view("%30s : %p\n", &rt_sched_class);
     pr_info_view("%30s : %p\n", &fair_sched_class);
     pr_info_view("%30s : %p\n", p->sched_class);
+    pr_info_view("%30s : %p\n", p->se.cfs_rq);
 
     /*
      * The child is not yet in the pid-hash so no cgroup attach races,
@@ -1059,7 +1059,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
      * We're setting the CPU for the first time, we don't migrate,
      * so use __set_task_cpu().
      */
-    //__set_task_cpu(p, smp_processor_id());	//error
+    __set_task_cpu(p, smp_processor_id());
 
     pr_info_view("%30s : %p\n", p->sched_class->task_fork);
     pr_info_view("%30s : %p\n", p->se.cfs_rq);
@@ -1197,6 +1197,7 @@ void __init sched_init(void)
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
         pr_info("kzalloc size = %u\n", ptr);
+        pr_info_view("%30s : %p\n", &root_task_group);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
                 pr_info("addr=0x%X\n", ptr);

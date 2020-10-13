@@ -12,24 +12,25 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "test/basic.h"
 #include "test/test.h"
 
-static int _main_menu(void)
+static void _main_menu(void)
 {
     printf("\n");
     printf("********** Test Menu (www.kernel.bz) **********\n");
     printf("0: help.\n");
-    printf("1: cpu mask test.\n");
-    printf("2: ++ Schedular Source Test ++\n");
+    printf("1: basic types test.\n");
+    printf("2: cpu mask test.\n");
+    printf("3: ++ Schedular Source Test ++\n");
     printf("other: exit.\n");
     printf("\n");
-    return 0;
 }
 
 
 int main(void)
 {
-    int (*fn[])(void) = { _main_menu
+    void (*fn[])(void) = { _main_menu, types_test
                 , cpus_mask_test, sched_test
         };
     int idx = -1;

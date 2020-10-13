@@ -26,8 +26,8 @@ extern "C" {
 
 #define pr_info_view(format, args) printf(format, #args, args)
 
-#define pr_fn_start()	printf("-->Starting of %s()...\n", __func__)
-#define pr_fn_end()		printf("<--End of %s().\n", __func__)
+#define pr_fn_start()	printf("--> %s()...\n", __func__)
+#define pr_fn_end()		printf("<-- %s().\n", __func__)
 
 #if 0
 #define __WARN_printf(arg...)	do { fprintf(stderr, arg); } while (0)
