@@ -142,7 +142,7 @@ struct cpuidle_state {
 };
 
 /* task_struct::on_rq states: */
-#define TASK_ON_RQ_QUEUED	1
+#define TASK_ON_RQ_QUEUED		1
 #define TASK_ON_RQ_MIGRATING	2
 
 extern __read_mostly int scheduler_running;
@@ -1998,8 +1998,8 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 
 #ifdef CONFIG_SMP
 	if (prev_nr < 2 && rq->nr_running >= 2) {
-		if (!READ_ONCE(rq->rd->overload))
-			WRITE_ONCE(rq->rd->overload, 1);
+        //if (!READ_ONCE(rq->rd->overload))
+        //	WRITE_ONCE(rq->rd->overload, 1);
 	}
 #endif
 

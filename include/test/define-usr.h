@@ -23,7 +23,7 @@ typedef struct {
 //#define __init
 //#define __maybe_unused
 //#define __must_check
-//#define __always_inline		inline
+#define __always_inline		inline
 #define __initdata
 #define __ref
 

@@ -201,3 +201,30 @@ void init_defrootdomain(void)
 
     atomic_set(&def_root_domain.refcount, 1);
 }
+//541 lines
+
+
+
+
+
+
+//608 lines
+/*
+ * Keep a special pointer to the highest sched_domain that has
+ * SD_SHARE_PKG_RESOURCE set (Last Level Cache Domain) for this
+ * allows us to avoid some pointer chasing select_idle_sibling().
+ *
+ * Also keep a unique ID per domain (we use the first CPU number in
+ * the cpumask of the domain), this allows us to quickly tell if
+ * two CPUs are in the same cache domain, see cpus_share_cache().
+ */
+DEFINE_PER_CPU(struct sched_domain __rcu *, sd_llc);
+DEFINE_PER_CPU(int, sd_llc_size);
+DEFINE_PER_CPU(int, sd_llc_id);
+DEFINE_PER_CPU(struct sched_domain_shared __rcu *, sd_llc_shared);
+DEFINE_PER_CPU(struct sched_domain __rcu *, sd_numa);
+DEFINE_PER_CPU(struct sched_domain __rcu *, sd_asym_packing);
+DEFINE_PER_CPU(struct sched_domain __rcu *, sd_asym_cpucapacity);
+DEFINE_STATIC_KEY_FALSE(sched_asym_cpucapacity);
+//626 lines
+

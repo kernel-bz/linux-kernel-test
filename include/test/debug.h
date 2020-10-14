@@ -21,7 +21,7 @@ extern "C" {
 #define panic 			pr_err
 #define print_tainted() ""
 
-#define pr_info(...)	do { printf("INFO:%s: ", __func__); \
+#define pr_info(...)	do { printf("\tINFO:%s: ", __func__); \
                                 printf(__VA_ARGS__); } while (0)
 
 #define pr_info_view(format, args) printf(format, #args, args)

@@ -742,13 +742,59 @@ static void __setscheduler_uclamp(struct task_struct *p,
 static inline void uclamp_fork(struct task_struct *p) { }
 static inline void init_uclamp(void) { }
 #endif /* CONFIG_UCLAMP_TASK */
-//1288 lines
+//1288
+static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
+{
+    if (!(flags & ENQUEUE_NOCLOCK))
+        update_rq_clock(rq);
 
+    if (!(flags & ENQUEUE_RESTORE)) {
+        sched_info_queued(rq, p);
+        psi_enqueue(p, flags & ENQUEUE_WAKEUP);
+    }
 
+    uclamp_rq_inc(rq, p);
+    p->sched_class->enqueue_task(rq, p, flags);
+}
+//1302
+static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
+{
+    pr_fn_start();
 
+    if (!(flags & DEQUEUE_NOCLOCK))
+        update_rq_clock(rq);
 
+    if (!(flags & DEQUEUE_SAVE)) {
+        sched_info_dequeued(rq, p);
+        psi_dequeue(p, flags & DEQUEUE_SLEEP);
+    }
 
-//1336 lines
+    uclamp_rq_dec(rq, p);
+    p->sched_class->dequeue_task(rq, p, flags);
+
+    pr_fn_end();
+}
+
+void activate_task(struct rq *rq, struct task_struct *p, int flags)
+{
+    if (task_contributes_to_load(p))
+        rq->nr_uninterruptible--;
+
+    enqueue_task(rq, p, flags);
+
+    p->on_rq = TASK_ON_RQ_QUEUED;
+}
+
+void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
+{
+    p->on_rq = (flags & DEQUEUE_SLEEP) ? 0 : TASK_ON_RQ_MIGRATING;
+
+    if (task_contributes_to_load(p))
+        rq->nr_uninterruptible++;
+
+    dequeue_task(rq, p, flags);
+}
+//1336
 /*
  * __normal_prio - return the priority that is based on the static prio
  */
@@ -1101,6 +1147,74 @@ unsigned long to_ratio(u64 period, u64 runtime)
 
 
 
+
+
+
+//3900 lines
+/*
+ * Pick up the highest-prio task:
+ */
+static inline struct task_struct *
+pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+{
+    const struct sched_class *class;
+    struct task_struct *p;
+
+    /*
+     * Optimization: we know that if all tasks are in the fair class we can
+     * call that function directly, but only if the @prev task wasn't of a
+     * higher scheduling class, because otherwise those loose the
+     * opportunity to pull in more work from other CPUs.
+     */
+    if (likely((prev->sched_class == &idle_sched_class ||
+            prev->sched_class == &fair_sched_class) &&
+           rq->nr_running == rq->cfs.h_nr_running)) {
+
+        p = fair_sched_class.pick_next_task(rq, prev, rf);
+        if (unlikely(p == RETRY_TASK))
+            goto restart;
+
+        /* Assumes fair_sched_class->next == idle_sched_class */
+        if (unlikely(!p))
+            p = idle_sched_class.pick_next_task(rq, prev, rf);
+
+        return p;
+    }
+
+restart:
+#ifdef CONFIG_SMP
+    /*
+     * We must do the balancing pass before put_next_task(), such
+     * that when we release the rq->lock the task is in the same
+     * state as before we took rq->lock.
+     *
+     * We can terminate the balance pass as soon as we know there is
+     * a runnable task of @class priority or higher.
+     */
+    for_class_range(class, prev->sched_class, &idle_sched_class) {
+        if (class->balance(rq, prev, rf))
+            break;
+    }
+#endif
+
+    put_prev_task(rq, prev);
+
+    for_each_class(class) {
+        p = class->pick_next_task(rq, NULL, NULL);
+        if (p)
+            return p;
+    }
+
+    /* The idle class should always have a runnable task: */
+    BUG();
+}
+//3958 lines
+
+
+
+
+
+
 //6078 lines
 #ifdef CONFIG_SMP
 
@@ -1186,8 +1300,6 @@ void __init sched_init(void)
         unsigned long ptr = 0;
         int i;
 
-        pr_fn_start();
-
         //wait_bit_init();
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -1196,20 +1308,20 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
-        pr_info("kzalloc size = %u\n", ptr);
-        pr_info_view("%30s : %p\n", &root_task_group);
+        pr_info_view("%30s : %lu\n", ptr);
+        pr_info_view("%30s : %p\n", (void*)&root_task_group);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
-                pr_info("addr=0x%X\n", ptr);
+                pr_info_view("%30s : %p\n", (void*)ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view("%30s : %p\n", root_task_group.se);
+                pr_info_view("%30s : %p\n", (void*)root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view("%30s : %p\n", root_task_group.cfs_rq);
+                pr_info_view("%30s : %p\n", (void*)root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
@@ -1232,8 +1344,8 @@ void __init sched_init(void)
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
 
-        pr_info_view("%30s : %p\n", &def_rt_bandwidth);
-        pr_info_view("%30s : %p\n", &def_dl_bandwidth);
+        pr_info_view("%30s : %p\n", (void*)&def_rt_bandwidth);
+        pr_info_view("%30s : %p\n", (void*)&def_dl_bandwidth);
 
 #ifdef CONFIG_SMP
         init_defrootdomain();
@@ -1254,6 +1366,7 @@ void __init sched_init(void)
 #endif /* CONFIG_CGROUP_SCHED */
 
         pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+        pr_info_view("%30s : %p\n", (void*)&runqueues);
 
         for_each_possible_cpu(i) {
             struct rq *rq;
@@ -1362,8 +1475,6 @@ void __init sched_init(void)
         //init_uclamp();
 
         scheduler_running = 1;
-
-        pr_fn_end();
 }
 //6720 lines
 

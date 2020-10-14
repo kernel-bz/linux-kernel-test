@@ -19,8 +19,6 @@ void decay_load_test(void);
 //test/sched/update_load_avg.c
 void update_load_avg_test(void);
 
-//kernel/sched/fair.c
-void enqueue_task_fair_test(struct task_struct *p);
 
 
 #ifdef __cplusplus
