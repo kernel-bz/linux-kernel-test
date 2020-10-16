@@ -33,18 +33,20 @@ typedef struct {
 typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
 
 //include/linux/cgroup-defs.h
+/*
 struct cgroup_subsys_state {
     int id;
     struct cgroup_subsys_state	*parent;
 };
+*/
 
 #define this_cpu_read_stable(var)
 
 //include/linux/sched/signal.h
 static inline int signal_pending_state(long state, struct task_struct *p) { }
 
-//include/linux/raid/pq.h
-#define IS_ENABLED(x) (x)
+//include/linux/kconfig.h
+//#define IS_ENABLED(x) (x)
 
 //include/linux/kmemleak.h
 static inline void kmemleak_update_trace(const void *ptr) { }

@@ -18,32 +18,10 @@
 
 #include <kernel/sched/sched.h>
 
-#if 0
-/* Walk up scheduling entities hierarchy */
-#define for_each_sched_entity(se) \
-        for (; se; se = se->parent)
-
-/* Iterate thr' all leaf cfs_rq's on a runqueue */
-#define for_each_leaf_cfs_rq_safe(rq, cfs_rq, pos)			\
-    list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,	\
-                 leaf_cfs_rq_list)
-    list_for_each_entry_safe(pos, n, head, member)			\
-        for (pos = list_first_entry(head, typeof(*pos), member),	\
-            n = list_next_entry(pos, member);			\
-             &pos->member != (head); 					\
-             pos = n, n = list_next_entry(n, member))
 /*
- * Iterates the task_group tree in a bottom up fashion, see
- * list_add_leaf_cfs_rq() for details.
- */
-
-#define for_each_domain(cpu, __sd) \
-        for (__sd = rcu_dereference_check_sched_domain(cpu_rq(cpu)->sd); \
-                        __sd; __sd = __sd->parent)
-
-#define for_each_lower_domain(sd) for (; sd; sd = sd->child)
-#endif
-
+init/main.c:585:        sched_init();
+init/main.c:1068:       sched_init_smp();
+*/
 static void _sched_init_test(void)
 {
     pr_fn_start();
@@ -143,41 +121,68 @@ static void _deactivate_task_test(void)
     rq = this_rq();
     pr_info_view("%30s : %p\n", (void*)rq);
     pr_info_view("%30s : %p\n", (void*)rq->curr);
+    pr_info_view("%30s : %u\n", rq->nr_running);
+    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
+    pr_info_view("%30s : %p\n", (void*)rq->curr);
+    pr_info_view("%30s : %u\n", rq->nr_running);
+    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
+
    pr_fn_end();
 }
 
-static void _sched_test_menu(void)
+static int _sched_test_menu(int asize)
 {
+    int idx;
+    __fpurge(stdin);
+
     printf("\n");
-    printf("---------- Schedular Source Test --------------\n");
+    printf("------------- Scheduler Source Test Menu -----------------\n");
+    printf("0: help.\n");
     printf("1: decay load test.\n");
     printf("2: update load_avg test.\n");
     printf("3: sched_init test.\n");
     printf("4: activate_task test.\n");
     printf("5: deactivate_task test.\n");
-    printf("other: exit.\n");
+    printf("6: exit.\n");
     printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    scanf("%d", &idx);
+    return (idx >= 0 && idx < asize) ? idx : -1;
+}
+
+static void _sched_test_help(void)
+{
+    //help messages...
+    printf("\n");
+    printf("You can test the Linux kernel scheduler \n");
+    printf("  at the user level as follows:\n");
+    printf("* PELT execution procedure test\n");
+    printf("* sched_init()\n");
+    printf("* activate_task()\n");
+    printf("* deactivate_task()\n");
+    printf("\n");
+    return;
 }
 
 void sched_test(void)
 {
-    void (*fn[])(void) = { _sched_test_menu
+    void (*fn[])(void) = { _sched_test_help
         , decay_load_test, update_load_avg_test
         , _sched_init_test, _activate_task_test, _deactivate_task_test
     };
-    int idx = -1;
+    int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
-    __fpurge(stdin);
-    _sched_test_menu();
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    if(idx >= 0 && idx < asize) {
+    idx = _sched_test_menu(asize);
+    if (idx >= 0) {
         fn[idx]();
         goto _retry;
     }

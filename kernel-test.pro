@@ -344,7 +344,11 @@ HEADERS += \
     test/basic/type01.h \
     test/basic/type02.h \
     test/basic/type03.h \
-    test/basic/type-limits.h
+    test/basic/type-limits.h \
+    include/linux/cgroup_subsys.h \
+    include/linux/cgroup-defs.h \
+    include/linux/kconfig.h \
+    include/linux/percpu.h
 
 DISTFILES += \
     lib/bpf/libbpf.a \

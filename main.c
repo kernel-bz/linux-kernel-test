@@ -15,33 +15,49 @@
 #include "test/basic.h"
 #include "test/test.h"
 
-static void _main_menu(void)
+static int _main_menu(int asize)
 {
+    int idx;
+    __fpurge(stdin);
+
     printf("\n");
-    printf("********** Test Menu (www.kernel.bz) **********\n");
+    printf("********** Linux Kernel Source Test (Main Menu) **********\n");
     printf("0: help.\n");
     printf("1: basic types test.\n");
     printf("2: cpu mask test.\n");
-    printf("3: ++ Schedular Source Test ++\n");
-    printf("other: exit.\n");
+    printf("3: Scheduler Source Test -->\n");
+    printf("4: exit.\n");
     printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    scanf("%d", &idx);
+    return (idx >= 0 && idx < asize) ? idx : -1;
+}
+
+static void _main_menu_help(void)
+{
+    //help messages...
+    printf("\n");
+    printf("It is the Linux kernel source testing program\n");
+    printf("  that can be run at the user level.\n");
+    printf("Written by www.kernel.bz\n");
+    printf("Release Version 0.6");
+    printf("\n");
+    return;
 }
 
 
 int main(void)
 {
-    void (*fn[])(void) = { _main_menu, types_test
-                , cpus_mask_test, sched_test
-        };
-    int idx = -1;
+    void (*fn[])(void) = { _main_menu_help
+            , basic_types_test, cpus_mask_test, sched_test
+    };
+    int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
-    __fpurge(stdin);
-    _main_menu();
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    if(idx >= 0 && idx < asize) {
+    idx = _main_menu(asize);
+    if(idx >= 0) {
         fn[idx]();
         goto _retry;
     }

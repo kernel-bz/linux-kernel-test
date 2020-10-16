@@ -13,9 +13,12 @@ extern "C" {
 #define CONFIG_THREAD_INFO_IN_TASK
 
 //Schedular Configuraion ----------------------------------
+#define CONFIG_CGROUPS
 #define CONFIG_CGROUP_SCHED
 #define CONFIG_FAIR_GROUP_SCHED
 #define CONFIG_CFS_BANDWIDTH
+//#define CONFIG_RT_GROUP_SCHED
+
 //#define CONFIG_SCHED_AUTOGROUP
 #define CONFIG_SCHEDSTATS
 #define CONFIG_SCHED_INFO

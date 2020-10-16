@@ -7,10 +7,10 @@ extern "C" {
 
 
 //test/basic/ptr-test.c
-void ptr_test(void);
+void basic_ptr_test(void);
 
 //test/basic/types-test.c
-void types_test(void);
+void basic_types_test(void);
 
 
 

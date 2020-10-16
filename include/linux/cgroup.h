@@ -25,7 +25,8 @@
 #include <linux/refcount.h>
 #include <linux/kernel_stat.h>
 
-//#include <linux/cgroup-defs.h>
+#include <linux/kconfig.h>
+#include <linux/cgroup-defs.h>
 
 #include <uapi/asm-generic/errno-base.h>
 
@@ -315,8 +316,8 @@ void css_task_iter_end(struct css_task_iter *it);
  */
 static inline void css_get(struct cgroup_subsys_state *css)
 {
-	if (!(css->flags & CSS_NO_REF))
-		percpu_ref_get(&css->refcnt);
+    //if (!(css->flags & CSS_NO_REF))
+    //	percpu_ref_get(&css->refcnt);
 }
 
 /**
@@ -328,8 +329,8 @@ static inline void css_get(struct cgroup_subsys_state *css)
  */
 static inline void css_get_many(struct cgroup_subsys_state *css, unsigned int n)
 {
-	if (!(css->flags & CSS_NO_REF))
-		percpu_ref_get_many(&css->refcnt, n);
+    //if (!(css->flags & CSS_NO_REF))
+    //	percpu_ref_get_many(&css->refcnt, n);
 }
 
 /**
@@ -345,8 +346,8 @@ static inline void css_get_many(struct cgroup_subsys_state *css, unsigned int n)
  */
 static inline bool css_tryget(struct cgroup_subsys_state *css)
 {
-	if (!(css->flags & CSS_NO_REF))
-		return percpu_ref_tryget(&css->refcnt);
+    //if (!(css->flags & CSS_NO_REF))
+        //return percpu_ref_tryget(&css->refcnt);
 	return true;
 }
 
@@ -362,8 +363,8 @@ static inline bool css_tryget(struct cgroup_subsys_state *css)
  */
 static inline bool css_tryget_online(struct cgroup_subsys_state *css)
 {
-	if (!(css->flags & CSS_NO_REF))
-		return percpu_ref_tryget_live(&css->refcnt);
+    //if (!(css->flags & CSS_NO_REF))
+        //return percpu_ref_tryget_live(&css->refcnt);
 	return true;
 }
 
@@ -384,7 +385,7 @@ static inline bool css_tryget_online(struct cgroup_subsys_state *css)
  */
 static inline bool css_is_dying(struct cgroup_subsys_state *css)
 {
-	return !(css->flags & CSS_NO_REF) && percpu_ref_is_dying(&css->refcnt);
+    //return !(css->flags & CSS_NO_REF) && percpu_ref_is_dying(&css->refcnt);
 }
 
 /**
@@ -395,8 +396,8 @@ static inline bool css_is_dying(struct cgroup_subsys_state *css)
  */
 static inline void css_put(struct cgroup_subsys_state *css)
 {
-	if (!(css->flags & CSS_NO_REF))
-		percpu_ref_put(&css->refcnt);
+    //if (!(css->flags & CSS_NO_REF))
+        //percpu_ref_put(&css->refcnt);
 }
 
 /**
@@ -408,8 +409,8 @@ static inline void css_put(struct cgroup_subsys_state *css)
  */
 static inline void css_put_many(struct cgroup_subsys_state *css, unsigned int n)
 {
-	if (!(css->flags & CSS_NO_REF))
-		percpu_ref_put_many(&css->refcnt, n);
+    //if (!(css->flags & CSS_NO_REF))
+        //percpu_ref_put_many(&css->refcnt, n);
 }
 
 static inline void cgroup_get(struct cgroup *cgrp)
@@ -619,13 +620,13 @@ static inline bool cgroup_is_populated(struct cgroup *cgrp)
 /* returns ino associated with a cgroup */
 static inline ino_t cgroup_ino(struct cgroup *cgrp)
 {
-	return cgrp->kn->id.ino;
+    //return cgrp->kn->id.ino;
 }
 
 /* cft/css accessors for cftype->write() operation */
 static inline struct cftype *of_cft(struct kernfs_open_file *of)
 {
-	return of->kn->priv;
+    //return of->kn->priv;
 }
 
 struct cgroup_subsys_state *of_css(struct kernfs_open_file *of);
@@ -633,12 +634,12 @@ struct cgroup_subsys_state *of_css(struct kernfs_open_file *of);
 /* cft/css accessors for cftype->seq_*() operations */
 static inline struct cftype *seq_cft(struct seq_file *seq)
 {
-	return of_cft(seq->private);
+    //return of_cft(seq->private);
 }
 
 static inline struct cgroup_subsys_state *seq_css(struct seq_file *seq)
 {
-	return of_css(seq->private);
+    //return of_css(seq->private);
 }
 
 /*
@@ -668,7 +669,7 @@ static inline void pr_cont_cgroup_path(struct cgroup *cgrp)
 
 static inline struct psi_group *cgroup_psi(struct cgroup *cgrp)
 {
-	return &cgrp->psi;
+    //return &cgrp->psi;
 }
 
 static inline void cgroup_init_kthreadd(void)
@@ -692,7 +693,7 @@ static inline void cgroup_kthread_ready(void)
 
 static inline union kernfs_node_id *cgroup_get_kernfs_id(struct cgroup *cgrp)
 {
-	return &cgrp->kn->id;
+    //return &cgrp->kn->id;
 }
 
 void cgroup_path_from_kernfs_id(const union kernfs_node_id *id,
@@ -943,12 +944,12 @@ static inline bool cgroup_task_frozen(struct task_struct *task)
 #ifdef CONFIG_CGROUP_BPF
 static inline void cgroup_bpf_get(struct cgroup *cgrp)
 {
-	percpu_ref_get(&cgrp->bpf.refcnt);
+    //percpu_ref_get(&cgrp->bpf.refcnt);
 }
 
 static inline void cgroup_bpf_put(struct cgroup *cgrp)
 {
-	percpu_ref_put(&cgrp->bpf.refcnt);
+    //percpu_ref_put(&cgrp->bpf.refcnt);
 }
 
 #else /* CONFIG_CGROUP_BPF */

@@ -120,7 +120,7 @@ struct MAIN_CFG 		*Main_Cfg;
 #define MAIN_Rx_FIFO_SIZE 	128
 
 
-void ptr_test_start(int8_t Table_No)
+static void _ptr_test_start(int8_t Table_No)
 {
     memset ((uint8_t *)&Main_Data, 0x00, sizeof (struct MAIN_DATA));	// 0 으로 초기화
     memset ((uint8_t *)&TBL.Entry, 0x00, 32);							// 0 으로 초기화
@@ -138,7 +138,7 @@ void ptr_test_start(int8_t Table_No)
     //TBL.Config->Fsize 	= MAIN_Rx_FIFO_SIZE / 16;
 }
 
-void ptr_test(void)
+void basic_ptr_test(void)
 {
-    ptr_test_start(0);
+    _ptr_test_start(0);
 }

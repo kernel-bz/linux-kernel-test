@@ -13,7 +13,7 @@
 #include "type03.h"
 #include "type-limits.h"
 
-static void type01_test(void)
+static void _basic_type01_test(void)
 {
     printf("s8_t = %u bytes\n", sizeof(s8_t));
     printf("u8_t = %u bytes\n", sizeof(u8_t));
@@ -28,7 +28,7 @@ static void type01_test(void)
     printf("\n");
 }
 
-static void type02_test(void)
+static void _basic_type02_test(void)
 {
     printf("s8 = %u bytes\n", sizeof(s8));
     printf("u8 = %u bytes\n", sizeof(u8));
@@ -41,7 +41,7 @@ static void type02_test(void)
     printf("\n");
 }
 
-static void type03_test(void)
+static void _basic_type03_test(void)
 {
     printf("U8_MAX=%u\n", U8_MAX);
     printf("S8_MAX=%d\n", S8_MAX);
@@ -58,9 +58,9 @@ static void type03_test(void)
     printf("\n");
 }
 
-void types_test(void)
+void basic_types_test(void)
 {
-    type01_test();
-    type02_test();
-    type03_test();
+    _basic_type01_test();
+    _basic_type02_test();
+    _basic_type03_test();
 }

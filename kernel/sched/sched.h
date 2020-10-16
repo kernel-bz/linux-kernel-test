@@ -816,7 +816,7 @@ struct root_domain {
 	/*
 	 * For IPI pull requests, loop across the rto_mask.
 	 */
-	struct irq_work		rto_push_work;
+    //struct irq_work		rto_push_work;
 	raw_spinlock_t		rto_lock;
 	/* These are only updated and read within rto_lock */
 	int			rto_loop;

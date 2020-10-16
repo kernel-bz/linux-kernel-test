@@ -8,22 +8,23 @@
 #ifndef _LINUX_CGROUP_DEFS_H
 #define _LINUX_CGROUP_DEFS_H
 
-#include <urcu.h>
-#include <urcu-pointer.h>
+#include "test/config.h"
 
 #include <linux/limits.h>
 #include <linux/list.h>
 #include <linux/idr.h>
 #include <linux/wait.h>
 #include <linux/mutex.h>
-//#include <linux/rcupdate.h>
+#include <linux/rcupdate.h>
 #include <linux/refcount.h>
 //#include <linux/percpu-refcount.h>
-//#include <linux/percpu-rwsem.h>
+#include <linux/percpu-rwsem.h>
 //#include <linux/u64_stats_sync.h>
 //#include <linux/workqueue.h>
 //#include <linux/bpf-cgroup.h>
 //#include <linux/psi_types.h>
+
+#include <linux/kconfig.h>
 
 #ifdef CONFIG_CGROUPS
 
@@ -123,7 +124,7 @@ struct cgroup_file {
 	/* do not access any fields from outside cgroup core */
 	struct kernfs_node *kn;
 	unsigned long notified_at;
-	struct timer_list notify_timer;
+    //struct timer_list notify_timer;
 };
 
 /*
@@ -141,7 +142,7 @@ struct cgroup_subsys_state {
 	struct cgroup_subsys *ss;
 
 	/* reference count - access via css_[try]get() and css_put() */
-	struct percpu_ref refcnt;
+    //struct percpu_ref refcnt;
 
 	/* siblings list anchored at the parent's ->children */
 	struct list_head sibling;
@@ -173,8 +174,8 @@ struct cgroup_subsys_state {
 	atomic_t online_cnt;
 
 	/* percpu_ref killing and RCU release */
-	struct work_struct destroy_work;
-	struct rcu_work destroy_rwork;
+    //struct work_struct destroy_work;
+    //struct rcu_work destroy_rwork;
 
 	/*
 	 * PI: the parent css.	Placed here for cache proximity to following
@@ -280,7 +281,7 @@ struct css_set {
 };
 
 struct cgroup_base_stat {
-	struct task_cputime cputime;
+    //struct task_cputime cputime;
 };
 
 /*
@@ -308,7 +309,7 @@ struct cgroup_rstat_cpu {
 	 * ->bsync protects ->bstat.  These are the only fields which get
 	 * updated in the hot path.
 	 */
-	struct u64_stats_sync bsync;
+    //struct u64_stats_sync bsync;
 	struct cgroup_base_stat bstat;
 
 	/*
@@ -463,7 +464,7 @@ struct cgroup {
 	/* cgroup basic resource statistics */
 	struct cgroup_base_stat pending_bstat;	/* pending from children */
 	struct cgroup_base_stat bstat;
-	struct prev_cputime prev_cputime;	/* for printing out cputime */
+    //struct prev_cputime prev_cputime;	/* for printing out cputime */
 
 	/*
 	 * list of pidlists, up to two for each namespace (one for procs, one
@@ -476,13 +477,13 @@ struct cgroup {
 	wait_queue_head_t offline_waitq;
 
 	/* used to schedule release agent */
-	struct work_struct release_agent_work;
+    //struct work_struct release_agent_work;
 
 	/* used to track pressure stalls */
-	struct psi_group psi;
+    //struct psi_group psi;
 
 	/* used to store eBPF programs */
-	struct cgroup_bpf bpf;
+    //struct cgroup_bpf bpf;
 
 	/* If there is block congestion on this cgroup. */
 	atomic_t congestion_count;

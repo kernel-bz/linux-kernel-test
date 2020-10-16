@@ -1480,6 +1480,27 @@ void __init sched_init(void)
 
 
 
+#ifdef CONFIG_CGROUP_SCHED
+
+struct cgroup_subsys cpu_cgrp_subsys = {
+    .css_alloc	= cpu_cgroup_css_alloc,
+    .css_online	= cpu_cgroup_css_online,
+    .css_released	= cpu_cgroup_css_released,
+    .css_free	= cpu_cgroup_css_free,
+    .css_extra_stat_show = cpu_extra_stat_show,
+    .fork		= cpu_cgroup_fork,
+    .can_attach	= cpu_cgroup_can_attach,
+    .attach		= cpu_cgroup_attach,
+    .legacy_cftypes	= cpu_legacy_files,
+    .dfl_cftypes	= cpu_files,
+    .early_init	= true,
+    .threaded	= true,
+};
+
+#endif	/* CONFIG_CGROUP_SCHED */
+
+
+
 
 
 //7907 lines
