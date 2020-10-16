@@ -148,10 +148,11 @@ struct cgroup_subsys_state *css_rightmost_descendant(struct cgroup_subsys_state 
 struct cgroup_subsys_state *css_next_descendant_post(struct cgroup_subsys_state *pos,
 						     struct cgroup_subsys_state *css);
 
-struct task_struct *cgroup_taskset_first(struct cgroup_taskset *tset,
-					 struct cgroup_subsys_state **dst_cssp);
-struct task_struct *cgroup_taskset_next(struct cgroup_taskset *tset,
-					struct cgroup_subsys_state **dst_cssp);
+//kernel/cgroup/cgroup.c
+static inline struct task_struct *cgroup_taskset_first(struct cgroup_taskset *tset,
+                                                       struct cgroup_subsys_state **dst_cssp) { }
+static inline struct task_struct *cgroup_taskset_next(struct cgroup_taskset *tset,
+                                                      struct cgroup_subsys_state **dst_cssp) { }
 
 void cgroup_enable_task_cg_lists(void);
 void css_task_iter_start(struct cgroup_subsys_state *css, unsigned int flags,

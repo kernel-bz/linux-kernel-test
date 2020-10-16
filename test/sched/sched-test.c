@@ -136,6 +136,28 @@ static void _deactivate_task_test(void)
    pr_fn_end();
 }
 
+/*
+ * kernel/sys.c
+ * 	ksys_setsid(void)
+ * 		kernel/sched/autogroup.c
+ * 		sched_autogroup_create_attach(struct task_struct *p)
+ *	 		autogroup_create();
+ */
+static void _sched_create_group_test(void)
+{
+    struct task_group *tg;
+
+    pr_fn_start();
+
+    tg = sched_create_group(&root_task_group);
+    if (IS_ERR(tg))
+        pr_err("sched_create_group() error!\n");
+    else
+        sched_online_group(tg, &root_task_group);
+
+    pr_fn_end();
+}
+
 static int _sched_test_menu(int asize)
 {
     int idx;
@@ -147,9 +169,10 @@ static int _sched_test_menu(int asize)
     printf("1: decay load test.\n");
     printf("2: update load_avg test.\n");
     printf("3: sched_init test.\n");
-    printf("4: activate_task test.\n");
-    printf("5: deactivate_task test.\n");
-    printf("6: exit.\n");
+    printf("4: sched_create_group test.\n");
+    printf("5: activate_task test.\n");
+    printf("6: deactivate_task test.\n");
+    printf("7: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -175,7 +198,9 @@ void sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , decay_load_test, update_load_avg_test
-        , _sched_init_test, _activate_task_test, _deactivate_task_test
+        , _sched_init_test
+        , _sched_create_group_test
+        , _activate_task_test, _deactivate_task_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);

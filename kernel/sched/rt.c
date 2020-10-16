@@ -82,6 +82,170 @@ void init_rt_rq(struct rt_rq *rt_rq)
 
 
 
+
+
+//104 lines
+#ifdef CONFIG_RT_GROUP_SCHED
+static void destroy_rt_bandwidth(struct rt_bandwidth *rt_b)
+{
+    hrtimer_cancel(&rt_b->rt_period_timer);
+}
+
+#define rt_entity_is_task(rt_se) (!(rt_se)->my_q)
+
+static inline struct task_struct *rt_task_of(struct sched_rt_entity *rt_se)
+{
+#ifdef CONFIG_SCHED_DEBUG
+    WARN_ON_ONCE(!rt_entity_is_task(rt_se));
+#endif
+    return container_of(rt_se, struct task_struct, rt);
+}
+
+static inline struct rq *rq_of_rt_rq(struct rt_rq *rt_rq)
+{
+    return rt_rq->rq;
+}
+
+static inline struct rt_rq *rt_rq_of_se(struct sched_rt_entity *rt_se)
+{
+    return rt_se->rt_rq;
+}
+
+static inline struct rq *rq_of_rt_se(struct sched_rt_entity *rt_se)
+{
+    struct rt_rq *rt_rq = rt_se->rt_rq;
+
+    return rt_rq->rq;
+}
+
+void free_rt_sched_group(struct task_group *tg)
+{
+    int i;
+
+    if (tg->rt_se)
+        destroy_rt_bandwidth(&tg->rt_bandwidth);
+
+    for_each_possible_cpu(i) {
+        if (tg->rt_rq)
+            kfree(tg->rt_rq[i]);
+        if (tg->rt_se)
+            kfree(tg->rt_se[i]);
+    }
+
+    kfree(tg->rt_rq);
+    kfree(tg->rt_se);
+}
+
+void init_tg_rt_entry(struct task_group *tg, struct rt_rq *rt_rq,
+        struct sched_rt_entity *rt_se, int cpu,
+        struct sched_rt_entity *parent)
+{
+    struct rq *rq = cpu_rq(cpu);
+
+    rt_rq->highest_prio.curr = MAX_RT_PRIO;
+    rt_rq->rt_nr_boosted = 0;
+    rt_rq->rq = rq;
+    rt_rq->tg = tg;
+
+    tg->rt_rq[cpu] = rt_rq;
+    tg->rt_se[cpu] = rt_se;
+
+    if (!rt_se)
+        return;
+
+    if (!parent)
+        rt_se->rt_rq = &rq->rt;
+    else
+        rt_se->rt_rq = parent->my_q;
+
+    rt_se->my_q = rt_rq;
+    rt_se->parent = parent;
+    INIT_LIST_HEAD(&rt_se->run_list);
+}
+
+int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)
+{
+    struct rt_rq *rt_rq;
+    struct sched_rt_entity *rt_se;
+    int i;
+
+    tg->rt_rq = kcalloc(nr_cpu_ids, sizeof(rt_rq), GFP_KERNEL);
+    if (!tg->rt_rq)
+        goto err;
+    tg->rt_se = kcalloc(nr_cpu_ids, sizeof(rt_se), GFP_KERNEL);
+    if (!tg->rt_se)
+        goto err;
+
+    init_rt_bandwidth(&tg->rt_bandwidth,
+            ktime_to_ns(def_rt_bandwidth.rt_period), 0);
+
+    for_each_possible_cpu(i) {
+        rt_rq = kzalloc_node(sizeof(struct rt_rq),
+                     GFP_KERNEL, cpu_to_node(i));
+        if (!rt_rq)
+            goto err;
+
+        rt_se = kzalloc_node(sizeof(struct sched_rt_entity),
+                     GFP_KERNEL, cpu_to_node(i));
+        if (!rt_se)
+            goto err_free_rq;
+
+        init_rt_rq(rt_rq);
+        rt_rq->rt_runtime = tg->rt_bandwidth.rt_runtime;
+        init_tg_rt_entry(tg, rt_rq, rt_se, i, parent->rt_se[i]);
+    }
+
+    return 1;
+
+err_free_rq:
+    kfree(rt_rq);
+err:
+    return 0;
+}
+//222
+#else /* CONFIG_RT_GROUP_SCHED */
+
+#define rt_entity_is_task(rt_se) (1)
+
+static inline struct task_struct *rt_task_of(struct sched_rt_entity *rt_se)
+{
+    return container_of(rt_se, struct task_struct, rt);
+}
+
+static inline struct rq *rq_of_rt_rq(struct rt_rq *rt_rq)
+{
+    return container_of(rt_rq, struct rq, rt);
+}
+
+static inline struct rq *rq_of_rt_se(struct sched_rt_entity *rt_se)
+{
+    struct task_struct *p = rt_task_of(rt_se);
+
+    return task_rq(p);
+}
+
+static inline struct rt_rq *rt_rq_of_se(struct sched_rt_entity *rt_se)
+{
+    struct rq *rq = rq_of_rt_se(rt_se);
+
+    return &rq->rt;
+}
+
+void free_rt_sched_group(struct task_group *tg) { }
+
+int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)
+{
+    return 1;
+}
+#endif /* CONFIG_RT_GROUP_SCHED */
+//258 lines
+
+
+
+
+
+
+
 //2356 lines
 const struct sched_class rt_sched_class = {
     .next			= &fair_sched_class,

@@ -12,6 +12,7 @@
 #include <linux/kcov.h>
 
 #include <linux/topology.h>
+#include <linux/radix-tree-user.h>
 
 //#include <asm/switch_to.h>
 //#include <asm/tlb.h>
@@ -61,13 +62,73 @@ __read_mostly int scheduler_running;
  * default: 0.95s
  */
 int sysctl_sched_rt_runtime = 950000;
-//74 lines
+//74
+/*
+ * __task_rq_lock - lock the rq @p resides on.
+ */
+struct rq *__task_rq_lock(struct task_struct *p, struct rq_flags *rf)
+    __acquires(rq->lock)
+{
+    struct rq *rq;
 
+    lockdep_assert_held(&p->pi_lock);
 
+    for (;;) {
+        rq = task_rq(p);
+        raw_spin_lock(&rq->lock);
+        if (likely(rq == task_rq(p) && !task_on_rq_migrating(p))) {
+            rq_pin_lock(rq, rf);
+            return rq;
+        }
+        raw_spin_unlock(&rq->lock);
 
+        while (unlikely(task_on_rq_migrating(p)))
+            cpu_relax();
+    }
+}
 
+/*
+ * task_rq_lock - lock p->pi_lock and lock the rq @p resides on.
+ */
+struct rq *task_rq_lock(struct task_struct *p, struct rq_flags *rf)
+    __acquires(p->pi_lock)
+    __acquires(rq->lock)
+{
+    struct rq *rq;
 
-//140 lines
+    for (;;) {
+        raw_spin_lock_irqsave(&p->pi_lock, rf->flags);
+        rq = task_rq(p);
+        raw_spin_lock(&rq->lock);
+        /*
+         *	move_queued_task()		task_rq_lock()
+         *
+         *	ACQUIRE (rq->lock)
+         *	[S] ->on_rq = MIGRATING		[L] rq = task_rq()
+         *	WMB (__set_task_cpu())		ACQUIRE (rq->lock);
+         *	[S] ->cpu = new_cpu		[L] task_rq()
+         *					[L] ->on_rq
+         *	RELEASE (rq->lock)
+         *
+         * If we observe the old CPU in task_rq_lock(), the acquire of
+         * the old rq->lock will fully serialize against the stores.
+         *
+         * If we observe the new CPU in task_rq_lock(), the address
+         * dependency headed by '[L] rq = task_rq()' and the acquire
+         * will pair with the WMB to ensure we then also see migrating.
+         */
+        if (likely(rq == task_rq(p) && !task_on_rq_migrating(p))) {
+            rq_pin_lock(rq, rf);
+            return rq;
+        }
+        raw_spin_unlock(&rq->lock);
+        raw_spin_unlock_irqrestore(&p->pi_lock, rf->flags);
+
+        while (unlikely(task_on_rq_migrating(p)))
+            cpu_relax();
+    }
+}
+
 /*
  * RQ-clock updating methods:
  */
@@ -148,6 +209,8 @@ void update_rq_clock(struct rq *rq)
     update_rq_clock_task(rq, delta);
 }
 //220 lines
+
+
 
 
 
@@ -777,12 +840,16 @@ static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
 
 void activate_task(struct rq *rq, struct task_struct *p, int flags)
 {
+    pr_fn_start();
+
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible--;
 
     enqueue_task(rq, p, flags);
 
     p->on_rq = TASK_ON_RQ_QUEUED;
+
+    pr_fn_end();
 }
 
 void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
@@ -1041,6 +1108,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 {
     unsigned long flags;
 
+    pr_fn_start();
+
     __sched_fork(clone_flags, p);
     /*
      * We mark the process as NEW here. This guarantees that
@@ -1126,6 +1195,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     plist_node_init(&p->pushable_tasks, MAX_PRIO);
     RB_CLEAR_NODE(&p->pushable_dl_tasks);
 #endif
+
+    pr_fn_end();
+
     return 0;
 }
 //2919
@@ -1480,10 +1552,312 @@ void __init sched_init(void)
 
 
 
-#ifdef CONFIG_CGROUP_SCHED
 
+
+
+//6910 lines
+#ifdef CONFIG_CGROUP_SCHED
+/* task_group_lock serializes the addition/removal of task groups */
+static DEFINE_SPINLOCK(task_group_lock);
+
+static inline void alloc_uclamp_sched_group(struct task_group *tg,
+                        struct task_group *parent)
+{
+#ifdef CONFIG_UCLAMP_TASK_GROUP
+    enum uclamp_id clamp_id;
+
+    for_each_clamp_id(clamp_id) {
+        uclamp_se_set(&tg->uclamp_req[clamp_id],
+                  uclamp_none(clamp_id), false);
+        tg->uclamp[clamp_id] = parent->uclamp[clamp_id];
+    }
+#endif
+}
+
+static void sched_free_group(struct task_group *tg)
+{
+    free_fair_sched_group(tg);
+    //free_rt_sched_group(tg);
+    autogroup_free(tg);
+    kmem_cache_free(task_group_cache, tg);
+}
+
+/* allocate runqueue etc for a new task group */
+struct task_group *sched_create_group(struct task_group *parent)
+{
+    struct task_group *tg;
+
+    pr_fn_start();
+
+    tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
+    if (!tg)
+        return ERR_PTR(-ENOMEM);
+
+    if (!alloc_fair_sched_group(tg, parent))
+        goto err;
+
+    if (!alloc_rt_sched_group(tg, parent))
+        goto err;
+
+    alloc_uclamp_sched_group(tg, parent);
+
+    pr_fn_end();
+
+    return tg;
+
+err:
+    sched_free_group(tg);
+    return ERR_PTR(-ENOMEM);
+}
+
+void sched_online_group(struct task_group *tg, struct task_group *parent)
+{
+    unsigned long flags;
+
+    pr_fn_start();
+
+    spin_lock_irqsave(&task_group_lock, flags);
+    list_add_rcu(&tg->list, &task_groups);
+
+    /* Root should already exist: */
+    WARN_ON(!parent);
+
+    tg->parent = parent;
+    INIT_LIST_HEAD(&tg->children);
+    list_add_rcu(&tg->siblings, &parent->children);
+    spin_unlock_irqrestore(&task_group_lock, flags);
+
+    online_fair_sched_group(tg);
+
+    pr_fn_end();
+}
+
+/* rcu callback to free various structures associated with a task group */
+static void sched_free_group_rcu(struct rcu_head *rhp)
+{
+    /* Now it should be safe to free those cfs_rqs: */
+    sched_free_group(container_of(rhp, struct task_group, rcu));
+}
+
+void sched_destroy_group(struct task_group *tg)
+{
+    /* Wait for possible concurrent references to cfs_rqs complete: */
+    call_rcu(&tg->rcu, sched_free_group_rcu);
+}
+
+void sched_offline_group(struct task_group *tg)
+{
+    unsigned long flags;
+
+    /* End participation in shares distribution: */
+    unregister_fair_sched_group(tg);
+
+    spin_lock_irqsave(&task_group_lock, flags);
+    list_del_rcu(&tg->list);
+    list_del_rcu(&tg->siblings);
+    spin_unlock_irqrestore(&task_group_lock, flags);
+}
+
+static void sched_change_group(struct task_struct *tsk, int type)
+{
+    struct task_group *tg;
+
+    /*
+     * All callers are synchronized by task_rq_lock(); we do not use RCU
+     * which is pointless here. Thus, we pass "true" to task_css_check()
+     * to prevent lockdep warnings.
+     */
+    tg = container_of(task_css_check(tsk, cpu_cgrp_id, true),
+              struct task_group, css);
+    tg = autogroup_task_group(tsk, tg);
+    tsk->sched_task_group = tg;
+
+#ifdef CONFIG_FAIR_GROUP_SCHED
+    if (tsk->sched_class->task_change_group)
+        tsk->sched_class->task_change_group(tsk, type);
+    else
+#endif
+        set_task_rq(tsk, task_cpu(tsk));
+}
+
+/*
+ * Change task's runqueue when it moves between groups.
+ *
+ * The caller of this function should have put the task in its new group by
+ * now. This function just updates tsk->se.cfs_rq and tsk->se.parent to reflect
+ * its new group.
+ */
+void sched_move_task(struct task_struct *tsk)
+{
+    int queued, running, queue_flags =
+        DEQUEUE_SAVE | DEQUEUE_MOVE | DEQUEUE_NOCLOCK;
+    struct rq_flags rf;
+    struct rq *rq;
+
+    rq = task_rq_lock(tsk, &rf);
+    update_rq_clock(rq);
+
+    running = task_current(rq, tsk);
+    queued = task_on_rq_queued(tsk);
+
+    if (queued)
+        dequeue_task(rq, tsk, queue_flags);
+    if (running)
+        put_prev_task(rq, tsk);
+
+    sched_change_group(tsk, TASK_MOVE_GROUP);
+
+    if (queued)
+        enqueue_task(rq, tsk, queue_flags);
+    if (running)
+        set_next_task(rq, tsk);
+
+    task_rq_unlock(rq, tsk, &rf);
+}
+//7061
+static inline struct task_group *css_tg(struct cgroup_subsys_state *css)
+{
+    return css ? container_of(css, struct task_group, css) : NULL;
+}
+
+static struct cgroup_subsys_state *
+cpu_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
+{
+    struct task_group *parent = css_tg(parent_css);
+    struct task_group *tg;
+
+    if (!parent) {
+        /* This is early initialization for the top cgroup */
+        return &root_task_group.css;
+    }
+
+    tg = sched_create_group(parent);
+    if (IS_ERR(tg))
+        return ERR_PTR(-ENOMEM);
+
+    return &tg->css;
+}
+
+/* Expose task group only after completing cgroup initialization */
+static int cpu_cgroup_css_online(struct cgroup_subsys_state *css)
+{
+    struct task_group *tg = css_tg(css);
+    struct task_group *parent = css_tg(css->parent);
+
+    if (parent)
+        sched_online_group(tg, parent);
+    return 0;
+}
+
+static void cpu_cgroup_css_released(struct cgroup_subsys_state *css)
+{
+    struct task_group *tg = css_tg(css);
+
+    sched_offline_group(tg);
+}
+
+static void cpu_cgroup_css_free(struct cgroup_subsys_state *css)
+{
+    struct task_group *tg = css_tg(css);
+
+    /*
+     * Relies on the RCU grace period between css_released() and this.
+     */
+    sched_free_group(tg);
+}
+
+/*
+ * This is called before wake_up_new_task(), therefore we really only
+ * have to set its group bits, all the other stuff does not apply.
+ */
+static void cpu_cgroup_fork(struct task_struct *task)
+{
+    struct rq_flags rf;
+    struct rq *rq;
+
+    rq = task_rq_lock(task, &rf);
+
+    update_rq_clock(rq);
+    sched_change_group(task, TASK_SET_GROUP);
+
+    task_rq_unlock(rq, task, &rf);
+}
+
+static int cpu_cgroup_can_attach(struct cgroup_taskset *tset)
+{
+    struct task_struct *task;
+    struct cgroup_subsys_state *css;
+    int ret = 0;
+
+    cgroup_taskset_for_each(task, css, tset) {
+#ifdef CONFIG_RT_GROUP_SCHED
+        if (!sched_rt_can_attach(css_tg(css), task))
+            return -EINVAL;
+#endif
+        /*
+         * Serialize against wake_up_new_task() such that if its
+         * running, we're sure to observe its full state.
+         */
+        raw_spin_lock_irq(&task->pi_lock);
+        /*
+         * Avoid calling sched_move_task() before wake_up_new_task()
+         * has happened. This would lead to problems with PELT, due to
+         * move wanting to detach+attach while we're not attached yet.
+         */
+        if (task->state == TASK_NEW)
+            ret = -EINVAL;
+        raw_spin_unlock_irq(&task->pi_lock);
+
+        if (ret)
+            break;
+    }
+    return ret;
+}
+
+static void cpu_cgroup_attach(struct cgroup_taskset *tset)
+{
+    struct task_struct *task;
+    struct cgroup_subsys_state *css;
+
+    cgroup_taskset_for_each(task, css, tset)
+        sched_move_task(task);
+}
+//7169 lines
+
+
+
+
+
+//7703 lines
+static int cpu_extra_stat_show(struct seq_file *sf,
+                   struct cgroup_subsys_state *css)
+{
+#ifdef CONFIG_CFS_BANDWIDTH
+    {
+        struct task_group *tg = css_tg(css);
+        struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
+        u64 throttled_usec;
+
+        throttled_usec = cfs_b->throttled_time;
+        do_div(throttled_usec, NSEC_PER_USEC);
+
+        seq_printf(sf, "nr_periods %d\n"
+               "nr_throttled %d\n"
+               "throttled_usec %llu\n",
+               cfs_b->nr_periods, cfs_b->nr_throttled,
+               throttled_usec);
+    }
+#endif
+    return 0;
+}
+//7725 lines
+
+
+
+
+
+//7884 lines
 struct cgroup_subsys cpu_cgrp_subsys = {
-#if 0
     .css_alloc	= cpu_cgroup_css_alloc,
     .css_online	= cpu_cgroup_css_online,
     .css_released	= cpu_cgroup_css_released,
@@ -1492,6 +1866,7 @@ struct cgroup_subsys cpu_cgrp_subsys = {
     .fork		= cpu_cgroup_fork,
     .can_attach	= cpu_cgroup_can_attach,
     .attach		= cpu_cgroup_attach,
+#if 0
     .legacy_cftypes	= cpu_legacy_files,
     .dfl_cftypes	= cpu_files,
 #endif //0
@@ -1500,7 +1875,7 @@ struct cgroup_subsys cpu_cgrp_subsys = {
 };
 
 #endif	/* CONFIG_CGROUP_SCHED */
-
+//7901 lines
 
 
 

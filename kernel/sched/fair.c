@@ -815,8 +815,14 @@ static void update_curr(struct cfs_rq *cfs_rq)
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", cfs_rq->curr);
+
     if (unlikely(!curr))
         return;
+
+    pr_info_view("%30s : %llu\n", now);
+    pr_info_view("%30s : %llu\n", curr->exec_start);
 
     delta_exec = now - curr->exec_start;
     if (unlikely((s64)delta_exec <= 0))
@@ -842,6 +848,8 @@ static void update_curr(struct cfs_rq *cfs_rq)
     }
 
     account_cfs_rq_runtime(cfs_rq, delta_exec);
+
+    pr_fn_end();
 }
 
 static void update_curr_fair(struct rq *rq)
@@ -3864,6 +3872,10 @@ static void task_fork_fair(struct task_struct *p)
         update_curr(cfs_rq);
         se->vruntime = curr->vruntime;
     }
+
+    pr_info_view("%30s : %llu\n", se->vruntime);
+    pr_info_view("%30s : %llu\n", curr->vruntime);
+
     place_entity(cfs_rq, se, 1);
 
     if (sysctl_sched_child_runs_first && curr && entity_before(curr, se)) {
@@ -4008,7 +4020,115 @@ void init_cfs_rq(struct cfs_rq *cfs_rq)
 
 
 
-//10323 lines
+
+
+
+//10222 lines
+void free_fair_sched_group(struct task_group *tg)
+{
+    int i;
+
+    destroy_cfs_bandwidth(tg_cfs_bandwidth(tg));
+
+    for_each_possible_cpu(i) {
+        if (tg->cfs_rq)
+            kfree(tg->cfs_rq[i]);
+        if (tg->se)
+            kfree(tg->se[i]);
+    }
+
+    kfree(tg->cfs_rq);
+    kfree(tg->se);
+}
+
+int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
+{
+    struct sched_entity *se;
+    struct cfs_rq *cfs_rq;
+    int i;
+
+    tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
+    if (!tg->cfs_rq)
+        goto err;
+    tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
+    if (!tg->se)
+        goto err;
+
+    tg->shares = NICE_0_LOAD;
+
+    init_cfs_bandwidth(tg_cfs_bandwidth(tg));
+
+    for_each_possible_cpu(i) {
+        cfs_rq = kzalloc_node(sizeof(struct cfs_rq),
+                      GFP_KERNEL, cpu_to_node(i));
+        if (!cfs_rq)
+            goto err;
+
+        se = kzalloc_node(sizeof(struct sched_entity),
+                  GFP_KERNEL, cpu_to_node(i));
+        if (!se)
+            goto err_free_rq;
+
+        init_cfs_rq(cfs_rq);
+        init_tg_cfs_entry(tg, cfs_rq, se, i, parent->se[i]);
+        init_entity_runnable_average(se);
+    }
+
+    return 1;
+
+err_free_rq:
+    kfree(cfs_rq);
+err:
+    return 0;
+}
+//10280
+void online_fair_sched_group(struct task_group *tg)
+{
+    struct sched_entity *se;
+    struct rq_flags rf;
+    struct rq *rq;
+    int i;
+
+    pr_fn_start();
+
+    for_each_possible_cpu(i) {
+        rq = cpu_rq(i);
+        se = tg->se[i];
+        rq_lock_irq(rq, &rf);
+        update_rq_clock(rq);
+        attach_entity_cfs_rq(se);
+        //sync_throttle(tg, i);
+        rq_unlock_irq(rq, &rf);
+    }
+
+    pr_fn_end();
+}
+
+void unregister_fair_sched_group(struct task_group *tg)
+{
+    unsigned long flags;
+    struct rq *rq;
+    int cpu;
+
+    for_each_possible_cpu(cpu) {
+        if (tg->se[cpu])
+            remove_entity_load_avg(tg->se[cpu]);
+
+        /*
+         * Only empty task groups can be destroyed; so we can speculatively
+         * check on_list without danger of it being re-added.
+         */
+        if (!tg->cfs_rq[cpu]->on_list)
+            continue;
+
+        rq = cpu_rq(cpu);
+
+        raw_spin_lock_irqsave(&rq->lock, flags);
+        list_del_leaf_cfs_rq(tg->cfs_rq[cpu]);
+        raw_spin_unlock_irqrestore(&rq->lock, flags);
+    }
+}
+
 void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
             struct sched_entity *se, int cpu,
             struct sched_entity *parent)
@@ -4036,9 +4156,12 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
 
     se->my_q = cfs_rq;
     /* guarantee group entities always have weight */
-    update_load_set(&se->load, NICE_0_LOAD);	//1024
+    update_load_set(&se->load, NICE_0_LOAD);
     se->parent = parent;
 }
+//10354 lines
+
+
 
 
 

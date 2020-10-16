@@ -2,6 +2,8 @@
 #define __TEST_RADIX_TREE_H
 
 #include <stdio.h>
+#include <urcu.h>
+
 #include <linux/kernel.h>
 #include <linux/radix-tree.h>
 
@@ -21,8 +23,8 @@ static inline void trace_call_rcu(struct rcu_head *head,
 	if(test_verbose >= verbosity_level) \
 		printf(fmt, ##__VA_ARGS__)
 
-#undef call_rcu
-#define call_rcu(x, y) trace_call_rcu(x, y)
-#define call_rcu_memb	call_rcu
+#undef __call_rcu
+#define __call_rcu(x, y) trace_call_rcu(x, y)
+#define call_rcu_memb	__call_rcu
 
 #endif

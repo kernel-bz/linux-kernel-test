@@ -76,6 +76,18 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 //    ((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
 
 
+/* Is there a portable way to do this? */
+#if defined(__x86_64__) || defined(__i386__)
+#define cpu_relax() asm ("rep; nop" ::: "memory")
+#elif defined(__s390x__)
+#define cpu_relax() barrier()
+#else
+#define cpu_relax() assert(0)
+#endif
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
