@@ -3,6 +3,9 @@
 
 #include <linux/bitmap.h>
 #include <linux/numa.h>
+#include <asm/thread_info.h>
+//#include <linux/sched/task_stack.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +49,7 @@ struct cgroup_subsys_state {
 static inline int signal_pending_state(long state, struct task_struct *p) { }
 
 //include/linux/kconfig.h
-//#define IS_ENABLED(x) (x)
+#define IS_ENABLED(x) (x)
 
 //include/linux/kmemleak.h
 static inline void kmemleak_update_trace(const void *ptr) { }
@@ -67,6 +70,10 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 
 //tools/testing/radix-tree/idr-test.c
 #define dump_stack()    assert(0)
+
+//arch/arm/include/asm/processor.h
+//#define task_pt_regs(p) \
+//    ((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
 
 
 #ifdef __cplusplus

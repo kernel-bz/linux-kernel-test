@@ -5,6 +5,8 @@
  * Based on the work by Paul Menage (menage@google.com) and Balbir Singh
  * (balbir@in.ibm.com).
  */
+
+#include "test/define-usr.h"
 #include "sched.h"
 
 #ifdef CONFIG_CGROUPS
@@ -238,10 +240,10 @@ static int cpuacct_all_seq_show(struct seq_file *m, void *V)
 	int index;
 	int cpu;
 
-	seq_puts(m, "cpu");
+    //seq_puts(m, "cpu");
 	for (index = 0; index < CPUACCT_STAT_NSTATS; index++)
 		seq_printf(m, " %s", cpuacct_stat_desc[index]);
-	seq_puts(m, "\n");
+    //seq_puts(m, "\n");
 
 	for_each_possible_cpu(cpu) {
 		struct cpuacct_usage *cpuusage = per_cpu_ptr(ca->cpuusage, cpu);
@@ -263,7 +265,7 @@ static int cpuacct_all_seq_show(struct seq_file *m, void *V)
 			raw_spin_unlock_irq(&cpu_rq(cpu)->lock);
 #endif
 		}
-		seq_puts(m, "\n");
+        //seq_puts(m, "\n");
 	}
 	return 0;
 }
@@ -341,7 +343,8 @@ void cpuacct_charge(struct task_struct *tsk, u64 cputime)
 {
 	struct cpuacct *ca;
 	int index = CPUACCT_STAT_SYSTEM;
-	struct pt_regs *regs = task_pt_regs(tsk);
+    //struct pt_regs *regs = task_pt_regs(tsk);
+    struct pt_regs *regs;
 
 	if (regs && user_mode(regs))
 		index = CPUACCT_STAT_USER;

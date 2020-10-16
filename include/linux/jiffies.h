@@ -6,7 +6,8 @@
 #include <linux/math64.h>
 #include <linux/kernel.h>
 #include <linux/types-user.h>
-#include <asm/param.h>			/* for HZ */
+//#include <asm/param.h>			/* for HZ */
+#include <asm-generic/param.h>
 #include <generated/timeconst.h>
 
 //#include <linux/time.h>

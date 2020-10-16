@@ -4,7 +4,7 @@
 
 #include <linux/compiler.h>
 //#include <asm/percpu.h>
-#include <linux/percpu-defs.h>
+#include <linux/percpu.h>
 
 #ifndef __ASSEMBLY__
 struct task_struct;

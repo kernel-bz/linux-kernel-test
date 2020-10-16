@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifndef _LINUX_SCHED_TASK_STACK_H
-#define _LINUX_SCHED_TASK_STACK_H
+#ifndef _LINUX_SCHED_TASK_STACK_H_
+#define _LINUX_SCHED_TASK_STACK_H_
 
+#include "test/config.h"
 /*
  * task->stack (kernel stack) handling interfaces:
  */
@@ -18,14 +19,14 @@
  */
 static inline void *task_stack_page(const struct task_struct *task)
 {
-	return task->stack;
+    return task->stack;
 }
 
 #define setup_thread_stack(new,old)	do { } while(0)
 
 static inline unsigned long *end_of_stack(const struct task_struct *task)
 {
-	return task->stack;
+    return task->stack;
 }
 
 #elif !defined(__HAVE_THREAD_FUNCTIONS)
@@ -61,8 +62,8 @@ static inline unsigned long *end_of_stack(struct task_struct *p)
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 static inline void *try_get_task_stack(struct task_struct *tsk)
 {
-	return refcount_inc_not_zero(&tsk->stack_refcount) ?
-		task_stack_page(tsk) : NULL;
+    //return refcount_inc_not_zero(&tsk->stack_refcount) ?
+        //task_stack_page(tsk) : NULL;
 }
 
 extern void put_task_stack(struct task_struct *tsk);

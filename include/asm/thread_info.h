@@ -16,7 +16,9 @@
 
 /* thread information allocation */
 #define THREAD_SIZE_ORDER	(1)
-#define THREAD_SIZE		(PAGE_SIZE << THREAD_SIZE_ORDER)
+#define THREAD_SIZE			(PAGE_SIZE << THREAD_SIZE_ORDER)
+#define THREAD_START_SP		(THREAD_SIZE - 8)
+
 
 /*
  * TOP_OF_KERNEL_STACK_PADDING is a number of unused bytes that we

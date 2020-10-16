@@ -1483,6 +1483,7 @@ void __init sched_init(void)
 #ifdef CONFIG_CGROUP_SCHED
 
 struct cgroup_subsys cpu_cgrp_subsys = {
+#if 0
     .css_alloc	= cpu_cgroup_css_alloc,
     .css_online	= cpu_cgroup_css_online,
     .css_released	= cpu_cgroup_css_released,
@@ -1493,6 +1494,7 @@ struct cgroup_subsys cpu_cgrp_subsys = {
     .attach		= cpu_cgroup_attach,
     .legacy_cftypes	= cpu_legacy_files,
     .dfl_cftypes	= cpu_files,
+#endif //0
     .early_init	= true,
     .threaded	= true,
 };

@@ -769,9 +769,10 @@ static inline void cpuacct_account_field(struct task_struct *tsk, int index,
 					 u64 val) {}
 #endif
 
-void __cgroup_account_cputime(struct cgroup *cgrp, u64 delta_exec);
-void __cgroup_account_cputime_field(struct cgroup *cgrp,
-				    enum cpu_usage_stat index, u64 delta_exec);
+//kernel/cgroup/rstat.c
+static inline void __cgroup_account_cputime(struct cgroup *cgrp, u64 delta_exec) { }
+static inline void __cgroup_account_cputime_field(struct cgroup *cgrp,
+                                    enum cpu_usage_stat index, u64 delta_exec) { }
 
 static inline void cgroup_account_cputime(struct task_struct *task,
 					  u64 delta_exec)

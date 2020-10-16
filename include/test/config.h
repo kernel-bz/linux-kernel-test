@@ -6,6 +6,13 @@ extern "C" {
 #endif
 
 #define CONFIG_64BIT
+#define CONFIG_64BIT_TIME	1
+#define CONFIG_HZ			100
+
+//include/linux/compat.h
+#ifndef COMPAT_USE_64BIT_TIME
+#define COMPAT_USE_64BIT_TIME 0
+#endif
 
 #define CONFIG_NR_CPUS		4
 #define CONFIG_SMP
@@ -14,6 +21,8 @@ extern "C" {
 
 //Schedular Configuraion ----------------------------------
 #define CONFIG_CGROUPS
+#define CONFIG_CGROUP_CPUACCT
+
 #define CONFIG_CGROUP_SCHED
 #define CONFIG_FAIR_GROUP_SCHED
 #define CONFIG_CFS_BANDWIDTH

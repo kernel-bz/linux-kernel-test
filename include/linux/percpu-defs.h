@@ -18,6 +18,7 @@
 #define _LINUX_PERCPU_DEFS_H
 
 #include "test/config.h"
+#include <asm-generic/percpu.h>
 
 #ifdef CONFIG_SMP
 

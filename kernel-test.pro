@@ -68,7 +68,8 @@ SOURCES += \
     test/sched/sched-test.c \
     lib/lockdep/common.c \
     test/basic/ptr-test.c \
-    test/basic/types-test.c
+    test/basic/types-test.c \
+    kernel/time/time.c
 
 HEADERS += \
     include/test/test.h \
@@ -231,7 +232,6 @@ HEADERS += \
     include/linux/sched/sysctl.h \
     include/linux/math64.h \
     include/asm-generic/div64.h \
-    include/linux/cgroup.h \
     include/linux/kernel_stat.h \
     include/linux/sched/autogroup.h \
     include/linux/radix-tree.h \
@@ -280,8 +280,6 @@ HEADERS += \
     include/asm-generic/current.h \
     include/asm/thread_info.h \
     include/asm/current.h \
-    include/asm-generic/percpu.h \
-    include/linux/percpu-defs.h \
     include/linux/seqlock.h \
     include/linux/types-user.h \
     include/linux/ktime.h \
@@ -294,7 +292,6 @@ HEADERS += \
     include/linux/errno.h \
     include/uapi/linux/errno.h \
     include/linux/completion.h \
-    include/linux/cgroup-defs.h \
     include/linux/kernel_stat.h \
     include/linux/cpuhotplug.h \
     include/linux/swait.h \
@@ -337,7 +334,6 @@ HEADERS += \
     include/uapi/asm-generic/setup.h \
     include/linux/cpu.h \
     include/linux/mutex.h \
-    include/linux/percpu-rwsem.h \
     include/linux/memblock.h \
     include/linux/profile.h \
     include/test/basic.h \
@@ -345,10 +341,19 @@ HEADERS += \
     test/basic/type02.h \
     test/basic/type03.h \
     test/basic/type-limits.h \
-    include/linux/cgroup_subsys.h \
     include/linux/cgroup-defs.h \
+    include/linux/cgroup.h \
+    include/linux/cgroup_subsys.h \
     include/linux/kconfig.h \
-    include/linux/percpu.h
+    include/asm-generic/percpu.h \
+    include/linux/percpu-defs.h \
+    include/linux/percpu.h \
+    include/asm-generic/param.h \
+    include/uapi/asm-generic/param.h \
+    include/uapi/linux/time_types.h \
+    include/linux/time32.h \
+    include/linux/uaccess.h
+    include/linux/percpu-rwsem.h \
 
 DISTFILES += \
     lib/bpf/libbpf.a \

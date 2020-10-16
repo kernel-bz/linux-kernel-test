@@ -103,6 +103,17 @@ typedef __u64 __bitwise __be64;
 //typedef unsigned long        size_t;
 //typedef   signed long       ssize_t;
 
+#ifndef _TIME_T
+#define _TIME_T
+typedef __kernel_time_t		time_t;
+#endif
+
+#ifndef _CLOCK_T
+#define _CLOCK_T
+typedef __kernel_clock_t	clock_t;
+#endif
+
+
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
 typedef u64 dma_addr_t;
 #else
