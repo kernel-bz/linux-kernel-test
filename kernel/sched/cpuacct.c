@@ -346,8 +346,8 @@ void cpuacct_charge(struct task_struct *tsk, u64 cputime)
     //struct pt_regs *regs = task_pt_regs(tsk);
     struct pt_regs *regs;
 
-	if (regs && user_mode(regs))
-		index = CPUACCT_STAT_USER;
+    //if (regs && user_mode(regs))
+    //	index = CPUACCT_STAT_USER;
 
 	rcu_read_lock();
 

@@ -352,7 +352,8 @@ HEADERS += \
     include/uapi/asm-generic/param.h \
     include/uapi/linux/time_types.h \
     include/linux/time32.h \
-    include/linux/uaccess.h
+    include/linux/uaccess.h \
+    include/uapi/asm-generic/posix_types.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

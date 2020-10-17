@@ -2,11 +2,13 @@
 #ifndef _UAPI_LINUX_TIME_TYPES_H
 #define _UAPI_LINUX_TIME_TYPES_H
 
+#include <uapi/asm-generic/posix_types.h>
 #include <linux/types.h>
 
 struct __kernel_timespec_ {
-	__kernel_time64_t       tv_sec;                 /* seconds */
-	long long               tv_nsec;                /* nanoseconds */
+    //__kernel_time64_t       tv_sec;                 /* seconds */
+    long long		        tv_sec;                 /* seconds */
+    long long               tv_nsec;                /* nanoseconds */
 };
 
 struct __kernel_itimerspec {

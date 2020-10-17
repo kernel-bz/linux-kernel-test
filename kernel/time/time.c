@@ -512,10 +512,10 @@ struct timeval ns_to_timeval(const s64 nsec)
 }
 EXPORT_SYMBOL(ns_to_timeval);
 
-struct __kernel_old_timeval ns_to_kernel_old_timeval(const s64 nsec)
+struct __kernel_old_timeval_ ns_to_kernel_old_timeval(const s64 nsec)
 {
 	struct timespec64 ts = ns_to_timespec64(nsec);
-	struct __kernel_old_timeval tv;
+    struct __kernel_old_timeval_ tv;
 
 	tv.tv_sec = ts.tv_sec;
 	tv.tv_usec = (suseconds_t)ts.tv_nsec / 1000;
@@ -887,9 +887,9 @@ struct timespec64 timespec64_add_safe(const struct timespec64 lhs,
 }
 
 int get_timespec64(struct timespec64 *ts,
-		   const struct __kernel_timespec __user *uts)
+           const struct __kernel_timespec_ __user *uts)
 {
-	struct __kernel_timespec kts;
+    struct __kernel_timespec_ kts;
 	int ret;
 
 	ret = copy_from_user(&kts, uts, sizeof(kts));
@@ -909,9 +909,9 @@ int get_timespec64(struct timespec64 *ts,
 EXPORT_SYMBOL_GPL(get_timespec64);
 
 int put_timespec64(const struct timespec64 *ts,
-		   struct __kernel_timespec __user *uts)
+           struct __kernel_timespec_ __user *uts)
 {
-	struct __kernel_timespec kts = {
+    struct __kernel_timespec_ kts = {
 		.tv_sec = ts->tv_sec,
 		.tv_nsec = ts->tv_nsec
 	};
