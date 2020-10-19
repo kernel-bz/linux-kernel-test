@@ -3868,6 +3868,7 @@ static void task_fork_fair(struct task_struct *p)
     pr_info_view("%30s : %p\n", cfs_rq);
 
     curr = cfs_rq->curr;
+    pr_info_view("%30s : %p\n", cfs_rq->curr);
     if (curr) {
         update_curr(cfs_rq);
         se->vruntime = curr->vruntime;

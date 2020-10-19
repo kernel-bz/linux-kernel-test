@@ -51,7 +51,7 @@ static void _activate_task_test(void)
     pr_info_view("%30s : %d\n", sizeof(struct task_struct));
     pr_info_view("%30s : %d\n", sizeof(*p));
     pr_info_view("%30s : %d\n", sizeof(init_task));
-    p = (struct task_struct *)malloc(sizeof(init_task));
+    p = (struct task_struct *)malloc(sizeof(*p));
 
     //rq = task_rq(p);
     rq = this_rq();
