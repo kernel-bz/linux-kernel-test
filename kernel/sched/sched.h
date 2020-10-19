@@ -1562,15 +1562,19 @@ static inline void set_task_rq(struct task_struct *p, unsigned int cpu)
 #endif
 
     pr_info_view("%30s: %p\n", (void*)&p->se);
+    pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq);
     pr_info_view("%30s: %p\n", (void*)tg->cfs_rq[cpu]);
     pr_info_view("%30s: %p\n", (void*)tg->se[cpu]);
 
+    pr_info_view("%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
+
 #ifdef CONFIG_FAIR_GROUP_SCHED
-	set_task_rq_fair(&p->se, p->se.cfs_rq, tg->cfs_rq[cpu]);
-	p->se.cfs_rq = tg->cfs_rq[cpu];
-	p->se.parent = tg->se[cpu];
+    set_task_rq_fair(&p->se, p->se.cfs_rq, tg->cfs_rq[cpu]);
+    p->se.cfs_rq = tg->cfs_rq[cpu];
+    p->se.parent = tg->se[cpu];
 #endif
     pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq);
+    pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq->curr);
     pr_info_view("%30s: %p\n", (void*)p->se.parent);
 
 #ifdef CONFIG_RT_GROUP_SCHED

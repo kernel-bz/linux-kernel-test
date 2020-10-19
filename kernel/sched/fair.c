@@ -533,6 +533,9 @@ static void update_min_vruntime(struct cfs_rq *cfs_rq)
     struct sched_entity *curr = cfs_rq->curr;
     struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", cfs_rq->curr);
+
     u64 vruntime = cfs_rq->min_vruntime;
 
     if (curr) {
@@ -558,6 +561,8 @@ static void update_min_vruntime(struct cfs_rq *cfs_rq)
     smp_wmb();
     cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
 #endif
+
+    pr_fn_end();
 }
 
 /*
@@ -818,8 +823,7 @@ static void update_curr(struct cfs_rq *cfs_rq)
     pr_fn_start();
     pr_info_view("%30s : %p\n", cfs_rq->curr);
 
-    if (unlikely(!curr))
-        return;
+    if (unlikely(!curr)) return;
 
     pr_info_view("%30s : %llu\n", now);
     pr_info_view("%30s : %llu\n", curr->exec_start);
@@ -2430,6 +2434,8 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 static void
 set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
+    pr_fn_start();
+
     /* 'current' is not kept within the tree. */
     if (se->on_rq) {
         /*
@@ -2444,6 +2450,7 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
     update_stats_curr_start(cfs_rq, se);
     cfs_rq->curr = se;
+    pr_info_view("%30s : %p\n", cfs_rq->curr);
 
     /*
      * Track our maximum slice length, if the CPU's load is at
@@ -2458,6 +2465,8 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     }
 
     se->prev_sum_exec_runtime = se->sum_exec_runtime;
+
+    pr_fn_end();
 }
 //4184
 static int
@@ -4048,7 +4057,10 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
     struct cfs_rq *cfs_rq;
     int i;
 
+    pr_fn_start();
+
     tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
+    pr_info_view("%30s : %p\n", tg->cfs_rq);
     if (!tg->cfs_rq)
         goto err;
     tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
@@ -4074,6 +4086,8 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
         init_tg_cfs_entry(tg, cfs_rq, se, i, parent->se[i]);
         init_entity_runnable_average(se);
     }
+
+    pr_fn_end();
 
     return 1;
 
@@ -4136,6 +4150,10 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
 {
     struct rq *rq = cpu_rq(cpu);
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", cfs_rq);
+    pr_info_view("%30s : %p\n", cfs_rq->curr);
+
     cfs_rq->tg = tg;
     cfs_rq->rq = rq;
     init_cfs_rq_runtime(cfs_rq);
@@ -4159,6 +4177,8 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     /* guarantee group entities always have weight */
     update_load_set(&se->load, NICE_0_LOAD);
     se->parent = parent;
+
+    pr_fn_end();
 }
 //10354 lines
 

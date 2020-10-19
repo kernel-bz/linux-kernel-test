@@ -1178,6 +1178,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 
     pr_info_view("%30s : %p\n", p->sched_class->task_fork);
     pr_info_view("%30s : %p\n", p->se.cfs_rq);
+    pr_info_view("%30s : %p\n", p->se.cfs_rq->curr);
 
     if (p->sched_class->task_fork)
         p->sched_class->task_fork(p);
