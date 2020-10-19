@@ -3967,6 +3967,8 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
 {
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
+    pr_fn_start();
+
 #ifdef CONFIG_FAIR_GROUP_SCHED
     /*
      * Since the real-depth could have been changed (only FAIR
@@ -3980,6 +3982,8 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
     attach_entity_load_avg(cfs_rq, se, 0);
     update_tg_load_avg(cfs_rq, false);
     propagate_entity_cfs_rq(se);
+
+    pr_fn_end();
 }
 
 
@@ -4105,12 +4109,16 @@ void online_fair_sched_group(struct task_group *tg)
     int i;
 
     pr_fn_start();
+    pr_info_view("%30s : %p\n", (void*)tg);
 
     for_each_possible_cpu(i) {
+        pr_info_view("%30s : %d\n", i);
         rq = cpu_rq(i);
         se = tg->se[i];
+        pr_info_view("%30s : %p\n", (void*)rq);
+        pr_info_view("%30s : %p\n", (void*)se);
         rq_lock_irq(rq, &rf);
-        update_rq_clock(rq);
+        //update_rq_clock(rq);
         attach_entity_cfs_rq(se);
         //sync_throttle(tg, i);
         rq_unlock_irq(rq, &rf);

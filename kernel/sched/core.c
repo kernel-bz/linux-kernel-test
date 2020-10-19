@@ -191,6 +191,8 @@ void update_rq_clock(struct rq *rq)
 {
     s64 delta;
 
+    pr_fn_start();
+
     lockdep_assert_held(&rq->lock);
 
     if (rq->clock_update_flags & RQCF_ACT_SKIP)
@@ -207,6 +209,8 @@ void update_rq_clock(struct rq *rq)
         return;
     rq->clock += delta;
     update_rq_clock_task(rq, delta);
+
+    pr_fn_end();
 }
 //220 lines
 
@@ -1589,11 +1593,13 @@ struct task_group *sched_create_group(struct task_group *parent)
     struct task_group *tg;
 
     pr_fn_start();
+    pr_info_view("%30s : %p\n", parent);
 
     tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
     if (!tg)
         return ERR_PTR(-ENOMEM);
 
+    pr_info_view("%30s : %p\n", tg);
     if (!alloc_fair_sched_group(tg, parent))
         goto err;
 

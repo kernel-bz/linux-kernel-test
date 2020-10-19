@@ -148,6 +148,7 @@ static void _sched_create_group_test(void)
     struct task_group *tg;
 
     pr_fn_start();
+    pr_info_view("%30s : %p\n", &root_task_group);
 
     tg = sched_create_group(&root_task_group);
     if (IS_ERR(tg))
