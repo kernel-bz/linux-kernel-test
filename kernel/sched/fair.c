@@ -1055,8 +1055,10 @@ account_entity_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se)
     if (entity_is_task(se)) {
         struct rq *rq = rq_of(cfs_rq);
 
+        pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+
         //account_numa_enqueue(rq, task_of(se));
-        list_add(&se->group_node, &rq->cfs_tasks);
+        list_add(&se->group_node, &rq->cfs_tasks);	//error
     }
 #endif
     cfs_rq->nr_running++;
@@ -1375,6 +1377,9 @@ static void update_cfs_group(struct sched_entity *se)
     struct cfs_rq *gcfs_rq = group_cfs_rq(se);
     long shares, runnable;
 
+    pr_fn_start();
+    pr_info_view("%30s : %p\n", (void*)gcfs_rq);
+
     if (!gcfs_rq)
         return;
 
@@ -1392,6 +1397,8 @@ static void update_cfs_group(struct sched_entity *se)
 #endif
 
     reweight_entity(cfs_rq_of(se), se, shares, runnable);
+
+    pr_fn_end();
 }
 
 #else /* CONFIG_FAIR_GROUP_SCHED */
@@ -2178,6 +2185,8 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
 {
     u64 vruntime = cfs_rq->min_vruntime;
 
+    pr_fn_start();
+
     /*
      * The 'current' period is already promised to the current tasks,
      * however the extra weight of the new task will slow them down a
@@ -2203,6 +2212,8 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
 
     /* ensure we never gain time by being placed backwards. */
     se->vruntime = max_vruntime(se->vruntime, vruntime);
+
+    pr_fn_end();
 }
 
 static void check_enqueue_throttle(struct cfs_rq *cfs_rq);
@@ -2272,6 +2283,7 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
     update_load_avg(cfs_rq, se, UPDATE_TG | DO_ATTACH);
     update_cfs_group(se);
     enqueue_runnable_load_avg(cfs_rq, se);
+
     account_entity_enqueue(cfs_rq, se);
 
     if (flags & ENQUEUE_WAKEUP)
@@ -2285,7 +2297,7 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
     se->on_rq = 1;
 
     if (cfs_rq->nr_running == 1) {
-        list_add_leaf_cfs_rq(cfs_rq);
+        list_add_leaf_cfs_rq(cfs_rq);	//error
         //check_enqueue_throttle(cfs_rq);
     }
 
@@ -3867,24 +3879,20 @@ static void task_fork_fair(struct task_struct *p)
 
     pr_fn_start();
 
-    pr_info_view("%30s : %p\n", rq);
+    pr_info_view("%30s : %p\n", (void*)rq);
     rq_lock(rq, &rf);
     //update_rq_clock(rq);	//error
 
-    pr_info_view("%30s : %p\n", current);
     //cfs_rq = task_cfs_rq(current);
     cfs_rq = task_cfs_rq(p);
-    pr_info_view("%30s : %p\n", cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq);
 
     curr = cfs_rq->curr;
-    pr_info_view("%30s : %p\n", cfs_rq->curr);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
     if (curr) {
         update_curr(cfs_rq);
         se->vruntime = curr->vruntime;
     }
-
-    pr_info_view("%30s : %llu\n", se->vruntime);
-    pr_info_view("%30s : %llu\n", curr->vruntime);
 
     place_entity(cfs_rq, se, 1);
 
@@ -4064,14 +4072,14 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
     pr_fn_start();
 
     tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
-    pr_info_view("%30s : %p\n", tg->cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)tg->cfs_rq);
     if (!tg->cfs_rq)
         goto err;
     tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
     if (!tg->se)
         goto err;
 
-    tg->shares = NICE_0_LOAD;
+    tg->shares = NICE_0_LOAD;	//32bits: 1<<10, 64bits: 1<<20
 
     init_cfs_bandwidth(tg_cfs_bandwidth(tg));
 
@@ -4159,8 +4167,11 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     struct rq *rq = cpu_rq(cpu);
 
     pr_fn_start();
-    pr_info_view("%30s : %p\n", cfs_rq);
-    pr_info_view("%30s : %p\n", cfs_rq->curr);
+    pr_info_view("%30s : %d\n", cpu);
+    pr_info_view("%30s : %p\n", (void*)tg);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)se);
+    pr_info_view("%30s : %p\n", (void*)parent);
 
     cfs_rq->tg = tg;
     cfs_rq->rq = rq;

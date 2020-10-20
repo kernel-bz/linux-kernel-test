@@ -1593,13 +1593,13 @@ struct task_group *sched_create_group(struct task_group *parent)
     struct task_group *tg;
 
     pr_fn_start();
-    pr_info_view("%30s : %p\n", parent);
+    pr_info_view("%30s : %p\n", (void*)parent);
 
     tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
     if (!tg)
         return ERR_PTR(-ENOMEM);
 
-    pr_info_view("%30s : %p\n", tg);
+    pr_info_view("%30s : %p\n", (void*)tg);
     if (!alloc_fair_sched_group(tg, parent))
         goto err;
 

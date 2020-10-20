@@ -30,6 +30,36 @@ static void _sched_init_test(void)
 }
 
 /*
+ * kernel/sys.c
+ * 	ksys_setsid(void)
+ * 		kernel/sched/autogroup.c
+ * 		sched_autogroup_create_attach(struct task_struct *p)
+ *	 		autogroup_create();
+ */
+struct task_group *parent_tg;
+static void _sched_create_group_test(void)
+{
+    struct task_group *parent;
+    struct task_group *tg;
+
+    pr_fn_start();
+
+    pr_info_view("%30s : %p\n", (void*)&root_task_group);
+    parent = (parent_tg) ? parent_tg : &root_task_group;
+    pr_info_view("%30s : %p\n", (void*)parent);
+
+    tg = sched_create_group(parent);
+    if (IS_ERR(tg)) {
+        pr_err("sched_create_group() error!\n");
+    } else {
+        sched_online_group(tg, parent);
+        parent_tg = tg;
+    }
+
+    pr_fn_end();
+}
+
+/*
 _do_fork()
   struct task_struct *p;
   p = copy_process()
@@ -60,10 +90,12 @@ static void _activate_task_test(void)
     } else {
         memcpy(p, &init_task, sizeof(init_task));
         //p = &init_task;
+        p->sched_task_group = parent_tg;
         rq->curr = p;
     }
 
     printf("\n");
+    pr_info_view("%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view("%30s : %p\n", (void*)rq);
     pr_info_view("%30s : %p\n", (void*)rq->curr);
     pr_info_view("%30s : %d\n", p->prio);
@@ -78,6 +110,7 @@ static void _activate_task_test(void)
         //kernel/sched/core.c
         activate_task(rq, p, flags);
     }
+    pr_info_view("%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view("%30s : %p\n", (void*)rq);
     pr_info_view("%30s : %p\n", (void*)rq->curr);
     pr_info_view("%30s : %d\n", p->prio);
@@ -136,36 +169,13 @@ static void _deactivate_task_test(void)
    pr_fn_end();
 }
 
-/*
- * kernel/sys.c
- * 	ksys_setsid(void)
- * 		kernel/sched/autogroup.c
- * 		sched_autogroup_create_attach(struct task_struct *p)
- *	 		autogroup_create();
- */
-static void _sched_create_group_test(void)
-{
-    struct task_group *tg;
-
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", &root_task_group);
-
-    tg = sched_create_group(&root_task_group);
-    if (IS_ERR(tg))
-        pr_err("sched_create_group() error!\n");
-    else
-        sched_online_group(tg, &root_task_group);
-
-    pr_fn_end();
-}
-
 static int _sched_test_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
 
     printf("\n");
-    printf("------------- Scheduler Source Test Menu -----------------\n");
+    printf("[#]--> Scheduler Source Test Menu\n");
     printf("0: help.\n");
     printf("1: decay load test.\n");
     printf("2: update load_avg test.\n");

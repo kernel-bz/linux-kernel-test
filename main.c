@@ -21,7 +21,7 @@ static int _main_menu(int asize)
     __fpurge(stdin);
 
     printf("\n");
-    printf("********** Linux Kernel Source Test (Main Menu) **********\n");
+    printf("[#] Linux Kernel Source Test [Main Menu]\n");
     printf("0: help.\n");
     printf("1: basic types test.\n");
     printf("2: cpu mask test.\n");
