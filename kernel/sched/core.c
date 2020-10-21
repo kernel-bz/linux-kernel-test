@@ -1517,6 +1517,8 @@ void __init sched_init(void)
         }
 
         set_load_weight(&init_task, false);
+
+        printf("\n");
         pr_info_view("%30s : %lu\n", init_task.se.load.weight);
         pr_info_view("%30s : %u\n", init_task.se.load.inv_weight);
 

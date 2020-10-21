@@ -8,10 +8,10 @@ extern "C" {
 #include <linux/sched.h>
 
 //test/cpu/cpus-mask-test.c
-void cpus_mask_test(int idx);
+void cpus_mask_test(void);
 
 //test/sched/sched-test.c
-void sched_test(int pidx);
+void sched_test(void);
 
 //test/sched/decay_load.c
 void decay_load_test(void);

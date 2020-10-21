@@ -543,7 +543,8 @@ static void update_min_vruntime(struct cfs_rq *cfs_rq)
     struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
 
     pr_fn_start();
-    pr_info_view("%30s : %p\n", cfs_rq->curr);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view("%30s : %p\n", (void*)leftmost);
 
     u64 vruntime = cfs_rq->min_vruntime;
 
@@ -621,7 +622,9 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
 static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
+    pr_fn_start();
     rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
+    pr_fn_end();
 }
 
 struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
@@ -828,10 +831,13 @@ static void update_curr(struct cfs_rq *cfs_rq)
     pr_fn_start();
 
     struct sched_entity *curr = cfs_rq->curr;
+
+    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+    if (!rq_of(cfs_rq)) return;
+
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
-
-    pr_info_view("%30s : %p\n", cfs_rq->curr);
 
     if (unlikely(!curr)) return;
 
@@ -2369,6 +2375,7 @@ static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
 static void
 dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 {
+    pr_fn_start();
     /*
      * Update run-time statistics of the 'current'.
      */
@@ -2416,6 +2423,8 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
      */
     if ((flags & (DEQUEUE_SAVE | DEQUEUE_MOVE)) != DEQUEUE_SAVE)
         update_min_vruntime(cfs_rq);
+
+    pr_fn_end();
 }
 
 /*
@@ -3150,6 +3159,8 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 
         for_each_sched_entity(se) {
                 cfs_rq = cfs_rq_of(se);
+                pr_info_view("%30s : %p\n", (void*)cfs_rq);
+                pr_info_view("%30s : %p\n", (void*)se);
                 dequeue_entity(cfs_rq, se, flags);
 
                 /*
@@ -4190,6 +4201,7 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     pr_info_view("%30s : %d\n", cpu);
     pr_info_view("%30s : %p\n", (void*)tg);
     pr_info_view("%30s : %p\n", (void*)cfs_rq);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
     pr_info_view("%30s : %p\n", (void*)se);
     pr_info_view("%30s : %p\n", (void*)parent);
 
@@ -4197,7 +4209,7 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     cfs_rq->rq = rq;
     init_cfs_rq_runtime(cfs_rq);
 
-    tg->cfs_rq[cpu] = cfs_rq;
+    tg->cfs_rq[cpu] = cfs_rq;	//rq->fcs
     tg->se[cpu] = se;
 
     /* se could be NULL for root_task_group */

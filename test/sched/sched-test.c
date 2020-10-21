@@ -229,29 +229,6 @@ static void _deactivate_task_test(void)
    pr_fn_end();
 }
 
-static int _sched_test_menu(int pidx, int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[%d]--> Scheduler Source Test Menu\n", pidx);
-    printf("0: help.\n");
-    printf("1: sched task group view.\n");
-    printf("2: decay load test.\n");
-    printf("3: update load_avg test.\n");
-    printf("4: sched_init test.\n");
-    printf("5: sched_create_group test.\n");
-    printf("6: activate_task test.\n");
-    printf("7: deactivate_task test.\n");
-    printf("8: exit.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
-}
-
 static void _sched_test_help(void)
 {
     //help messages...
@@ -266,20 +243,77 @@ static void _sched_test_help(void)
     return;
 }
 
-void sched_test(int pidx)
+static int _sched_statis_menu(int asize)
+{
+    int idx;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Scheduler --> Statistics Test Menu\n");
+    printf("0: help.\n");
+    printf("1: sched task group view.\n");
+    printf("2: decay load test.\n");
+    printf("3: update load_avg test.\n");
+    printf("4: exit.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    scanf("%d", &idx);
+    return (idx >= 0 && idx < asize) ? idx : -1;
+}
+
+static void _sched_statis_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _sched_task_group_view
         , decay_load_test, update_load_avg_test
-        , _sched_init_test
-        , _sched_create_group_test
-        , _activate_task_test, _deactivate_task_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
-    idx = _sched_test_menu(pidx, asize);
+    idx = _sched_statis_menu(asize);
+    if (idx >= 0) {
+        fn[idx]();
+        goto _retry;
+    }
+}
+
+static int _sched_test_menu(int asize)
+{
+    int idx;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Scheduler Source Test Menu\n");
+    printf("0: help.\n");
+    printf("1: sched task group view.\n");
+    printf("2: sched_init test.\n");
+    printf("3: sched_create_group test.\n");
+    printf("4: activate_task test.\n");
+    printf("5: deactivate_task test.\n");
+    printf("6: Statistics Test -->\n");
+    printf("7: exit.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    scanf("%d", &idx);
+    return (idx >= 0 && idx < asize) ? idx : -1;
+}
+
+void sched_test(void)
+{
+    void (*fn[])(void) = { _sched_test_help
+        , _sched_task_group_view
+        , _sched_init_test, _sched_create_group_test
+        , _activate_task_test, _deactivate_task_test
+        , _sched_statis_test
+    };
+    int idx;
+    int asize = sizeof (fn) / sizeof (fn[0]);
+
+_retry:
+    idx = _sched_test_menu(asize);
     if (idx >= 0) {
         fn[idx]();
         goto _retry;
