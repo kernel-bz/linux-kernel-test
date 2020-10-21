@@ -34,10 +34,11 @@ static int _main_menu(int asize)
     return (idx >= 0 && idx < asize) ? idx : -1;
 }
 
-static void _main_menu_help(void)
+static void _main_menu_help(int idx)
 {
     //help messages...
     printf("\n");
+    printf("[%d]\n", idx);
     printf("It is the Linux kernel source testing program\n");
     printf("  that can be run at the user level.\n");
     printf("Written by www.kernel.bz\n");
@@ -49,7 +50,7 @@ static void _main_menu_help(void)
 
 int main(void)
 {
-    void (*fn[])(void) = { _main_menu_help
+    void (*fn[])(int) = { _main_menu_help
             , basic_types_test, cpus_mask_test, sched_test
     };
     int idx;
@@ -58,7 +59,7 @@ int main(void)
 _retry:
     idx = _main_menu(asize);
     if(idx >= 0) {
-        fn[idx]();
+        fn[idx](idx);
         goto _retry;
     }
 

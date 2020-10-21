@@ -58,8 +58,9 @@ static void _basic_type03_test(void)
     printf("\n");
 }
 
-void basic_types_test(void)
+void basic_types_test(int idx)
 {
+    printf("[%d] Basic Types Test...\n", idx);
     _basic_type01_test();
     _basic_type02_test();
     _basic_type03_test();

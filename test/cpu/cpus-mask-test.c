@@ -37,9 +37,11 @@ static void _cpus_mask_info(void)
     printf("\n");
 }
 
-void cpus_mask_test(void)
+void cpus_mask_test(int idx)
 {
     unsigned int bits;
+
+    printf("[%d] cpus mask testing...\n", idx);
 
     pr_fn_start();
 

@@ -291,13 +291,18 @@ static inline void cfs_rq_tg_path(struct cfs_rq *cfs_rq, char *path, int len)
 
 static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
 {
+    pr_fn_start();
+
     struct rq *rq = rq_of(cfs_rq);
     int cpu = cpu_of(rq);
+
+    pr_info_view("%30s : %d\n", cfs_rq->on_list);
 
     if (cfs_rq->on_list)
         return rq->tmp_alone_branch == &rq->leaf_cfs_rq_list;
 
     cfs_rq->on_list = 1;
+    pr_info_view("%30s : %d\n", cfs_rq->on_list);
 
     /*
      * Ensure we either appear before our parent (if already
@@ -348,12 +353,16 @@ static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
      * tmp_alone_branch points to the begin of the branch
      * where we will add parent.
      */
-    list_add_rcu(&cfs_rq->leaf_cfs_rq_list, rq->tmp_alone_branch);
+    //error!
+    //list_add_rcu(&cfs_rq->leaf_cfs_rq_list, rq->tmp_alone_branch);
     /*
      * update tmp_alone_branch to points to the new begin
      * of the branch
      */
     rq->tmp_alone_branch = &cfs_rq->leaf_cfs_rq_list;
+
+    pr_fn_end();
+
     return false;
 }
 
@@ -816,11 +825,12 @@ static void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
  */
 static void update_curr(struct cfs_rq *cfs_rq)
 {
+    pr_fn_start();
+
     struct sched_entity *curr = cfs_rq->curr;
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
 
-    pr_fn_start();
     pr_info_view("%30s : %p\n", cfs_rq->curr);
 
     if (unlikely(!curr)) return;
@@ -1050,18 +1060,24 @@ update_stats_curr_start(struct cfs_rq *cfs_rq, struct sched_entity *se)
 static void
 account_entity_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
+    pr_fn_start();
+
     update_load_add(&cfs_rq->load, se->load.weight);
 #ifdef CONFIG_SMP
     if (entity_is_task(se)) {
         struct rq *rq = rq_of(cfs_rq);
 
         pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+        pr_info_view("%30s : %p\n", (void*)&se->group_node);
+        pr_info_view("%30s : %p\n", (void*)&rq->cfs_tasks);
 
         //account_numa_enqueue(rq, task_of(se));
-        list_add(&se->group_node, &rq->cfs_tasks);	//error
+        //list_add(&se->group_node, &rq->cfs_tasks);	//error
     }
 #endif
     cfs_rq->nr_running++;
+
+    pr_fn_end();
 }
 
 static void
@@ -2250,9 +2266,8 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 
     pr_fn_start();
     pr_info_view("%30s : %p\n", (void*)cfs_rq);
-    pr_info_view("%30s : %llu\n", cfs_rq->min_vruntime);
+    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
     pr_info_view("%30s : %p\n", (void*)se);
-    pr_info_view("%30s : %llu\n", se->vruntime);
 
     /*
      * If we're the current task, we must renormalise before calling
@@ -3038,6 +3053,11 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         cfs_rq = cfs_rq_of(se);
         pr_info_view("%30s : %p\n", (void*)cfs_rq);
         WARN_ON (!cfs_rq);
+        pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+        if (!rq_of(cfs_rq)) {
+            pr_err("NULL of rq_of(cfs_rq)\n");
+            break;
+        }
         enqueue_entity(cfs_rq, se, flags);
 
         /*

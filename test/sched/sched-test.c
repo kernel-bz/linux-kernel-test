@@ -18,6 +18,8 @@
 
 #include <kernel/sched/sched.h>
 
+struct task_group *parent_tg;
+
 /*
 init/main.c:585:        sched_init();
 init/main.c:1068:       sched_init_smp();
@@ -29,6 +31,62 @@ static void _sched_init_test(void)
     pr_fn_end();
 }
 
+static void _sched_task_group_view(void)
+{
+    struct task_group *tg;
+    int cpu;
+
+    printf("\n==> all of the task_group\n");
+    printf("--> root_task_group : %p\n", (void*)&root_task_group);
+    printf("--> parent_tg : %p\n", (void*)parent_tg);
+    rcu_read_lock();
+    list_for_each_entry_rcu(tg, &task_groups, list) {
+        printf("--> tg : %p\n", (void*)tg);
+        for_each_possible_cpu(cpu) {
+            struct rq *rq;
+            rq = cpu_rq(cpu);
+            pr_info_view("%20s : %d\n", cpu);
+            pr_info_view("%20s : %p\n", (void*)rq);
+
+            struct cfs_rq *cfs_rq = tg->cfs_rq[cpu_of(rq)];
+            struct sched_entity *se;
+            pr_info_view("%20s : %p\n", (void*)cfs_rq);
+            if(cfs_rq) {
+                pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
+                pr_info_view("%30s : %p\n", (void*)cfs_rq->next);
+                pr_info_view("%30s : %d\n", cfs_rq->nr_running);
+                pr_info_view("%30s : %d\n", cfs_rq->on_list);
+                if (cfs_rq->on_list > 0) {
+                    int i=0;
+                    struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
+                    while (next) {
+                        se = rb_entry(next, struct sched_entity, run_node);
+                        pr_info_view("%40s : %d\n", i++);
+                        pr_info_view("%40s : %p\n", (void*)se->parent);
+                        pr_info_view("%40s : %p\n", (void*)se->cfs_rq);
+                        pr_info_view("%40s : %p\n", (void*)se->my_q);
+                        pr_info_view("%40s : %llu\n", se->vruntime);
+                        pr_info_view("%40s : %d\n", se->on_rq);
+                        next = rb_next(&se->run_node);
+                    }
+                }
+            }
+            se = tg->se[cpu_of(rq)];
+            pr_info_view("%20s : %p\n", (void*)se);
+            if (se) {
+                pr_info_view("%30s : %d\n", se->depth);
+                pr_info_view("%30s : %p\n", (void*)se->parent);
+                pr_info_view("%30s : %p\n", (void*)se->cfs_rq);
+                pr_info_view("%30s : %p\n", (void*)se->my_q);
+                pr_info_view("%30s : %d\n", se->on_rq);
+            }
+
+        } //cpu
+        printf("\n");
+    } //tg
+    rcu_read_unlock();
+}
+
 /*
  * kernel/sys.c
  * 	ksys_setsid(void)
@@ -36,7 +94,6 @@ static void _sched_init_test(void)
  * 		sched_autogroup_create_attach(struct task_struct *p)
  *	 		autogroup_create();
  */
-struct task_group *parent_tg;
 static void _sched_create_group_test(void)
 {
     struct task_group *parent;
@@ -53,8 +110,11 @@ static void _sched_create_group_test(void)
         pr_err("sched_create_group() error!\n");
     } else {
         sched_online_group(tg, parent);
-        parent_tg = tg;
+        if (!parent_tg) parent_tg = tg;
+        //parent_tg = tg;
     }
+
+    pr_info_view("%30s : %p\n", (void*)parent_tg);
 
     pr_fn_end();
 }
@@ -169,21 +229,22 @@ static void _deactivate_task_test(void)
    pr_fn_end();
 }
 
-static int _sched_test_menu(int asize)
+static int _sched_test_menu(int pidx, int asize)
 {
     int idx;
     __fpurge(stdin);
 
     printf("\n");
-    printf("[#]--> Scheduler Source Test Menu\n");
+    printf("[%d]--> Scheduler Source Test Menu\n", pidx);
     printf("0: help.\n");
-    printf("1: decay load test.\n");
-    printf("2: update load_avg test.\n");
-    printf("3: sched_init test.\n");
-    printf("4: sched_create_group test.\n");
-    printf("5: activate_task test.\n");
-    printf("6: deactivate_task test.\n");
-    printf("7: exit.\n");
+    printf("1: sched task group view.\n");
+    printf("2: decay load test.\n");
+    printf("3: update load_avg test.\n");
+    printf("4: sched_init test.\n");
+    printf("5: sched_create_group test.\n");
+    printf("6: activate_task test.\n");
+    printf("7: deactivate_task test.\n");
+    printf("8: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -205,9 +266,10 @@ static void _sched_test_help(void)
     return;
 }
 
-void sched_test(void)
+void sched_test(int pidx)
 {
     void (*fn[])(void) = { _sched_test_help
+        , _sched_task_group_view
         , decay_load_test, update_load_avg_test
         , _sched_init_test
         , _sched_create_group_test
@@ -217,7 +279,7 @@ void sched_test(void)
     int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
-    idx = _sched_test_menu(asize);
+    idx = _sched_test_menu(pidx, asize);
     if (idx >= 0) {
         fn[idx]();
         goto _retry;
