@@ -149,7 +149,7 @@ typedef struct {
 } atomic64_t;
 
 //include/asm-generic/atomic-long.h
-typedef atomic64_t	atomic_long_t;
+//typedef atomic64_t	atomic_long_t;
 
 //#endif
 

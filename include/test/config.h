@@ -32,6 +32,8 @@ extern "C" {
 #define CONFIG_SCHEDSTATS
 #define CONFIG_SCHED_INFO
 
+#define CONFIG_NO_HZ_COMMON
+
 //xarray.h
 #define CONFIG_BASE_SMALL		0
 #define CONFIG_XARRAY_MULTI		0

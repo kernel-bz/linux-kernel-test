@@ -19,6 +19,7 @@
 //#include <asm/processor.h>
 //#include <linux/osq_lock.h>
 #include <linux/debug_locks.h>
+#include <asm-generic/atomic-long.h>
 
 struct ww_acquire_ctx;
 

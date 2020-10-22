@@ -59,7 +59,7 @@
 atomic_long_t calc_load_tasks;
 unsigned long calc_load_update;
 unsigned long avenrun[3];
-EXPORT_SYMBOL(avenrun); /* should be removed */
+//EXPORT_SYMBOL(avenrun); /* should be removed */
 
 /**
  * get_avenrun - get the load average array
@@ -334,10 +334,16 @@ static inline void calc_global_nohz(void) { }
  *
  * Called from the global timer code.
  */
+//void calc_global_load(void)	//version up(v5.9)
 void calc_global_load(unsigned long ticks)
 {
 	unsigned long sample_window;
 	long active, delta;
+
+    pr_fn_start();
+
+    pr_info_view("%30s : %lu\n", jiffies);
+    pr_info_view("%30s : %lu\n", calc_load_update + 10);
 
 	sample_window = READ_ONCE(calc_load_update);
 	if (time_before(jiffies, sample_window + 10))
@@ -346,24 +352,38 @@ void calc_global_load(unsigned long ticks)
 	/*
 	 * Fold the 'old' NO_HZ-delta to include all NO_HZ CPUs.
 	 */
-	delta = calc_load_nohz_fold();
+    delta = calc_load_nohz_fold();
 	if (delta)
 		atomic_long_add(delta, &calc_load_tasks);
 
 	active = atomic_long_read(&calc_load_tasks);
 	active = active > 0 ? active * FIXED_1 : 0;
 
+    pr_info_view("%30s : %ld\n", delta);
+    pr_info_view("%30s : %d\n", FIXED_1);
+    pr_info_view("%30s : %ld\n", active);
+
+    //a0 * e + a * (1 - e)
 	avenrun[0] = calc_load(avenrun[0], EXP_1, active);
 	avenrun[1] = calc_load(avenrun[1], EXP_5, active);
 	avenrun[2] = calc_load(avenrun[2], EXP_15, active);
 
+    pr_info_view("%30s : %lu\n", avenrun[0]);
+    pr_info_view("%30s : %lu\n", avenrun[1]);
+    pr_info_view("%30s : %lu\n", avenrun[2]);
+
 	WRITE_ONCE(calc_load_update, sample_window + LOAD_FREQ);
 
-	/*
+    pr_info_view("%30s : %d\n", LOAD_FREQ);	//5s interval
+    pr_info_view("%30s : %lu\n", calc_load_update);
+
+    /*
 	 * In case we went to NO_HZ for multiple LOAD_FREQ intervals
 	 * catch up in bulk.
 	 */
 	calc_global_nohz();
+
+    pr_fn_end();
 }
 
 /*
@@ -374,6 +394,11 @@ void calc_global_load_tick(struct rq *this_rq)
 {
 	long delta;
 
+    pr_fn_start();
+
+    pr_info_view("%30s : %lu\n", jiffies);
+    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
+
 	if (time_before(jiffies, this_rq->calc_load_update))
 		return;
 
@@ -382,4 +407,8 @@ void calc_global_load_tick(struct rq *this_rq)
 		atomic_long_add(delta, &calc_load_tasks);
 
 	this_rq->calc_load_update += LOAD_FREQ;
+
+    pr_info_view("%30s : %ld\n", delta);
+    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
+    pr_fn_end();
 }

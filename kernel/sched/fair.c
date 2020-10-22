@@ -2140,6 +2140,8 @@ static inline int task_fits_capacity(struct task_struct *p, long capacity)
 
 static inline void update_misfit_status(struct task_struct *p, struct rq *rq)
 {
+    pr_fn_start();
+
     if (!static_branch_unlikely(&sched_asym_cpucapacity))
         return;
 
@@ -2154,6 +2156,8 @@ static inline void update_misfit_status(struct task_struct *p, struct rq *rq)
     }
 
     rq->misfit_task_load = task_h_load(p);
+
+    pr_fn_end();
 }
 
 #else /* CONFIG_SMP */
@@ -2433,6 +2437,8 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 static void
 check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 {
+    pr_fn_start();
+
     unsigned long ideal_runtime, delta_exec;
     struct sched_entity *se;
     s64 delta;
@@ -2465,6 +2471,8 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 
     if (delta > ideal_runtime)
         resched_curr(rq_of(cfs_rq));
+
+    pr_fn_end();
 }
 //4151
 static void
@@ -2591,13 +2599,46 @@ static void put_prev_entity(struct cfs_rq *cfs_rq, struct sched_entity *prev)
     }
     cfs_rq->curr = NULL;
 }
-//4271 lines
+//4271
+static void
+entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
+{
+    pr_fn_start();
+    /*
+     * Update run-time statistics of the 'current'.
+     */
+    update_curr(cfs_rq);
 
+    /*
+     * Ensure that runnable average is periodically updated.
+     */
+    update_load_avg(cfs_rq, curr, UPDATE_TG);
+    update_cfs_group(curr);
 
+#ifdef CONFIG_SCHED_HRTICK
+    /*
+     * queued ticks are scheduled to match the slice, so don't bother
+     * validating it and just reschedule.
+     */
+    if (queued) {
+        resched_curr(rq_of(cfs_rq));
+        return;
+    }
+    /*
+     * don't let the period tick interfere with the hrtick preemption
+     */
+    if (!sched_feat(DOUBLE_TICK) &&
+            hrtimer_active(&rq_of(cfs_rq)->hrtick_timer))
+        return;
+#endif
 
+    if (cfs_rq->nr_running > 1)
+        check_preempt_tick(cfs_rq, curr);
 
-
-//4307 lines
+    pr_fn_end();
+}
+//4306
+//4307
 /**************************************************
  * CFS bandwidth control machinery
  */
@@ -3895,7 +3936,40 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 
 
 
-//9957 lines
+
+
+
+//9932 lines
+/*
+ * scheduler tick hitting a task of our scheduling class.
+ *
+ * NOTE: This function can be called remotely by the tick offload that
+ * goes along full dynticks. Therefore no local assumption can be made
+ * and everything must be accessed through the @rq and @curr passed in
+ * parameters.
+ */
+static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
+{
+    pr_fn_start();
+
+    struct cfs_rq *cfs_rq;
+    struct sched_entity *se = &curr->se;
+
+    for_each_sched_entity(se) {
+        pr_info_view("%20s : %p\n", se);
+        cfs_rq = cfs_rq_of(se);
+        entity_tick(cfs_rq, se, queued);
+    }
+#if 0
+    if (static_branch_unlikely(&sched_numa_balancing))
+        task_tick_numa(rq, curr);
+#endif //0
+    update_misfit_status(curr, rq);
+    //update_overutilized_status(task_rq(curr));
+
+    pr_fn_end();
+}
+//9957
 /*
  * called on fork with the child task as argument from the parent's context
  *  - child not yet on the tasklist
@@ -4243,7 +4317,7 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
  * All the scheduling class methods:
  */
 const struct sched_class fair_sched_class = {
-    .next		= &idle_sched_class,
+    .next			= &idle_sched_class,
     .enqueue_task	= enqueue_task_fair,
     .dequeue_task	= dequeue_task_fair,
     .yield_task		= yield_task_fair,
@@ -4253,30 +4327,30 @@ const struct sched_class fair_sched_class = {
 
     .pick_next_task	= pick_next_task_fair,
     .put_prev_task	= put_prev_task_fair,
-    .set_next_task      = set_next_task_fair,
+    .set_next_task  = set_next_task_fair,
 
 #ifdef CONFIG_SMP
-    .balance		= balance_fair,
+    .balance			= balance_fair,
     //.select_task_rq	= select_task_rq_fair,
     //.migrate_task_rq	= migrate_task_rq_fair,
 
-    //.rq_online	= rq_online_fair,
-    //.rq_offline	= rq_offline_fair,
+    //.rq_online		= rq_online_fair,
+    //.rq_offline		= rq_offline_fair,
 
-    .task_dead		= task_dead_fair,
+    .task_dead			= task_dead_fair,
     .set_cpus_allowed	= set_cpus_allowed_common,
 #endif
 
-    //.task_tick	= task_tick_fair,
-    .task_fork		= task_fork_fair,
+    .task_tick			= task_tick_fair,
+    .task_fork			= task_fork_fair,
 
-    .prio_changed	= prio_changed_fair,
+    .prio_changed		= prio_changed_fair,
     //.switched_from	= switched_from_fair,
-    //.switched_to	= switched_to_fair,
+    //.switched_to		= switched_to_fair,
 
     //.get_rr_interval	= get_rr_interval_fair,
 
-    .update_curr	= update_curr_fair,
+    .update_curr		= update_curr_fair,
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
     //.task_change_group	= task_change_group_fair,

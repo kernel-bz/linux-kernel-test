@@ -353,7 +353,8 @@ HEADERS += \
     include/uapi/linux/time_types.h \
     include/linux/time32.h \
     include/linux/uaccess.h \
-    include/uapi/asm-generic/posix_types.h
+    include/uapi/asm-generic/posix_types.h \
+    include/asm-generic/atomic-long.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

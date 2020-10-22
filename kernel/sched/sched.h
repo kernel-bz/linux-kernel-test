@@ -103,6 +103,8 @@
 #include <linux/interrupt.h>
 #include <linux/jump_label.h>
 
+#include <asm-generic/atomic-long.h>
+
 #include <asm/barrier.h>
 #include <asm/bug.h>
 

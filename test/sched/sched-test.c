@@ -9,6 +9,7 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "test/test.h"
 #include "test/debug.h"
@@ -47,6 +48,7 @@ static void _sched_task_group_view(void)
             rq = cpu_rq(cpu);
             pr_info_view("%20s : %d\n", cpu);
             pr_info_view("%20s : %p\n", (void*)rq);
+            pr_info_view("%20s : %p\n", (void*)rq->curr);
 
             struct cfs_rq *cfs_rq = tg->cfs_rq[cpu_of(rq)];
             struct sched_entity *se;
@@ -229,6 +231,49 @@ static void _deactivate_task_test(void)
    pr_fn_end();
 }
 
+//tools/testing/selftests/timers/
+/*
+ * kernel/time/tick_common.c
+ * 	tick_handle_periodic()
+ * 	  tick_periodic(cpu)
+ * 		if (timer_cpu == cpu)
+ *        do_timer(ticks) //ticks==1
+ *          jiffies += ticks;
+ * 	        calc_global_load();
+ * 	    update_process_times()
+ *        scheduler_tick()
+ */
+static void _scheduler_tick_test(void)
+{
+    u32 i;
+    //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
+
+    pr_fn_start();
+    struct rq *this_rq = this_rq();
+    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
+    pr_info_view("%30s : %lu\n", READ_ONCE(calc_load_update));
+    this_rq->calc_load_update = READ_ONCE(calc_load_update);
+    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
+    jiffies = this_rq->calc_load_update;
+
+    for (i=0; i<10; i++) {
+        pr_debug("iter = %u\n", i);
+        pr_debug("jiffies = %lu\n", jiffies);
+
+        //kernel/sched/loadavg.c
+        calc_global_load(1);	//void
+
+        //kernel/sched/core.c
+        //scheduler_tick();
+
+        //usleep(tick * 1000);
+
+        jiffies += HZ;	//1s
+    }
+
+    pr_fn_end();
+}
+
 static void _sched_test_help(void)
 {
     //help messages...
@@ -252,9 +297,10 @@ static int _sched_statis_menu(int asize)
     printf("[#]--> Scheduler --> Statistics Test Menu\n");
     printf("0: help.\n");
     printf("1: sched task group view.\n");
-    printf("2: decay load test.\n");
-    printf("3: update load_avg test.\n");
-    printf("4: exit.\n");
+    printf("2: scheduler_tick() test.\n");
+    printf("3: decay load test.\n");
+    printf("4: update load_avg test.\n");
+    printf("5: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -266,6 +312,7 @@ static void _sched_statis_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _sched_task_group_view
+        , _scheduler_tick_test
         , decay_load_test, update_load_avg_test
     };
     int idx;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+﻿// SPDX-License-Identifier: GPL-2.0-only
 /*
  *  kernel/sched/core.c
  *
@@ -1221,6 +1221,48 @@ unsigned long to_ratio(u64 period, u64 runtime)
 
     return div64_u64(runtime << BW_SHIFT, period);
 }
+
+
+
+//3584 lines
+/*
+ * This function gets called by the timer code, with HZ frequency.
+ * We call it with interrupts disabled.
+ */
+void scheduler_tick(void)
+{
+    pr_fn_start();
+
+    int cpu = smp_processor_id();
+    struct rq *rq = cpu_rq(cpu);
+    struct task_struct *curr = rq->curr;
+    struct rq_flags rf;
+
+    pr_info_view("%30s : %d\n", cpu);
+    pr_info_view("%30s : %p\n", (void*)cpu_rq(cpu));
+    pr_info_view("%30s : %p\n", (void*)rq->curr);
+
+    sched_clock_tick();
+
+    rq_lock(rq, &rf);
+
+    update_rq_clock(rq);
+    curr->sched_class->task_tick(rq, curr, 0);
+    calc_global_load_tick(rq);
+    psi_task_tick(rq);
+
+    rq_unlock(rq, &rf);
+
+    //perf_event_task_tick();
+
+#ifdef CONFIG_SMP
+    //rq->idle_balance = idle_cpu(cpu);
+    //trigger_load_balance(rq);
+#endif
+
+    pr_fn_end();
+}
+//3614 lines
 
 
 
