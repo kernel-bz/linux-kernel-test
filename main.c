@@ -12,13 +12,22 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "test/debug.h"
 #include "test/basic.h"
 #include "test/test.h"
+
+int DebugLevel;
+int DebugBase;
+//depth = level - base
+//if (depth >= 0) debug on
 
 static int _main_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
+
+    DebugLevel = 2;
+    DebugBase = 1;
 
     printf("\n");
     printf("[#] Linux Kernel Source Test (c)www.kernel.bz\n");
@@ -45,7 +54,6 @@ static void _main_menu_help(void)
     printf("\n");
     return;
 }
-
 
 int main(void)
 {

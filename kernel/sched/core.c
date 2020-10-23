@@ -1231,7 +1231,7 @@ unsigned long to_ratio(u64 period, u64 runtime)
  */
 void scheduler_tick(void)
 {
-    pr_fn_start();
+    pr_fn_start_on(1);
 
     int cpu = smp_processor_id();
     struct rq *rq = cpu_rq(cpu);
@@ -1260,7 +1260,7 @@ void scheduler_tick(void)
     //trigger_load_balance(rq);
 #endif
 
-    pr_fn_end();
+    pr_fn_end_on(1);
 }
 //3614 lines
 

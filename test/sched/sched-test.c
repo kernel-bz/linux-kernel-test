@@ -49,6 +49,7 @@ static void _sched_task_group_view(void)
             pr_info_view("%20s : %d\n", cpu);
             pr_info_view("%20s : %p\n", (void*)rq);
             pr_info_view("%20s : %p\n", (void*)rq->curr);
+            pr_info_view("%20s : %u\n", rq->nr_running);
 
             struct cfs_rq *cfs_rq = tg->cfs_rq[cpu_of(rq)];
             struct sched_entity *se;
@@ -56,7 +57,7 @@ static void _sched_task_group_view(void)
             if(cfs_rq) {
                 pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
                 pr_info_view("%30s : %p\n", (void*)cfs_rq->next);
-                pr_info_view("%30s : %d\n", cfs_rq->nr_running);
+                pr_info_view("%30s : %u\n", cfs_rq->nr_running);
                 pr_info_view("%30s : %d\n", cfs_rq->on_list);
                 if (cfs_rq->on_list > 0) {
                     int i=0;
@@ -242,29 +243,47 @@ static void _deactivate_task_test(void)
  * 	        calc_global_load();
  * 	    update_process_times()
  *        scheduler_tick()
+ *			task_tick_fair();
+ * 			calc_global_load_tick();
  */
 static void _scheduler_tick_test(void)
 {
-    u32 i;
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
+    int i, dlevel=1, dbase=1, loop_cnt=10;
+
+    __fpurge(stdin);
+    printf("Enter Debug Level Number[0, %d]: ", DebugLevel);
+    scanf("%d", &dlevel);
+    printf("Enter Debug Base Number[0, %d]: ", DebugBase);
+    scanf("%d", &dbase);
+    printf("Enter tick loop counter[1, %d]: ", loop_cnt);
+    scanf("%d", &loop_cnt);
+
+    DebugLevel = dlevel;
+    DebugBase = dbase;
 
     pr_fn_start();
     struct rq *this_rq = this_rq();
-    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
-    pr_info_view("%30s : %lu\n", READ_ONCE(calc_load_update));
+    pr_info_view_on(0, "%30s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(0, "%30s : %lu\n", READ_ONCE(calc_load_update));
     this_rq->calc_load_update = READ_ONCE(calc_load_update);
-    pr_info_view("%30s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(0, "%30s : %lu\n", this_rq->calc_load_update);
     jiffies = this_rq->calc_load_update;
+    pr_info_view_on(0, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
 
-    for (i=0; i<10; i++) {
-        pr_debug("iter = %u\n", i);
-        pr_debug("jiffies = %lu\n", jiffies);
+    for (i=0; i<loop_cnt; i++) {
+        pr_out_on(0, "\n");
+        pr_out_on(0, "iter* = %d\n", i);
+        pr_out_on(0, "jiffies = %lu\n", jiffies);
 
         //kernel/sched/loadavg.c
-        calc_global_load(1);	//void
+        calc_global_load(0);	//void
 
+        pr_out_on(1, "\n");
+        pr_out_on(1, "iter** = %d\n", i);
+        pr_out_on(1, "jiffies = %lu\n", jiffies);
         //kernel/sched/core.c
-        //scheduler_tick();
+        scheduler_tick();
 
         //usleep(tick * 1000);
 
@@ -292,6 +311,9 @@ static int _sched_statis_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
+
+    DebugLevel = 2;
+    DebugBase = 1;
 
     printf("\n");
     printf("[#]--> Scheduler --> Statistics Test Menu\n");
@@ -330,6 +352,9 @@ static int _sched_test_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
+
+    DebugLevel = 2;
+    DebugBase = 1;
 
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");

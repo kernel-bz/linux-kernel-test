@@ -3950,14 +3950,21 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
  */
 static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
 {
-    pr_fn_start();
+    pr_fn_start_on(2);
 
     struct cfs_rq *cfs_rq;
     struct sched_entity *se = &curr->se;
 
+    pr_info_view("%20s : %u\n", rq->nr_running);
+    pr_info_view("%20s : %llu\n", rq->clock);
+    pr_info_view("%20s : %llu\n", rq->clock_task);
+    pr_info_view("%20s : %llu\n", rq->clock_pelt);
+
     for_each_sched_entity(se) {
-        pr_info_view("%20s : %p\n", se);
         cfs_rq = cfs_rq_of(se);
+        pr_info_view("    task_tick_fair() : %s : %p\n", se);
+        pr_info_view("%30s : %u\n", cfs_rq->nr_running);
+        pr_info_view("%30s : %u\n", cfs_rq->h_nr_running);
         entity_tick(cfs_rq, se, queued);
     }
 #if 0
@@ -3967,7 +3974,7 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
     update_misfit_status(curr, rq);
     //update_overutilized_status(task_rq(curr));
 
-    pr_fn_end();
+    pr_fn_end_on(2);
 }
 //9957
 /*
