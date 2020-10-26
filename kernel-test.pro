@@ -10,7 +10,7 @@ DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
 
 LIBS += -Lpthread
 
-QMAKE_CFLAGS += -Wno-unused-parameter
+QMAKE_CFLAGS += -Wno-unused-parameter -finstrument-functions
 
 INCLUDEPATH += include/ lib/ lib/traceevent/
 
@@ -69,7 +69,8 @@ SOURCES += \
     lib/lockdep/common.c \
     test/basic/ptr-test.c \
     test/basic/types-test.c \
-    kernel/time/time.c
+    kernel/time/time.c \
+    lib/stack_depth.c
 
 HEADERS += \
     include/test/test.h \
@@ -354,7 +355,9 @@ HEADERS += \
     include/linux/time32.h \
     include/linux/uaccess.h \
     include/uapi/asm-generic/posix_types.h \
-    include/asm-generic/atomic-long.h
+    include/asm-generic/atomic-long.h \
+    include/linux/limits.h \
+    include/uapi/linux/limits.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

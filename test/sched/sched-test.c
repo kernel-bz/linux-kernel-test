@@ -279,9 +279,6 @@ static void _scheduler_tick_test(void)
         //kernel/sched/loadavg.c
         calc_global_load(0);	//void
 
-        pr_out_on(1, "\n");
-        pr_out_on(1, "iter** = %d\n", i);
-        pr_out_on(1, "jiffies = %lu\n", jiffies);
         //kernel/sched/core.c
         scheduler_tick();
 
@@ -320,8 +317,8 @@ static int _sched_statis_menu(int asize)
     printf("0: help.\n");
     printf("1: sched task group view.\n");
     printf("2: scheduler_tick() test.\n");
-    printf("3: decay load test.\n");
-    printf("4: update load_avg test.\n");
+    printf("3: decay_load() test.\n");
+    printf("4: update_load_avg() test.\n");
     printf("5: exit.\n");
     printf("\n");
 

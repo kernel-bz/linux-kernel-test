@@ -828,7 +828,7 @@ static void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
  */
 static void update_curr(struct cfs_rq *cfs_rq)
 {
-    pr_fn_start();
+    pr_fn_start_on(4);
 
     struct sched_entity *curr = cfs_rq->curr;
 
@@ -839,12 +839,16 @@ static void update_curr(struct cfs_rq *cfs_rq)
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
 
+    pr_info_view_on(4, "%30s : %llu\n", now);
+    pr_info_view_on(4, "%30s : %p\n", (void*)cfs_rq->curr);
+
     if (unlikely(!curr)) return;
 
-    pr_info_view("%30s : %llu\n", now);
-    pr_info_view("%30s : %llu\n", curr->exec_start);
-
     delta_exec = now - curr->exec_start;
+
+    pr_info_view_on(4, "%30s : %llu\n", curr->exec_start);
+    pr_info_view_on(4, "%30s : %lld\n", delta_exec);
+
     if (unlikely((s64)delta_exec <= 0))
         return;
 
@@ -869,7 +873,7 @@ static void update_curr(struct cfs_rq *cfs_rq)
 
     account_cfs_rq_runtime(cfs_rq, delta_exec);
 
-    pr_fn_end();
+    pr_fn_end_on(4);
 }
 
 static void update_curr_fair(struct rq *rq)
@@ -1399,7 +1403,7 @@ static void update_cfs_group(struct sched_entity *se)
     struct cfs_rq *gcfs_rq = group_cfs_rq(se);
     long shares, runnable;
 
-    pr_fn_start();
+    pr_fn_start_on(4);
     pr_info_view("%30s : %p\n", (void*)gcfs_rq);
 
     if (!gcfs_rq)
@@ -1420,7 +1424,7 @@ static void update_cfs_group(struct sched_entity *se)
 
     reweight_entity(cfs_rq_of(se), se, shares, runnable);
 
-    pr_fn_end();
+    pr_fn_end_on(4);
 }
 
 #else /* CONFIG_FAIR_GROUP_SCHED */
@@ -1921,6 +1925,8 @@ static void detach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 /* Update task and its cfs_rq load average */
 static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 {
+    pr_fn_start_on(4);
+
     u64 now = cfs_rq_clock_pelt(cfs_rq);
     int decayed;
 
@@ -1948,6 +1954,8 @@ static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 
     } else if (decayed && (flags & UPDATE_TG))
         update_tg_load_avg(cfs_rq, 0);
+
+    pr_fn_end_on(4);
 }
 
 #ifndef CONFIG_64BIT
@@ -2437,7 +2445,7 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 static void
 check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 {
-    pr_fn_start();
+    pr_fn_start_on(4);
 
     unsigned long ideal_runtime, delta_exec;
     struct sched_entity *se;
@@ -2472,7 +2480,7 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
     if (delta > ideal_runtime)
         resched_curr(rq_of(cfs_rq));
 
-    pr_fn_end();
+    pr_fn_end_on(4);
 }
 //4151
 static void
@@ -2603,7 +2611,7 @@ static void put_prev_entity(struct cfs_rq *cfs_rq, struct sched_entity *prev)
 static void
 entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
 {
-    pr_fn_start();
+    pr_fn_start_on(3);
     /*
      * Update run-time statistics of the 'current'.
      */
@@ -2635,7 +2643,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
     if (cfs_rq->nr_running > 1)
         check_preempt_tick(cfs_rq, curr);
 
-    pr_fn_end();
+    pr_fn_end_on(3);
 }
 //4306
 //4307
@@ -3955,16 +3963,16 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
     struct cfs_rq *cfs_rq;
     struct sched_entity *se = &curr->se;
 
-    pr_info_view("%20s : %u\n", rq->nr_running);
-    pr_info_view("%20s : %llu\n", rq->clock);
-    pr_info_view("%20s : %llu\n", rq->clock_task);
-    pr_info_view("%20s : %llu\n", rq->clock_pelt);
+    pr_info_view_on(2, "%20s : %u\n", rq->nr_running);
+    pr_info_view_on(2, "%20s : %llu\n", rq->clock);
+    pr_info_view_on(2, "%20s : %llu\n", rq->clock_task);
+    pr_info_view_on(2, "%20s : %llu\n", rq->clock_pelt);
 
     for_each_sched_entity(se) {
         cfs_rq = cfs_rq_of(se);
-        pr_info_view("    task_tick_fair() : %s : %p\n", se);
-        pr_info_view("%30s : %u\n", cfs_rq->nr_running);
-        pr_info_view("%30s : %u\n", cfs_rq->h_nr_running);
+        pr_info_view_on(2, "%30s : %p\n", se);
+        pr_info_view_on(2, "%30s : %u\n", cfs_rq->nr_running);
+        pr_info_view_on(2, "%30s : %u\n", cfs_rq->h_nr_running);
         entity_tick(cfs_rq, se, queued);
     }
 #if 0

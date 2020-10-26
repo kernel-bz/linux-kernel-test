@@ -397,9 +397,9 @@ void calc_global_load_tick(struct rq *this_rq)
 
     pr_fn_start_on(2);
 
-    pr_info_view("%40s : %lu\n", jiffies);
-    pr_info_view("%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view("%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+    pr_info_view_on(2, "%40s : %lu\n", jiffies);
+    pr_info_view_on(2, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(2, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
 
 	if (time_before(jiffies, this_rq->calc_load_update))
 		return;
@@ -410,8 +410,8 @@ void calc_global_load_tick(struct rq *this_rq)
 
 	this_rq->calc_load_update += LOAD_FREQ;
 
-    pr_info_view("%40s : %ld\n", delta);
-    pr_info_view("%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view("%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+    pr_info_view_on(2, "%40s : %ld\n", delta);
+    pr_info_view_on(2, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(2, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
     pr_fn_end_on(2);
 }

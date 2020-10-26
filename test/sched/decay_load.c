@@ -58,7 +58,7 @@ void decay_load_test(void)
     for (n=1; n<360; n++) {
         val = decay_load(1024, n);
         sum += val;
-        printf("n=%llu, val=%llu, sum=%llu\n", n, val, sum);
+        printf("n=%llu : val=%llu, sum=%llu\n", n, val, sum);
     }
 
     pr_fn_end();

@@ -21,24 +21,29 @@ static struct sched_avg avg = {
 
 int Seq=0;
 
-static void _pr_this_info(int i)
+static void _pr_sched_avg_info(int i)
 {
-    printf("i=%d\n", i);
-    printf("avg.last_update_time=%llu\n", avg.last_update_time);
-    printf("avg.load_sum=%llu\n", avg.load_sum);
-    printf("avg.runnable_load_sum=%llu\n", avg.runnable_load_sum);
-    printf("avg.util_sum=%u\n", avg.util_sum);
-    printf("avg.period_contrib=%u\n", avg.period_contrib);
-    printf("avg.load_avg=%lu\n", avg.load_avg);
-    printf("avg.runnable_load_avg=%lu\n", avg.runnable_load_avg);
-    printf("avg.util_avg=%lu\n", avg.util_avg);
-    //printf("avg.util_est=%llu\n", avg.util_est);
-    printf("\n");
+    pr_info_view_on(0, "%30s : %d\n", i);
+    pr_info_view_on(0, "%30s : %llu\n", avg.last_update_time);
+    pr_info_view_on(0, "%30s : %llu\n", avg.load_sum);
+    pr_info_view_on(0, "%30s : %llu\n", avg.runnable_load_sum);
+    pr_info_view_on(0, "%30s : %u\n", avg.util_sum);
+    pr_info_view_on(0, "%30s : %u\n", avg.period_contrib);
+    pr_info_view_on(0, "%30s : %lu\n", avg.load_avg);
+    pr_info_view_on(0, "%30s : %lu\n", avg.runnable_load_avg);
+    pr_info_view_on(0, "%30s : %lu\n", avg.util_avg);
+    //pr_info_view_on(0, "%30s : %llu\n", avg.util_est);
+    pr_out_on(0, "\n");
 }
 
 static u64 decay_load(u64 val, u64 n)
 {
         unsigned int local_n;
+
+        pr_fn_start_on(3);
+
+        pr_info_view_on(3, "%30s : %llu\n", n);
+        pr_info_view_on(3, "%30s : %llu\n", val);
 
         if (n > LOAD_AVG_PERIOD * 63)
                 return 0;
@@ -59,12 +64,19 @@ static u64 decay_load(u64 val, u64 n)
         }
 
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
+
+        pr_info_view_on(3, "%30s : %u\n", local_n);
+        pr_info_view_on(3, "%30s : %llu\n", val);
+
+        pr_fn_end_on(3);
         return val;
 }
 
 static u32 __accumulate_pelt_segments(u64 periods, u32 d1, u32 d3)
 {
         u32 c1, c2, c3 = d3; /* y^0 == 1 */
+
+        pr_fn_start_on(3);
 
         /*
          * c1 = d1 y^p
@@ -82,7 +94,12 @@ static u32 __accumulate_pelt_segments(u64 periods, u32 d1, u32 d3)
          */
         c2 = LOAD_AVG_MAX - decay_load(LOAD_AVG_MAX, periods) - 1024;
 
-        printf("d1=%u, d3=%u, c1=%u, c2=%u, c3=%u\n", d1, d3, c1, c2, c3);
+        pr_info_view_on(3, "%30s : %u\n", c1);
+        pr_info_view_on(3, "%30s : %u\n", c2);
+        pr_info_view_on(3, "%30s : %u\n", c3);
+        pr_info_view_on(3, "%30s : %u\n", c1+c2+c3);
+
+        pr_fn_end_on(3);
 
         return c1 + c2 + c3;
 }
@@ -112,16 +129,17 @@ static __always_inline u32
 accumulate_sum(u64 delta, struct sched_avg *sa,
                unsigned long load, unsigned long runnable, int running)
 {
+    pr_fn_start_on(2);
+
     u32 contrib = (u32)delta; /* p == 0 -> delta < 1024 */
     u64 periods;
 
     delta += sa->period_contrib;
     periods = delta / 1024; /* A period is 1024us (~1ms) */
 
-    printf("accumulate_sum():\n");
-    printf("sa->period_contrib=%u\n", sa->period_contrib);
-    printf("delta+=%llu\n", delta);
-    printf("periods=%llu\n", periods);
+    pr_info_view_on(2, "%30s : %u\n", sa->period_contrib);
+    pr_info_view_on(2, "%30s : %llu\n", delta);
+    pr_info_view_on(2, "%30s : %llu\n", periods);
 
      /*
      * Step 1: decay old *_sum if we crossed period boundaries.
@@ -132,8 +150,6 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
             decay_load(sa->runnable_load_sum, periods);
         sa->util_sum = decay_load((u64)(sa->util_sum), periods);
 
-        printf("accumulate_sum(): Step1:\n");
-        _pr_this_info(Seq);
         /*
          * Step 2
          */
@@ -141,7 +157,7 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
         contrib = __accumulate_pelt_segments(periods,
                 1024 - sa->period_contrib, delta);
 
-        printf("contrib=%u\n", contrib);
+        pr_info_view_on(2, "%30s : %u\n", contrib);
     }
     sa->period_contrib = delta;
 
@@ -152,6 +168,8 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
     if (running)
         sa->util_sum += contrib << SCHED_CAPACITY_SHIFT;
 
+    pr_fn_end_on(2);
+
     return periods;
 }
 
@@ -161,10 +179,12 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
 {
     u64 delta;
 
+    pr_fn_start_on(1);
+
     delta = now - sa->last_update_time;
-    printf("now=%llu\n", now);
-    printf("sa->last_update_time=%llu\n", sa->last_update_time);
-    printf("delta=%llu\n", delta);
+    pr_info_view_on(1, "%30s : %llu\n", now);
+    pr_info_view_on(1, "%30s : %llu\n", sa->last_update_time);
+    pr_info_view_on(1, "%30s : %llu\n", delta);
 
     if ((s64)delta < 0) {
         sa->last_update_time = now;
@@ -175,13 +195,15 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
     if (!delta)
         return 0;
 
-    printf("delta=%llu\n", delta);
+    pr_info_view_on(1, "%30s : %llu\n", delta);
 
     sa->last_update_time += delta << 10;
-    printf("sa->last_update_time=%llu\n", sa->last_update_time);
+    pr_info_view_on(1, "%30s : %llu\n", sa->last_update_time);
 
     if (!load)
         runnable = running = 0;
+
+    pr_fn_end_on(1);
 
     if (!accumulate_sum(delta, sa, load, runnable, running))
         return 0;
@@ -205,29 +227,9 @@ ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runna
         sa->util_avg = sa->util_sum / divider;
 }
 
-//kernel/sched/pelt.c
 /*
-int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se)
-{
-        if (___update_load_sum(now, &se->avg, !!se->on_rq, !!se->on_rq,
-                                cfs_rq->curr == se)) {
-
-                ___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
-                cfs_se_util_change(&se->avg);
-                //trace_pelt_se_tp(se);
-                return 1;
-        }
-
-        return 0;
-}
-*/
-
-/*
- * open_softirq(SCHED_SOFTIRQ, run_rebalance_domains);
- *	 run_rebalance_domains();
- * 		update_blocked_averages(this_rq->cpu);
- *			  update_load_avg(cfs_rq_of(se), se, 0);
- * Call:
+ * Call: update_load_avg()
+ *
  * 	enqueue_entity();
  * 	dequeue_entity();
  * 	set_next_entity();
@@ -243,6 +245,10 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
  */
 //kernel/sched/fair.c
 //update_load_avg()
+//  kernel/sched/pelt.c
+//  __update_load_avg_se(now, *cfs_rq, *se)
+//    ___update_load_sum(now, *sa, load, runnable, running)
+//		___update_load_avg(*sa, load, runnable)
 void update_load_avg_test(void)
 {
     int runnable[] = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
@@ -251,20 +257,21 @@ void update_load_avg_test(void)
     //unsigned long	weight;
     //unsigned long	runnable_weight;
 
-    pr_fn_start();
+    DebugLevel = 3;
+    DebugBase = 3;
+
+    pr_fn_start_on(0);
 
     int i;
-    _pr_this_info(0);
+    _pr_sched_avg_info(0);
     for (i=0; i<10; i++) {
         Seq = i;
-        //now += (i+1) * 10000000;	//+10ms
         now += 10000000;	//+10ms
         if (___update_load_sum(now, &avg, runnable[i], runnable[i], running[i])) {
-            _pr_this_info(i);
             ___update_load_avg(&avg, 1024, 1024);
-            _pr_this_info(i);
+            _pr_sched_avg_info(i);
         }
     }
 
-    pr_fn_end();
+    pr_fn_end_on(0);
 }

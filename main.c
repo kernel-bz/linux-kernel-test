@@ -11,15 +11,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <linux/limits.h>
 
 #include "test/debug.h"
 #include "test/basic.h"
 #include "test/test.h"
 
-int DebugLevel;
-int DebugBase;
-//depth = level - base
-//if (depth >= 0) debug on
+int DebugLevel = S32_MAX;
+int DebugBase = 0;
 
 static int _main_menu(int asize)
 {
