@@ -280,6 +280,8 @@ int __update_load_avg_blocked_se(u64 now, struct sched_entity *se)
 
 int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (___update_load_sum(now, &se->avg, !!se->on_rq, !!se->on_rq,
 				cfs_rq->curr == se)) {
 
@@ -289,11 +291,15 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
 		return 1;
 	}
 
+    pr_fn_end_on(stack_depth);
+
 	return 0;
 }
 
 int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (___update_load_sum(now, &cfs_rq->avg,
 				scale_load_down(cfs_rq->load.weight),
 				scale_load_down(cfs_rq->runnable_weight),
@@ -301,9 +307,11 @@ int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
 
 		___update_load_avg(&cfs_rq->avg, 1, 1);
         //trace_pelt_cfs_tp(cfs_rq);
+        pr_fn_end_on(stack_depth);
 		return 1;
 	}
 
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 

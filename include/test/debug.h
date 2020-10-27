@@ -10,12 +10,16 @@
 extern "C" {
 #endif
 
+//main.c
 extern int DebugLevel;
 extern int DebugBase;
 //if (DebugLevel > 0) debug on
-//if (level>=DebugBase && level<=DebugLevel) debug on
+//if (level > DebugBase && level <= DebugLevel) debug on
 //depth = level - DebugBase
 //if (depth > 0) debug on
+
+//lib/stack_depth.c
+extern int stack_depth;
 
 //#define printk		printf
 #define seq_printf		printf
@@ -28,36 +32,12 @@ extern int DebugBase;
 #define panic 			pr_err
 #define print_tainted() ""
 
-#define pr_out(...)							\
-    do {									\
-      if (DebugLevel > 0) 					\
-        printf(__VA_ARGS__); 				\
-    } while (0)
-
 #define pr_info(...)						\
     do {									\
       if (DebugLevel > 0) {					\
-        printf("FUNC : %s : ", __func__); 	\
+        printf("FUNC | %s : ", __func__); 	\
         printf(__VA_ARGS__); 				\
       }										\
-    } while (0)
-
-#define pr_info_view(format, args) 			\
-    do {									\
-      if (DebugLevel > 0) 					\
-        printf(format, #args, args);		\
-    } while (0)
-
-#define pr_fn_start()						\
-    do {									\
-      if (DebugLevel > 0) 					\
-        printf("--> %s()...\n", __func__);	\
-    } while (0)
-
-#define pr_fn_end()							\
-    do {									\
-      if (DebugLevel > 0) 					\
-        printf("<-- %s().\n\n", __func__);	\
     } while (0)
 
 #define pr_out_on(level, ...)						\
@@ -76,7 +56,7 @@ extern int DebugBase;
       if (depth > 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
-        printf("<%d> : %s : ", level, __func__); 	\
+        printf("<%d> | %s : ", level, __func__); 	\
         printf(__VA_ARGS__); 						\
       }												\
     } while (0)
@@ -87,7 +67,7 @@ extern int DebugBase;
       if (depth > 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
-        printf("<%d> : ", level); 					\
+        printf("<%d> | ", level); 					\
         printf(format, #args, args);				\
       }												\
     } while (0)

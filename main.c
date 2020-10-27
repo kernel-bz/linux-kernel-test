@@ -25,9 +25,6 @@ static int _main_menu(int asize)
     int idx;
     __fpurge(stdin);
 
-    DebugLevel = 2;
-    DebugBase = 1;
-
     printf("\n");
     printf("[#] Linux Kernel Source Test (c)www.kernel.bz\n");
     printf("0: help.\n");

@@ -340,10 +340,10 @@ void calc_global_load(unsigned long ticks)
 	unsigned long sample_window;
 	long active, delta;
 
-    pr_fn_start_on(1);
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(0, "%30s : %lu\n", jiffies);
-    pr_info_view_on(0, "%30s : %lu\n", calc_load_update + 10);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update+10);
 
 	sample_window = READ_ONCE(calc_load_update);
 	if (time_before(jiffies, sample_window + 10))
@@ -357,26 +357,26 @@ void calc_global_load(unsigned long ticks)
 		atomic_long_add(delta, &calc_load_tasks);
 
 	active = atomic_long_read(&calc_load_tasks);
-    pr_info_view_on(0, "%30s : %ld\n", active);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", active);
     active = active > 0 ? active * FIXED_1 : 0;
 
-    pr_info_view("%30s : %ld\n", delta);
-    pr_info_view("%30s : %d\n", FIXED_1);
-    pr_info_view("%30s : %ld\n", active);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", delta);
+    pr_info_view_on(stack_depth, "%20s : %d\n", FIXED_1);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", active);
 
     //a0 * e + a * (1 - e)
 	avenrun[0] = calc_load(avenrun[0], EXP_1, active);
 	avenrun[1] = calc_load(avenrun[1], EXP_5, active);
 	avenrun[2] = calc_load(avenrun[2], EXP_15, active);
 
-    pr_info_view_on(0, "%30s : %lu\n", avenrun[0]);
-    pr_info_view_on(0, "%30s : %lu\n", avenrun[1]);
-    pr_info_view_on(0, "%30s : %lu\n", avenrun[2]);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[0]);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[1]);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[2]);
 
 	WRITE_ONCE(calc_load_update, sample_window + LOAD_FREQ);
 
-    pr_info_view("%30s : %d\n", LOAD_FREQ);	//5s interval
-    pr_info_view_on(0, "%30s : %lu\n", calc_load_update);
+    pr_info_view_on(stack_depth, "%20s : %d\n", LOAD_FREQ);	//5s interval
+    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update);
 
     /*
 	 * In case we went to NO_HZ for multiple LOAD_FREQ intervals
@@ -384,7 +384,7 @@ void calc_global_load(unsigned long ticks)
 	 */
 	calc_global_nohz();
 
-    pr_fn_end_on(1);
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -395,11 +395,11 @@ void calc_global_load_tick(struct rq *this_rq)
 {
 	long delta;
 
-    pr_fn_start_on(2);
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(2, "%40s : %lu\n", jiffies);
-    pr_info_view_on(2, "%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(2, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+    pr_info_view_on(stack_depth, "%40s : %lu\n", jiffies);
+    pr_info_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
 
 	if (time_before(jiffies, this_rq->calc_load_update))
 		return;
@@ -410,8 +410,8 @@ void calc_global_load_tick(struct rq *this_rq)
 
 	this_rq->calc_load_update += LOAD_FREQ;
 
-    pr_info_view_on(2, "%40s : %ld\n", delta);
-    pr_info_view_on(2, "%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(2, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
-    pr_fn_end_on(2);
+    pr_info_view_on(stack_depth, "%40s : %ld\n", delta);
+    pr_info_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+    pr_fn_end_on(stack_depth);
 }

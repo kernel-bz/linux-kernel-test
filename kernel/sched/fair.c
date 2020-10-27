@@ -291,18 +291,18 @@ static inline void cfs_rq_tg_path(struct cfs_rq *cfs_rq, char *path, int len)
 
 static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     struct rq *rq = rq_of(cfs_rq);
     int cpu = cpu_of(rq);
 
-    pr_info_view("%30s : %d\n", cfs_rq->on_list);
+    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
 
     if (cfs_rq->on_list)
         return rq->tmp_alone_branch == &rq->leaf_cfs_rq_list;
 
     cfs_rq->on_list = 1;
-    pr_info_view("%30s : %d\n", cfs_rq->on_list);
+    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
 
     /*
      * Ensure we either appear before our parent (if already
@@ -361,7 +361,7 @@ static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
      */
     rq->tmp_alone_branch = &cfs_rq->leaf_cfs_rq_list;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 
     return false;
 }
@@ -542,9 +542,9 @@ static void update_min_vruntime(struct cfs_rq *cfs_rq)
     struct sched_entity *curr = cfs_rq->curr;
     struct rb_node *leftmost = rb_first_cached(&cfs_rq->tasks_timeline);
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
-    pr_info_view("%30s : %p\n", (void*)leftmost);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)leftmost);
 
     u64 vruntime = cfs_rq->min_vruntime;
 
@@ -572,7 +572,7 @@ static void update_min_vruntime(struct cfs_rq *cfs_rq)
     cfs_rq->min_vruntime_copy = cfs_rq->min_vruntime;
 #endif
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -585,8 +585,8 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     struct sched_entity *entry;
     bool leftmost = true;
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)*link);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)*link);
 
     /*
      * Find the right place in the rbtree:
@@ -598,14 +598,14 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
          * We dont care about collisions. Nodes with
          * the same key stay together.
          */
-        pr_info_view("%30s : %llu\n", se->vruntime);
-        pr_info_view("%30s : %llu\n", entry->vruntime);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", se->vruntime);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", entry->vruntime);
         if (entity_before(se, entry)) {		//se < entry
             link = &parent->rb_left;
-            pr_info_view("%30s : %p\n", (void*)&parent->rb_left);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&parent->rb_left);
         } else {
             link = &parent->rb_right;		//se >= entry
-            pr_info_view("%30s : %p\n", (void*)&parent->rb_right);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&parent->rb_right);
             leftmost = false;
         }
     }
@@ -614,17 +614,17 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     rb_insert_color_cached(&se->run_node,
                    &cfs_rq->tasks_timeline, leftmost);
 
-    pr_info_view("%30s : %p\n", (void*)link);
-    pr_info_view("%30s : %p\n", (void*)*link);
-    pr_info_view("%30s : %p\n", (void*)&se->run_node);
-    pr_fn_end();
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)link);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)*link);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->run_node);
+    pr_fn_end_on(stack_depth);
 }
 
 static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
     rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 struct sched_entity *__pick_first_entity(struct cfs_rq *cfs_rq)
@@ -828,12 +828,12 @@ static void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
  */
 static void update_curr(struct cfs_rq *cfs_rq)
 {
-    pr_fn_start_on(4);
+    pr_fn_start_on(stack_depth);
 
     struct sched_entity *curr = cfs_rq->curr;
 
-    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
-    pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
     if (!rq_of(cfs_rq)) return;
 
     u64 now = rq_clock_task(rq_of(cfs_rq));
@@ -873,7 +873,7 @@ static void update_curr(struct cfs_rq *cfs_rq)
 
     account_cfs_rq_runtime(cfs_rq, delta_exec);
 
-    pr_fn_end_on(4);
+    pr_fn_end_on(stack_depth);
 }
 
 static void update_curr_fair(struct rq *rq)
@@ -1070,16 +1070,16 @@ update_stats_curr_start(struct cfs_rq *cfs_rq, struct sched_entity *se)
 static void
 account_entity_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     update_load_add(&cfs_rq->load, se->load.weight);
 #ifdef CONFIG_SMP
     if (entity_is_task(se)) {
         struct rq *rq = rq_of(cfs_rq);
 
-        pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
-        pr_info_view("%30s : %p\n", (void*)&se->group_node);
-        pr_info_view("%30s : %p\n", (void*)&rq->cfs_tasks);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->group_node);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs_tasks);
 
         //account_numa_enqueue(rq, task_of(se));
         //list_add(&se->group_node, &rq->cfs_tasks);	//error
@@ -1087,7 +1087,7 @@ account_entity_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se)
 #endif
     cfs_rq->nr_running++;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 static void
@@ -1403,8 +1403,8 @@ static void update_cfs_group(struct sched_entity *se)
     struct cfs_rq *gcfs_rq = group_cfs_rq(se);
     long shares, runnable;
 
-    pr_fn_start_on(4);
-    pr_info_view("%30s : %p\n", (void*)gcfs_rq);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)gcfs_rq);
 
     if (!gcfs_rq)
         return;
@@ -1424,7 +1424,7 @@ static void update_cfs_group(struct sched_entity *se)
 
     reweight_entity(cfs_rq_of(se), se, shares, runnable);
 
-    pr_fn_end_on(4);
+    pr_fn_end_on(stack_depth);
 }
 
 #else /* CONFIG_FAIR_GROUP_SCHED */
@@ -1500,11 +1500,11 @@ void set_task_rq_fair(struct sched_entity *se,
     u64 p_last_update_time;
     u64 n_last_update_time;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view("%30s : %p\n", se);
-    pr_info_view("%30s : %p\n", prev);
-    pr_info_view("%30s : %p\n", next);
+    pr_info_view_on(stack_depth, "%30s : %p\n", se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", prev);
+    pr_info_view_on(stack_depth, "%30s : %p\n", next);
 
     if (!sched_feat(ATTACH_AGE_LOAD))
         return;
@@ -1543,7 +1543,7 @@ void set_task_rq_fair(struct sched_entity *se,
     __update_load_avg_blocked_se(p_last_update_time, se);
     se->avg.last_update_time = n_last_update_time;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1803,6 +1803,8 @@ static inline void add_tg_cfs_propagate(struct cfs_rq *cfs_rq, long runnable_sum
 static inline int
 update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long removed_load = 0, removed_util = 0, removed_runnable_sum = 0;
     struct sched_avg *sa = &cfs_rq->avg;
     int decayed = 0;
@@ -1840,6 +1842,8 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
 
     if (decayed)
         cfs_rq_util_change(cfs_rq, 0);
+
+    pr_fn_end_on(stack_depth);
 
     return decayed;
 }
@@ -1925,10 +1929,15 @@ static void detach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 /* Update task and its cfs_rq load average */
 static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 {
-    pr_fn_start_on(4);
+    pr_fn_start_on(stack_depth);
 
     u64 now = cfs_rq_clock_pelt(cfs_rq);
     int decayed;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %d\n", flags);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", now);
 
     /*
      * Track task load average for carrying it to new CPU after migrated, and
@@ -1955,7 +1964,7 @@ static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
     } else if (decayed && (flags & UPDATE_TG))
         update_tg_load_avg(cfs_rq, 0);
 
-    pr_fn_end_on(4);
+    pr_fn_end_on(stack_depth);
 }
 
 #ifndef CONFIG_64BIT
@@ -2148,7 +2157,7 @@ static inline int task_fits_capacity(struct task_struct *p, long capacity)
 
 static inline void update_misfit_status(struct task_struct *p, struct rq *rq)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     if (!static_branch_unlikely(&sched_asym_cpucapacity))
         return;
@@ -2165,7 +2174,7 @@ static inline void update_misfit_status(struct task_struct *p, struct rq *rq)
 
     rq->misfit_task_load = task_h_load(p);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 #else /* CONFIG_SMP */
@@ -2219,7 +2228,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
 {
     u64 vruntime = cfs_rq->min_vruntime;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     /*
      * The 'current' period is already promised to the current tasks,
@@ -2247,7 +2256,7 @@ place_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int initial)
     /* ensure we never gain time by being placed backwards. */
     se->vruntime = max_vruntime(se->vruntime, vruntime);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 static void check_enqueue_throttle(struct cfs_rq *cfs_rq);
@@ -2282,10 +2291,10 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
     bool renorm = !(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_MIGRATED);
     bool curr = cfs_rq->curr == se;
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
-    pr_info_view("%30s : %p\n", (void*)se);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
 
     /*
      * If we're the current task, we must renormalise before calling
@@ -2334,7 +2343,7 @@ enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
         //check_enqueue_throttle(cfs_rq);
     }
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 //4012
 static void __clear_buddies_last(struct sched_entity *se)
@@ -2387,7 +2396,7 @@ static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
 static void
 dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
     /*
      * Update run-time statistics of the 'current'.
      */
@@ -2436,7 +2445,7 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
     if ((flags & (DEQUEUE_SAVE | DEQUEUE_MOVE)) != DEQUEUE_SAVE)
         update_min_vruntime(cfs_rq);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -2445,7 +2454,7 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 static void
 check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 {
-    pr_fn_start_on(4);
+    pr_fn_start_on(stack_depth);
 
     unsigned long ideal_runtime, delta_exec;
     struct sched_entity *se;
@@ -2480,13 +2489,13 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
     if (delta > ideal_runtime)
         resched_curr(rq_of(cfs_rq));
 
-    pr_fn_end_on(4);
+    pr_fn_end_on(stack_depth);
 }
 //4151
 static void
 set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     /* 'current' is not kept within the tree. */
     if (se->on_rq) {
@@ -2502,7 +2511,7 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
     update_stats_curr_start(cfs_rq, se);
     cfs_rq->curr = se;
-    pr_info_view("%30s : %p\n", cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", cfs_rq->curr);
 
     /*
      * Track our maximum slice length, if the CPU's load is at
@@ -2518,7 +2527,7 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
     se->prev_sum_exec_runtime = se->sum_exec_runtime;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 //4184
 static int
@@ -2611,7 +2620,7 @@ static void put_prev_entity(struct cfs_rq *cfs_rq, struct sched_entity *prev)
 static void
 entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
 {
-    pr_fn_start_on(3);
+    pr_fn_start_on(stack_depth);
     /*
      * Update run-time statistics of the 'current'.
      */
@@ -2643,7 +2652,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
     if (cfs_rq->nr_running > 1)
         check_preempt_tick(cfs_rq, curr);
 
-    pr_fn_end_on(3);
+    pr_fn_end_on(stack_depth);
 }
 //4306
 //4307
@@ -3083,9 +3092,9 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
     struct sched_entity *se = &p->se;
     int idle_h_nr_running = task_has_idle_policy(p);
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)p);
-    pr_info_view("%30s : %p\n", (void*)rq);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
 
     /*
      * The code below (indirectly) updates schedutil which looks at
@@ -3104,14 +3113,14 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         cpufreq_update_util(rq, SCHED_CPUFREQ_IOWAIT);
 
     for_each_sched_entity(se) {
-        pr_info_view("%30s : %p\n", (void*)se);
-        pr_info_view("%30s : %d\n", se->on_rq);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
+        pr_info_view_on(stack_depth, "%30s : %d\n", se->on_rq);
         if (se->on_rq)
             break;
         cfs_rq = cfs_rq_of(se);
-        pr_info_view("%30s : %p\n", (void*)cfs_rq);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
         WARN_ON (!cfs_rq);
-        pr_info_view("%30s : %p\n", (void*)rq_of(cfs_rq));
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
         if (!rq_of(cfs_rq)) {
             pr_err("NULL of rq_of(cfs_rq)\n");
             break;
@@ -3132,7 +3141,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         flags = ENQUEUE_WAKEUP;
     }
 
-    pr_info_view("%30s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
 
     for_each_sched_entity(se) {
         cfs_rq = cfs_rq_of(se);
@@ -3163,7 +3172,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
          * and the following generally works well enough in practice.
          */
         if (flags & ENQUEUE_WAKEUP) {
-            pr_info_view("%30s : 0x%X\n", flags);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", flags);
             //update_overutilized_status(rq);	//error
         }
     }
@@ -3187,7 +3196,7 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 
     hrtick_update(rq);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 //5282
 static void set_next_buddy(struct sched_entity *se);
@@ -3204,12 +3213,12 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         int task_sleep = flags & DEQUEUE_SLEEP;
         int idle_h_nr_running = task_has_idle_policy(p);
 
-        pr_fn_start();
+        pr_fn_start_on(stack_depth);
 
         for_each_sched_entity(se) {
                 cfs_rq = cfs_rq_of(se);
-                pr_info_view("%30s : %p\n", (void*)cfs_rq);
-                pr_info_view("%30s : %p\n", (void*)se);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
                 dequeue_entity(cfs_rq, se, flags);
 
                 /*
@@ -3256,7 +3265,7 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
         util_est_dequeue(&rq->cfs, p, task_sleep);
         hrtick_update(rq);
 
-        pr_fn_end();
+        pr_fn_end_on(stack_depth);
 }
 //5345
 #ifdef CONFIG_SMP
@@ -3958,21 +3967,21 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
  */
 static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
 {
-    pr_fn_start_on(2);
+    pr_fn_start_on(stack_depth);
 
     struct cfs_rq *cfs_rq;
     struct sched_entity *se = &curr->se;
 
-    pr_info_view_on(2, "%20s : %u\n", rq->nr_running);
-    pr_info_view_on(2, "%20s : %llu\n", rq->clock);
-    pr_info_view_on(2, "%20s : %llu\n", rq->clock_task);
-    pr_info_view_on(2, "%20s : %llu\n", rq->clock_pelt);
+    pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
 
     for_each_sched_entity(se) {
         cfs_rq = cfs_rq_of(se);
-        pr_info_view_on(2, "%30s : %p\n", se);
-        pr_info_view_on(2, "%30s : %u\n", cfs_rq->nr_running);
-        pr_info_view_on(2, "%30s : %u\n", cfs_rq->h_nr_running);
+        pr_info_view_on(stack_depth, "%30s : %p\n", se);
+        pr_info_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
+        pr_info_view_on(stack_depth, "%30s : %u\n", cfs_rq->h_nr_running);
         entity_tick(cfs_rq, se, queued);
     }
 #if 0
@@ -3982,7 +3991,7 @@ static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
     update_misfit_status(curr, rq);
     //update_overutilized_status(task_rq(curr));
 
-    pr_fn_end_on(2);
+    pr_fn_end_on(stack_depth);
 }
 //9957
 /*
@@ -3997,18 +4006,18 @@ static void task_fork_fair(struct task_struct *p)
     struct rq *rq = this_rq();
     struct rq_flags rf;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view("%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     rq_lock(rq, &rf);
     //update_rq_clock(rq);	//error
 
     //cfs_rq = task_cfs_rq(current);
     cfs_rq = task_cfs_rq(p);
-    pr_info_view("%30s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
 
     curr = cfs_rq->curr;
-    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
     if (curr) {
         update_curr(cfs_rq);
         se->vruntime = curr->vruntime;
@@ -4028,7 +4037,7 @@ static void task_fork_fair(struct task_struct *p)
     se->vruntime -= cfs_rq->min_vruntime;
     rq_unlock(rq, &rf);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -4095,7 +4104,7 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
 {
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
     /*
@@ -4111,7 +4120,7 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
     update_tg_load_avg(cfs_rq, false);
     propagate_entity_cfs_rq(se);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 
@@ -4189,10 +4198,10 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
     struct cfs_rq *cfs_rq;
     int i;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
-    pr_info_view("%30s : %p\n", (void*)tg->cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg->cfs_rq);
     if (!tg->cfs_rq)
         goto err;
     tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
@@ -4219,7 +4228,7 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
         init_entity_runnable_average(se);
     }
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 
     return 1;
 
@@ -4236,15 +4245,15 @@ void online_fair_sched_group(struct task_group *tg)
     struct rq *rq;
     int i;
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)tg);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
 
     for_each_possible_cpu(i) {
-        pr_info_view("%30s : %d\n", i);
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
         rq = cpu_rq(i);
         se = tg->se[i];
-        pr_info_view("%30s : %p\n", (void*)rq);
-        pr_info_view("%30s : %p\n", (void*)se);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
         rq_lock_irq(rq, &rf);
         //update_rq_clock(rq);
         attach_entity_cfs_rq(se);
@@ -4252,7 +4261,7 @@ void online_fair_sched_group(struct task_group *tg)
         rq_unlock_irq(rq, &rf);
     }
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 void unregister_fair_sched_group(struct task_group *tg)
@@ -4286,13 +4295,13 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
 {
     struct rq *rq = cpu_rq(cpu);
 
-    pr_fn_start();
-    pr_info_view("%30s : %d\n", cpu);
-    pr_info_view("%30s : %p\n", (void*)tg);
-    pr_info_view("%30s : %p\n", (void*)cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
-    pr_info_view("%30s : %p\n", (void*)se);
-    pr_info_view("%30s : %p\n", (void*)parent);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
     cfs_rq->tg = tg;
     cfs_rq->rq = rq;
@@ -4318,7 +4327,7 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     update_load_set(&se->load, NICE_0_LOAD);
     se->parent = parent;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 //10354 lines
 

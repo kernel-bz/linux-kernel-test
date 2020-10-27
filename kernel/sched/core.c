@@ -191,7 +191,7 @@ void update_rq_clock(struct rq *rq)
 {
     s64 delta;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     lockdep_assert_held(&rq->lock);
 
@@ -210,7 +210,7 @@ void update_rq_clock(struct rq *rq)
     rq->clock += delta;
     update_rq_clock_task(rq, delta);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 //220 lines
 
@@ -826,7 +826,7 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 //1302
 static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     if (!(flags & DEQUEUE_NOCLOCK))
         update_rq_clock(rq);
@@ -839,12 +839,12 @@ static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
     uclamp_rq_dec(rq, p);
     p->sched_class->dequeue_task(rq, p, flags);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 void activate_task(struct rq *rq, struct task_struct *p, int flags)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible--;
@@ -853,7 +853,7 @@ void activate_task(struct rq *rq, struct task_struct *p, int flags)
 
     p->on_rq = TASK_ON_RQ_QUEUED;
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
@@ -1112,7 +1112,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 {
     unsigned long flags;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     __sched_fork(clone_flags, p);
     /*
@@ -1150,7 +1150,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
         p->sched_reset_on_fork = 0;
     }
 
-    pr_info_view("%30s : %d\n", p->prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
 
     if (dl_prio(p->prio))
         return -EAGAIN;
@@ -1161,10 +1161,10 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 
     init_entity_runnable_average(&p->se);
 
-    pr_info_view("%30s : %p\n", &rt_sched_class);
-    pr_info_view("%30s : %p\n", &fair_sched_class);
-    pr_info_view("%30s : %p\n", p->sched_class);
-    pr_info_view("%30s : %p\n", p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", &rt_sched_class);
+    pr_info_view_on(stack_depth, "%30s : %p\n", &fair_sched_class);
+    pr_info_view_on(stack_depth, "%30s : %p\n", p->sched_class);
+    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
 
     /*
      * The child is not yet in the pid-hash so no cgroup attach races,
@@ -1180,9 +1180,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
      */
     __set_task_cpu(p, smp_processor_id());
 
-    pr_info_view("%30s : %p\n", p->sched_class->task_fork);
-    pr_info_view("%30s : %p\n", p->se.cfs_rq);
-    pr_info_view("%30s : %p\n", p->se.cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_fork);
+    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq->curr);
 
     if (p->sched_class->task_fork)
         p->sched_class->task_fork(p);
@@ -1201,7 +1201,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     RB_CLEAR_NODE(&p->pushable_dl_tasks);
 #endif
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 
     return 0;
 }
@@ -1231,16 +1231,16 @@ unsigned long to_ratio(u64 period, u64 runtime)
  */
 void scheduler_tick(void)
 {
-    pr_fn_start_on(1);
+    pr_fn_start_on(stack_depth);
 
     int cpu = smp_processor_id();
     struct rq *rq = cpu_rq(cpu);
     struct task_struct *curr = rq->curr;
     struct rq_flags rf;
 
-    pr_info_view("%30s : %d\n", cpu);
-    pr_info_view("%30s : %p\n", (void*)cpu_rq(cpu));
-    pr_info_view("%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cpu_rq(cpu));
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     sched_clock_tick();
 
@@ -1260,7 +1260,7 @@ void scheduler_tick(void)
     //trigger_load_balance(rq);
 #endif
 
-    pr_fn_end_on(1);
+    pr_fn_end_on(stack_depth);
 }
 //3614 lines
 
@@ -1427,20 +1427,20 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
-        pr_info_view("%30s : %lu\n", ptr);
-        pr_info_view("%30s : %p\n", (void*)&root_task_group);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", ptr);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
-                pr_info_view("%30s : %p\n", (void*)ptr);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view("%30s : %p\n", (void*)root_task_group.se);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view("%30s : %p\n", (void*)root_task_group.cfs_rq);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
@@ -1463,8 +1463,8 @@ void __init sched_init(void)
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
 
-        pr_info_view("%30s : %p\n", (void*)&def_rt_bandwidth);
-        pr_info_view("%30s : %p\n", (void*)&def_dl_bandwidth);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&def_rt_bandwidth);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&def_dl_bandwidth);
 
 #ifdef CONFIG_SMP
         init_defrootdomain();
@@ -1484,14 +1484,12 @@ void __init sched_init(void)
         autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
-        pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
-        pr_info_view("%30s : %p\n", (void*)&runqueues);
+        pr_info_view_on(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&runqueues);
 
         for_each_possible_cpu(i) {
             struct rq *rq;
-
             rq = cpu_rq(i);
-            pr_info("cpu=%d, rq=%p\n", i, rq);
 
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
@@ -1561,8 +1559,8 @@ void __init sched_init(void)
         set_load_weight(&init_task, false);
 
         printf("\n");
-        pr_info_view("%30s : %lu\n", init_task.se.load.weight);
-        pr_info_view("%30s : %u\n", init_task.se.load.inv_weight);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", init_task.se.load.weight);
+        pr_info_view_on(stack_depth, "%30s : %u\n", init_task.se.load.inv_weight);
 
         /*
          * The boot idle thread does lazy MMU switching as well:
@@ -1579,8 +1577,8 @@ void __init sched_init(void)
         //init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
-        pr_info_view("%20s : %lu\n", jiffies);
-        pr_info_view("%20s : %lu\n", calc_load_update);
+        pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update);
 
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
@@ -1636,14 +1634,14 @@ struct task_group *sched_create_group(struct task_group *parent)
 {
     struct task_group *tg;
 
-    pr_fn_start();
-    pr_info_view("%30s : %p\n", (void*)parent);
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
 
     tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
     if (!tg)
         return ERR_PTR(-ENOMEM);
 
-    pr_info_view("%30s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg);
     if (!alloc_fair_sched_group(tg, parent))
         goto err;
 
@@ -1652,7 +1650,7 @@ struct task_group *sched_create_group(struct task_group *parent)
 
     alloc_uclamp_sched_group(tg, parent);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 
     return tg;
 
@@ -1665,7 +1663,7 @@ void sched_online_group(struct task_group *tg, struct task_group *parent)
 {
     unsigned long flags;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     spin_lock_irqsave(&task_group_lock, flags);
     list_add_rcu(&tg->list, &task_groups);
@@ -1680,7 +1678,7 @@ void sched_online_group(struct task_group *tg, struct task_group *parent)
 
     online_fair_sched_group(tg);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /* rcu callback to free various structures associated with a task group */

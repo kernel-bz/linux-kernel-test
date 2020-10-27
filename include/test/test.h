@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#include <linux/sched.h>
-
 //test/cpu/cpus-mask-test.c
 void cpus_mask_test(void);
 

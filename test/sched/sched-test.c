@@ -27,9 +27,9 @@ init/main.c:1068:       sched_init_smp();
 */
 static void _sched_init_test(void)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
     sched_init();
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 static void _sched_task_group_view(void)
@@ -46,42 +46,42 @@ static void _sched_task_group_view(void)
         for_each_possible_cpu(cpu) {
             struct rq *rq;
             rq = cpu_rq(cpu);
-            pr_info_view("%20s : %d\n", cpu);
-            pr_info_view("%20s : %p\n", (void*)rq);
-            pr_info_view("%20s : %p\n", (void*)rq->curr);
-            pr_info_view("%20s : %u\n", rq->nr_running);
+            pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+            pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
 
             struct cfs_rq *cfs_rq = tg->cfs_rq[cpu_of(rq)];
             struct sched_entity *se;
-            pr_info_view("%20s : %p\n", (void*)cfs_rq);
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
             if(cfs_rq) {
-                pr_info_view("%30s : %p\n", (void*)cfs_rq->curr);
-                pr_info_view("%30s : %p\n", (void*)cfs_rq->next);
-                pr_info_view("%30s : %u\n", cfs_rq->nr_running);
-                pr_info_view("%30s : %d\n", cfs_rq->on_list);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->next);
+                pr_info_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
+                pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
                 if (cfs_rq->on_list > 0) {
                     int i=0;
                     struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
                     while (next) {
                         se = rb_entry(next, struct sched_entity, run_node);
-                        pr_info_view("%40s : %d\n", i++);
-                        pr_info_view("%40s : %p\n", (void*)se->parent);
-                        pr_info_view("%40s : %p\n", (void*)se->cfs_rq);
-                        pr_info_view("%40s : %p\n", (void*)se->my_q);
-                        pr_info_view("%40s : %llu\n", se->vruntime);
-                        pr_info_view("%40s : %d\n", se->on_rq);
+                        pr_info_view_on(stack_depth, "%40s : %d\n", i++);
+                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->parent);
+                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->cfs_rq);
+                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->my_q);
+                        pr_info_view_on(stack_depth, "%40s : %llu\n", se->vruntime);
+                        pr_info_view_on(stack_depth, "%40s : %d\n", se->on_rq);
                         next = rb_next(&se->run_node);
                     }
                 }
             }
             se = tg->se[cpu_of(rq)];
-            pr_info_view("%20s : %p\n", (void*)se);
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
             if (se) {
-                pr_info_view("%30s : %d\n", se->depth);
-                pr_info_view("%30s : %p\n", (void*)se->parent);
-                pr_info_view("%30s : %p\n", (void*)se->cfs_rq);
-                pr_info_view("%30s : %p\n", (void*)se->my_q);
-                pr_info_view("%30s : %d\n", se->on_rq);
+                pr_info_view_on(stack_depth, "%30s : %d\n", se->depth);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->parent);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
+                pr_info_view_on(stack_depth, "%30s : %d\n", se->on_rq);
             }
 
         } //cpu
@@ -102,11 +102,11 @@ static void _sched_create_group_test(void)
     struct task_group *parent;
     struct task_group *tg;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view("%30s : %p\n", (void*)&root_task_group);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
     parent = (parent_tg) ? parent_tg : &root_task_group;
-    pr_info_view("%30s : %p\n", (void*)parent);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
 
     tg = sched_create_group(parent);
     if (IS_ERR(tg)) {
@@ -117,9 +117,9 @@ static void _sched_create_group_test(void)
         //parent_tg = tg;
     }
 
-    pr_info_view("%30s : %p\n", (void*)parent_tg);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent_tg);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -139,11 +139,11 @@ static void _activate_task_test(void)
     struct rq *rq;
     int flags = ENQUEUE_NOCLOCK;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
     //1280 Bytes
-    pr_info_view("%30s : %d\n", sizeof(struct task_struct));
-    pr_info_view("%30s : %d\n", sizeof(*p));
-    pr_info_view("%30s : %d\n", sizeof(init_task));
+    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(struct task_struct));
+    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(*p));
+    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
     p = (struct task_struct *)malloc(sizeof(*p));
 
     //rq = task_rq(p);
@@ -158,37 +158,37 @@ static void _activate_task_test(void)
     }
 
     printf("\n");
-    pr_info_view("%30s : %p\n", (void*)p->sched_task_group);
-    pr_info_view("%30s : %p\n", (void*)rq);
-    pr_info_view("%30s : %p\n", (void*)rq->curr);
-    pr_info_view("%30s : %d\n", p->prio);
-    pr_info_view("%30s : %d\n", p->on_rq);
-    pr_info_view("%30s : %p\n", (void*)&p->se);
-    pr_info_view("%30s : %p\n", (void*)p->se.cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)p->se.parent);
-    pr_info_view("%30s : %d\n", p->se.on_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.parent);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->se.on_rq);
     printf("\n");
 
     if (sched_fork(0, p) == 0) {
         //kernel/sched/core.c
         activate_task(rq, p, flags);
     }
-    pr_info_view("%30s : %p\n", (void*)p->sched_task_group);
-    pr_info_view("%30s : %p\n", (void*)rq);
-    pr_info_view("%30s : %p\n", (void*)rq->curr);
-    pr_info_view("%30s : %d\n", p->prio);
-    pr_info_view("%30s : %d\n", p->on_rq);
-    pr_info_view("%30s : %p\n", (void*)&p->se);
-    pr_info_view("%30s : %p\n", (void*)p->se.cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)p->se.parent);
-    pr_info_view("%30s : %d\n", p->se.on_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.parent);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->se.on_rq);
     printf("\n");
-    pr_info_view("%30s : %u\n", p->se.cfs_rq->nr_running);
-    pr_info_view("%30s : %u\n", p->se.cfs_rq->h_nr_running);
-    pr_info_view("%30s : %u\n", rq->nr_running);
-    pr_info_view("%30s : %p\n", (void*)rq->rd);
+    pr_info_view_on(stack_depth, "%30s : %u\n", p->se.cfs_rq->nr_running);
+    pr_info_view_on(stack_depth, "%30s : %u\n", p->se.cfs_rq->h_nr_running);
+    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->rd);
     printf("\n");
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -208,28 +208,28 @@ static void _deactivate_task_test(void)
     struct rq *rq;
     int cpu;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     //cpu = smp_processor_id();
     cpu = 0;
     rq = cpu_rq(cpu);
-    pr_info_view("%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     rq = this_rq();
-    pr_info_view("%30s : %p\n", (void*)rq);
-    pr_info_view("%30s : %p\n", (void*)rq->curr);
-    pr_info_view("%30s : %u\n", rq->nr_running);
-    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
-    pr_info_view("%30s : %p\n", (void*)rq->curr);
-    pr_info_view("%30s : %u\n", rq->nr_running);
-    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq);
-    pr_info_view("%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
 
-   pr_fn_end();
+   pr_fn_end_on(stack_depth);
 }
 
 //tools/testing/selftests/timers/
@@ -249,32 +249,32 @@ static void _deactivate_task_test(void)
 static void _scheduler_tick_test(void)
 {
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
-    int i, dlevel=1, dbase=1, loop_cnt=10;
+    int i, dbase, dlevel, loop_cnt=10;
 
     __fpurge(stdin);
-    printf("Enter Debug Level Number[0, %d]: ", DebugLevel);
-    scanf("%d", &dlevel);
-    printf("Enter Debug Base Number[0, %d]: ", DebugBase);
+    printf("Enter Debug Base Number[0,%d]: ", DebugBase);
     scanf("%d", &dbase);
-    printf("Enter tick loop counter[1, %d]: ", loop_cnt);
+    printf("Enter Debug Level Number[0,%d]: ", DebugLevel);
+    scanf("%d", &dlevel);
+    printf("Enter tick loop counter[1,%d]: ", loop_cnt);
     scanf("%d", &loop_cnt);
 
     DebugLevel = dlevel;
     DebugBase = dbase;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
+
     struct rq *this_rq = this_rq();
-    pr_info_view_on(0, "%30s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(0, "%30s : %lu\n", READ_ONCE(calc_load_update));
+    pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", READ_ONCE(calc_load_update));
     this_rq->calc_load_update = READ_ONCE(calc_load_update);
-    pr_info_view_on(0, "%30s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
     jiffies = this_rq->calc_load_update;
-    pr_info_view_on(0, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
+    pr_info_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
 
     for (i=0; i<loop_cnt; i++) {
-        pr_out_on(0, "\n");
-        pr_out_on(0, "iter* = %d\n", i);
-        pr_out_on(0, "jiffies = %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%10s : %d\n", i);
+        pr_info_view_on(stack_depth, "%10s : %lu\n", jiffies);
 
         //kernel/sched/loadavg.c
         calc_global_load(0);	//void
@@ -287,7 +287,7 @@ static void _scheduler_tick_test(void)
         jiffies += HZ;	//1s
     }
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 static void _sched_test_help(void)
@@ -308,9 +308,6 @@ static int _sched_statis_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
-
-    DebugLevel = 2;
-    DebugBase = 1;
 
     printf("\n");
     printf("[#]--> Scheduler --> Statistics Test Menu\n");
@@ -349,9 +346,6 @@ static int _sched_test_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
-
-    DebugLevel = 2;
-    DebugBase = 1;
 
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");

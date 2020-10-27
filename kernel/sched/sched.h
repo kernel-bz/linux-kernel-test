@@ -1554,37 +1554,37 @@ static inline struct task_group *task_group(struct task_struct *p)
 /* Change a task's cfs_rq and parent entity if it moves across CPUs/groups */
 static inline void set_task_rq(struct task_struct *p, unsigned int cpu)
 {
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
-    pr_info_view("%30s: %d\n", cpu);
+    pr_info_view_on(stack_depth, "%30s: %d\n", cpu);
 
 #if defined(CONFIG_FAIR_GROUP_SCHED) || defined(CONFIG_RT_GROUP_SCHED)
     struct task_group *tg = task_group(p);
-    pr_info_view("%30s: %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg);
 #endif
 
-    pr_info_view("%30s: %p\n", (void*)&p->se);
-    pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_info_view("%30s: %p\n", (void*)tg->cfs_rq[cpu]);
-    pr_info_view("%30s: %p\n", (void*)tg->se[cpu]);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)&p->se);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->se[cpu]);
 
-    pr_info_view("%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
     set_task_rq_fair(&p->se, p->se.cfs_rq, tg->cfs_rq[cpu]);
     p->se.cfs_rq = tg->cfs_rq[cpu];
     p->se.parent = tg->se[cpu];
 #endif
-    pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_info_view("%30s: %p\n", (void*)p->se.cfs_rq->curr);
-    pr_info_view("%30s: %p\n", (void*)p->se.parent);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.parent);
 
 #ifdef CONFIG_RT_GROUP_SCHED
 	p->rt.rt_rq  = tg->rt_rq[cpu];
 	p->rt.parent = tg->rt_se[cpu];
 #endif
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
 
 #else /* CONFIG_CGROUP_SCHED */
@@ -2374,12 +2374,14 @@ DECLARE_PER_CPU(struct update_util_data __rcu *, cpufreq_update_util_data);
  */
 static inline void cpufreq_update_util(struct rq *rq, unsigned int flags)
 {
+#if 0
 	struct update_util_data *data;
 
-    //data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
-    //						  cpu_of(rq)));
+    data = rcu_dereference_sched(*per_cpu_ptr(&cpufreq_update_util_data,
+                              cpu_of(rq)));
 	if (data)
 		data->func(data, rq_clock(rq), flags);
+#endif //0
 }
 #else
 static inline void cpufreq_update_util(struct rq *rq, unsigned int flags) {}

@@ -53,7 +53,7 @@ void decay_load_test(void)
     //u64 val=LOAD_AVG_MAX, n;
     u64 val=1024, sum=0, n;
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     for (n=1; n<360; n++) {
         val = decay_load(1024, n);
@@ -61,5 +61,5 @@ void decay_load_test(void)
         printf("n=%llu : val=%llu, sum=%llu\n", n, val, sum);
     }
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }

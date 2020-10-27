@@ -23,17 +23,17 @@
 
 static void _cpus_mask_info(void)
 {
-    pr_info_view("%20s : %3d\n", __CHAR_BIT__);
-    pr_info_view("%20s : %3d\n", __SIZEOF_LONG__);
-    pr_info_view("%20s : %3d\n", BITS_PER_LONG);
-    pr_info_view("%20s : %3d\n", BITS_PER_LONG_LONG);
-    pr_info_view("%20s : %3d\n", nr_cpu_ids);
-    pr_info_view("%20s : %3d\n", nr_cpumask_bits);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", __CHAR_BIT__);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", __SIZEOF_LONG__);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", BITS_PER_LONG);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", BITS_PER_LONG_LONG);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", nr_cpu_ids);
+    pr_info_view_on(stack_depth, "%20s : %3d\n", nr_cpumask_bits);
 
     //reset_cpu_possible_mask();
-    pr_info_view("%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
-    pr_info_view("%30s : 0x%X\n", __cpu_present_mask.bits[0]);
-    pr_info_view("%30s : 0x%X\n", __cpu_active_mask.bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", __cpu_present_mask.bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", __cpu_active_mask.bits[0]);
     printf("\n");
 }
 
@@ -43,7 +43,7 @@ void cpus_mask_test(void)
 
     printf("[#] cpus mask testing...\n");
 
-    pr_fn_start();
+    pr_fn_start_on(stack_depth);
 
     _cpus_mask_info();
 
@@ -67,5 +67,5 @@ void cpus_mask_test(void)
     }
     printf("<--End of %s().\n", __func__);
 
-    pr_fn_end();
+    pr_fn_end_on(stack_depth);
 }
