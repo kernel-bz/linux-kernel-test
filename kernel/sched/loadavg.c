@@ -342,12 +342,12 @@ void calc_global_load(unsigned long ticks)
 
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update+10);
-
 	sample_window = READ_ONCE(calc_load_update);
 	if (time_before(jiffies, sample_window + 10))
 		return;
+
+    pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update+10);
 
 	/*
 	 * Fold the 'old' NO_HZ-delta to include all NO_HZ CPUs.
@@ -356,11 +356,13 @@ void calc_global_load(unsigned long ticks)
 	if (delta)
 		atomic_long_add(delta, &calc_load_tasks);
 
-	active = atomic_long_read(&calc_load_tasks);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", delta);
+
+    active = atomic_long_read(&calc_load_tasks);
     pr_info_view_on(stack_depth, "%20s : %ld\n", active);
+
     active = active > 0 ? active * FIXED_1 : 0;
 
-    pr_info_view_on(stack_depth, "%20s : %ld\n", delta);
     pr_info_view_on(stack_depth, "%20s : %d\n", FIXED_1);
     pr_info_view_on(stack_depth, "%20s : %ld\n", active);
 
@@ -397,10 +399,6 @@ void calc_global_load_tick(struct rq *this_rq)
 
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%40s : %lu\n", jiffies);
-    pr_info_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
-
 	if (time_before(jiffies, this_rq->calc_load_update))
 		return;
 
@@ -410,8 +408,9 @@ void calc_global_load_tick(struct rq *this_rq)
 
 	this_rq->calc_load_update += LOAD_FREQ;
 
-    pr_info_view_on(stack_depth, "%40s : %ld\n", delta);
     pr_info_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_info_view_on(stack_depth, "%40s : %ld\n", delta);
     pr_info_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+
     pr_fn_end_on(stack_depth);
 }

@@ -246,10 +246,10 @@ static void _deactivate_task_test(void)
  *			task_tick_fair();
  * 			calc_global_load_tick();
  */
-static void _scheduler_tick_test(void)
+static void _calc_global_load_test(void)
 {
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
-    int i, dbase, dlevel, loop_cnt=10;
+    int i, dbase, dlevel, loop_cnt=20;
 
     __fpurge(stdin);
     printf("Enter Debug Base Number[0,%d]: ", DebugBase);
@@ -271,8 +271,10 @@ static void _scheduler_tick_test(void)
     pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
     jiffies = this_rq->calc_load_update;
     pr_info_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
+    pr_info_view_on(stack_depth, "%10s : %d\n", HZ);
 
     for (i=0; i<loop_cnt; i++) {
+        pr_out_on(stack_depth, "\n");
         pr_info_view_on(stack_depth, "%10s : %d\n", i);
         pr_info_view_on(stack_depth, "%10s : %lu\n", jiffies);
 
@@ -280,11 +282,13 @@ static void _scheduler_tick_test(void)
         calc_global_load(0);	//void
 
         //kernel/sched/core.c
-        scheduler_tick();
+        //scheduler_tick();
+        calc_global_load_tick(this_rq);
 
         //usleep(tick * 1000);
 
-        jiffies += HZ;	//1s
+        //jiffies++;		//10ms
+        jiffies += HZ;		//1s
     }
 
     pr_fn_end_on(stack_depth);
@@ -313,7 +317,7 @@ static int _sched_statis_menu(int asize)
     printf("[#]--> Scheduler --> Statistics Test Menu\n");
     printf("0: help.\n");
     printf("1: sched task group view.\n");
-    printf("2: scheduler_tick() test.\n");
+    printf("2: calc_global_load test.\n");
     printf("3: decay_load() test.\n");
     printf("4: update_load_avg() test.\n");
     printf("5: exit.\n");
@@ -328,7 +332,7 @@ static void _sched_statis_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _sched_task_group_view
-        , _scheduler_tick_test
+        , _calc_global_load_test
         , decay_load_test, update_load_avg_test
     };
     int idx;
