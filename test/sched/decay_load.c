@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdio_ext.h>
 
 #include "test/debug.h"
 
@@ -22,9 +23,14 @@ static const u32 runnable_avg_yN_inv[] __maybe_unused = {
 */
 
 //kernel/sched/pelt.c
+//decay: val / n
 static u64 decay_load(u64 val, u64 n)
 {
         unsigned int local_n;
+
+        pr_fn_start_on(stack_depth);
+        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+        pr_info_view_on(stack_depth, "%10s : %llu\n", n);
 
         if (n > LOAD_AVG_PERIOD * 63)
                 return 0;
@@ -44,21 +50,52 @@ static u64 decay_load(u64 val, u64 n)
                 local_n %= LOAD_AVG_PERIOD;
         }
 
+        pr_info_view_on(stack_depth, "%10s : %u\n", local_n);
+        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
+
+        u64 shift = (u64)1 << LOAD_AVG_PERIOD;
+        double decay_rate = (double)runnable_avg_yN_inv[local_n] / (double)shift;
+
+        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+        pr_info_view_on(stack_depth, "%30s : %u\n", runnable_avg_yN_inv[local_n]);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", shift);
+        pr_info_view_on(stack_depth, "%30s : %lf\n", decay_rate);
+
+        pr_fn_end_on(stack_depth);
+
         return val;
 }
 
+/*
+ * kernel/sched/pelt.c
+ * Approximate:
+ *   val * y^n,    where y^32 ~= 0.5 (~1 scheduling period)
+ *   val == load
+ *   n == periods
+ * Function:
+ * static u64 decay_load(u64 val, u64 n)
+ *
+ */
 void decay_load_test(void)
 {
-    //u64 val=LOAD_AVG_MAX, n;
-    u64 val=1024, sum=0, n;
+    u64 val, load=1024, sum=0, n, dcnt;
+
+    __fpurge(stdin);
+    printf("Input Load Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%llu", &load);
+    printf("Input Period Counter[0,%d]: ", LOAD_AVG_PERIOD * 63);
+    scanf("%llu", &dcnt);
 
     pr_fn_start_on(stack_depth);
 
-    for (n=1; n<360; n++) {
-        val = decay_load(1024, n);
+    for (n=0; n<dcnt; n++) {
+        val = decay_load(load, n);	//decay: load / n
         sum += val;
-        printf("n=%llu : val=%llu, sum=%llu\n", n, val, sum);
+        pr_out_on(stack_depth
+               , "period n=%llu, val=%llu : decayed val=%llu, sum=%llu/%u\n\n"
+               , n, load, val, sum, LOAD_AVG_MAX);
     }
 
     pr_fn_end_on(stack_depth);

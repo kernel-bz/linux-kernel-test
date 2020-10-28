@@ -232,6 +232,25 @@ static void _deactivate_task_test(void)
    pr_fn_end_on(stack_depth);
 }
 
+#if 0
+//cat /proc/loadavg
+//fs/proc/loadavg.c
+static int loadavg_proc_show(struct seq_file *m, void *v)
+{
+    unsigned long avnrun[3];
+
+    get_avenrun(avnrun, FIXED_1/200, 0);
+
+    seq_printf(m, "%lu.%02lu %lu.%02lu %lu.%02lu %ld/%d %d\n",
+        LOAD_INT(avnrun[0]), LOAD_FRAC(avnrun[0]),
+        LOAD_INT(avnrun[1]), LOAD_FRAC(avnrun[1]),
+        LOAD_INT(avnrun[2]), LOAD_FRAC(avnrun[2]),
+        nr_running(), nr_threads,
+        idr_get_cursor(&task_active_pid_ns(current)->idr) - 1);
+    return 0;
+}
+#endif //0
+
 //tools/testing/selftests/timers/
 /*
  * kernel/time/tick_common.c
@@ -250,6 +269,7 @@ static void _calc_global_load_test(void)
 {
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
     int i, dbase, dlevel, loop_cnt=20;
+    int step=1;
 
     __fpurge(stdin);
     printf("Enter Debug Base Number[0,%d]: ", DebugBase);
@@ -271,18 +291,22 @@ static void _calc_global_load_test(void)
     pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
     jiffies = this_rq->calc_load_update;
     pr_info_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
-    pr_info_view_on(stack_depth, "%10s : %d\n", HZ);
+    pr_info_view_on(stack_depth, "%30s : %d\n", HZ);
 
     for (i=0; i<loop_cnt; i++) {
         pr_out_on(stack_depth, "\n");
-        pr_info_view_on(stack_depth, "%10s : %d\n", i);
-        pr_info_view_on(stack_depth, "%10s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+        pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%20s : %u\n", this_rq->nr_running);
 
         //kernel/sched/loadavg.c
         calc_global_load(0);	//void
 
         //kernel/sched/core.c
         //scheduler_tick();
+        if(this_rq->nr_running >= 10) step = -1;
+        else if(this_rq->nr_running <= 0) step = 1;
+        this_rq->nr_running += step;
         calc_global_load_tick(this_rq);
 
         //usleep(tick * 1000);
