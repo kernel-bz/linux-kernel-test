@@ -12,26 +12,27 @@
 #include <linux/types-user.h>
 #include <linux/sched.h>
 #include <linux/math64.h>
+#include <linux/limits.h>
 #include "kernel/sched/sched-pelt.h"
 
-static struct sched_avg avg = {
-    .load_sum = 20000,
-    .runnable_load_sum = 20000,
-    .util_sum = 20000
+static struct sched_avg sa = {
+    .load_sum = 840000,
+    .runnable_load_sum = 8500000,
+    .util_sum = 86000000
 };
 
 static void _pr_sched_avg_info(int i)
 {
     pr_info_view_on(stack_depth, "%30s : %d\n", i);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", avg.last_update_time);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", avg.load_sum);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", avg.runnable_load_sum);
-    pr_info_view_on(stack_depth, "%30s : %u\n", avg.util_sum);
-    pr_info_view_on(stack_depth, "%30s : %u\n", avg.period_contrib);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", avg.load_avg);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", avg.runnable_load_avg);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", avg.util_avg);
-    //pr_info_view_on(stack_depth, "%30s : %llu\n", avg.util_est);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.last_update_time);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.load_sum);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.runnable_load_sum);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sa.util_sum);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sa.period_contrib);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.runnable_load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.util_avg);
+    //pr_info_view_on(stack_depth, "%30s : %llu\n", sa.util_est);
     pr_out_on(stack_depth, "\n");
 }
 
@@ -246,41 +247,49 @@ update_load_avg()
   __update_load_avg_se(now, *cfs_rq, *se)
     ___update_load_sum(now, *sa, load, runnable, running)
         ___update_load_avg(*sa, load, runnable)
-
-    ___update_load_sum(now, &se->avg
-        , !!se->on_rq, !!se->on_rq, cfs_rq->curr == se);
-        ___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
-
-    ___update_load_sum(now, &cfs_rq->avg,
-                scale_load_down(cfs_rq->load.weight),
-                scale_load_down(cfs_rq->runnable_weight),
-                cfs_rq->curr != NULL);
-        ___update_load_avg(&cfs_rq->avg, 1, 1);
 #endif //0
 
 void update_load_avg_test(void)
 {
-    unsigned long runnable[] = {1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
-    int running[] = {1, 1, 0, 0, 0, 0, 0, 0, 1, 1};
-    u64 now = 0;	//ns
+    unsigned long load, runnable, load_avg, runnable_avg;
+    int running;
+    u64 now = 0, hz, ns;
     int i, loop_cnt;
 
 _retry:
     __fpurge(stdin);
-    printf("Input Loop Count[0,10]: ");
+    printf("Input Load Weight Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%lu", &load);
+    printf("Input Runnable Weight Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%lu", &runnable);
+    printf("Input Running Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%d", &running);
+
+    printf("Input Load_Avg Weight Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%lu", &load_avg);
+    printf("Input Runnable_Avg Weight Value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%lu", &runnable_avg);
+
+    printf("Input HZ Value[%d,%d]: ", HZ, HZ*100);
+    scanf("%llu", &hz);
+    printf("Input Loop Counter[0,%d]: ", S32_MAX);
     scanf("%d", &loop_cnt);
-    if (loop_cnt < 0 || loop_cnt > 10) goto _retry;
 
     pr_fn_start_on(stack_depth);
 
+    ns = 1000000000UL / hz;	//ns
+
     _pr_sched_avg_info(0);
     for (i=0; i<loop_cnt; i++) {
-        now += 10000000;	//+10ms
-        if (___update_load_sum(now, &avg, runnable[i], runnable[i], running[i])) {
+        now += ns;
+        unsigned long load, runnable;
+        int running;
+        if (___update_load_sum(now, &sa, load, runnable, running)) {
             _pr_sched_avg_info(i);
-            ___update_load_avg(&avg, 1024, 1024);
+            ___update_load_avg(&sa, load_avg, runnable_avg);
             _pr_sched_avg_info(i);
         }
+        printf("++%d---------------------------------------------------\n", i+1);
     }
 
     pr_fn_end_on(stack_depth);
