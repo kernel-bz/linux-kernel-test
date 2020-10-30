@@ -11,6 +11,7 @@
 #include <linux/slab.h>
 #include <linux/radix-tree.h>
 #include <urcu/uatomic.h>
+#include <urcu/uatomic/generic.h>
 
 int nr_allocated;
 int preempt_count;

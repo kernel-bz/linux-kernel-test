@@ -1,10 +1,11 @@
 #ifndef __TEST_DEBUG_H
 #define __TEST_DEBUG_H
 
-#include <linux/compiler.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <linux/compiler.h>
+#include <linux/sched.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,11 +27,16 @@ extern int stack_depth;
 #define pr_warning		printf
 #define pr_debug		printf
 #define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
-#define pr_err(format, ...) do { fprintf (stderr, format, ## __VA_ARGS__); } while (0)
 #define pr_warn 		pr_err
 #define pr_cont 		pr_err
 #define panic 			pr_err
 #define print_tainted() ""
+
+#define pr_err(format, ...)							\
+    do { 											\
+        fprintf(stderr, "ERROR | %s : ", __func__);	\
+        fprintf(stderr, format, ## __VA_ARGS__); 	\
+    } while (0)
 
 #define pr_info(...)						\
     do {									\
@@ -92,6 +98,8 @@ extern int stack_depth;
       }												\
     } while (0)
 
+
+void pr_sched_info(struct sched_entity *se);
 
 #ifdef __cplusplus
 }

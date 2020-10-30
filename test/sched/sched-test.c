@@ -111,6 +111,7 @@ static void _sched_create_group_test(void)
     tg = sched_create_group(parent);
     if (IS_ERR(tg)) {
         pr_err("sched_create_group() error!\n");
+        goto _end;
     } else {
         sched_online_group(tg, parent);
         if (!parent_tg) parent_tg = tg;
@@ -119,6 +120,9 @@ static void _sched_create_group_test(void)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent_tg);
 
+    pr_sched_info(tg->se[0]);
+
+_end:
     pr_fn_end_on(stack_depth);
 }
 
@@ -157,17 +161,13 @@ static void _activate_task_test(void)
         rq->curr = p;
     }
 
-    printf("\n");
+    pr_out_on(stack_depth, "\n");
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.parent);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->se.on_rq);
-    printf("\n");
+    pr_out_on(stack_depth, "\n");
 
     if (sched_fork(0, p) == 0) {
         //kernel/sched/core.c
@@ -178,16 +178,10 @@ static void _activate_task_test(void)
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->se.parent);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->se.on_rq);
-    printf("\n");
-    pr_info_view_on(stack_depth, "%30s : %u\n", p->se.cfs_rq->nr_running);
-    pr_info_view_on(stack_depth, "%30s : %u\n", p->se.cfs_rq->h_nr_running);
-    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->rd);
-    printf("\n");
+    pr_out_on(stack_depth, "\n");
+
+    pr_sched_info(&p->se);
+
     pr_fn_end_on(stack_depth);
 }
 
@@ -204,7 +198,7 @@ static void _activate_task_test(void)
 static void _deactivate_task_test(void)
 {
     struct task_struct *prev, *next;
-    struct rq_flags rf;
+    //struct rq_flags rf;
     struct rq *rq;
     int cpu;
 
@@ -217,19 +211,13 @@ static void _deactivate_task_test(void)
     rq = this_rq();
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr->se.cfs_rq->curr);
+    pr_sched_info(&rq->curr->se);
 
-   pr_fn_end_on(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 #if 0

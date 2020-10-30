@@ -5,8 +5,8 @@ CONFIG -= qt
 
 #linux/time.h sys/time.h
 DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
-        __timespec_defined \
-        _SYS_TIME_H HAS_CAA_GET_CYCLES
+        __timespec_defined _SYS_TIME_H \
+        HAS_CAA_GET_CYCLES UATOMIC_NO_LINK_ERROR
 
 LIBS += -Lpthread
 
@@ -70,7 +70,8 @@ SOURCES += \
     test/basic/ptr-test.c \
     test/basic/types-test.c \
     kernel/time/time.c \
-    lib/stack_depth.c
+    lib/stack_depth.c \
+    test/sched/sched-debug.c
 
 HEADERS += \
     include/test/test.h \
@@ -273,7 +274,6 @@ HEADERS += \
     kernel/sched/cpudeadline.h \
     kernel/sched/cpupri.h \
     kernel/sched/features.h \
-    kernel/sched/stats.h \
     include/test/define-usr.h \
     include/linux/smp.h \
     include/linux/thread_info.h \
@@ -362,5 +362,4 @@ HEADERS += \
 
 DISTFILES += \
     lib/bpf/libbpf.a \
-    docs/study-history.txt \
     docs/study/study-history.txt

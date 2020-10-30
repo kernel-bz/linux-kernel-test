@@ -132,6 +132,7 @@ static inline u64 rq_clock_pelt(struct rq *rq)
 	return rq->clock_pelt - rq->lost_idle_time;
 }
 
+#if 0
 #ifdef CONFIG_CFS_BANDWIDTH
 /* rq->task_clock normalized against any time this cfs_rq has spent throttled */
 static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
@@ -147,12 +148,20 @@ static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
 	return rq_clock_pelt(rq_of(cfs_rq));
 }
 #endif
+#endif //0
+
+static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
+{
+    static u64 now = 0;
+    now += (1000000000UL / HZ);	//++10ms --> ns
+    return now;
+}
 
 #else
 
 static inline int
 update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
-{
+{；；；；
 	return 0;
 }
 

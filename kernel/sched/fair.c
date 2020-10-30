@@ -20,6 +20,7 @@
  *  Adaptive scheduling granularity, math enhancements by Peter Zijlstra
  *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra
  */
+#include <stdlib.h>
 #include "sched.h"
 #include "pelt.h"
 
@@ -727,6 +728,8 @@ static unsigned long capacity_of(int cpu);
 /* Give new sched_entity start runnable values to heavy its load in infant time */
 void init_entity_runnable_average(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_avg *sa = &se->avg;
 
     memset(sa, 0, sizeof(*sa));
@@ -743,6 +746,10 @@ void init_entity_runnable_average(struct sched_entity *se)
     se->runnable_weight = se->load.weight;
 
     /* when this task enqueue'ed, it will contribute to its cfs_rq's load_avg */
+
+    pr_sched_info(se);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void attach_entity_cfs_rq(struct sched_entity *se);
@@ -1475,8 +1482,14 @@ static inline void cfs_rq_util_change(struct cfs_rq *cfs_rq, int flags)
  */
 static inline void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
 {
+    pr_fn_start_on(stack_depth);
+
     long delta = cfs_rq->avg.load_avg - cfs_rq->tg_load_avg_contrib;
 
+    if (!cfs_rq->tg) {
+        pr_err("cfs_rq->tg is NULL\n");
+        return;
+    }
     /*
      * No need to update load_avg for root_task_group as it is not used.
      */
@@ -1487,6 +1500,8 @@ static inline void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
         atomic_long_add(delta, &cfs_rq->tg->load_avg);
         cfs_rq->tg_load_avg_contrib = cfs_rq->avg.load_avg;
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1643,6 +1658,8 @@ update_tg_cfs_util(struct cfs_rq *cfs_rq, struct sched_entity *se, struct cfs_rq
 static inline void
 update_tg_cfs_runnable(struct cfs_rq *cfs_rq, struct sched_entity *se, struct cfs_rq *gcfs_rq)
 {
+    pr_fn_start_on(stack_depth);
+
     long delta_avg, running_sum, runnable_sum = gcfs_rq->prop_runnable_sum;
     unsigned long runnable_load_avg, load_avg;
     u64 runnable_load_sum, load_sum = 0;
@@ -1706,6 +1723,8 @@ update_tg_cfs_runnable(struct cfs_rq *cfs_rq, struct sched_entity *se, struct cf
         add_positive(&cfs_rq->avg.runnable_load_avg, delta_avg);
         add_positive(&cfs_rq->avg.runnable_load_sum, delta_sum);
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void add_tg_cfs_propagate(struct cfs_rq *cfs_rq, long runnable_sum)
@@ -1717,6 +1736,8 @@ static inline void add_tg_cfs_propagate(struct cfs_rq *cfs_rq, long runnable_sum
 /* Update task and its cfs_rq load average */
 static inline int propagate_entity_load_avg(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     struct cfs_rq *cfs_rq, *gcfs_rq;
 
     if (entity_is_task(se))
@@ -1737,6 +1758,8 @@ static inline int propagate_entity_load_avg(struct sched_entity *se)
 
     //trace_pelt_cfs_tp(cfs_rq);
     //trace_pelt_se_tp(se);
+
+    pr_fn_end_on(stack_depth);
 
     return 1;
 }
@@ -4246,14 +4269,14 @@ void online_fair_sched_group(struct task_group *tg)
     int i;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%10s : %p\n", (void*)tg);
 
     for_each_possible_cpu(i) {
-        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+        pr_info_view_on(stack_depth, "%10s : %d\n", i);
         rq = cpu_rq(i);
         se = tg->se[i];
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+        pr_info_view_on(stack_depth, "%10s : %p\n", (void*)rq);
+        pr_info_view_on(stack_depth, "%10s : %p\n", (void*)se);
         rq_lock_irq(rq, &rf);
         //update_rq_clock(rq);
         attach_entity_cfs_rq(se);

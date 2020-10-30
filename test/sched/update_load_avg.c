@@ -21,18 +21,18 @@ static struct sched_avg sa = {
     .util_sum = 86000000
 };
 
-static void _pr_sched_avg_info(int i)
+static void _pr_sched_avg_info(int idx)
 {
-    pr_info_view_on(stack_depth, "%30s : %d\n", i);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.last_update_time);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.load_sum);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", sa.runnable_load_sum);
-    pr_info_view_on(stack_depth, "%30s : %u\n", sa.util_sum);
-    pr_info_view_on(stack_depth, "%30s : %u\n", sa.period_contrib);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.load_avg);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.runnable_load_avg);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", sa.util_avg);
-    //pr_info_view_on(stack_depth, "%30s : %llu\n", sa.util_est);
+    pr_info_view_on(stack_depth, "%25s : %d\n", idx);
+    pr_info_view_on(stack_depth, "%25s : %llu\n", sa.last_update_time);
+    pr_info_view_on(stack_depth, "%25s : %llu\n", sa.load_sum);
+    pr_info_view_on(stack_depth, "%25s : %llu\n", sa.runnable_load_sum);
+    pr_info_view_on(stack_depth, "%25s : %u\n", sa.util_sum);
+    pr_info_view_on(stack_depth, "%25s : %u\n", sa.period_contrib);
+    pr_info_view_on(stack_depth, "%25s : %lu\n", sa.load_avg);
+    pr_info_view_on(stack_depth, "%25s : %lu\n", sa.runnable_load_avg);
+    pr_info_view_on(stack_depth, "%25s : %lu\n", sa.util_avg);
+    //pr_info_view_on(stack_depth, "%25s : %llu\n", sa.util_est);
     pr_out_on(stack_depth, "\n");
 }
 
@@ -40,10 +40,10 @@ static u64 decay_load(u64 val, u64 n)
 {
         unsigned int local_n;
 
-        pr_fn_start_on(stack_depth);
+        //pr_fn_start_on(stack_depth);
 
-        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
-        pr_info_view_on(stack_depth, "%10s : %llu\n", n);
+        //pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+        //pr_info_view_on(stack_depth, "%10s : %llu\n", n);
 
         if (n > LOAD_AVG_PERIOD * 63)
                 return 0;
@@ -65,10 +65,10 @@ static u64 decay_load(u64 val, u64 n)
 
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
 
-        pr_info_view_on(stack_depth, "%10s : %u\n", local_n);
-        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+        //pr_info_view_on(stack_depth, "%10s : %u\n", local_n);
+        //pr_info_view_on(stack_depth, "%10s : %llu\n", val);
 
-        pr_fn_end_on(stack_depth);
+        //pr_fn_end_on(stack_depth);
         return val;
 }
 
@@ -130,21 +130,23 @@ static u32 __accumulate_pelt_segments(u64 periods, u32 d1, u32 d3)
  */
 static __always_inline u32
 accumulate_sum(u64 delta, struct sched_avg *sa,
-               unsigned long load, unsigned long runnable, int running)
+           unsigned long load, unsigned long runnable, int running)
 {
     pr_fn_start_on(stack_depth);
 
     u32 contrib = (u32)delta; /* p == 0 -> delta < 1024 */
     u64 periods;
 
+    pr_info_view_on(stack_depth, "%23s(delta) : %u\n", contrib);
+
     delta += sa->period_contrib;
     periods = delta / 1024; /* A period is 1024us (~1ms) */
 
-    pr_info_view_on(stack_depth, "%20s : %u\n", sa->period_contrib);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", delta);
-    pr_info_view_on(stack_depth, "%20s(ms) : %llu\n", periods);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
+    pr_info_view_on(stack_depth, "%21s(+old_d3) : %llu\n", delta);
+    pr_info_view_on(stack_depth, "%26s(ms) : %llu\n", periods);
 
-     /*
+    /*
      * Step 1: decay old *_sum if we crossed period boundaries.
      */
     if (periods) {
@@ -153,6 +155,9 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
             decay_load(sa->runnable_load_sum, periods);
         sa->util_sum = decay_load((u64)(sa->util_sum), periods);
 
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sa->runnable_load_sum);
+        pr_info_view_on(stack_depth, "%30s : %u\n", sa->util_sum);
         /*
          * Step 2
          */
@@ -160,9 +165,13 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
         contrib = __accumulate_pelt_segments(periods,
                 1024 - sa->period_contrib, delta);
 
-        pr_info_view_on(stack_depth, "%20s : %u\n", contrib);
+        pr_info_view_on(stack_depth, "%24s(pelt) : %u\n", contrib);
     }
     sa->period_contrib = delta;
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", runnable);
+    pr_info_view_on(stack_depth, "%30s : %d\n", running);
 
     if (load)
         sa->load_sum += load * contrib;
@@ -170,6 +179,10 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
         sa->runnable_load_sum += runnable * contrib;
     if (running)
         sa->util_sum += contrib << SCHED_CAPACITY_SHIFT;
+
+    pr_info_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", sa->runnable_load_sum);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sa->util_sum);
 
     pr_fn_end_on(stack_depth);
 
@@ -184,27 +197,31 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
     int ret=1;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", load);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", runnable);
-    pr_info_view_on(stack_depth, "%20s : %d\n", running);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", now);
 
     delta = now - sa->last_update_time;
-    pr_info_view_on(stack_depth, "%20s : %llu\n", now);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", sa->last_update_time);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", delta);
-
+    pr_info_view_on(stack_depth, "%16s(ns) : %lld\n", (s64)delta);
+    /*
+     * This should only happen when time goes backwards, which it
+     * unfortunately does during sched clock init when we swap over to TSC.
+     */
     if ((s64)delta < 0) {
         sa->last_update_time = now;
         return 0;
     }
 
-    delta >>= 10;	//us
+    /*
+     * Use 1024ns as the unit of measurement since it's a reasonable
+     * approximation of 1us and fast to compute.
+     */
+    delta >>= 10;
     if (!delta)
         return 0;
 
-    pr_info_view_on(stack_depth, "%20s(us) : %llu\n", delta);
+    pr_info_view_on(stack_depth, "%16s(us) : %llu\n", delta);
 
     sa->last_update_time += delta << 10;
+
     pr_info_view_on(stack_depth, "%20s : %llu\n", sa->last_update_time);
 
     if (!load)
@@ -221,23 +238,28 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
 static void
 ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runnable)
 {
-        pr_fn_start_on(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-        u32 divider = LOAD_AVG_MAX - 1024 + sa->period_contrib;
-        pr_info_view_on(stack_depth, "%20s : %u\n", sa->period_contrib);
-        pr_info_view_on(stack_depth, "%20s : %u\n", divider);
+    u32 divider = LOAD_AVG_MAX - 1024 + sa->period_contrib;
 
-        /*
-         * Step 2: update *_avg.
-         */
-        //sa->load_avg = div_u64(load * sa->load_sum, divider);
-        sa->load_avg = (load * sa->load_sum) / divider;
-        //sa->runnable_load_avg = div_u64(runnable * sa->runnable_load_sum, divider);
-        sa->runnable_load_avg = (runnable * sa->runnable_load_sum) / divider;
-        //WRITE_ONCE(sa->util_avg, sa->util_sum / divider);
-        sa->util_avg = sa->util_sum / divider;
+    pr_info_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
+    pr_info_view_on(stack_depth, "%30s : %u\n", divider);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", runnable);
+    /*
+     * Step 2: update *_avg.
+     */
+    //sa->load_avg = div_u64(load * sa->load_sum, divider);
+    sa->load_avg = (load * sa->load_sum) / divider;
+    //sa->runnable_load_avg = div_u64(runnable * sa->runnable_load_sum, divider);
+    sa->runnable_load_avg = (runnable * sa->runnable_load_sum) / divider;
+    //WRITE_ONCE(sa->util_avg, sa->util_sum / divider);
+    sa->util_avg = sa->util_sum / divider;
 
-        pr_fn_end_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa->load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa->runnable_load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa->util_avg);
+    pr_fn_end_on(stack_depth);
 }
 
 #if 0
@@ -245,6 +267,7 @@ kernel/sched/fair.c
 update_load_avg()
   kernel/sched/pelt.c
   __update_load_avg_se(now, *cfs_rq, *se)
+    //kernel/sched/pelt.c
     ___update_load_sum(now, *sa, load, runnable, running)
         ___update_load_avg(*sa, load, runnable)
 #endif //0
@@ -256,7 +279,6 @@ void update_load_avg_test(void)
     u64 now = 0, hz, ns;
     int i, loop_cnt;
 
-_retry:
     __fpurge(stdin);
     printf("Input Load Weight Value[0,%d]: ", LOAD_AVG_MAX);
     scanf("%lu", &load);
@@ -282,10 +304,8 @@ _retry:
     _pr_sched_avg_info(0);
     for (i=0; i<loop_cnt; i++) {
         now += ns;
-        unsigned long load, runnable;
-        int running;
         if (___update_load_sum(now, &sa, load, runnable, running)) {
-            _pr_sched_avg_info(i);
+            //_pr_sched_avg_info(i);
             ___update_load_avg(&sa, load_avg, runnable_avg);
             _pr_sched_avg_info(i);
         }
