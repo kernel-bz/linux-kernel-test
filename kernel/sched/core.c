@@ -812,6 +812,9 @@ static inline void init_uclamp(void) { }
 //1288
 static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 {
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%10s : 0x%X\n", flags);
+
     if (!(flags & ENQUEUE_NOCLOCK))
         update_rq_clock(rq);
 
@@ -822,6 +825,8 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 
     uclamp_rq_inc(rq, p);
     p->sched_class->enqueue_task(rq, p, flags);
+
+    pr_fn_end_on(stack_depth);
 }
 //1302
 static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
@@ -858,12 +863,19 @@ void activate_task(struct rq *rq, struct task_struct *p, int flags)
 
 void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 {
+    pr_fn_start_on(stack_depth);
+
     p->on_rq = (flags & DEQUEUE_SLEEP) ? 0 : TASK_ON_RQ_MIGRATING;
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", (void*)flags);
+    pr_info_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
 
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible++;
 
     dequeue_task(rq, p, flags);
+
+    pr_fn_end_on(stack_depth);
 }
 //1336
 /*

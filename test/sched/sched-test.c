@@ -120,6 +120,7 @@ static void _sched_create_group_test(void)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent_tg);
 
+    //pr_sched_info(parent_tg->se[0]);
     pr_sched_info(tg->se[0]);
 
 _end:
@@ -207,10 +208,10 @@ static void _deactivate_task_test(void)
     //cpu = smp_processor_id();
     cpu = 0;
     rq = cpu_rq(cpu);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     rq = this_rq();
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);

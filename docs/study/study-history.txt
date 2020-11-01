@@ -65,3 +65,18 @@ sched_cfs_slack_timer()
 task_tick_rt()
   watchdog()
 
+
+//D20201024 Scheduler RT Study ===============================
+
+/sys/fs/cgroup/cpu
+RT_RUNTIME_SHARE --> rt_rq->runtime ++/-- (enable)
+
+
+//D20201031 Scheduler RT Balance Study ===============================
+pick_next_task()
+--> balance
+
+/sys/kernel/debug/sched_features
+
+
+

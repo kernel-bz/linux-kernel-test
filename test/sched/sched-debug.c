@@ -82,17 +82,19 @@ void pr_sched_info(struct sched_entity *se)
     pr_out_on(stack_depth, "=====================================================\n");
     u64 now = 0;
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%20s : %d\n", se->on_rq);
 
-    struct cfs_rq *my_cfs_rq = se->my_q;
-    struct cfs_rq *cfs_rq = se->cfs_rq;
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)my_cfs_rq);
+    struct cfs_rq *cfs_rq;
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se->my_q);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se->cfs_rq);
+    cfs_rq = (se->on_rq) ? se->cfs_rq : se->my_q;
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
 
     if (cfs_rq) {
         struct rq *rq = rq_of(cfs_rq);
-        struct cfs_rq *root_cfs_rq = &rq->cfs;
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)root_cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&rq->cfs);
 
         _pr_sched_rq(rq);
         _pr_sched_cfs_rq(cfs_rq);
