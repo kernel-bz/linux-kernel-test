@@ -270,6 +270,8 @@ void resched_cpu(int cpu)
 //746 lines
 static void set_load_weight(struct task_struct *p, bool update_load)
 {
+    pr_fn_start_on(stack_depth);
+
     int prio = p->static_prio - MAX_RT_PRIO;
     struct load_weight *load = &p->se.load;
 
@@ -294,6 +296,12 @@ static void set_load_weight(struct task_struct *p, bool update_load)
         load->inv_weight = sched_prio_to_wmult[prio];
         p->se.runnable_weight = load->weight;
     }
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", load->weight);
+    pr_info_view_on(stack_depth, "%30s : %u\n", load->inv_weight);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", p->se.runnable_weight);
+
+    pr_fn_end_on(stack_depth);
 }
 //774
 #ifdef CONFIG_UCLAMP_TASK
@@ -1428,6 +1436,8 @@ DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
 //  start_kernel()
 void __init sched_init(void)
 {
+        pr_fn_start_on(stack_depth);
+
         unsigned long ptr = 0;
         int i;
 
@@ -1474,9 +1484,6 @@ void __init sched_init(void)
 
         init_rt_bandwidth(&def_rt_bandwidth, global_rt_period(), global_rt_runtime());
         init_dl_bandwidth(&def_dl_bandwidth, global_rt_period(), global_rt_runtime());
-
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&def_rt_bandwidth);
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&def_dl_bandwidth);
 
 #ifdef CONFIG_SMP
         init_defrootdomain();
@@ -1570,10 +1577,6 @@ void __init sched_init(void)
 
         set_load_weight(&init_task, false);
 
-        printf("\n");
-        pr_info_view_on(stack_depth, "%30s : %lu\n", init_task.se.load.weight);
-        pr_info_view_on(stack_depth, "%30s : %u\n", init_task.se.load.inv_weight);
-
         /*
          * The boot idle thread does lazy MMU switching as well:
          */
@@ -1589,8 +1592,8 @@ void __init sched_init(void)
         //init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
-        pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
-        pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", calc_load_update);
 
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
@@ -1606,6 +1609,8 @@ void __init sched_init(void)
         //init_uclamp();
 
         scheduler_running = 1;
+
+        pr_fn_end_on(stack_depth);
 }
 //6720 lines
 

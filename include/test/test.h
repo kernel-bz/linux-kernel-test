@@ -10,6 +10,7 @@ void cpus_mask_test(void);
 
 //test/sched/sched-test.c
 void sched_test(void);
+struct task_group *sched_test_tg_select(void);
 
 //test/sched/decay_load.c
 void decay_load_test(void);

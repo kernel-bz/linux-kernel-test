@@ -19,7 +19,7 @@
 
 #include <kernel/sched/sched.h>
 
-struct task_group *parent_tg;
+struct task_group *root_tg;
 
 /*
 init/main.c:585:        sched_init();
@@ -32,62 +32,24 @@ static void _sched_init_test(void)
     pr_fn_end_on(stack_depth);
 }
 
-static void _sched_task_group_view(void)
+struct task_group *sched_test_tg_select(void)
 {
+    int tg_max, idx, cnt=0;
     struct task_group *tg;
-    int cpu;
 
-    printf("\n==> all of the task_group\n");
-    printf("--> root_task_group : %p\n", (void*)&root_task_group);
-    printf("--> parent_tg : %p\n", (void*)parent_tg);
-    rcu_read_lock();
-    list_for_each_entry_rcu(tg, &task_groups, list) {
-        printf("--> tg : %p\n", (void*)tg);
-        for_each_possible_cpu(cpu) {
-            struct rq *rq;
-            rq = cpu_rq(cpu);
-            pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-            pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
-
-            struct cfs_rq *cfs_rq = tg->cfs_rq[cpu_of(rq)];
-            struct sched_entity *se;
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
-            if(cfs_rq) {
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->next);
-                pr_info_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
-                pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
-                if (cfs_rq->on_list > 0) {
-                    int i=0;
-                    struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
-                    while (next) {
-                        se = rb_entry(next, struct sched_entity, run_node);
-                        pr_info_view_on(stack_depth, "%40s : %d\n", i++);
-                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->parent);
-                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->cfs_rq);
-                        pr_info_view_on(stack_depth, "%40s : %p\n", (void*)se->my_q);
-                        pr_info_view_on(stack_depth, "%40s : %llu\n", se->vruntime);
-                        pr_info_view_on(stack_depth, "%40s : %d\n", se->on_rq);
-                        next = rb_next(&se->run_node);
-                    }
-                }
+    if (root_tg) {
+        tg_max = pr_sched_tg_view_only();
+        __fpurge(stdin);
+        printf("Enter Task Group Index Number[0,%d]: ", tg_max-1);
+        scanf("%d", &idx);
+        list_for_each_entry_rcu(tg, &task_groups, list) {
+            if (cnt == idx) {
+                return tg;
             }
-            se = tg->se[cpu_of(rq)];
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
-            if (se) {
-                pr_info_view_on(stack_depth, "%30s : %d\n", se->depth);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->parent);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
-                pr_info_view_on(stack_depth, "%30s : %d\n", se->on_rq);
-            }
-
-        } //cpu
-        printf("\n");
-    } //tg
-    rcu_read_unlock();
+            cnt++;
+        }
+    }
+    return &root_task_group;
 }
 
 /*
@@ -99,14 +61,13 @@ static void _sched_task_group_view(void)
  */
 static void _sched_create_group_test(void)
 {
-    struct task_group *parent;
+    struct task_group *parent = &root_task_group;
     struct task_group *tg;
+    int cnt=0, idx, tg_max;
 
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
-    parent = (parent_tg) ? parent_tg : &root_task_group;
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
+    parent = sched_test_tg_select();
 
     tg = sched_create_group(parent);
     if (IS_ERR(tg)) {
@@ -114,14 +75,16 @@ static void _sched_create_group_test(void)
         goto _end;
     } else {
         sched_online_group(tg, parent);
-        if (!parent_tg) parent_tg = tg;
-        //parent_tg = tg;
+        if (!root_tg) {
+            root_tg = tg;
+            //root_tg->parent = &root_task_group;
+        }
     }
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent_tg);
+    pr_sched_tg_view_only();
 
-    //pr_sched_info(parent_tg->se[0]);
-    pr_sched_info(tg->se[0]);
+    //pr_sched_se_pelt_info(root_tg->se[0]);
+    //pr_sched_se_pelt_info(tg->se[0]);
 
 _end:
     pr_fn_end_on(stack_depth);
@@ -152,17 +115,18 @@ static void _activate_task_test(void)
     p = (struct task_struct *)malloc(sizeof(*p));
 
     //rq = task_rq(p);
-    rq = this_rq();
+    //rq = this_rq();
+    rq = cpu_rq(0);
     if (rq->curr) {
         memcpy(p, rq->curr, sizeof(*p));
     } else {
         memcpy(p, &init_task, sizeof(init_task));
-        //p = &init_task;
-        p->sched_task_group = parent_tg;
         rq->curr = p;
     }
+    p->sched_task_group = sched_test_tg_select();
 
     pr_out_on(stack_depth, "\n");
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
@@ -174,6 +138,7 @@ static void _activate_task_test(void)
         //kernel/sched/core.c
         activate_task(rq, p, flags);
     }
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
@@ -181,7 +146,7 @@ static void _activate_task_test(void)
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
     pr_out_on(stack_depth, "\n");
 
-    pr_sched_info(&p->se);
+    pr_sched_se_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -216,7 +181,7 @@ static void _deactivate_task_test(void)
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
-    pr_sched_info(&rq->curr->se);
+    pr_sched_se_pelt_info(&rq->curr->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -344,7 +309,7 @@ static int _sched_statis_menu(int asize)
 static void _sched_statis_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , _sched_task_group_view
+        , pr_sched_tg_info
         , _calc_global_load_test
         , decay_load_test, update_load_avg_test
     };
@@ -367,13 +332,14 @@ static int _sched_test_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");
     printf("0: help.\n");
-    printf("1: sched task group view.\n");
-    printf("2: sched_init test.\n");
-    printf("3: sched_create_group test.\n");
-    printf("4: activate_task test.\n");
-    printf("5: deactivate_task test.\n");
-    printf("6: Statistics Test -->\n");
-    printf("7: exit.\n");
+    printf("1: sched task group info.\n");
+    printf("2: sched task group info(detail).\n");
+    printf("3: sched_init test.\n");
+    printf("4: sched_create_group test.\n");
+    printf("5: activate_task test.\n");
+    printf("6: deactivate_task test.\n");
+    printf("7: Statistics Test -->\n");
+    printf("8: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -384,7 +350,7 @@ static int _sched_test_menu(int asize)
 void sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , _sched_task_group_view
+        , pr_sched_tg_info, pr_sched_tg_info_all
         , _sched_init_test, _sched_create_group_test
         , _activate_task_test, _deactivate_task_test
         , _sched_statis_test

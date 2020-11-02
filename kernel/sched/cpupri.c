@@ -199,6 +199,7 @@ void cpupri_set(struct cpupri *cp, int cpu, int newpri)
  */
 int cpupri_init(struct cpupri *cp)
 {
+    pr_fn_start_on(stack_depth);
 	int i;
 
 	for (i = 0; i < CPUPRI_NR_PRIORITIES; i++) {
@@ -216,7 +217,8 @@ int cpupri_init(struct cpupri *cp)
 	for_each_possible_cpu(i)
 		cp->cpu_to_pri[i] = CPUPRI_INVALID;
 
-	return 0;
+    pr_fn_end_on(stack_depth);
+    return 0;
 
 cleanup:
 	for (i--; i >= 0; i--)

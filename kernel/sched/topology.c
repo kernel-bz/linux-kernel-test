@@ -197,9 +197,13 @@ struct root_domain def_root_domain;
 
 void init_defrootdomain(void)
 {
+    pr_fn_start_on(stack_depth);
+
     init_rootdomain(&def_root_domain);
 
     atomic_set(&def_root_domain.refcount, 1);
+
+    pr_fn_end_on(stack_depth);
 }
 //541 lines
 

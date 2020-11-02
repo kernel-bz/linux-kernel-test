@@ -758,7 +758,7 @@ void init_entity_runnable_average(struct sched_entity *se)
 
     /* when this task enqueue'ed, it will contribute to its cfs_rq's load_avg */
 
-    pr_sched_info(se);
+    pr_sched_se_pelt_info(se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -2954,7 +2954,7 @@ void init_cfs_bandwidth(struct cfs_bandwidth *cfs_b)
     raw_spin_lock_init(&cfs_b->lock);
     cfs_b->runtime = 0;
     cfs_b->quota = RUNTIME_INF;
-    //cfs_b->period = ns_to_ktime(default_cfs_period());
+    cfs_b->period = ns_to_ktime(default_cfs_period());
 
     INIT_LIST_HEAD(&cfs_b->throttled_cfs_rq);
     hrtimer_init(&cfs_b->period_timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS_PINNED);

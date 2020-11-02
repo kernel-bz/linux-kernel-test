@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#include <linux/types-user.h>
+#include <linux/cpumask.h>
+#include <linux/sched/prio.h>
+
 /* SPDX-License-Identifier: GPL-2.0 */
 
 #define CPUPRI_NR_PRIORITIES	(MAX_RT_PRIO + 2)
