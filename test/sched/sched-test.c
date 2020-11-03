@@ -20,6 +20,7 @@
 #include <kernel/sched/sched.h>
 
 struct task_group *root_tg;
+struct task_struct *current_task;
 
 /*
 init/main.c:585:        sched_init();
@@ -43,9 +44,8 @@ struct task_group *sched_test_tg_select(void)
         printf("Enter Task Group Index Number[0,%d]: ", tg_max-1);
         scanf("%d", &idx);
         list_for_each_entry_rcu(tg, &task_groups, list) {
-            if (cnt == idx) {
+            if (cnt == idx)
                 return tg;
-            }
             cnt++;
         }
     }
@@ -83,8 +83,8 @@ static void _sched_create_group_test(void)
 
     pr_sched_tg_view_only();
 
-    //pr_sched_se_pelt_info(root_tg->se[0]);
-    //pr_sched_se_pelt_info(tg->se[0]);
+    //pr_sched_pelt_info(root_tg->se[0]);
+    //pr_sched_pelt_info(tg->se[0]);
 
 _end:
     pr_fn_end_on(stack_depth);
@@ -106,6 +106,13 @@ static void _activate_task_test(void)
     struct task_struct *p;
     struct rq *rq;
     int flags = ENQUEUE_NOCLOCK;
+    unsigned int cpu;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
 
     pr_fn_start_on(stack_depth);
     //1280 Bytes
@@ -116,14 +123,17 @@ static void _activate_task_test(void)
 
     //rq = task_rq(p);
     //rq = this_rq();
-    rq = cpu_rq(0);
-    if (rq->curr) {
-        memcpy(p, rq->curr, sizeof(*p));
+    rq = cpu_rq(cpu);
+    if (current_task) {
+        memcpy(p, current_task, sizeof(*p));
     } else {
         memcpy(p, &init_task, sizeof(init_task));
-        rq->curr = p;
     }
+    current_task = p;
+    //rq->curr = p;
     p->sched_task_group = sched_test_tg_select();
+    //p->cpu = cpu;
+    //p->wake_cpu = (int)cpu;
 
     pr_out_on(stack_depth, "\n");
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
@@ -146,7 +156,7 @@ static void _activate_task_test(void)
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
     pr_out_on(stack_depth, "\n");
 
-    pr_sched_se_pelt_info(&p->se);
+    pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -181,7 +191,7 @@ static void _deactivate_task_test(void)
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
-    pr_sched_se_pelt_info(&rq->curr->se);
+    pr_sched_pelt_info(&rq->curr->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -272,6 +282,29 @@ static void _calc_global_load_test(void)
     pr_fn_end_on(stack_depth);
 }
 
+static void _sched_pelt_info(void)
+{
+    struct task_group *tg;
+    int cpu;
+
+    if (!root_tg) return;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    pr_fn_start_on(stack_depth);
+
+    tg = sched_test_tg_select();
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cpu_rq(cpu));
+    pr_sched_pelt_info(tg->se[cpu]);
+
+    pr_fn_end_on(stack_depth);
+}
+
 static void _sched_test_help(void)
 {
     //help messages...
@@ -294,11 +327,10 @@ static int _sched_statis_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler --> Statistics Test Menu\n");
     printf("0: help.\n");
-    printf("1: sched task group view.\n");
-    printf("2: calc_global_load test.\n");
-    printf("3: decay_load() test.\n");
-    printf("4: update_load_avg() test.\n");
-    printf("5: exit.\n");
+    printf("1: calc_global_load test.\n");
+    printf("2: decay_load() test.\n");
+    printf("3: update_load_avg() test.\n");
+    printf("4: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -309,7 +341,6 @@ static int _sched_statis_menu(int asize)
 static void _sched_statis_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , pr_sched_tg_info
         , _calc_global_load_test
         , decay_load_test, update_load_avg_test
     };
@@ -332,14 +363,15 @@ static int _sched_test_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");
     printf("0: help.\n");
-    printf("1: sched task group info.\n");
-    printf("2: sched task group info(detail).\n");
-    printf("3: sched_init test.\n");
-    printf("4: sched_create_group test.\n");
-    printf("5: activate_task test.\n");
-    printf("6: deactivate_task test.\n");
-    printf("7: Statistics Test -->\n");
-    printf("8: exit.\n");
+    printf("1: sched_init test.\n");
+    printf("2: sched_create_group test.\n");
+    printf("3: activate_task test.\n");
+    printf("4: deactivate_task test.\n");
+    printf("5: sched task group info.\n");
+    printf("6: sched task group info(detail).\n");
+    printf("7: sched pelt info.\n");
+    printf("8: Statistics Test -->\n");
+    printf("9: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -350,9 +382,10 @@ static int _sched_test_menu(int asize)
 void sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , pr_sched_tg_info, pr_sched_tg_info_all
         , _sched_init_test, _sched_create_group_test
         , _activate_task_test, _deactivate_task_test
+        , pr_sched_tg_info, pr_sched_tg_info_all
+        , _sched_pelt_info
         , _sched_statis_test
     };
     int idx;

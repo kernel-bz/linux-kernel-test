@@ -758,7 +758,7 @@ void init_entity_runnable_average(struct sched_entity *se)
 
     /* when this task enqueue'ed, it will contribute to its cfs_rq's load_avg */
 
-    pr_sched_se_pelt_info(se);
+    pr_sched_pelt_info(se);
 
     pr_fn_end_on(stack_depth);
 }

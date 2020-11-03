@@ -101,8 +101,9 @@ extern int stack_depth;
 
 //test/sched/sched-test.c
 extern struct task_group *root_tg;
+extern struct task_struct *current_task;
 
-void pr_sched_se_pelt_info(struct sched_entity *se);
+void pr_sched_pelt_info(struct sched_entity *se);
 
 void pr_sched_tg_view_cpu(struct task_group *tg);
 int pr_sched_tg_view_only(void);
