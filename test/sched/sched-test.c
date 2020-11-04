@@ -129,28 +129,30 @@ _retry:
     } else {
         memcpy(p, &init_task, sizeof(init_task));
     }
+    rq->cpu = (int)cpu;
+    p->cpu = cpu;
+    rq->curr = p;
     current_task = p;
-    //rq->curr = p;
     p->sched_task_group = sched_test_tg_select();
-    //p->cpu = cpu;
-    //p->wake_cpu = (int)cpu;
+    p->wake_cpu = (int)cpu;
 
     pr_out_on(stack_depth, "\n");
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rq->cpu);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
     pr_out_on(stack_depth, "\n");
 
+    //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
-        //kernel/sched/core.c
         activate_task(rq, p, flags);
     }
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rq->cpu);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
@@ -174,24 +176,25 @@ _retry:
 static void _deactivate_task_test(void)
 {
     struct task_struct *prev, *next;
-    //struct rq_flags rf;
     struct rq *rq;
     int cpu;
 
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
     pr_fn_start_on(stack_depth);
 
-    //cpu = smp_processor_id();
-    cpu = 0;
     rq = cpu_rq(cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    rq = this_rq();
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
-    pr_sched_pelt_info(&rq->curr->se);
+    //pr_sched_pelt_info(&rq->curr->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -370,8 +373,9 @@ static int _sched_test_menu(int asize)
     printf("5: sched task group info.\n");
     printf("6: sched task group info(detail).\n");
     printf("7: sched pelt info.\n");
-    printf("8: Statistics Test -->\n");
-    printf("9: exit.\n");
+    printf("8: leaf cfs_rq info.\n");
+    printf("9: Statistics Test -->\n");
+    printf("10: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -385,7 +389,7 @@ void sched_test(void)
         , _sched_init_test, _sched_create_group_test
         , _activate_task_test, _deactivate_task_test
         , pr_sched_tg_info, pr_sched_tg_info_all
-        , _sched_pelt_info
+        , _sched_pelt_info, pr_leaf_cfs_rq_info
         , _sched_statis_test
     };
     int idx;

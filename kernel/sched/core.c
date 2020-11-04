@@ -297,6 +297,7 @@ static void set_load_weight(struct task_struct *p, bool update_load)
         p->se.runnable_weight = load->weight;
     }
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", prio);
     pr_info_view_on(stack_depth, "%30s : %lu\n", load->weight);
     pr_info_view_on(stack_depth, "%30s : %u\n", load->inv_weight);
     pr_info_view_on(stack_depth, "%30s : %lu\n", p->se.runnable_weight);
@@ -873,9 +874,11 @@ void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 {
     pr_fn_start_on(stack_depth);
 
+    pr_info_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", flags);
+
     p->on_rq = (flags & DEQUEUE_SLEEP) ? 0 : TASK_ON_RQ_MIGRATING;
 
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", (void*)flags);
     pr_info_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
 
     if (task_contributes_to_load(p))
@@ -1171,6 +1174,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     }
 
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->static_prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->rt_priority);
 
     if (dl_prio(p->prio))
         return -EAGAIN;
@@ -1198,7 +1203,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
      * We're setting the CPU for the first time, we don't migrate,
      * so use __set_task_cpu().
      */
-    __set_task_cpu(p, smp_processor_id());
+    //__set_task_cpu(p, smp_processor_id());
+    __set_task_cpu(p, p->cpu);	//task cpu for test
 
     pr_info_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_fork);
     pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
@@ -1509,6 +1515,9 @@ void __init sched_init(void)
         for_each_possible_cpu(i) {
             struct rq *rq;
             rq = cpu_rq(i);
+
+            pr_info_view_on(stack_depth, "%30s : %d\n", i);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
 
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;

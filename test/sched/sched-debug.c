@@ -10,6 +10,7 @@
 
 #include <linux/sched.h>
 #include <kernel/sched/pelt.h>
+#include <linux/list.h>
 #include "test/debug.h"
 
 static void _pr_sched_rq(struct rq *rq)
@@ -291,5 +292,40 @@ void pr_sched_tg_info_all(void)
     rcu_read_unlock();
 
     pr_out_on(stack_depth, "=====================================================\n");
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_leaf_cfs_rq_info(void)
+{
+    struct rq *rq;
+    struct cfs_rq *cfs_rq, *pos;
+    int cpu, count=0;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    pr_fn_start_on(stack_depth);
+
+    rq = cpu_rq(cpu);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->leaf_cfs_rq_list);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
+
+    //for_each_leaf_cfs_rq_safe(rq, cfs_rq, pos) {
+    //list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,
+    list_for_each_entry_safe(cfs_rq, pos, rq->tmp_alone_branch,
+                 leaf_cfs_rq_list) {
+        struct sched_entity *se;
+
+        pr_info_view_on(stack_depth, "%30s : %d\n", count++);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->tg);
+        se = cfs_rq->tg->se[cpu];
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
+    }
+
     pr_fn_end_on(stack_depth);
 }

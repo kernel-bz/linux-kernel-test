@@ -53,4 +53,4 @@ dkms.conf
 
 # QT
 *.pro.user
-
+build-*

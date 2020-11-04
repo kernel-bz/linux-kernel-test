@@ -1599,6 +1599,8 @@ static inline struct task_group *task_group(struct task_struct *p)
 
 static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	set_task_rq(p, cpu);
 #ifdef CONFIG_SMP
 	/*
@@ -1614,6 +1616,11 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 #endif
 	p->wake_cpu = cpu;
 #endif
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_info_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*

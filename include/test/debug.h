@@ -111,6 +111,8 @@ int pr_sched_tg_view_only(void);
 void pr_sched_tg_info_all(void);
 void pr_sched_tg_info(void);
 
+void pr_leaf_cfs_rq_info(void);
+
 #ifdef __cplusplus
 }
 #endif
