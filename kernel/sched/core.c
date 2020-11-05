@@ -1530,6 +1530,7 @@ void __init sched_init(void)
             root_task_group.shares = ROOT_TASK_GROUP_LOAD;	//1024
             INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
             rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
             /*
              * How much CPU bandwidth does root_task_group get?
              *

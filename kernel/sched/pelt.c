@@ -215,6 +215,9 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
 
     pr_fn_start_on(stack_depth);
     pr_info_view_on(stack_depth, "%20s : %llu\n", now);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", load);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", runnable);
+    pr_info_view_on(stack_depth, "%20s : %d\n", running);
 
 	delta = now - sa->last_update_time;
     pr_info_view_on(stack_depth, "%16s(ns) : %lld\n", (s64)delta);

@@ -103,6 +103,7 @@ extern int stack_depth;
 extern struct task_group *root_tg;
 extern struct task_struct *current_task;
 
+void pr_sched_avg_info(struct sched_avg *sa);
 void pr_sched_pelt_info(struct sched_entity *se);
 
 void pr_sched_tg_view_cpu(struct task_group *tg);
@@ -112,6 +113,7 @@ void pr_sched_tg_info_all(void);
 void pr_sched_tg_info(void);
 
 void pr_leaf_cfs_rq_info(void);
+void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq);
 
 #ifdef __cplusplus
 }

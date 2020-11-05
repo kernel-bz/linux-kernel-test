@@ -61,9 +61,9 @@ static void _pr_sched_cfs_rq_pelt(struct cfs_rq *cfs_rq)
     pr_out_on(stack_depth, "\n");
 }
 
-static void _pr_sched_avg(struct sched_avg *sa)
+void pr_sched_avg_info(struct sched_avg *sa)
 {
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sa);
+    pr_fn_start_on(stack_depth);
 
     pr_info_view_on(stack_depth, "%30s : %llu\n", sa->last_update_time);
     pr_info_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
@@ -75,7 +75,7 @@ static void _pr_sched_avg(struct sched_avg *sa)
     pr_info_view_on(stack_depth, "%30s : %lu\n", sa->util_avg);
     //pr_info_view_on(stack_depth, "%30s : %llu\n", sa->util_est);
 
-    pr_out_on(stack_depth, "\n");
+    pr_fn_end_on(stack_depth);
 }
 
 static void _pr_sched_se_info(struct sched_entity *se)
@@ -107,7 +107,7 @@ static void _pr_sched_cfs_rq_pelt_info(struct cfs_rq *cfs_rq)
 
         _pr_sched_rq(rq);
         _pr_sched_cfs_rq_pelt(cfs_rq);
-        _pr_sched_avg(&cfs_rq->avg);
+        pr_sched_avg_info(&cfs_rq->avg);
 
         now = cfs_rq_clock_pelt(cfs_rq);	//rq->clock_pelt - rq->lost_idle_time;
     }
@@ -135,7 +135,7 @@ void pr_sched_pelt_info(struct sched_entity *se)
     pr_info_view_on(stack_depth, "%20s : %d\n", se->on_rq);
     pr_info_view_on(stack_depth, "%20s : %lu\n", se->load.weight);
     pr_info_view_on(stack_depth, "%20s : %u\n", se->load.inv_weight);
-    _pr_sched_avg(&se->avg);
+    pr_sched_avg_info(&se->avg);
 
     pr_out_on(stack_depth, "=====================================================\n");
     pr_fn_end_on(stack_depth);
@@ -315,8 +315,7 @@ _retry:
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
 
     //for_each_leaf_cfs_rq_safe(rq, cfs_rq, pos) {
-    //list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,
-    list_for_each_entry_safe(cfs_rq, pos, rq->tmp_alone_branch,
+    list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,
                  leaf_cfs_rq_list) {
         struct sched_entity *se;
 
@@ -326,6 +325,18 @@ _retry:
         se = cfs_rq->tg->se[cpu];
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     }
+
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->removed.nr);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.util_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.runnable_sum);
 
     pr_fn_end_on(stack_depth);
 }

@@ -153,6 +153,7 @@ static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
 static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
 {
     static u64 now = 0;
+    //rq->clock_pelt - rq->lost_idle_time
     now += (1000000000UL / HZ);	//++10ms --> ns
     return now;
 }
