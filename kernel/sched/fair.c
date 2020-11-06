@@ -782,7 +782,10 @@ void init_entity_runnable_average(struct sched_entity *se)
 
     /* when this task enqueue'ed, it will contribute to its cfs_rq's load_avg */
 
-    pr_sched_pelt_info(se);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", se->load.weight);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", se->runnable_weight);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa->load_avg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sa->runnable_load_avg);
 
     pr_fn_end_on(stack_depth);
 }
@@ -817,11 +820,18 @@ static void attach_entity_cfs_rq(struct sched_entity *se);
  */
 void post_init_entity_util_avg(struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *se = &p->se;
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
     struct sched_avg *sa = &se->avg;
     long cpu_scale = arch_scale_cpu_capacity(cpu_of(rq_of(cfs_rq)));
     long cap = (long)(cpu_scale - cfs_rq->avg.util_avg) / 2;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&p->se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", cpu_scale);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", cap);
 
     if (cap > 0) {
         if (cfs_rq->avg.util_avg != 0) {
@@ -850,7 +860,14 @@ void post_init_entity_util_avg(struct task_struct *p)
         return;
     }
 
+    pr_info_view_on(stack_depth, "%20s : %llu\n", se->avg.last_update_time);
+    pr_sched_avg_info(sa);
+
     attach_entity_cfs_rq(se);
+
+    pr_sched_avg_info(sa);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #else /* !CONFIG_SMP */
@@ -1547,7 +1564,9 @@ static inline void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
 
     long delta = cfs_rq->avg.load_avg - cfs_rq->tg_load_avg_contrib;
 
-    pr_info_view_on(stack_depth, "%20s : %ld\n", delta);
+    pr_info_view_on(stack_depth, "%30s : %ld\n", delta);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->tg);
 
     if (!cfs_rq->tg) {
         pr_err("cfs_rq->tg is NULL\n");
@@ -1564,7 +1583,7 @@ static inline void update_tg_load_avg(struct cfs_rq *cfs_rq, int force)
         cfs_rq->tg_load_avg_contrib = cfs_rq->avg.load_avg;
     }
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", cfs_rq->tg_load_avg_contrib);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->tg_load_avg_contrib);
 
     pr_fn_end_on(stack_depth);
 }
@@ -1800,6 +1819,7 @@ static inline void add_tg_cfs_propagate(struct cfs_rq *cfs_rq, long runnable_sum
 
     cfs_rq->propagate = 1;
     cfs_rq->prop_runnable_sum += runnable_sum;
+
     pr_info_view_on(stack_depth, "%30s : %ld\n", runnable_sum);
     pr_info_view_on(stack_depth, "%30s : %ld\n", cfs_rq->prop_runnable_sum);
     pr_info_view_on(stack_depth, "%30s : %ld\n", cfs_rq->propagate);
@@ -1908,7 +1928,7 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
     struct sched_avg *sa = &cfs_rq->avg;
     int decayed = 0;
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->removed.nr);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cfs_rq->removed.nr);
 
     if (cfs_rq->removed.nr) {
         unsigned long r;
@@ -1939,6 +1959,8 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
 
     decayed |= __update_load_avg_cfs_rq(now, cfs_rq);
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", decayed);
+
 #ifndef CONFIG_64BIT
     smp_wmb();
     cfs_rq->load_last_update_time_copy = sa->last_update_time;
@@ -1963,8 +1985,11 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
  */
 static void attach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 {
+    pr_fn_start_on(stack_depth);
+
     u32 divider = LOAD_AVG_MAX - 1024 + cfs_rq->avg.period_contrib;
 
+    pr_info_view_on(stack_depth, "%20s : %u\n", divider);
     /*
      * When we attach the @se to the @cfs_rq, we must align the decay
      * window because without that, really weird and wonderful things can
@@ -2000,6 +2025,11 @@ static void attach_entity_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
     cfs_rq_util_change(cfs_rq, flags);
 
     //trace_pelt_cfs_tp(cfs_rq);
+
+    pr_sched_avg_info(&se->avg);
+    pr_sched_avg_info(&cfs_rq->avg);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -2055,6 +2085,7 @@ static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
     decayed |= propagate_entity_load_avg(se);
 
     pr_info_view_on(stack_depth, "%30s : %d\n", decayed);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", se->avg.last_update_time);
 
     if (!se->avg.last_update_time && (flags & DO_ATTACH)) {
 
@@ -3008,8 +3039,29 @@ static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq)
 
 
 
+//4861 lines
+static void sync_throttle(struct task_group *tg, int cpu)
+{
+    pr_fn_start_on(stack_depth);
+    tg->cfs_rq[cpu]->throttle_count = 0;
 
-//4878 lines
+        struct cfs_rq *pcfs_rq, *cfs_rq;
+
+        if (!cfs_bandwidth_used())
+                return;
+
+        if (!tg->parent)
+                return;
+
+        cfs_rq = tg->cfs_rq[cpu];
+        pcfs_rq = tg->parent->cfs_rq[cpu];
+
+        cfs_rq->throttle_count = pcfs_rq->throttle_count;
+        cfs_rq->throttled_clock_task = rq_clock_task(cpu_rq(cpu));
+
+    pr_fn_end_on(stack_depth);
+}
+
 /* conditionally throttle active cfs_rq's from put_prev_entity() */
 static bool check_cfs_rq_runtime(struct cfs_rq *cfs_rq)
 {
@@ -4209,7 +4261,12 @@ prio_changed_fair(struct rq *rq, struct task_struct *p, int oldprio)
  */
 static void propagate_entity_cfs_rq(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     struct cfs_rq *cfs_rq;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se->parent);
 
     /* Start to propagate at parent */
     se = se->parent;
@@ -4217,11 +4274,16 @@ static void propagate_entity_cfs_rq(struct sched_entity *se)
     for_each_sched_entity(se) {
         cfs_rq = cfs_rq_of(se);
 
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->tg);
+
         if (cfs_rq_throttled(cfs_rq))
             break;
 
         update_load_avg(cfs_rq, se, UPDATE_TG);
     }
+
+    pr_fn_end_on(stack_depth);
 }
 #else
 static void propagate_entity_cfs_rq(struct sched_entity *se) { }
@@ -4246,6 +4308,9 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
      */
     se->depth = se->parent ? se->parent->depth + 1 : 0;
 #endif
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %d\n", se->depth);
 
     /* Synchronize entity with its cfs_rq */
     update_load_avg(cfs_rq, se, sched_feat(ATTACH_AGE_LOAD) ? 0 : SKIP_AGE_LOAD);
@@ -4388,9 +4453,9 @@ void online_fair_sched_group(struct task_group *tg)
         pr_info_view_on(stack_depth, "%10s : %p\n", (void*)rq);
         pr_info_view_on(stack_depth, "%10s : %p\n", (void*)se);
         rq_lock_irq(rq, &rf);
-        //update_rq_clock(rq);
+        update_rq_clock(rq);
         attach_entity_cfs_rq(se);
-        //sync_throttle(tg, i);
+        sync_throttle(tg, i);
         rq_unlock_irq(rq, &rf);
     }
 

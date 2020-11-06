@@ -3,8 +3,10 @@
 #define _LINUX_SCHED_CLOCK_H
 
 #include "test/define-usr.h"
+#include "test/debug.h"
 
 #include <linux/smp.h>
+#include <asm-generic/param.h>
 
 /*
  * Do not use outside of architecture code which knows its limitations.
@@ -24,7 +26,11 @@ extern u64 running_clock(void);
 //kernel/sched/clock.c
 static inline u64 sched_clock_cpu(int cpu)
 {
-    return 0;
+    static u64 test_tick_clock = 0;
+    test_tick_clock += (1000000000UL / HZ);	//++10ms --> ns
+    pr_info_view_on(stack_depth, "%20s : %llu\n", test_tick_clock);
+    return test_tick_clock;
+    //return 0;
 }
 
 

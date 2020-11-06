@@ -1,4 +1,4 @@
-﻿// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  *  kernel/sched/core.c
  *
@@ -13,6 +13,7 @@
 
 #include <linux/topology.h>
 #include <linux/radix-tree-user.h>
+#include <linux/sched/clock.h>
 
 //#include <asm/switch_to.h>
 //#include <asm/tlb.h>
@@ -135,6 +136,7 @@ struct rq *task_rq_lock(struct task_struct *p, struct rq_flags *rf)
 
 static void update_rq_clock_task(struct rq *rq, s64 delta)
 {
+    pr_fn_start_on(stack_depth);
 /*
  * In theory, the compile should just see 0 here, and optimize out the call
  * to sched_rt_avg_update. But I don't trust it...
@@ -180,11 +182,15 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 
     rq->clock_task += delta;
 
+    pr_info_view_on(stack_depth, "%20s : %lld\n", rq->clock_task);
+
 #ifdef CONFIG_HAVE_SCHED_AVG_IRQ
     if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
         update_irq_load_avg(rq, irq_delta + steal);
 #endif
     update_rq_clock_pelt(rq, delta);
+
+    pr_fn_end_on(stack_depth);
 }
 
 void update_rq_clock(struct rq *rq)
@@ -205,11 +211,16 @@ void update_rq_clock(struct rq *rq)
 #endif
 
     delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
+
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_info_view_on(stack_depth, "%20s : %lld\n", delta);
+
     if (delta < 0)
         return;
     rq->clock += delta;
     update_rq_clock_task(rq, delta);
 
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
     pr_fn_end_on(stack_depth);
 }
 //220 lines
@@ -863,6 +874,9 @@ void activate_task(struct rq *rq, struct task_struct *p, int flags)
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible--;
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+
     enqueue_task(rq, p, flags);
 
     p->on_rq = TASK_ON_RQ_QUEUED;
@@ -1184,12 +1198,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     else
         p->sched_class = &fair_sched_class;
 
-    init_entity_runnable_average(&p->se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", &p->se);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", &rt_sched_class);
-    pr_info_view_on(stack_depth, "%30s : %p\n", &fair_sched_class);
-    pr_info_view_on(stack_depth, "%30s : %p\n", p->sched_class);
-    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
+    init_entity_runnable_average(&p->se);
 
     /*
      * The child is not yet in the pid-hash so no cgroup attach races,
@@ -1247,6 +1258,77 @@ unsigned long to_ratio(u64 period, u64 runtime)
 
     return div64_u64(runtime << BW_SHIFT, period);
 }
+
+/*
+ * wake_up_new_task - wake up a newly created task for the first time.
+ *
+ * This function will do some initial scheduler statistics housekeeping
+ * that must be done for every newly created context, then puts the task
+ * on the runqueue and wakes it.
+ */
+void wake_up_new_task(struct task_struct *p)
+{
+    struct rq_flags rf;
+    struct rq *rq;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+    pr_info_view_on(stack_depth, "%20s : %d\n", p->cpu);
+
+    raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
+    p->state = TASK_RUNNING;
+#ifdef CONFIG_SMP
+    /*
+     * Fork balancing, do it here and not earlier because:
+     *  - cpus_ptr can change in the fork path
+     *  - any previously selected CPU might disappear through hotplug
+     *
+     * Use __set_task_cpu() to avoid calling sched_class::migrate_task_rq,
+     * as we're not fully set-up yet.
+     */
+    p->recent_used_cpu = task_cpu(p);
+    //__set_task_cpu(p, select_task_rq(p, task_cpu(p), SD_BALANCE_FORK, 0));
+    __set_task_cpu(p, p->cpu);
+#endif
+    rq = __task_rq_lock(p, &rf);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    update_rq_clock(rq);
+    post_init_entity_util_avg(p);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+
+    activate_task(rq, p, ENQUEUE_NOCLOCK);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+
+    //trace_sched_wakeup_new(p);
+    //check_preempt_curr(rq, p, WF_FORK);
+#ifdef CONFIG_SMP
+    if (p->sched_class->task_woken) {
+        /*
+         * Nothing relies on rq->lock after this, so its fine to
+         * drop it.
+         */
+        rq_unpin_lock(rq, &rf);
+        p->sched_class->task_woken(rq, p);
+        rq_repin_lock(rq, &rf);
+    }
+#endif
+    task_rq_unlock(rq, p, &rf);
+
+    pr_fn_end_on(stack_depth);
+}
+//2982 lines
+
+
+
 
 
 

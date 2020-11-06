@@ -96,16 +96,16 @@ _do_fork()
   p = copy_process()
     sched_fork(flags, p);
   wake_up_new_task(p)
-    activate_task(rq, p, ENQUEUE_NOCLOCK)
-      enqueue_task(rq, p, flags)
-        p->sched_class->enqueue_task(rq, p, flags)
-          enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
+    update_rq_clock()
+    post_init_entity_util_avg()
+        attach_entity_cfs_rq()
+    activate_task()
+        enqueue_task()
 */
-static void _activate_task_test(void)
+static void _wake_up_new_task_test(void)
 {
     struct task_struct *p;
     struct rq *rq;
-    int flags = ENQUEUE_NOCLOCK;
     unsigned int cpu;
 
 _retry:
@@ -121,44 +121,43 @@ _retry:
     pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
     p = (struct task_struct *)malloc(sizeof(*p));
 
-    //rq = task_rq(p);
-    //rq = this_rq();
-    rq = cpu_rq(cpu);
     if (current_task) {
         memcpy(p, current_task, sizeof(*p));
     } else {
         memcpy(p, &init_task, sizeof(init_task));
     }
-    rq->cpu = (int)cpu;
-    p->cpu = cpu;
-    rq->curr = p;
     current_task = p;
-    p->sched_task_group = sched_test_tg_select();
-    p->wake_cpu = (int)cpu;
 
-    pr_out_on(stack_depth, "\n");
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)this_rq());
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(0));
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
+
+    p->sched_task_group = sched_test_tg_select();
+
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%30s : %d\n", rq->cpu);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
-    pr_out_on(stack_depth, "\n");
+
+    p->cpu = cpu;
 
     //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
-        activate_task(rq, p, flags);
+        wake_up_new_task(p);
+        //rq = cpu_rq(cpu);
+        //activate_task(rq, p, ENQUEUE_NOCLOCK);
     }
+    rq = task_rq(p);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%30s : %d\n", rq->cpu);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
     pr_out_on(stack_depth, "\n");
 
-    pr_sched_pelt_info(&p->se);
+    //pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -368,7 +367,7 @@ static int _sched_test_menu(int asize)
     printf("0: help.\n");
     printf("1: sched_init test.\n");
     printf("2: sched_create_group test.\n");
-    printf("3: activate_task test.\n");
+    printf("3: wake_up_new_task test.\n");
     printf("4: deactivate_task test.\n");
     printf("5: sched task group info.\n");
     printf("6: sched task group info(detail).\n");
@@ -387,7 +386,7 @@ void sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _sched_init_test, _sched_create_group_test
-        , _activate_task_test, _deactivate_task_test
+        , _wake_up_new_task_test, _deactivate_task_test
         , pr_sched_tg_info, pr_sched_tg_info_all
         , _sched_pelt_info, pr_leaf_cfs_rq_info
         , _sched_statis_test
