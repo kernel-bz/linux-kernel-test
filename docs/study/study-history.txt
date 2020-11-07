@@ -79,4 +79,11 @@ pick_next_task()
 /sys/kernel/debug/sched_features
 
 
+//D20201107 Scheduler DL Study ===============================
 
+sched_tick_dl()
+
+init_dl_task_timer(dl_se)
+  timer->function = dl_task_timer(); //period timer
+
+cpudl_heapify_up()
