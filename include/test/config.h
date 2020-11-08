@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+#define CONFIG_USER_MACHINE_64BIT
+//#define CONFIG_USER_MACHINE_32BIT
+
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME	1
 #define CONFIG_HZ			100

@@ -97,10 +97,13 @@ _do_fork()
     sched_fork(flags, p);
   wake_up_new_task(p)
     update_rq_clock()
+      rq->clock; //10ms++
+        rq->clock_task;
+          rq->clock_pelt;
     post_init_entity_util_avg()
-        attach_entity_cfs_rq()
+        attach_entity_cfs_rq();
     activate_task()
-        enqueue_task()
+        enqueue_task();
 */
 static void _wake_up_new_task_test(void)
 {

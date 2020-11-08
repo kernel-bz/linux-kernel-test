@@ -964,7 +964,8 @@ struct rq {
 	unsigned int		clock_update_flags;
     u64					clock;
 	/* Ensure that all clocks are in the same cache line */
-    u64					clock_task ____cacheline_aligned;
+    //u64					clock_task ____cacheline_aligned;
+    u64					clock_task;
     u64					clock_pelt;
 	unsigned long		lost_idle_time;
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0
+﻿// SPDX-License-Identifier: GPL-2.0
 /*
  * Completely Fair Scheduling (CFS) Class (SCHED_NORMAL/SCHED_BATCH)
  *
@@ -298,10 +298,12 @@ static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
 
+#ifdef CONFIG_USER_MACHINE_32BIT
     if ((int)rq < 0xFFFF) {
         pr_err("rq_of(cfs_rq) is %p\n", (void*)rq);
         return false;
     }
+#endif
 
     int cpu = cpu_of(rq);
 
@@ -893,11 +895,20 @@ static void update_curr(struct cfs_rq *cfs_rq)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
 
+#ifdef CONFIG_USER_MACHINE_64BIT
     //if (!rq_of(cfs_rq)) return;
+    if (!rq_of(cfs_rq)) {
+        pr_err("rq_of(cfs_rq) is %p\n", rq_of(cfs_rq));
+        return;
+    }
+#endif
+
+#ifdef CONFIG_USER_MACHINE_32BIT
     if (rq_of(cfs_rq) < 0xFFFF) {
         pr_err("rq_of(cfs_rq) is %p\n", rq_of(cfs_rq));
         return;
     }
+#endif
 
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
@@ -2065,14 +2076,15 @@ static inline void update_load_avg(struct cfs_rq *cfs_rq, struct sched_entity *s
 {
     pr_fn_start_on(stack_depth);
 
-    u64 now = cfs_rq_clock_pelt(cfs_rq);
-    int decayed;
-
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", flags);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", now);
     pr_info_view_on(stack_depth, "%30s : %llu\n", se->avg.last_update_time);
+
+    u64 now = cfs_rq_clock_pelt(cfs_rq);
+    int decayed;
+
+    pr_info_view_on(stack_depth, "%30s : %llu\n", now);
 
     /*
      * Track task load average for carrying it to new CPU after migrated, and
@@ -4195,7 +4207,7 @@ static void task_fork_fair(struct task_struct *p)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     rq_lock(rq, &rf);
-    //update_rq_clock(rq);	//error
+    update_rq_clock(rq);
 
     //cfs_rq = task_cfs_rq(current);
     cfs_rq = task_cfs_rq(p);
@@ -4399,7 +4411,7 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
     pr_fn_start_on(stack_depth);
 
     tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg->cfs_rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg->cfs_rq);
     if (!tg->cfs_rq)
         goto err;
     tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
@@ -4498,9 +4510,23 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
+
+    rq->clock = 0;
+    rq->clock_task = 0;
+    rq->clock_pelt = 0;
+    rq->lost_idle_time = 0;
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->lost_idle_time);
+
+    pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttled);
+    pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttle_count);
+    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock);
+    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task);
+    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
 
     cfs_rq->tg = tg;
     cfs_rq->rq = rq;

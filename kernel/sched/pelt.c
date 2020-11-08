@@ -139,6 +139,10 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
 	 * Step 1: decay old *_sum if we crossed period boundaries.
 	 */
 	if (periods) {
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sa->runnable_load_sum);
+        pr_info_view_on(stack_depth, "%30s : %u\n", sa->util_sum);
+
 		sa->load_sum = decay_load(sa->load_sum, periods);
 		sa->runnable_load_sum =
 			decay_load(sa->runnable_load_sum, periods);

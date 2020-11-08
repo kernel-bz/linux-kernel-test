@@ -137,6 +137,7 @@ struct rq *task_rq_lock(struct task_struct *p, struct rq_flags *rf)
 static void update_rq_clock_task(struct rq *rq, s64 delta)
 {
     pr_fn_start_on(stack_depth);
+
 /*
  * In theory, the compile should just see 0 here, and optimize out the call
  * to sched_rt_avg_update. But I don't trust it...
@@ -182,7 +183,7 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 
     rq->clock_task += delta;
 
-    pr_info_view_on(stack_depth, "%20s : %lld\n", rq->clock_task);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
 
 #ifdef CONFIG_HAVE_SCHED_AVG_IRQ
     if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
@@ -210,9 +211,12 @@ void update_rq_clock(struct rq *rq)
     rq->clock_update_flags |= RQCF_UPDATED;
 #endif
 
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
+
     delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
     pr_info_view_on(stack_depth, "%20s : %lld\n", delta);
 
     if (delta < 0)
@@ -1292,6 +1296,8 @@ void wake_up_new_task(struct task_struct *p)
     __set_task_cpu(p, p->cpu);
 #endif
     rq = __task_rq_lock(p, &rf);
+    rq->cpu = p->cpu;
+
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
     update_rq_clock(rq);
@@ -1601,6 +1607,10 @@ void __init sched_init(void)
             pr_info_view_on(stack_depth, "%30s : %d\n", i);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
 
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
+
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
             rq->calc_load_active = 0;
@@ -1665,6 +1675,10 @@ void __init sched_init(void)
     #endif /* CONFIG_SMP */
             //hrtick_rq_init(rq);
             atomic_set(&rq->nr_iowait, 0);
+
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
         }
 
         set_load_weight(&init_task, false);
@@ -1744,13 +1758,13 @@ struct task_group *sched_create_group(struct task_group *parent)
     struct task_group *tg;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
     tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
     if (!tg)
         return ERR_PTR(-ENOMEM);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
     if (!alloc_fair_sched_group(tg, parent))
         goto err;
 

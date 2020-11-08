@@ -72,13 +72,28 @@ static inline void update_rq_clock_pelt(struct rq *rq, s64 delta)
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%20s : %llu\n", rq_clock_task(rq));
 
-    if (rq->curr && rq->curr < 0xFFFFF) {
-        pr_err("rq->curr pointer error\n");
+    if (!rq->curr) {
+        rq->clock_pelt  = rq_clock_task(rq);
         return;
     }
 
-    //if (unlikely(is_idle_task(rq->curr))) {
-    if (unlikely(rq->curr && is_idle_task(rq->curr))) {
+#ifdef CONFIG_USER_MACHINE_64BIT
+    if (rq->curr < 0xFFFFFFFF) {
+        pr_err("rq->curr pointer error\n");
+        rq->clock_pelt  = rq_clock_task(rq);
+        return;
+    }
+#endif
+
+#ifdef CONFIG_USER_MACHINE_32BIT
+    if (rq->curr < 0xFFFF) {
+        pr_err("rq->curr pointer error\n");
+        rq->clock_pelt  = rq_clock_task(rq);
+        return;
+    }
+#endif
+
+    if (unlikely(is_idle_task(rq->curr))) {
         /* The rq is idle, we can sync to clock_task */
 		rq->clock_pelt  = rq_clock_task(rq);
 		return;
@@ -143,18 +158,8 @@ static inline void update_idle_rq_clock_pelt(struct rq *rq)
 
 static inline u64 rq_clock_pelt(struct rq *rq)
 {
-    pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    if (!rq) {
-        pr_err("rq pointer error\n");
-        return 0;
-    }
-
     lockdep_assert_held(&rq->lock);
 	assert_clock_updated(rq);
-
-    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->lost_idle_time);
 
 	return rq->clock_pelt - rq->lost_idle_time;
 }
@@ -164,16 +169,34 @@ static inline u64 rq_clock_pelt(struct rq *rq)
 static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->throttle_count);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", cfs_rq->throttled_clock_task);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", cfs_rq->throttled_clock_task_time);
-    cfs_rq->throttle_count = 0;
-    pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->throttle_count);
+    u64 clock_pelt_throttled;
 
-    if (unlikely(cfs_rq->throttle_count))
-		return cfs_rq->throttled_clock_task - cfs_rq->throttled_clock_task_time;
+    if (unlikely(cfs_rq->throttle_count)) {
+        pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttle_count);
+        pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task);
+        pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
 
-	return rq_clock_pelt(rq_of(cfs_rq)) - cfs_rq->throttled_clock_task_time;
+        clock_pelt_throttled = cfs_rq->throttled_clock_task - cfs_rq->throttled_clock_task_time;
+        pr_info_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
+
+        return clock_pelt_throttled;
+    }
+
+    pr_info_view_on(stack_depth, "%40s : %p\n", rq_of(cfs_rq));
+    if (rq_of(cfs_rq) < 0xFFFF) {
+        pr_err("cfs_rq->rq pointer(%p) error\n", cfs_rq->rq);
+        return 0;
+    }
+
+    clock_pelt_throttled = rq_clock_pelt(rq_of(cfs_rq)) - cfs_rq->throttled_clock_task_time;
+
+    pr_info_view_on(stack_depth, "%40s : %llu\n", rq_clock_pelt(rq_of(cfs_rq)));
+    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
+    pr_info_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
+
+    pr_fn_end_on(stack_depth);
+
+    return clock_pelt_throttled;
 }
 #else
 static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
