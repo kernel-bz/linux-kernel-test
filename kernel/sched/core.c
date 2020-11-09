@@ -1604,12 +1604,17 @@ void __init sched_init(void)
             struct rq *rq;
             rq = cpu_rq(i);
 
+            memset(rq, 0, sizeof(*rq));
+            //memset(&rq->cfs, 0, sizeof(rq->cfs));
+
             pr_info_view_on(stack_depth, "%30s : %d\n", i);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
 
             pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
             pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
             pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
+            pr_sched_avg_info(&rq->cfs.avg);
 
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
@@ -1622,6 +1627,7 @@ void __init sched_init(void)
             root_task_group.shares = ROOT_TASK_GROUP_LOAD;	//1024
             INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
             rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->leaf_cfs_rq_list);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
             /*
              * How much CPU bandwidth does root_task_group get?
@@ -1675,10 +1681,6 @@ void __init sched_init(void)
     #endif /* CONFIG_SMP */
             //hrtick_rq_init(rq);
             atomic_set(&rq->nr_iowait, 0);
-
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
         }
 
         set_load_weight(&init_task, false);

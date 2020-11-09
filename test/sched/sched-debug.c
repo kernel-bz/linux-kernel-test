@@ -175,7 +175,6 @@ void pr_sched_tg_view_cpu(struct task_group *tg)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)root_tg);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
     if (!tg) goto _end;
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg->parent);
@@ -205,22 +204,17 @@ _end:
 int pr_sched_tg_view_only(void)
 {
     pr_fn_start_on(stack_depth);
-    int index=0;
+    int index=-1;
     struct task_group *tg;
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.parent);
-
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
-    if (root_tg)
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg->parent);
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
+        index++;
         pr_info_view_on(stack_depth, "%30s : %u\n", index);
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg);
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg->parent);
-        index++;
     }
     rcu_read_unlock();
 
@@ -237,12 +231,12 @@ void pr_sched_tg_info(void)
     struct task_group *tg;
     int cpu, cnt=0;
 
-    pr_sched_tg_view_only();
+    if (pr_sched_tg_view_only() < 0) goto _end;
+
     pr_out_on(stack_depth, "-----------------------------------------------\n");
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_tg);
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg);
         pr_out_on(stack_depth, "cnt=%d ---------------------------------------------\n", cnt++);
 
@@ -271,6 +265,7 @@ void pr_sched_tg_info(void)
     } //tg
     rcu_read_unlock();
 
+_end:
     pr_out_on(stack_depth, "=====================================================\n");
     pr_fn_end_on(stack_depth);
 }
@@ -282,7 +277,8 @@ void pr_sched_tg_info_all(void)
 
     struct task_group *tg;
 
-    pr_sched_tg_view_only();
+    if (pr_sched_tg_view_only() < 0) goto _end;
+
     pr_out_on(stack_depth, "-----------------------------------------------\n");
 
     rcu_read_lock();
@@ -291,6 +287,7 @@ void pr_sched_tg_info_all(void)
     }
     rcu_read_unlock();
 
+_end:
     pr_out_on(stack_depth, "=====================================================\n");
     pr_fn_end_on(stack_depth);
 }

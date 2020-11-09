@@ -19,7 +19,6 @@
 
 #include <kernel/sched/sched.h>
 
-struct task_group *root_tg;
 struct task_struct *current_task;
 
 /*
@@ -38,18 +37,20 @@ struct task_group *sched_test_tg_select(void)
     int tg_max, idx, cnt=0;
     struct task_group *tg;
 
-    if (root_tg) {
-        tg_max = pr_sched_tg_view_only();
+    tg_max = pr_sched_tg_view_only();
+    if (tg_max >= 0) {
         __fpurge(stdin);
-        printf("Enter Task Group Index Number[0,%d]: ", tg_max-1);
+        printf("Enter Task Group Index Number[0,%d]: ", tg_max);
         scanf("%d", &idx);
         list_for_each_entry_rcu(tg, &task_groups, list) {
             if (cnt == idx)
                 return tg;
             cnt++;
         }
+    } else {
+        pr_err("Please run sched_init() first!\n");
     }
-    return &root_task_group;
+    return NULL;
 }
 
 /*
@@ -68,6 +69,7 @@ static void _sched_create_group_test(void)
     pr_fn_start_on(stack_depth);
 
     parent = sched_test_tg_select();
+    if (!parent) return;
 
     tg = sched_create_group(parent);
     if (IS_ERR(tg)) {
@@ -75,10 +77,6 @@ static void _sched_create_group_test(void)
         goto _end;
     } else {
         sched_online_group(tg, parent);
-        if (!root_tg) {
-            root_tg = tg;
-            //root_tg->parent = &root_task_group;
-        }
     }
 
     pr_sched_tg_view_only();
@@ -291,8 +289,6 @@ static void _sched_pelt_info(void)
 {
     struct task_group *tg;
     int cpu;
-
-    if (!root_tg) return;
 
 _retry:
      __fpurge(stdin);

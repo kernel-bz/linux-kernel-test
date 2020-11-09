@@ -100,7 +100,6 @@ extern int stack_depth;
 
 
 //test/sched/sched-test.c
-extern struct task_group *root_tg;
 extern struct task_struct *current_task;
 
 void pr_sched_avg_info(struct sched_avg *sa);
