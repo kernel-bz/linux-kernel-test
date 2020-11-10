@@ -72,26 +72,11 @@ static inline void update_rq_clock_pelt(struct rq *rq, s64 delta)
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%20s : %llu\n", rq_clock_task(rq));
 
-    //if (!rq->curr) {
-        rq->clock_pelt  = rq_clock_task(rq);
-        return;
-    //}
-
-#ifdef CONFIG_USER_MACHINE_64BIT
-    if (rq->curr < 0xFFFFFFFF) {
-        pr_err("rq->curr pointer error\n");
+    if (!rq->curr) {
+        pr_err("rq->curr is NULL\n");
         rq->clock_pelt  = rq_clock_task(rq);
         return;
     }
-#endif
-
-#ifdef CONFIG_USER_MACHINE_32BIT
-    if (rq->curr < 0xFFFFF) {
-        pr_err("rq->curr pointer error\n");
-        rq->clock_pelt  = rq_clock_task(rq);
-        return;
-    }
-#endif
 
     if (unlikely(is_idle_task(rq->curr))) {
         /* The rq is idle, we can sync to clock_task */

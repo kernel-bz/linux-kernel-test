@@ -207,8 +207,6 @@ int pr_sched_tg_view_only(void)
     int index=-1;
     struct task_group *tg;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
-
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
         index++;
@@ -217,6 +215,8 @@ int pr_sched_tg_view_only(void)
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tg->parent);
     }
     rcu_read_unlock();
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
 
     pr_fn_end_on(stack_depth);
 
@@ -245,15 +245,17 @@ void pr_sched_tg_info(void)
             rq = cpu_rq(cpu);
             pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.tg);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.rq);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->nr_running);
 
             struct cfs_rq *cfs_rq = tg->cfs_rq[cpu];
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->next);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->tg);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->rq);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
             pr_info_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
             pr_info_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
 

@@ -26,7 +26,8 @@
 #define CREATE_TRACE_POINTS
 //#include <trace/events/sched.h>
 
-DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+//DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+struct rq runqueues[NR_CPUS];
 
 #if defined(CONFIG_SCHED_DEBUG) && defined(CONFIG_JUMP_LABEL)
 /*
@@ -1603,9 +1604,6 @@ void __init sched_init(void)
         for_each_possible_cpu(i) {
             struct rq *rq;
             rq = cpu_rq(i);
-
-            memset(rq, 0, sizeof(*rq));
-            //memset(&rq->cfs, 0, sizeof(rq->cfs));
 
             pr_info_view_on(stack_depth, "%30s : %d\n", i);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);

@@ -129,17 +129,15 @@ _retry:
     }
     current_task = p;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)this_rq());
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(0));
+    pr_info_view_on(stack_depth, "%30s : %u\n", cpu);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
 
     p->sched_task_group = sched_test_tg_select();
-
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-
     p->cpu = cpu;
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
+    pr_info_view_on(stack_depth, "%30s : %u\n", p->cpu);
 
     //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
@@ -148,10 +146,11 @@ _retry:
         //activate_task(rq, p, ENQUEUE_NOCLOCK);
     }
     rq = task_rq(p);
+    rq->curr = p;
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
     pr_info_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);

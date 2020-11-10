@@ -298,13 +298,6 @@ static inline bool list_add_leaf_cfs_rq(struct cfs_rq *cfs_rq)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
 
-#ifdef CONFIG_USER_MACHINE_32BIT
-    if ((int)rq < 0xFFFF) {
-        pr_err("rq_of(cfs_rq) is %p\n", (void*)rq);
-        return false;
-    }
-#endif
-
     int cpu = cpu_of(rq);
 
     pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
@@ -830,10 +823,10 @@ void post_init_entity_util_avg(struct task_struct *p)
     long cpu_scale = arch_scale_cpu_capacity(cpu_of(rq_of(cfs_rq)));
     long cap = (long)(cpu_scale - cfs_rq->avg.util_avg) / 2;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&p->se);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
-    pr_info_view_on(stack_depth, "%20s : %ld\n", cpu_scale);
-    pr_info_view_on(stack_depth, "%20s : %ld\n", cap);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %ld\n", cpu_scale);
+    pr_info_view_on(stack_depth, "%30s : %ld\n", cap);
 
     if (cap > 0) {
         if (cfs_rq->avg.util_avg != 0) {
@@ -862,7 +855,7 @@ void post_init_entity_util_avg(struct task_struct *p)
         return;
     }
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", se->avg.last_update_time);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", se->avg.last_update_time);
     pr_sched_avg_info(sa);
 
     attach_entity_cfs_rq(se);
@@ -892,31 +885,15 @@ static void update_curr(struct cfs_rq *cfs_rq)
     pr_fn_start_on(stack_depth);
 
     struct sched_entity *curr = cfs_rq->curr;
-
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
-
-#ifdef CONFIG_USER_MACHINE_64BIT
-    //if (!rq_of(cfs_rq)) return;
-    if (!rq_of(cfs_rq)) {
-        pr_err("rq_of(cfs_rq) is %p\n", rq_of(cfs_rq));
-        return;
-    }
-#endif
-
-#ifdef CONFIG_USER_MACHINE_32BIT
-    if (rq_of(cfs_rq) < 0xFFFF) {
-        pr_err("rq_of(cfs_rq) is %p\n", rq_of(cfs_rq));
-        return;
-    }
-#endif
-
     u64 now = rq_clock_task(rq_of(cfs_rq));
     u64 delta_exec;
 
-    pr_info_view_on(stack_depth, "%30s : %llu\n", now);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq_of(cfs_rq));
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", now);
 
-    if (unlikely(!curr)) return;
+    if (unlikely(!curr))
+        return;
 
     delta_exec = now - curr->exec_start;
 
@@ -4327,10 +4304,7 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : %d\n", se->depth);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q->rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq->rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq->tg);
 
     pr_sched_avg_info(&se->avg);
     pr_sched_avg_info(&cfs_rq->avg);
@@ -4428,6 +4402,7 @@ int alloc_fair_sched_group(struct task_group *tg, struct task_group *parent)
     tg->cfs_rq = kcalloc(nr_cpu_ids, sizeof(cfs_rq), GFP_KERNEL);
     if (!tg->cfs_rq)
         goto err;
+
     tg->se = kcalloc(nr_cpu_ids, sizeof(se), GFP_KERNEL);
     if (!tg->se)
         goto err;
@@ -4532,28 +4507,6 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
-#if 1
-    rq->clock = 0;
-    rq->clock_task = 0;
-    rq->clock_pelt = 0;
-    rq->lost_idle_time = 0;
-#endif
-    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", rq->lost_idle_time);
-#if 1
-    cfs_rq->throttled = 0;
-    cfs_rq->throttle_count = 0;
-    cfs_rq->throttled_clock = 0;
-    cfs_rq->throttled_clock_task = 0;
-    cfs_rq->throttled_clock_task_time = 0;
-#endif
-    pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttled);
-    pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttle_count);
-    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock);
-    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task);
-    pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
 
     cfs_rq->tg = tg;
     cfs_rq->rq = rq;
@@ -4576,9 +4529,6 @@ void init_tg_cfs_entry(struct task_group *tg, struct cfs_rq *cfs_rq,
         se->cfs_rq = parent->my_q;
         se->depth = parent->depth + 1;
     }
-
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
 
     se->my_q = cfs_rq;
     /* guarantee group entities always have weight */

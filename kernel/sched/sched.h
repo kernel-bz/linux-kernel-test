@@ -1100,13 +1100,17 @@ static inline void update_idle_core(struct rq *rq)
 static inline void update_idle_core(struct rq *rq) { }
 #endif
 
-DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+//DECLARE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+extern struct rq runqueues[NR_CPUS];
 
-#define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
-#define this_rq()		this_cpu_ptr(&runqueues)
-#define task_rq(p)		cpu_rq(task_cpu(p))
+//#define cpu_rq(cpu)		(&per_cpu(runqueues, (cpu)))
+#define cpu_rq(cpu)			(&runqueues[cpu])
+//#define this_rq()			this_cpu_ptr(&runqueues)
+#define this_rq()			(&runqueues[0])
+
+#define task_rq(p)			cpu_rq(task_cpu(p))
 #define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
-#define raw_rq()		raw_cpu_ptr(&runqueues)
+#define raw_rq()			raw_cpu_ptr(&runqueues)
 
 extern void update_rq_clock(struct rq *rq);
 
