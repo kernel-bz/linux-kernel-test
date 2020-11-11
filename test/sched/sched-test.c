@@ -21,10 +21,6 @@
 
 struct task_struct *current_task;
 
-/*
-init/main.c:585:        sched_init();
-init/main.c:1068:       sched_init_smp();
-*/
 static void _sched_init_test(void)
 {
     pr_fn_start_on(stack_depth);
@@ -287,6 +283,8 @@ static void _calc_global_load_test(void)
 static void _sched_pelt_info(void)
 {
     struct task_group *tg;
+    struct sched_entity *se;
+    struct rq *rq;
     int cpu;
 
 _retry:
@@ -299,10 +297,73 @@ _retry:
 
     tg = sched_test_tg_select();
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cpu_rq(cpu));
-    pr_sched_pelt_info(tg->se[cpu]);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg->se[cpu]);
+    se = tg->se[cpu];
+    if (!se) {
+        rq = cpu_rq(cpu);
+        if (!rq->curr) {
+            pr_warn("Please run sched_init and wake_up_new_task first!\n");
+            return;
+        }
+        se = &rq->curr->se;
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&rq->curr->se);
+    }
+    pr_sched_pelt_info(se);
 
     pr_fn_end_on(stack_depth);
+}
+
+/*
+ *	dl_task_timer(*hrtimer)
+ *		enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
+*/
+static void sched_dl_enqueue_test(void)
+{
+    int cpu;
+    struct rq *rq;
+    struct task_struct *p;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    rq = cpu_rq(cpu);
+    p = rq->curr;
+    if (!p) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
+    p->sched_class = &dl_sched_class;
+    p->prio = -1;
+    p->normal_prio = -1;
+    p->dl.dl_boosted = 0;
+    p->dl.dl_throttled = 1;
+    p->dl.dl_period = def_dl_bandwidth.dl_period;
+    p->dl.dl_runtime = def_dl_bandwidth.dl_runtime;
+
+    update_rq_clock(rq);
+
+    //enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
+    p->sched_class->enqueue_task(rq, p, ENQUEUE_REPLENISH);
+
+    p->sched_class = &fair_sched_class;
+    p->normal_prio = 120;
+    p->prio = p->normal_prio;
+}
+
+static void sched_cpudl_test(void)
+{
+    int i;
+    struct rq *rq;
+    u64 dl[] = { 100, 200, 300, 400, 10, 20, 30, 40, 3000, 2000, 4000, 1000 };
+    int cpu[] = { 0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 2, 3 };
+
+    rq = cpu_rq(0);
+    for (i=0; i<12; i++) {
+        cpudl_set(&rq->rd->cpudl, cpu[i], dl[i]);
+    }
 }
 
 static void _sched_test_help(void)
@@ -372,7 +433,9 @@ static int _sched_test_menu(int asize)
     printf("7: sched pelt info.\n");
     printf("8: leaf cfs_rq info.\n");
     printf("9: Statistics Test -->\n");
-    printf("10: exit.\n");
+    printf("10: sched deadline enqueue test.\n");
+    printf("11: sched cpudl test.\n");
+    printf("12: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -388,6 +451,7 @@ void sched_test(void)
         , pr_sched_tg_info, pr_sched_tg_info_all
         , _sched_pelt_info, pr_leaf_cfs_rq_info
         , _sched_statis_test
+        , sched_dl_enqueue_test, sched_cpudl_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);

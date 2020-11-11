@@ -112,7 +112,9 @@ static inline struct task_struct *get_task_struct(struct task_struct *t)
 	return t;
 }
 
-extern void __put_task_struct(struct task_struct *t);
+//kernel/fork.c
+//extern void __put_task_struct(struct task_struct *t);
+static inline void __put_task_struct(struct task_struct *t) { }
 
 static inline void put_task_struct(struct task_struct *t)
 {

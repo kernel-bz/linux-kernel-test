@@ -314,6 +314,7 @@ static void set_load_weight(struct task_struct *p, bool update_load)
     }
 
     pr_info_view_on(stack_depth, "%30s : %d\n", prio);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se.load);
     pr_info_view_on(stack_depth, "%30s : %lu\n", load->weight);
     pr_info_view_on(stack_depth, "%30s : %u\n", load->inv_weight);
     pr_info_view_on(stack_depth, "%30s : %lu\n", p->se.runnable_weight);
@@ -1016,6 +1017,64 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
 
 
 
+//1705 lines
+void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
+{
+#ifdef CONFIG_SCHED_DEBUG
+    /*
+     * We should never call set_task_cpu() on a blocked task,
+     * ttwu() will sort out the placement.
+     */
+    WARN_ON_ONCE(p->state != TASK_RUNNING && p->state != TASK_WAKING &&
+            !p->on_rq);
+
+    /*
+     * Migrating fair class task must have p->on_rq = TASK_ON_RQ_MIGRATING,
+     * because schedstat_wait_{start,end} rebase migrating task's wait_start
+     * time relying on p->on_rq.
+     */
+    WARN_ON_ONCE(p->state == TASK_RUNNING &&
+             p->sched_class == &fair_sched_class &&
+             (p->on_rq && !task_on_rq_migrating(p)));
+
+#ifdef CONFIG_LOCKDEP
+    /*
+     * The caller should hold either p->pi_lock or rq->lock, when changing
+     * a task's CPU. ->pi_lock for waking tasks, rq->lock for runnable tasks.
+     *
+     * sched_move_task() holds both and thus holding either pins the cgroup,
+     * see task_group().
+     *
+     * Furthermore, all task_rq users should acquire both locks, see
+     * task_rq_lock().
+     */
+    WARN_ON_ONCE(debug_locks && !(lockdep_is_held(&p->pi_lock) ||
+                      lockdep_is_held(&task_rq(p)->lock)));
+#endif
+    /*
+     * Clearly, migrating tasks to offline CPUs is a fairly daft thing.
+     */
+    WARN_ON_ONCE(!cpu_online(new_cpu));
+#endif
+
+    //trace_sched_migrate_task(p, new_cpu);
+
+    if (task_cpu(p) != new_cpu) {
+        if (p->sched_class->migrate_task_rq)
+            p->sched_class->migrate_task_rq(p, new_cpu);
+        p->se.nr_migrations++;
+        rseq_migrate(p);
+        //perf_event_task_migrate(p);
+    }
+
+    __set_task_cpu(p, new_cpu);
+}
+//1757 lines
+
+
+
+
+
 
 //2675 lines
 /*
@@ -1455,6 +1514,47 @@ restart:
 
 
 
+//6304 lines
+void set_rq_online(struct rq *rq)
+{
+    if (!rq->online) {
+        const struct sched_class *class;
+
+        cpumask_set_cpu(rq->cpu, rq->rd->online);
+        rq->online = 1;
+
+        for_each_class(class) {
+            if (class->rq_online)
+                class->rq_online(rq);
+        }
+    }
+}
+
+void set_rq_offline(struct rq *rq)
+{
+    if (rq->online) {
+        const struct sched_class *class;
+
+        for_each_class(class) {
+            if (class->rq_offline)
+                class->rq_offline(rq);
+        }
+
+        cpumask_clear_cpu(rq->cpu, rq->rd->online);
+        rq->online = 0;
+    }
+}
+
+/*
+ * used to mark begin/end of suspend/resume:
+ */
+static int num_cpus_frozen;
+//6339 lines
+
+
+
+
+
 
 //6496 lines
 //init/main.c:
@@ -1608,10 +1708,8 @@ void __init sched_init(void)
             pr_info_view_on(stack_depth, "%30s : %d\n", i);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
-
             pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_task);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock_pelt);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs.avg);
             pr_sched_avg_info(&rq->cfs.avg);
 
             raw_spin_lock_init(&rq->lock);
@@ -1670,7 +1768,7 @@ void __init sched_init(void)
 
             INIT_LIST_HEAD(&rq->cfs_tasks);
 
-            //rq_attach_root(rq, &def_root_domain);
+            rq_attach_root(rq, &def_root_domain);
     #ifdef CONFIG_NO_HZ_COMMON
             rq->last_load_update_tick = jiffies;
             rq->last_blocked_load_update_tick = jiffies;

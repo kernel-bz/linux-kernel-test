@@ -856,10 +856,12 @@ void post_init_entity_util_avg(struct task_struct *p)
     }
 
     pr_info_view_on(stack_depth, "%30s : %llu\n", se->avg.last_update_time);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->avg);
     pr_sched_avg_info(sa);
 
     attach_entity_cfs_rq(se);
 
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->avg);
     pr_sched_avg_info(sa);
 
     pr_fn_end_on(stack_depth);
@@ -1942,6 +1944,7 @@ update_cfs_rq_load_avg(u64 now, struct cfs_rq *cfs_rq)
         decayed = 1;
 
         pr_cfs_rq_removed_info(cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&cfs_rq->avg);
         pr_sched_avg_info(sa);
     }
 
@@ -4306,7 +4309,9 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
 
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->avg);
     pr_sched_avg_info(&se->avg);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&cfs_rq->avg);
     pr_sched_avg_info(&cfs_rq->avg);
 
     /* Synchronize entity with its cfs_rq */
@@ -4317,7 +4322,9 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
 
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->avg);
     pr_sched_avg_info(&se->avg);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&cfs_rq->avg);
     pr_sched_avg_info(&cfs_rq->avg);
     pr_fn_end_on(stack_depth);
 }

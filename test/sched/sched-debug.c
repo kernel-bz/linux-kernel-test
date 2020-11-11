@@ -107,6 +107,7 @@ static void _pr_sched_cfs_rq_pelt_info(struct cfs_rq *cfs_rq)
 
         _pr_sched_rq(rq);
         _pr_sched_cfs_rq_pelt(cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&cfs_rq->avg);
         pr_sched_avg_info(&cfs_rq->avg);
 
         now = cfs_rq_clock_pelt(cfs_rq);	//rq->clock_pelt - rq->lost_idle_time;
@@ -135,6 +136,7 @@ void pr_sched_pelt_info(struct sched_entity *se)
     pr_info_view_on(stack_depth, "%20s : %d\n", se->on_rq);
     pr_info_view_on(stack_depth, "%20s : %lu\n", se->load.weight);
     pr_info_view_on(stack_depth, "%20s : %u\n", se->load.inv_weight);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&se->avg);
     pr_sched_avg_info(&se->avg);
 
     pr_out_on(stack_depth, "=====================================================\n");
@@ -336,6 +338,29 @@ void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq)
     pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.load_avg);
     pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.util_avg);
     pr_info_view_on(stack_depth, "%30s : %lu\n", cfs_rq->removed.runnable_sum);
+
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->dl_runtime);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->dl_deadline);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->dl_period);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->dl_bw);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->dl_density);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->runtime);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_se->deadline);
+
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->flags);
+
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->dl_throttled);
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->dl_boosted);
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->dl_yielded);
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->dl_non_contending);
+    pr_info_view_on(stack_depth, "%30s : %u\n", dl_se->dl_overrun);
 
     pr_fn_end_on(stack_depth);
 }

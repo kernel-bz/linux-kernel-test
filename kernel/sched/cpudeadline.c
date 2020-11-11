@@ -25,6 +25,9 @@ static inline int right_child(int i)
 
 static void cpudl_heapify_down(struct cpudl *cp, int idx)
 {
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+
 	int l, r, largest;
 
 	int orig_cpu = cp->elements[idx].cpu;
@@ -59,16 +62,23 @@ static void cpudl_heapify_down(struct cpudl *cp, int idx)
 		cp->elements[idx].dl = cp->elements[largest].dl;
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = largest;
-	}
+        pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    }
 	/* actual push down of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
 	cp->elements[cp->elements[idx].cpu].idx = idx;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_fn_end_on(stack_depth);
 }
 
 static void cpudl_heapify_up(struct cpudl *cp, int idx)
 {
-	int p;
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+
+    int p;
 
 	int orig_cpu = cp->elements[idx].cpu;
 	u64 orig_dl = cp->elements[idx].dl;
@@ -85,11 +95,15 @@ static void cpudl_heapify_up(struct cpudl *cp, int idx)
 		cp->elements[idx].dl = cp->elements[p].dl;
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = p;
-	} while (idx != 0);
+        pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    } while (idx != 0);
 	/* actual push up of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
 	cp->elements[cp->elements[idx].cpu].idx = idx;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_fn_end_on(stack_depth);
 }
 
 static void cpudl_heapify(struct cpudl *cp, int idx)
@@ -189,18 +203,25 @@ void cpudl_clear(struct cpudl *cp, int cpu)
  */
 void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 {
+    pr_fn_start_on(stack_depth);
+
 	int old_idx;
 	unsigned long flags;
 
-	WARN_ON(!cpu_present(cpu));
+    //WARN_ON(!cpu_present(cpu));
 
-	raw_spin_lock_irqsave(&cp->lock, flags);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", dl);
+
+    raw_spin_lock_irqsave(&cp->lock, flags);
 
 	old_idx = cp->elements[cpu].idx;
-	if (old_idx == IDX_INVALID) {
+    pr_info_view_on(stack_depth, "%20s : %d\n", old_idx);
+    if (old_idx == IDX_INVALID) {
 		int new_idx = cp->size++;
+        pr_info_view_on(stack_depth, "%20s : %d\n", new_idx);
 
-		cp->elements[new_idx].dl = dl;
+        cp->elements[new_idx].dl = dl;
 		cp->elements[new_idx].cpu = cpu;
 		cp->elements[cpu].idx = new_idx;
 		cpudl_heapify_up(cp, new_idx);
@@ -210,7 +231,17 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 		cpudl_heapify(cp, old_idx);
 	}
 
-	raw_spin_unlock_irqrestore(&cp->lock, flags);
+    int i;
+    for (i=0; i < cp->size; i++) {
+        pr_info_view_on(stack_depth, "%30s : %d\n", i);
+        pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].idx);
+        pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].cpu);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", cp->elements[i].dl);
+    }
+
+    raw_spin_unlock_irqrestore(&cp->lock, flags);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -240,6 +271,7 @@ void cpudl_clear_freecpu(struct cpudl *cp, int cpu)
 int cpudl_init(struct cpudl *cp)
 {
 	int i;
+    pr_fn_start_on(stack_depth);
 
 	raw_spin_lock_init(&cp->lock);
 	cp->size = 0;
@@ -257,6 +289,10 @@ int cpudl_init(struct cpudl *cp)
 
     for_each_possible_cpu(i)
 		cp->elements[i].idx = IDX_INVALID;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+    pr_fn_end_on(stack_depth);
 
 	return 0;
 }

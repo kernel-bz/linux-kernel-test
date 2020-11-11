@@ -2010,18 +2010,29 @@ static inline void sched_update_tick_dependency(struct rq *rq) { }
 
 static inline void add_nr_running(struct rq *rq, unsigned count)
 {
+    pr_fn_start_on(stack_depth);
+
 	unsigned prev_nr = rq->nr_running;
 
 	rq->nr_running = prev_nr + count;
 
+    pr_info_view_on(stack_depth, "%20s : %u\n", prev_nr);
+    pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%20s : %p\n", rq->rd);
+    pr_info_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
+
 #ifdef CONFIG_SMP
 	if (prev_nr < 2 && rq->nr_running >= 2) {
-        //if (!READ_ONCE(rq->rd->overload))
-        //	WRITE_ONCE(rq->rd->overload, 1);
+        if (!READ_ONCE(rq->rd->overload))
+            WRITE_ONCE(rq->rd->overload, 1);
 	}
 #endif
 
-	sched_update_tick_dependency(rq);
+    pr_info_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
+
+    sched_update_tick_dependency(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void sub_nr_running(struct rq *rq, unsigned count)

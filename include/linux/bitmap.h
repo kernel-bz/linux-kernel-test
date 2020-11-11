@@ -7,6 +7,11 @@
 #include <linux/bitops.h>
 #include <linux/kernel.h>
 
+
+extern int __bitmap_intersects(const unsigned long *bitmap1,
+            const unsigned long *bitmap2, unsigned int nbits);
+
+
 #define DECLARE_BITMAP(name,bits) \
 	unsigned long name[BITS_TO_LONGS(bits)]
 
@@ -147,5 +152,18 @@ static inline int bitmap_and(unsigned long *dst, const unsigned long *src1,
 		return (*dst = *src1 & *src2 & BITMAP_LAST_WORD_MASK(nbits)) != 0;
 	return __bitmap_and(dst, src1, src2, nbits);
 }
+
+
+
+//348 lines
+static inline int bitmap_intersects(const unsigned long *src1,
+            const unsigned long *src2, unsigned int nbits)
+{
+    if (small_const_nbits(nbits))
+        return ((*src1 & *src2) & BITMAP_LAST_WORD_MASK(nbits)) != 0;
+    else
+        return __bitmap_intersects(src1, src2, nbits);
+}
+
 
 #endif /* _PERF_BITOPS_H */

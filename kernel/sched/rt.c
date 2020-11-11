@@ -245,6 +245,216 @@ int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)
 
 
 
+//431 lines
+static void enqueue_top_rt_rq(struct rt_rq *rt_rq);
+static void dequeue_top_rt_rq(struct rt_rq *rt_rq);
+
+static inline int on_rt_rq(struct sched_rt_entity *rt_se)
+{
+    return rt_se->on_rq;
+}
+
+#ifdef CONFIG_RT_GROUP_SCHED
+
+static inline u64 sched_rt_runtime(struct rt_rq *rt_rq)
+{
+    if (!rt_rq->tg)
+        return RUNTIME_INF;
+
+    return rt_rq->rt_runtime;
+}
+
+static inline u64 sched_rt_period(struct rt_rq *rt_rq)
+{
+    return ktime_to_ns(rt_rq->tg->rt_bandwidth.rt_period);
+}
+
+typedef struct task_group *rt_rq_iter_t;
+
+static inline struct task_group *next_task_group(struct task_group *tg)
+{
+    do {
+        tg = list_entry_rcu(tg->list.next,
+            typeof(struct task_group), list);
+    } while (&tg->list != &task_groups && task_group_is_autogroup(tg));
+
+    if (&tg->list == &task_groups)
+        tg = NULL;
+
+    return tg;
+}
+
+#define for_each_rt_rq(rt_rq, iter, rq)					\
+    for (iter = container_of(&task_groups, typeof(*iter), list);	\
+        (iter = next_task_group(iter)) &&			\
+        (rt_rq = iter->rt_rq[cpu_of(rq)]);)
+
+#define for_each_sched_rt_entity(rt_se) \
+    for (; rt_se; rt_se = rt_se->parent)
+
+static inline struct rt_rq *group_rt_rq(struct sched_rt_entity *rt_se)
+{
+    return rt_se->my_q;
+}
+
+static void enqueue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags);
+static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags);
+
+static void sched_rt_rq_enqueue(struct rt_rq *rt_rq)
+{
+    struct task_struct *curr = rq_of_rt_rq(rt_rq)->curr;
+    struct rq *rq = rq_of_rt_rq(rt_rq);
+    struct sched_rt_entity *rt_se;
+
+    int cpu = cpu_of(rq);
+
+    rt_se = rt_rq->tg->rt_se[cpu];
+
+    if (rt_rq->rt_nr_running) {
+        if (!rt_se)
+            enqueue_top_rt_rq(rt_rq);
+        else if (!on_rt_rq(rt_se))
+            enqueue_rt_entity(rt_se, 0);
+
+        if (rt_rq->highest_prio.curr < curr->prio)
+            resched_curr(rq);
+    }
+}
+
+static void sched_rt_rq_dequeue(struct rt_rq *rt_rq)
+{
+    struct sched_rt_entity *rt_se;
+    int cpu = cpu_of(rq_of_rt_rq(rt_rq));
+
+    rt_se = rt_rq->tg->rt_se[cpu];
+
+    if (!rt_se) {
+        dequeue_top_rt_rq(rt_rq);
+        /* Kick cpufreq (see the comment in kernel/sched/sched.h). */
+        cpufreq_update_util(rq_of_rt_rq(rt_rq), 0);
+    }
+    else if (on_rt_rq(rt_se))
+        dequeue_rt_entity(rt_se, 0);
+}
+
+static inline int rt_rq_throttled(struct rt_rq *rt_rq)
+{
+    return rt_rq->rt_throttled && !rt_rq->rt_nr_boosted;
+}
+
+static int rt_se_boosted(struct sched_rt_entity *rt_se)
+{
+    struct rt_rq *rt_rq = group_rt_rq(rt_se);
+    struct task_struct *p;
+
+    if (rt_rq)
+        return !!rt_rq->rt_nr_boosted;
+
+    p = rt_task_of(rt_se);
+    return p->prio != p->normal_prio;
+}
+
+#ifdef CONFIG_SMP
+static inline const struct cpumask *sched_rt_period_mask(void)
+{
+    return this_rq()->rd->span;
+}
+#else
+static inline const struct cpumask *sched_rt_period_mask(void)
+{
+    return cpu_online_mask;
+}
+#endif
+
+static inline
+struct rt_rq *sched_rt_period_rt_rq(struct rt_bandwidth *rt_b, int cpu)
+{
+    return container_of(rt_b, struct task_group, rt_bandwidth)->rt_rq[cpu];
+}
+
+static inline struct rt_bandwidth *sched_rt_bandwidth(struct rt_rq *rt_rq)
+{
+    return &rt_rq->tg->rt_bandwidth;
+}
+
+#else /* !CONFIG_RT_GROUP_SCHED */
+
+static inline u64 sched_rt_runtime(struct rt_rq *rt_rq)
+{
+    return rt_rq->rt_runtime;
+}
+
+static inline u64 sched_rt_period(struct rt_rq *rt_rq)
+{
+    return ktime_to_ns(def_rt_bandwidth.rt_period);
+}
+
+typedef struct rt_rq *rt_rq_iter_t;
+
+#define for_each_rt_rq(rt_rq, iter, rq) \
+    for ((void) iter, rt_rq = &rq->rt; rt_rq; rt_rq = NULL)
+
+#define for_each_sched_rt_entity(rt_se) \
+    for (; rt_se; rt_se = NULL)
+
+static inline struct rt_rq *group_rt_rq(struct sched_rt_entity *rt_se)
+{
+    return NULL;
+}
+
+static inline void sched_rt_rq_enqueue(struct rt_rq *rt_rq)
+{
+    struct rq *rq = rq_of_rt_rq(rt_rq);
+
+    if (!rt_rq->rt_nr_running)
+        return;
+
+    enqueue_top_rt_rq(rt_rq);
+    resched_curr(rq);
+}
+
+static inline void sched_rt_rq_dequeue(struct rt_rq *rt_rq)
+{
+    dequeue_top_rt_rq(rt_rq);
+}
+
+static inline int rt_rq_throttled(struct rt_rq *rt_rq)
+{
+    return rt_rq->rt_throttled;
+}
+
+static inline const struct cpumask *sched_rt_period_mask(void)
+{
+    return cpu_online_mask;
+}
+
+static inline
+struct rt_rq *sched_rt_period_rt_rq(struct rt_bandwidth *rt_b, int cpu)
+{
+    return &cpu_rq(cpu)->rt;
+}
+
+static inline struct rt_bandwidth *sched_rt_bandwidth(struct rt_rq *rt_rq)
+{
+    return &def_rt_bandwidth;
+}
+
+#endif /* CONFIG_RT_GROUP_SCHED */
+
+bool sched_rt_bandwidth_account(struct rt_rq *rt_rq)
+{
+    struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
+
+    return (hrtimer_active(&rt_b->rt_period_timer) ||
+        rt_rq->rt_time < rt_b->rt_runtime);
+}
+//634 lines
+
+
+
+
+
+
 
 //2356 lines
 const struct sched_class rt_sched_class = {
