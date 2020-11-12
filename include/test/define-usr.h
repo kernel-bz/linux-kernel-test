@@ -85,7 +85,12 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 #define cpu_relax() assert(0)
 #endif
 
+//include/linux/sched/signal.h
+#define for_each_process_thread(p, t)
 
+//kernel/locking/spinlock.c
+#define _raw_read_lock(lock)
+#define _raw_read_unlock(lock)
 
 
 #ifdef __cplusplus

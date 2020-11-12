@@ -2,6 +2,8 @@
 #ifndef _LINUX_RCULIST_H
 #define _LINUX_RCULIST_H
 
+#include "test/config.h"
+
 //#ifdef __KERNEL__
 
 /*

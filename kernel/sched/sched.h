@@ -104,6 +104,7 @@
 #include <linux/jump_label.h>
 
 #include <asm-generic/atomic-long.h>
+#include <asm-generic/bitops/sched.h>
 
 #include <asm/barrier.h>
 #include <asm/bug.h>

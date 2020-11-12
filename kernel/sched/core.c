@@ -283,7 +283,54 @@ void resched_cpu(int cpu)
 
 
 
-//746 lines
+
+
+//701 lines
+#if defined(CONFIG_RT_GROUP_SCHED) || (defined(CONFIG_FAIR_GROUP_SCHED) && \
+            (defined(CONFIG_SMP) || defined(CONFIG_CFS_BANDWIDTH)))
+/*
+ * Iterate task_group tree rooted at *from, calling @down when first entering a
+ * node and @up when leaving it for the final time.
+ *
+ * Caller must hold rcu_lock or sufficient equivalent.
+ */
+int walk_tg_tree_from(struct task_group *from,
+                 tg_visitor down, tg_visitor up, void *data)
+{
+    struct task_group *parent, *child;
+    int ret;
+
+    parent = from;
+
+down:
+    ret = (*down)(parent, data);
+    if (ret)
+        goto out;
+    list_for_each_entry_rcu(child, &parent->children, siblings) {
+        parent = child;
+        goto down;
+
+up:
+        continue;
+    }
+    ret = (*up)(parent, data);
+    if (ret || parent == from)
+        goto out;
+
+    child = parent;
+    parent = parent->parent;
+    if (parent)
+        goto up;
+out:
+    return ret;
+}
+
+int tg_nop(struct task_group *tg, void *data)
+{
+    return 0;
+}
+#endif
+//746
 static void set_load_weight(struct task_struct *p, bool update_load)
 {
     pr_fn_start_on(stack_depth);

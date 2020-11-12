@@ -95,6 +95,9 @@ static int hrtimer_try_to_cancel(struct hrtimer *timer) { }
 static inline u64 hrtimer_forward_now(struct hrtimer *timer,
                                       ktime_t interval) { }
 
+static inline void hrtimer_start_expires(struct hrtimer *timer,
+                                         enum hrtimer_mode mode) { }
+
 
 #ifdef __cplusplus
 }

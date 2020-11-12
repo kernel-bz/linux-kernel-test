@@ -56,5 +56,6 @@ static inline bool arch_spin_is_locked(arch_spinlock_t *mutex)
 }
 
 #include <linux/lockdep.h>
+#include <linux/rwlock.h>
 
 #endif

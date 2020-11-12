@@ -361,6 +361,11 @@ static void sched_cpudl_test(void)
     int cpu[] = { 0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 2, 3 };
 
     rq = cpu_rq(0);
+    if (!rq->rd) {
+        pr_warn("Please run sched_init first!\n");
+        return;
+    }
+
     for (i=0; i<12; i++) {
         cpudl_set(&rq->rd->cpudl, cpu[i], dl[i]);
     }
@@ -399,7 +404,7 @@ static int _sched_statis_menu(int asize)
     return (idx >= 0 && idx < asize) ? idx : -1;
 }
 
-static void _sched_statis_test(void)
+static void _sched_basic_pelt_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _calc_global_load_test
@@ -428,11 +433,15 @@ static int _sched_test_menu(int asize)
     printf("2: sched_create_group test.\n");
     printf("3: wake_up_new_task test.\n");
     printf("4: deactivate_task test.\n");
+
     printf("5: sched task group info.\n");
     printf("6: sched task group info(detail).\n");
-    printf("7: sched pelt info.\n");
-    printf("8: leaf cfs_rq info.\n");
-    printf("9: Statistics Test -->\n");
+
+    printf("7: Basic PELT Test -->\n");
+
+    printf("8: sched pelt info.\n");
+    printf("9: leaf cfs_rq info.\n");
+
     printf("10: sched deadline enqueue test.\n");
     printf("11: sched cpudl test.\n");
     printf("12: exit.\n");
@@ -449,8 +458,8 @@ void sched_test(void)
         , _sched_init_test, _sched_create_group_test
         , _wake_up_new_task_test, _deactivate_task_test
         , pr_sched_tg_info, pr_sched_tg_info_all
+        , _sched_basic_pelt_test
         , _sched_pelt_info, pr_leaf_cfs_rq_info
-        , _sched_statis_test
         , sched_dl_enqueue_test, sched_cpudl_test
     };
     int idx;

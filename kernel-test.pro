@@ -71,7 +71,8 @@ SOURCES += \
     test/basic/types-test.c \
     kernel/time/time.c \
     lib/stack_depth.c \
-    test/sched/sched-debug.c
+    test/sched/sched-debug.c \
+    lib/plist.c
 
 HEADERS += \
     include/test/test.h \

@@ -166,7 +166,9 @@ do {									\
 } while (0)
 
 #else
-extern void mutex_lock(struct mutex *lock);
+//kernel/locking/mutex.c
+//extern void mutex_lock(struct mutex *lock);
+static inline void mutex_lock(struct mutex *lock) { }
 extern int __must_check mutex_lock_interruptible(struct mutex *lock);
 extern int __must_check mutex_lock_killable(struct mutex *lock);
 extern void mutex_lock_io(struct mutex *lock);
@@ -185,7 +187,9 @@ extern void mutex_lock_io(struct mutex *lock);
  * Returns 1 if the mutex has been acquired successfully, and 0 on contention.
  */
 extern int mutex_trylock(struct mutex *lock);
-extern void mutex_unlock(struct mutex *lock);
+//kernel/locking/mutex.c
+//extern void mutex_unlock(struct mutex *lock);
+static inline void mutex_unlock(struct mutex *lock) { }
 
 extern int atomic_dec_and_mutex_lock(atomic_t *cnt, struct mutex *lock);
 

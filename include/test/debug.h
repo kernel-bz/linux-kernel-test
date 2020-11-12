@@ -24,17 +24,25 @@ extern int stack_depth;
 
 //#define printk		printf
 #define seq_printf		printf
-#define pr_warning		printf
+#define pr_warning		_pr_warn
 #define pr_debug		printf
 #define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
-#define pr_warn 		pr_err
-#define pr_cont 		pr_err
-#define panic 			pr_err
-#define print_tainted() ""
+#define pr_warn 				_pr_warn
+#define pr_cont 				pr_err
+#define panic 					pr_err
+#define print_tainted() 		""
+#define printk_deferred_once	_pr_warn
+
 
 #define pr_err(format, ...)							\
     do { 											\
         fprintf(stderr, "ERROR | %s : ", __func__);	\
+        fprintf(stderr, format, ## __VA_ARGS__); 	\
+    } while (0)
+
+#define _pr_warn(format, ...)						\
+    do { 											\
+        fprintf(stderr, "WARNING | %s : ", __func__);	\
         fprintf(stderr, format, ## __VA_ARGS__); 	\
     } while (0)
 
