@@ -237,6 +237,7 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
         pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].idx);
         pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].cpu);
         pr_info_view_on(stack_depth, "%30s : %llu\n", cp->elements[i].dl);
+        //pr_info_view_on(stack_depth, "%30s : 0x%X\n", cp->free_cpus);
     }
 
     raw_spin_unlock_irqrestore(&cp->lock, flags);

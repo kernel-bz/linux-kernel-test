@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 #define CONFIG_NR_CPUS		4
+//#define CONFIG_NR_CPUS		7
 #define CONFIG_SMP
 
 #define CONFIG_THREAD_INFO_IN_TASK

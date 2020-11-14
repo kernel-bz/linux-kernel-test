@@ -357,8 +357,12 @@ static void sched_cpudl_test(void)
 {
     int i;
     struct rq *rq;
-    u64 dl[] = { 100, 200, 300, 400, 10, 20, 30, 40, 3000, 2000, 4000, 1000 };
+
+    u64 dl[] = { 100, 200, 300, 400, 10, 20, 30, 40, 3000, 2000, 4000, 1000 |;
+    //u64 dl[] = { 450, 600, 250, 50, 200, 300 };
     int cpu[] = { 0, 1, 2, 3, 3, 2, 1, 0, 0, 1, 2, 3 };
+    //int cpu[] = { 6, 4, 3, 2, 1, 0 };	//NR_CPUS=7, include/linux/cpumask.h
+    int asize = sizeof (dl) / sizeof (dl[0]);
 
     rq = cpu_rq(0);
     if (!rq->rd) {
@@ -366,7 +370,7 @@ static void sched_cpudl_test(void)
         return;
     }
 
-    for (i=0; i<12; i++) {
+    for (i=0; i<asize; i++) {
         cpudl_set(&rq->rd->cpudl, cpu[i], dl[i]);
     }
 }
