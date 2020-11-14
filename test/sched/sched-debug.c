@@ -364,3 +364,26 @@ void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se)
 
     pr_fn_end_on(stack_depth);
 }
+
+void pr_sched_curr_task_info(struct task_struct *p)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", p);
+    if (!p) return;
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->normal_prio);
+    if (p->sched_class == &stop_sched_class)
+        pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "stop_sched_class");
+    else if (p->sched_class == &dl_sched_class)
+        pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "dl_sched_class");
+    else if (p->sched_class == &rt_sched_class)
+        pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "rt_sched_class");
+    else if (p->sched_class == &fair_sched_class)
+        pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "fair_sched_class");
+    else if (p->sched_class == &idle_sched_class)
+        pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "idle_sched_class");
+
+    pr_fn_end_on(stack_depth);
+}

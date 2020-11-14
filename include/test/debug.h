@@ -60,6 +60,7 @@ extern int stack_depth;
       if (depth > 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
+        printf("<%d> | ", level); 					\
         printf(__VA_ARGS__); 						\
       }												\
     } while (0)
@@ -123,6 +124,7 @@ void pr_leaf_cfs_rq_info(void);
 void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq);
 
 void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se);
+void pr_sched_curr_task_info(struct task_struct *p);
 
 #ifdef __cplusplus
 }

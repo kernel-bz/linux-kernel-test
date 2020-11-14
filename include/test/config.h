@@ -6,16 +6,16 @@ extern "C" {
 #endif
 
 #define CONFIG_64BIT
-#define CONFIG_64BIT_TIME	1
-#define CONFIG_HZ			100
+#define CONFIG_64BIT_TIME		1
+#define CONFIG_HZ				100
 
 //include/linux/compat.h
 #ifndef COMPAT_USE_64BIT_TIME
-#define COMPAT_USE_64BIT_TIME 0
+#define COMPAT_USE_64BIT_TIME 	0
 #endif
 
-#define CONFIG_NR_CPUS		4
-//#define CONFIG_NR_CPUS		7
+#define CONFIG_NR_CPUS			4
+//#define CONFIG_NR_CPUS		8
 #define CONFIG_SMP
 
 #define CONFIG_THREAD_INFO_IN_TASK
