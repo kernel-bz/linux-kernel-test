@@ -358,7 +358,8 @@ HEADERS += \
     include/uapi/asm-generic/posix_types.h \
     include/asm-generic/atomic-long.h \
     include/linux/limits.h \
-    include/uapi/linux/limits.h
+    include/uapi/linux/limits.h \
+    include/linux/sched/signal.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

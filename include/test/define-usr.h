@@ -5,18 +5,12 @@
 #include <linux/numa.h>
 #include <asm/thread_info.h>
 //#include <linux/sched/task_stack.h>
+#include <linux/signal.h>
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef sigset_t
-typedef struct {
-    unsigned long sig[2];
-} sigset_t;
-#endif
-
 
 //include/linux/compiler.h
 #define notrace

@@ -4341,6 +4341,8 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
  */
 static void set_next_task_fair(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *se = &p->se;
 
 #ifdef CONFIG_SMP
@@ -4360,6 +4362,8 @@ static void set_next_task_fair(struct rq *rq, struct task_struct *p)
         /* ensure bandwidth has been allocated on our new cfs_rq */
         account_cfs_rq_runtime(cfs_rq, 0);
     }
+
+    pr_fn_end_on(stack_depth);
 }
 //10176
 void init_cfs_rq(struct cfs_rq *cfs_rq)

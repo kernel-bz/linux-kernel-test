@@ -369,11 +369,19 @@ void pr_sched_curr_task_info(struct task_struct *p)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", p);
+    //uapi/linux/sched.h
+    char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
+            , "SCHED_BATCH", "SCHED_ISO", "SCHED_IDLE", "SCHED_DEADLINE" };
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
     if (!p) return;
 
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->normal_prio);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->static_prio);
+    pr_info_view_on(stack_depth, "%30s : %u\n", p->rt_priority);
+    pr_info_view_on(stack_depth, "%30s : %s\n", spolicy[p->policy]);
+
     if (p->sched_class == &stop_sched_class)
         pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "stop_sched_class");
     else if (p->sched_class == &dl_sched_class)

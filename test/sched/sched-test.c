@@ -218,6 +218,70 @@ _retry:
     pr_fn_end_on(stack_depth);
 }
 
+/*
+   queued = task_on_rq_queued(p);
+   running = task_current(rq, p);
+   if (queued) {
+        dequeue_task(rq, p, queue_flags);
+        __setscheduler(rq, p, attr, pi);
+        enqueue_task(rq, p, queue_flags);
+   }
+   if (running) {
+        put_prev_task(rq, p);
+        __setscheduler(rq, p, attr, pi);
+        set_next_task(rq, p);
+   }
+ */
+static void _sched_setscheduler_test(void)
+{
+    struct rq *rq;
+    struct task_struct *p;
+    int i, policy, cpu, prio, user;
+    int ret;
+    struct sched_param param;
+    char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
+            , "SCHED_BATCH", "SCHED_ISO", "SCHED_IDLE", "SCHED_DEADLINE" };
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    rq = cpu_rq(cpu);
+    p = rq->curr;
+    if (!p) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
+
+    for (i=0; i<7; i++)
+        printf("%d: %s\n", i, spolicy[i]);
+    printf("Input Policy Number[%d,%d]: ", SCHED_NORMAL, SCHED_DEADLINE);
+    scanf("%d", &policy);
+
+    printf("Input Priority Number[0,%d]: ", MAX_USER_RT_PRIO-1);
+    scanf("%d", &prio);
+
+    printf("Select User Check[0,1]: ");
+    scanf("%d", &user);
+
+    pr_fn_start_on(stack_depth);
+
+    param.sched_priority = prio;
+    if (user) {
+        ret = sched_setscheduler_check(p, policy, &param);
+        //_sched_setscheduler(p, policy, param, true);	//user check
+    } else {
+        ret = sched_setscheduler_nocheck(p, policy, &param);
+        //_sched_setscheduler(p, policy, param, false);	//user nocheck
+    }
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", ret);
+
+    pr_fn_end_on(stack_depth);
+}
+
 #if 0
 //cat /proc/loadavg
 //fs/proc/loadavg.c
@@ -333,6 +397,32 @@ _retry:
         pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&rq->curr->se);
     }
     pr_sched_pelt_info(se);
+
+    pr_fn_end_on(stack_depth);
+}
+
+static void _sched_set_user_nice_test(void)
+{
+    struct rq *rq;
+    unsigned int cpu;
+    long nice;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    printf("Input Nice Number[%d,%d]: ", MIN_NICE, MAX_NICE);
+    scanf("%ld", &nice);
+
+    pr_fn_start_on(stack_depth);
+
+    rq = cpu_rq(cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+
+    set_user_nice(rq->curr, nice);
 
     pr_fn_end_on(stack_depth);
 }
@@ -455,7 +545,8 @@ static int _sched_cfs_test_menu(int asize)
     printf("0: help.\n");
     printf("1: sched pelt info.\n");
     printf("2: leaf cfs_rq info.\n");
-    printf("3: exit.\n");
+    printf("3: set_user_nice test.\n");
+    printf("4: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -467,6 +558,7 @@ static void _sched_cfs_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _sched_pelt_info, pr_leaf_cfs_rq_info
+        , _sched_set_user_nice_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
@@ -551,21 +643,21 @@ static int _sched_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");
-    printf("0: help.\n");
-    printf("1: sched_init test.\n");
-    printf("2: wake_up_new_task test.\n");
-    printf("3: current task info.\n");
-    printf("4: deactivate_task test.\n");
-    printf("5: create task group test.\n");
-    printf("6: task group info.\n");
-    printf("7: task group info(detail).\n");
+    printf(" 0: help.\n");
+    printf(" 1: sched_init test.\n");
+    printf(" 2: wake_up_new_task test.\n");
+    printf(" 3: current task info.\n");
+    printf(" 4: deactivate_task test.\n");
+    printf(" 5: setscheduler test.\n");
+    printf(" 6: create task group test.\n");
+    printf(" 7: task group info.\n");
+    printf(" 8: task group info(detail).\n");
+    printf(" 9: Basic PELT Test -->\n");
+    printf("10: CFS Test -->\n");
+    printf("11: RT Test -->\n");
+    printf("12: DeadLine Test -->\n");
 
-    printf("8: Basic PELT Test -->\n");
-    printf("9: CFS Test -->\n");
-    printf("10: RT Test -->\n");
-    printf("11: DeadLine Test -->\n");
-
-    printf("12: exit.\n");
+    printf("13: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -580,10 +672,10 @@ void sched_test(void)
         , _sched_new_task_test
         , _sched_current_task_info
         , _sched_deactivate_task_test
+        , _sched_setscheduler_test
         , _sched_create_group_test
         , pr_sched_tg_info
         , pr_sched_tg_info_all
-
         , _sched_basic_pelt_test
         , _sched_cfs_test
         , _sched_rt_test
