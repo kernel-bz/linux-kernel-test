@@ -780,7 +780,7 @@ static inline void cgroup_account_cputime(struct task_struct *task,
 {
 	struct cgroup *cgrp;
 
-	cpuacct_charge(task, delta_exec);
+    //cpuacct_charge(task, delta_exec);	//error
 
 	rcu_read_lock();
 	cgrp = task_dfl_cgroup(task);

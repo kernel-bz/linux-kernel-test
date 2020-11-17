@@ -21,13 +21,6 @@
 
 struct task_struct *current_task;
 
-static void _sched_init_test(void)
-{
-    pr_fn_start_on(stack_depth);
-    sched_init();
-    pr_fn_end_on(stack_depth);
-}
-
 struct task_group *sched_test_tg_select(void)
 {
     int tg_max, idx, cnt=0;
@@ -260,7 +253,9 @@ _retry:
     printf("Input Policy Number[%d,%d]: ", SCHED_NORMAL, SCHED_DEADLINE);
     scanf("%d", &policy);
 
-    printf("Input Priority Number[0,%d]: ", MAX_USER_RT_PRIO-1);
+    //if policy==RT then prio>0
+    //if policy==CFS then prio=0
+    printf("Input Priority Number[0,%d]: ", MAX_RT_PRIO-1);
     scanf("%d", &prio);
 
     printf("Select User Check[0,1]: ");
@@ -644,20 +639,19 @@ static int _sched_test_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");
     printf(" 0: help.\n");
-    printf(" 1: sched_init test.\n");
-    printf(" 2: wake_up_new_task test.\n");
-    printf(" 3: current task info.\n");
-    printf(" 4: deactivate_task test.\n");
-    printf(" 5: setscheduler test.\n");
-    printf(" 6: create task group test.\n");
-    printf(" 7: task group info.\n");
-    printf(" 8: task group info(detail).\n");
-    printf(" 9: Basic PELT Test -->\n");
-    printf("10: CFS Test -->\n");
-    printf("11: RT Test -->\n");
-    printf("12: DeadLine Test -->\n");
+    printf(" 1: wake_up_new_task test.\n");
+    printf(" 2: current task info.\n");
+    printf(" 3: deactivate_task test.\n");
+    printf(" 4: setscheduler test.\n");
+    printf(" 5: create task group test.\n");
+    printf(" 6: task group info.\n");
+    printf(" 7: task group info(detail).\n");
+    printf(" 8: Basic PELT Test -->\n");
+    printf(" 9: CFS Test -->\n");
+    printf("10: RT Test -->\n");
+    printf("11: DeadLine Test -->\n");
 
-    printf("13: exit.\n");
+    printf("12: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -668,7 +662,6 @@ static int _sched_test_menu(int asize)
 void sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , _sched_init_test
         , _sched_new_task_test
         , _sched_current_task_info
         , _sched_deactivate_task_test

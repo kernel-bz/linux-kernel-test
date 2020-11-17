@@ -23,6 +23,7 @@ extern "C" {
 #define __always_inline		inline
 #define __initdata
 #define __ref
+#define __cpuidle
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 

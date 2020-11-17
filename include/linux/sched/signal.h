@@ -689,7 +689,8 @@ static inline void unlock_task_sighand(struct task_struct *task,
 static inline unsigned long task_rlimit(const struct task_struct *task,
 		unsigned int limit)
 {
-	return READ_ONCE(task->signal->rlim[limit].rlim_cur);
+    //return READ_ONCE(task->signal->rlim[limit].rlim_cur);
+    return MAX_RT_PRIO - 1;
 }
 
 static inline unsigned long task_rlimit_max(const struct task_struct *task,

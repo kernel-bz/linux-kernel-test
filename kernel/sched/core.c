@@ -905,6 +905,9 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
 {
     pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", flags);
 
     if (!(flags & DEQUEUE_NOCLOCK))
         update_rq_clock(rq);
@@ -1026,6 +1029,10 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
                        const struct sched_class *prev_class,
                        int oldprio)
 {
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev_class);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p->sched_class);
+
     if (prev_class != p->sched_class) {
         if (prev_class->switched_from)
             prev_class->switched_from(rq, p);
@@ -1033,6 +1040,8 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
         p->sched_class->switched_to(rq, p);
     } else if (oldprio != p->prio || dl_task(p))
         p->sched_class->prio_changed(rq, p, oldprio);
+
+    pr_fn_end_on(stack_depth);
 }
 
 void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
@@ -1118,6 +1127,16 @@ void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
 }
 //1757 lines
 
+
+
+
+//2387 lines
+bool cpus_share_cache(int this_cpu, int that_cpu)
+{
+    return per_cpu(sd_llc_id, this_cpu) == per_cpu(sd_llc_id, that_cpu);
+}
+//#endif /* CONFIG_SMP */
+//2393 lines
 
 
 
@@ -1449,6 +1468,8 @@ void wake_up_new_task(struct task_struct *p)
 /* rq->lock is NOT held, but preemption is disabled */
 static void __balance_callback(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
     struct callback_head *head, *next;
     void (*func)(struct rq *rq);
     unsigned long flags;
@@ -1465,6 +1486,8 @@ static void __balance_callback(struct rq *rq)
         func(rq);
     }
     raw_spin_unlock_irqrestore(&rq->lock, flags);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void balance_callback(struct rq *rq)
@@ -1800,6 +1823,8 @@ void set_user_nice(struct task_struct *p, long nice)
         set_next_task(rq, p);
 out_unlock:
     task_rq_unlock(rq, p, &rf);
+
+    pr_fn_end_on(stack_depth);
 }
 //EXPORT_SYMBOL(set_user_nice);
 //4548
@@ -1822,7 +1847,84 @@ int can_nice(const struct task_struct *p, const int nice)
 
 
 
-//4673 lines
+
+//4597 lines
+/**
+ * task_prio - return the priority value of a given task.
+ * @p: the task in question.
+ *
+ * Return: The priority value as seen by users in /proc.
+ * RT tasks are offset by -200. Normal tasks are centered
+ * around 0, value goes from -16 to +15.
+ */
+int task_prio(const struct task_struct *p)
+{
+    return p->prio - MAX_RT_PRIO;
+}
+
+/**
+ * idle_cpu - is a given CPU idle currently?
+ * @cpu: the processor in question.
+ *
+ * Return: 1 if the CPU is currently idle. 0 otherwise.
+ */
+int idle_cpu(int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+
+    if (rq->curr != rq->idle)
+        return 0;
+
+    if (rq->nr_running)
+        return 0;
+
+#ifdef CONFIG_SMP
+    if (!llist_empty(&rq->wake_list))
+        return 0;
+#endif
+
+    return 1;
+}
+
+/**
+ * available_idle_cpu - is a given CPU idle for enqueuing work.
+ * @cpu: the CPU in question.
+ *
+ * Return: 1 if the CPU is currently idle. 0 otherwise.
+ */
+int available_idle_cpu(int cpu)
+{
+    if (!idle_cpu(cpu))
+        return 0;
+
+    if (vcpu_is_preempted(cpu))
+        return 0;
+
+    return 1;
+}
+
+/**
+ * idle_task - return the idle task for a given CPU.
+ * @cpu: the processor in question.
+ *
+ * Return: The idle task for the CPU @cpu.
+ */
+struct task_struct *idle_task(int cpu)
+{
+    return cpu_rq(cpu)->idle;
+}
+
+/**
+ * find_process_by_pid - find a process with a matching PID value.
+ * @pid: the pid in question.
+ *
+ * The task of @pid, if found. %NULL otherwise.
+ */
+static struct task_struct *find_process_by_pid(pid_t pid)
+{
+    return pid ? find_task_by_vpid(pid) : current;
+}
+//4673
 /*
  * sched_setparam() passes in -1 for its policy, to let the functions
  * it calls know not to change it.
@@ -1970,9 +2072,8 @@ recheck:
         }
 
         if (rt_policy(policy)) {
-            //unsigned long rlim_rtprio =
-                    //task_rlimit(p, RLIMIT_RTPRIO);
-            unsigned long rlim_rtprio = MAX_USER_RT_PRIO - 1;
+            unsigned long rlim_rtprio =
+                    task_rlimit(p, RLIMIT_RTPRIO);
 
             pr_info_view_on(stack_depth, "%30s : %lu\n", rlim_rtprio);
 

@@ -387,6 +387,8 @@ static void enqueue_pushable_task(struct rq *rq, struct task_struct *p)
 
 static void dequeue_pushable_task(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	plist_del(&p->pushable_tasks, &rq->rt.pushable_tasks);
 
 	/* Update the new highest prio pushable task */
@@ -396,6 +398,8 @@ static void dequeue_pushable_task(struct rq *rq, struct task_struct *p)
 		rq->rt.highest_prio.next = p->prio;
 	} else
 		rq->rt.highest_prio.next = MAX_RT_PRIO;
+
+    pr_fn_end_on(stack_depth);
 }
 
 #else
@@ -957,6 +961,8 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
  */
 static void update_curr_rt(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct task_struct *curr = rq->curr;
 	struct sched_rt_entity *rt_se = &curr->rt;
 	u64 delta_exec;
@@ -970,6 +976,8 @@ static void update_curr_rt(struct rq *rq)
 	if (unlikely((s64)delta_exec <= 0))
 		return;
 
+    pr_info_view_on(stack_depth, "%20s : %llu\n", now);
+
 	schedstat_set(curr->se.statistics.exec_max,
 		      max(curr->se.statistics.exec_max, delta_exec));
 
@@ -977,10 +985,12 @@ static void update_curr_rt(struct rq *rq)
 	account_group_exec_runtime(curr, delta_exec);
 
 	curr->se.exec_start = now;
-	cgroup_account_cputime(curr, delta_exec);
+    //cgroup_account_cputime(curr, delta_exec);	//error
 
 	if (!rt_bandwidth_enabled())
 		return;
+
+    pr_info_view_on(stack_depth, "%20s : %llu\n", delta_exec);
 
 	for_each_sched_rt_entity(rt_se) {
 		struct rt_rq *rt_rq = rt_rq_of_se(rt_se);
@@ -993,6 +1003,7 @@ static void update_curr_rt(struct rq *rq)
 			raw_spin_unlock(&rt_rq->rt_runtime_lock);
 		}
 	}
+    pr_fn_end_on(stack_depth);
 }
 
 static void
@@ -1312,6 +1323,8 @@ static void enqueue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 
 static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct rq *rq = rq_of_rt_se(rt_se);
 
 	dequeue_rt_stack(rt_se, flags);
@@ -1323,6 +1336,8 @@ static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 			__enqueue_rt_entity(rt_se, flags);
 	}
 	enqueue_top_rt_rq(&rq->rt);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1344,12 +1359,16 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 
 static void dequeue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_rt_entity *rt_se = &p->rt;
 
 	update_curr_rt(rq);
 	dequeue_rt_entity(rt_se, flags);
 
 	dequeue_pushable_task(rq, p);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*

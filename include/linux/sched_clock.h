@@ -5,9 +5,6 @@
 #ifndef LINUX_SCHED_CLOCK
 #define LINUX_SCHED_CLOCK
 
-//kernel/sched/clock.c
-int sched_clock_running;
-
 #ifdef CONFIG_GENERIC_SCHED_CLOCK
 extern void generic_sched_clock_init(void);
 

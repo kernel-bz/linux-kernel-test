@@ -21,7 +21,7 @@ extern void wake_up_if_idle(int cpu);
 
 static inline void __current_set_polling(void)
 {
-	set_thread_flag(TIF_POLLING_NRFLAG);
+    //set_thread_flag(TIF_POLLING_NRFLAG);
 }
 
 static inline bool __must_check current_set_polling_and_test(void)
@@ -32,14 +32,15 @@ static inline bool __must_check current_set_polling_and_test(void)
 	 * Polling state must be visible before we test NEED_RESCHED,
 	 * paired by resched_curr()
 	 */
-	smp_mb__after_atomic();
+    //smp_mb__after_atomic();
 
-	return unlikely(tif_need_resched());
+    //return unlikely(tif_need_resched());
+    return false;
 }
 
 static inline void __current_clr_polling(void)
 {
-	clear_thread_flag(TIF_POLLING_NRFLAG);
+    //clear_thread_flag(TIF_POLLING_NRFLAG);
 }
 
 static inline bool __must_check current_clr_polling_and_test(void)
@@ -50,9 +51,10 @@ static inline bool __must_check current_clr_polling_and_test(void)
 	 * Polling state must be visible before we test NEED_RESCHED,
 	 * paired by resched_curr()
 	 */
-	smp_mb__after_atomic();
+    //smp_mb__after_atomic();
 
-	return unlikely(tif_need_resched());
+    //return unlikely(tif_need_resched());
+    return false;
 }
 
 #else
@@ -79,9 +81,9 @@ static inline void current_clr_polling(void)
 	 * TIF_NEED_RESCHED and the IPI handler, scheduler_ipi(), will also
 	 * fold.
 	 */
-	smp_mb(); /* paired with resched_curr() */
+    //smp_mb(); /* paired with resched_curr() */
 
-	preempt_fold_need_resched();
+    //preempt_fold_need_resched();
 }
 
 #endif /* _LINUX_SCHED_IDLE_H */
