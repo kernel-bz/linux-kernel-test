@@ -1727,7 +1727,7 @@ static inline unsigned long wait_task_inactive(struct task_struct *p, long match
  */
 static inline void set_tsk_thread_flag(struct task_struct *tsk, int flag)
 {
-    //set_ti_thread_flag(task_thread_info(tsk), flag);
+    set_ti_thread_flag(task_thread_info(tsk), flag);
 }
 
 static inline void clear_tsk_thread_flag(struct task_struct *tsk, int flag)
@@ -1753,7 +1753,7 @@ static inline int test_and_clear_tsk_thread_flag(struct task_struct *tsk, int fl
 
 static inline int test_tsk_thread_flag(struct task_struct *tsk, int flag)
 {
-    //return test_ti_thread_flag(task_thread_info(tsk), flag);
+    return test_ti_thread_flag(task_thread_info(tsk), flag);
 }
 
 static inline void set_tsk_need_resched(struct task_struct *tsk)

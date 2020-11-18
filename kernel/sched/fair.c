@@ -650,6 +650,8 @@ static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
     pr_fn_start_on(stack_depth);
 
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&se->run_node);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&cfs_rq->tasks_timeline.rb_leftmost);
 
@@ -4968,6 +4970,8 @@ preempt:
 static struct task_struct *
 pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
+    pr_fn_start_on(stack_depth);
+
     struct cfs_rq *cfs_rq = &rq->cfs;
     struct sched_entity *se;
     struct task_struct *p;
@@ -5081,6 +5085,8 @@ done: __maybe_unused;
 
     update_misfit_status(p, rq);
 
+    pr_fn_end_on(stack_depth);
+
     return p;
 
 idle:
@@ -5114,6 +5120,8 @@ idle:
  */
 static void put_prev_task_fair(struct rq *rq, struct task_struct *prev)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *se = &prev->se;
     struct cfs_rq *cfs_rq;
 
@@ -5121,6 +5129,8 @@ static void put_prev_task_fair(struct rq *rq, struct task_struct *prev)
         cfs_rq = cfs_rq_of(se);
         put_prev_entity(cfs_rq, se);
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -5603,6 +5613,8 @@ static void propagate_entity_cfs_rq(struct sched_entity *se) { }
 //10068
 static void detach_entity_cfs_rq(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
     /* Catch up with the cfs_rq and remove our load when we leave */
@@ -5610,6 +5622,8 @@ static void detach_entity_cfs_rq(struct sched_entity *se)
     detach_entity_load_avg(cfs_rq, se);
     update_tg_load_avg(cfs_rq, false);
     propagate_entity_cfs_rq(se);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void attach_entity_cfs_rq(struct sched_entity *se)
@@ -5653,6 +5667,8 @@ static void attach_entity_cfs_rq(struct sched_entity *se)
 
 static void detach_task_cfs_rq(struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *se = &p->se;
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
@@ -5666,10 +5682,14 @@ static void detach_task_cfs_rq(struct task_struct *p)
     }
 
     detach_entity_cfs_rq(se);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void attach_task_cfs_rq(struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *se = &p->se;
     struct cfs_rq *cfs_rq = cfs_rq_of(se);
 
@@ -5677,15 +5697,29 @@ static void attach_task_cfs_rq(struct task_struct *p)
 
     if (!vruntime_normalized(p))
         se->vruntime += cfs_rq->min_vruntime;
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void switched_from_fair(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+
     detach_task_cfs_rq(p);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void switched_to_fair(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+
     attach_task_cfs_rq(p);
 
     if (task_on_rq_queued(p)) {
@@ -5699,6 +5733,8 @@ static void switched_to_fair(struct rq *rq, struct task_struct *p)
         else
             check_preempt_curr(rq, p, 0);
     }
+
+    pr_fn_end_on(stack_depth);
 }
 //10148
 /* Account for a task changing its policy or group.

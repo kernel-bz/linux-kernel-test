@@ -25,6 +25,7 @@
 #endif
 
 #include <linux/bitops.h>
+#include <linux/bitmap.h>
 
 /*
  * For per-arch arch_within_stack_frames() implementations, defined in
@@ -39,7 +40,7 @@ enum {
 
 #include <asm/thread_info.h>
 
-#ifdef __KERNEL__
+//#ifdef __KERNEL__
 
 #ifndef THREAD_ALIGN
 #define THREAD_ALIGN	THREAD_SIZE
@@ -157,6 +158,6 @@ check_copy_size(const void *addr, size_t bytes, bool is_source)
 static inline void arch_setup_new_exec(void) { }
 #endif
 
-#endif	/* __KERNEL__ */
+//#endif	/* __KERNEL__ */
 
 #endif /* _LINUX_THREAD_INFO_H */

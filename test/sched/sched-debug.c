@@ -173,6 +173,30 @@ _end:
     pr_fn_end_on(stack_depth);
 }
 
+static void _pr_sched_rt_rq(struct rt_rq *rt_rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rt_rq);
+    if(!rt_rq) goto _end;
+
+    int i, asize = BITS_TO_LONGS(MAX_RT_PRIO+1);
+    for (i=0; i<asize; i++)
+        pr_info_view_on(stack_depth, "%30s : 0x%lX\n", rt_rq->active.bitmap[i]);
+
+    pr_info_view_on(stack_depth, "%30s : %u\n", rt_rq->rt_nr_running);
+    pr_info_view_on(stack_depth, "%30s : %u\n", rt_rq->rr_nr_running);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rt_rq->highest_prio.curr);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rt_rq->highest_prio.next);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rt_rq->rt_queued);
+    pr_info_view_on(stack_depth, "%30s : %d\n", rt_rq->rt_throttled);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rt_rq->rt_time);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", rt_rq->rt_runtime);
+
+_end:
+    pr_fn_end_on(stack_depth);
+}
+
 void pr_sched_tg_view_cpu(struct task_group *tg)
 {
     pr_fn_start_on(stack_depth);
@@ -193,6 +217,9 @@ void pr_sched_tg_view_cpu(struct task_group *tg)
 
             struct cfs_rq *cfs_rq = tg->cfs_rq[cpu];
             _pr_sched_cfs_rq_rblist(cfs_rq);
+
+            struct rt_rq *rt_rq = tg->rt_rq[cpu];
+            _pr_sched_rt_rq(rt_rq);
 
             struct sched_entity *se;
             se = tg->se[cpu];

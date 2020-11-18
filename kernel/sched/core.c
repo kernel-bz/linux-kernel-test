@@ -14,8 +14,11 @@
 #include <linux/topology.h>
 #include <linux/radix-tree-user.h>
 #include <linux/sched/clock.h>
+#include <linux/export.h>
 
+#include <asm-generic/preempt.h>
 //#include <asm/switch_to.h>
+#include <asm-generic/switch_to.h>
 //#include <asm/tlb.h>
 
 //#include "../workqueue_internal.h"
@@ -244,6 +247,10 @@ void update_rq_clock(struct rq *rq)
  */
 void resched_curr(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+
     struct task_struct *curr = rq->curr;
     int cpu;
 
@@ -253,6 +260,8 @@ void resched_curr(struct rq *rq)
         return;
 
     cpu = cpu_of(rq);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
 
     if (cpu == smp_processor_id()) {
         set_tsk_need_resched(curr);
@@ -265,6 +274,8 @@ void resched_curr(struct rq *rq)
     else
         trace_sched_wake_idle_without_ipi(cpu);
 #endif //0
+
+    pr_fn_end_on(stack_depth);
 }
 
 void resched_cpu(int cpu)
@@ -1030,6 +1041,8 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
                        int oldprio)
 {
     pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev_class);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p->sched_class);
 
@@ -1046,6 +1059,8 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
 
 void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
 {
+    pr_fn_start_on(stack_depth);
+
     const struct sched_class *class;
 
     if (p->sched_class == rq->curr->sched_class) {
@@ -1067,6 +1082,8 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
      */
     if (task_on_rq_queued(rq->curr) && test_tsk_need_resched(rq->curr))
         rq_clock_skip_update(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 //1440 lines
 
@@ -1293,6 +1310,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
      * Make sure we do not leak PI boosting priority to the child.
      */
     //p->prio = current->normal_prio;	//current error
+    p->prio = current_task->normal_prio;
 
     uclamp_fork(p);
 
@@ -1462,7 +1480,202 @@ void wake_up_new_task(struct task_struct *p)
 
 
 
-//3263 lines
+
+//3069 lines
+static inline void prepare_task(struct task_struct *next)
+{
+#ifdef CONFIG_SMP
+    /*
+     * Claim the task as running, we do this before switching to it
+     * such that any running task will have this set.
+     */
+    next->on_cpu = 1;
+#endif
+}
+
+static inline void finish_task(struct task_struct *prev)
+{
+#ifdef CONFIG_SMP
+    /*
+     * After ->on_cpu is cleared, the task can be moved to a different CPU.
+     * We must ensure this doesn't happen until the switch is completely
+     * finished.
+     *
+     * In particular, the load of prev->state in finish_task_switch() must
+     * happen before this.
+     *
+     * Pairs with the smp_cond_load_acquire() in try_to_wake_up().
+     */
+    smp_store_release(&prev->on_cpu, 0);
+#endif
+}
+
+static inline void
+prepare_lock_switch(struct rq *rq, struct task_struct *next, struct rq_flags *rf)
+{
+    /*
+     * Since the runqueue lock will be released by the next
+     * task (which is an invalid locking op but in the case
+     * of the scheduler it's an obvious special-case), so we
+     * do an early lockdep release here:
+     */
+    rq_unpin_lock(rq, rf);
+    //spin_release(&rq->lock.dep_map, 1, _THIS_IP_);
+#ifdef CONFIG_DEBUG_SPINLOCK
+    /* this is a valid case when another task releases the spinlock */
+    rq->lock.owner = next;
+#endif
+}
+
+static inline void finish_lock_switch(struct rq *rq)
+{
+    /*
+     * If we are tracking spinlock dependencies then we have to
+     * fix up the runqueue lock - which gets 'carried over' from
+     * prev into current:
+     */
+    //spin_acquire(&rq->lock.dep_map, 0, 0, _THIS_IP_);
+    raw_spin_unlock_irq(&rq->lock);
+}
+
+/*
+ * NOP if the arch has not defined these:
+ */
+
+#ifndef prepare_arch_switch
+# define prepare_arch_switch(next)	do { } while (0)
+#endif
+
+#ifndef finish_arch_post_lock_switch
+# define finish_arch_post_lock_switch()	do { } while (0)
+#endif
+
+/**
+ * prepare_task_switch - prepare to switch tasks
+ * @rq: the runqueue preparing to switch
+ * @prev: the current task that is being switched out
+ * @next: the task we are going to switch to.
+ *
+ * This is called with the rq lock held and interrupts off. It must
+ * be paired with a subsequent finish_task_switch after the context
+ * switch.
+ *
+ * prepare_task_switch sets up locking and calls architecture specific
+ * hooks.
+ */
+static inline void
+prepare_task_switch(struct rq *rq, struct task_struct *prev,
+            struct task_struct *next)
+{
+    //kcov_prepare_switch(prev);
+    sched_info_switch(rq, prev, next);
+    //perf_event_task_sched_out(prev, next);
+    rseq_preempt(prev);
+    //fire_sched_out_preempt_notifiers(prev, next);
+    prepare_task(next);
+    prepare_arch_switch(next);
+}
+
+/**
+ * finish_task_switch - clean up after a task-switch
+ * @prev: the thread we just switched away from.
+ *
+ * finish_task_switch must be called after the context switch, paired
+ * with a prepare_task_switch call before the context switch.
+ * finish_task_switch will reconcile locking set up by prepare_task_switch,
+ * and do any other architecture-specific cleanup actions.
+ *
+ * Note that we may have delayed dropping an mm in context_switch(). If
+ * so, we finish that here outside of the runqueue lock. (Doing it
+ * with the lock held can cause deadlocks; see schedule() for
+ * details.)
+ *
+ * The context switch have flipped the stack from under us and restored the
+ * local variables which were saved when this task called schedule() in the
+ * past. prev == current is still correct but we need to recalculate this_rq
+ * because prev may have moved to another CPU.
+ */
+static struct rq *finish_task_switch(struct task_struct *prev)
+    __releases(rq->lock)
+{
+    struct rq *rq = this_rq();
+    struct mm_struct *mm = rq->prev_mm;
+    long prev_state;
+
+    /*
+     * The previous task will have left us with a preempt_count of 2
+     * because it left us after:
+     *
+     *	schedule()
+     *	  preempt_disable();			// 1
+     *	  __schedule()
+     *	    raw_spin_lock_irq(&rq->lock)	// 2
+     *
+     * Also, see FORK_PREEMPT_COUNT.
+     */
+    if (WARN_ONCE(preempt_count() != 2*PREEMPT_DISABLE_OFFSET,
+              "corrupted preempt_count: %s/%d/0x%x\n",
+              current_task->comm, current_task->pid, preempt_count()))
+        preempt_count_set(FORK_PREEMPT_COUNT);
+
+    rq->prev_mm = NULL;
+
+    /*
+     * A task struct has one reference for the use as "current".
+     * If a task dies, then it sets TASK_DEAD in tsk->state and calls
+     * schedule one last time. The schedule call will never return, and
+     * the scheduled task must drop that reference.
+     *
+     * We must observe prev->state before clearing prev->on_cpu (in
+     * finish_task), otherwise a concurrent wakeup can get prev
+     * running on another CPU and we could rave with its RUNNING -> DEAD
+     * transition, resulting in a double drop.
+     */
+    prev_state = prev->state;
+    //vtime_task_switch(prev);
+    //perf_event_task_sched_in(prev, current);
+    finish_task(prev);
+    finish_lock_switch(rq);
+    finish_arch_post_lock_switch();
+    //kcov_finish_switch(current);
+
+    //fire_sched_in_preempt_notifiers(current);
+    /*
+     * When switching through a kernel thread, the loop in
+     * membarrier_{private,global}_expedited() may have observed that
+     * kernel thread and not issued an IPI. It is therefore possible to
+     * schedule between user->kernel->user threads without passing though
+     * switch_mm(). Membarrier requires a barrier after storing to
+     * rq->curr, before returning to userspace, so provide them here:
+     *
+     * - a full memory barrier for {PRIVATE,GLOBAL}_EXPEDITED, implicitly
+     *   provided by mmdrop(),
+     * - a sync_core for SYNC_CORE.
+     */
+    //if (mm) {
+    //    membarrier_mm_sync_core_before_usermode(mm);
+    //    mmdrop(mm);
+    //}
+    if (unlikely(prev_state == TASK_DEAD)) {
+        if (prev->sched_class->task_dead)
+            prev->sched_class->task_dead(prev);
+
+        /*
+         * Remove function-return probe instances associated with this
+         * task and put them back on the free list.
+         */
+        //kprobe_flush_task(prev);
+
+        /* Task is done with its stack. */
+        //put_task_stack(prev);
+
+        //put_task_struct_rcu_user(prev);
+    }
+
+    //tick_nohz_task_switch();
+    return rq;
+}
+//3263
 #ifdef CONFIG_SMP
 
 /* rq->lock is NOT held, but preemption is disabled */
@@ -1504,6 +1717,184 @@ static inline void balance_callback(struct rq *rq)
 
 #endif
 //3300 lines
+
+
+
+
+
+
+//3328 lines
+/*
+ * context_switch - switch to the new MM and the new thread's register state.
+ */
+static __always_inline struct rq *
+context_switch(struct rq *rq, struct task_struct *prev,
+           struct task_struct *next, struct rq_flags *rf)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
+
+    prepare_task_switch(rq, prev, next);
+
+    /*
+     * For paravirt, this is coupled with an exit in switch_to to
+     * combine the page table reload and the switch backend into
+     * one hypercall.
+     */
+    //arch_start_context_switch(prev);
+
+    /*
+     * kernel -> kernel   lazy + transfer active
+     *   user -> kernel   lazy + mmgrab() active
+     *
+     * kernel ->   user   switch + mmdrop() active
+     *   user ->   user   switch
+     */
+    if (!next->mm) {                                // to kernel
+        //enter_lazy_tlb(prev->active_mm, next);
+
+        next->active_mm = prev->active_mm;
+        //if (prev->mm)                           // from user
+            //mmgrab(prev->active_mm);
+        //else
+            prev->active_mm = NULL;
+    } else {                                        // to user
+        membarrier_switch_mm(rq, prev->active_mm, next->mm);
+        /*
+         * sys_membarrier() requires an smp_mb() between setting
+         * rq->curr / membarrier_switch_mm() and returning to userspace.
+         *
+         * The below provides this either through switch_mm(), or in
+         * case 'prev->active_mm == next->mm' through
+         * finish_task_switch()'s mmdrop().
+         */
+        //switch_mm_irqs_off(prev->active_mm, next->mm, next);
+
+        if (!prev->mm) {                        // from kernel
+            /* will mmdrop() in finish_task_switch(). */
+            rq->prev_mm = prev->active_mm;
+            prev->active_mm = NULL;
+        }
+    }
+
+    rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
+
+    prepare_lock_switch(rq, next, rf);
+
+    /* Here we just switch the register state and the stack. */
+    switch_to(prev, next, prev);
+    barrier();
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+
+    pr_fn_end_on(stack_depth);
+
+    return finish_task_switch(prev);
+}
+
+/*
+ * nr_running and nr_context_switches:
+ *
+ * externally visible scheduler statistics: current number of runnable
+ * threads, total number of context switches performed since bootup.
+ */
+unsigned long nr_running(void)
+{
+    unsigned long i, sum = 0;
+
+    for_each_online_cpu(i)
+        sum += cpu_rq(i)->nr_running;
+
+    return sum;
+}
+
+/*
+ * Check if only the current task is running on the CPU.
+ *
+ * Caution: this function does not check that the caller has disabled
+ * preemption, thus the result might have a time-of-check-to-time-of-use
+ * race.  The caller is responsible to use it correctly, for example:
+ *
+ * - from a non-preemptible section (of course)
+ *
+ * - from a thread that is bound to a single CPU
+ *
+ * - in a loop with very short iterations (e.g. a polling loop)
+ */
+bool single_task_running(void)
+{
+    //return raw_rq()->nr_running == 1;
+}
+//EXPORT_SYMBOL(single_task_running);
+
+unsigned long long nr_context_switches(void)
+{
+    int i;
+    unsigned long long sum = 0;
+
+    for_each_possible_cpu(i)
+        sum += cpu_rq(i)->nr_switches;
+
+    return sum;
+}
+
+/*
+ * Consumers of these two interfaces, like for example the cpuidle menu
+ * governor, are using nonsensical data. Preferring shallow idle state selection
+ * for a CPU that has IO-wait which might not even end up running the task when
+ * it does become runnable.
+ */
+
+unsigned long nr_iowait_cpu(int cpu)
+{
+    return atomic_read(&cpu_rq(cpu)->nr_iowait);
+}
+
+/*
+ * IO-wait accounting, and how its mostly bollocks (on SMP).
+ *
+ * The idea behind IO-wait account is to account the idle time that we could
+ * have spend running if it were not for IO. That is, if we were to improve the
+ * storage performance, we'd have a proportional reduction in IO-wait time.
+ *
+ * This all works nicely on UP, where, when a task blocks on IO, we account
+ * idle time as IO-wait, because if the storage were faster, it could've been
+ * running and we'd not be idle.
+ *
+ * This has been extended to SMP, by doing the same for each CPU. This however
+ * is broken.
+ *
+ * Imagine for instance the case where two tasks block on one CPU, only the one
+ * CPU will have IO-wait accounted, while the other has regular idle. Even
+ * though, if the storage were faster, both could've ran at the same time,
+ * utilising both CPUs.
+ *
+ * This means, that when looking globally, the current IO-wait accounting on
+ * SMP is a lower bound, by reason of under accounting.
+ *
+ * Worse, since the numbers are provided per CPU, they are sometimes
+ * interpreted per CPU, and that is nonsensical. A blocked task isn't strictly
+ * associated with any one particular CPU, it can wake to another CPU than it
+ * blocked on. This means the per CPU IO-wait number is meaningless.
+ *
+ * Task CPU affinities can make all that even more 'interesting'.
+ */
+
+unsigned long nr_iowait(void)
+{
+    unsigned long i, sum = 0;
+
+    for_each_possible_cpu(i)
+        sum += nr_iowait_cpu(i);
+
+    return sum;
+}
+//3487 lines
 
 
 
@@ -1553,13 +1944,86 @@ void scheduler_tick(void)
 
 
 
-//3900 lines
+
+//3830 lines
+static inline unsigned long get_preempt_disable_ip(struct task_struct *p)
+{
+#ifdef CONFIG_DEBUG_PREEMPT
+    return p->preempt_disable_ip;
+#else
+    return 0;
+#endif
+}
+
+/*
+ * Print scheduling while atomic bug:
+ */
+static noinline void __schedule_bug(struct task_struct *prev)
+{
+    /* Save this before calling printk(), since that will clobber it */
+    unsigned long preempt_disable_ip = get_preempt_disable_ip(current_task);
+
+    //if (oops_in_progress)
+        //return;
+
+    printk(KERN_ERR "BUG: scheduling while atomic: %s/%d/0x%08x\n",
+        prev->comm, prev->pid, preempt_count());
+
+    //debug_show_held_locks(prev);
+    //print_modules();
+    //if (irqs_disabled())
+        //print_irqtrace_events(prev);
+    if (IS_ENABLED(CONFIG_DEBUG_PREEMPT)
+        && in_atomic_preempt_off()) {
+        pr_err("Preemption disabled at:");
+        //print_ip_sym(preempt_disable_ip);
+        pr_cont("\n");
+    }
+    //if (panic_on_warn)
+        panic("scheduling while atomic\n");
+
+    dump_stack();
+    //add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
+}
+
+/*
+ * Various schedule()-time debugging checks and statistics:
+ */
+static inline void schedule_debug(struct task_struct *prev, bool preempt)
+{
+#ifdef CONFIG_SCHED_STACK_END_CHECK
+    if (task_stack_end_corrupted(prev))
+        panic("corrupted stack end detected inside scheduler\n");
+#endif
+
+#ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+    if (!preempt && prev->state && prev->non_block_count) {
+        printk(KERN_ERR "BUG: scheduling in a non-blocking section: %s/%d/%i\n",
+            prev->comm, prev->pid, prev->non_block_count);
+        dump_stack();
+        add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
+    }
+#endif
+
+    if (unlikely(in_atomic_preempt_off())) {
+        __schedule_bug(prev);
+        preempt_count_set(PREEMPT_DISABLED);
+    }
+    //rcu_sleep_check();
+
+    profile_hit(SCHED_PROFILING, __builtin_return_address(0));
+
+    schedstat_inc(this_rq()->sched_count);
+}
+//3900
 /*
  * Pick up the highest-prio task:
  */
 static inline struct task_struct *
 pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
+    pr_fn_start_on(stack_depth);
+
     const struct sched_class *class;
     struct task_struct *p;
 
@@ -1611,7 +2075,258 @@ restart:
     /* The idle class should always have a runnable task: */
     BUG();
 }
-//3958 lines
+//3958
+/*
+ * __schedule() is the main scheduler function.
+ *
+ * The main means of driving the scheduler and thus entering this function are:
+ *
+ *   1. Explicit blocking: mutex, semaphore, waitqueue, etc.
+ *
+ *   2. TIF_NEED_RESCHED flag is checked on interrupt and userspace return
+ *      paths. For example, see arch/x86/entry_64.S.
+ *
+ *      To drive preemption between tasks, the scheduler sets the flag in timer
+ *      interrupt handler scheduler_tick().
+ *
+ *   3. Wakeups don't really cause entry into schedule(). They add a
+ *      task to the run-queue and that's it.
+ *
+ *      Now, if the new task added to the run-queue preempts the current
+ *      task, then the wakeup sets TIF_NEED_RESCHED and schedule() gets
+ *      called on the nearest possible occasion:
+ *
+ *       - If the kernel is preemptible (CONFIG_PREEMPTION=y):
+ *
+ *         - in syscall or exception context, at the next outmost
+ *           preempt_enable(). (this might be as soon as the wake_up()'s
+ *           spin_unlock()!)
+ *
+ *         - in IRQ context, return from interrupt-handler to
+ *           preemptible context
+ *
+ *       - If the kernel is not preemptible (CONFIG_PREEMPTION is not set)
+ *         then at the next:
+ *
+ *          - cond_resched() call
+ *          - explicit schedule() call
+ *          - return from syscall or exception to user-space
+ *          - return from interrupt-handler to user-space
+ *
+ * WARNING: must be called with preemption disabled!
+ */
+static void __sched notrace __schedule(bool preempt)
+{
+    pr_fn_start_on(stack_depth);
+
+    struct task_struct *prev, *next;
+    unsigned long *switch_count;
+    struct rq_flags rf;
+    struct rq *rq;
+    int cpu;
+
+    cpu = smp_processor_id();
+    rq = cpu_rq(cpu);
+    prev = rq->curr;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_info_view_on(stack_depth, "%20s : %ld\n", prev->state);
+
+    schedule_debug(prev, preempt);
+
+    //if (sched_feat(HRTICK))
+        //hrtick_clear(rq);
+
+    local_irq_disable();
+    //rcu_note_context_switch(preempt);
+
+    /*
+     * Make sure that signal_pending_state()->signal_pending() below
+     * can't be reordered with __set_current_state(TASK_INTERRUPTIBLE)
+     * done by the caller to avoid the race with signal_wake_up().
+     *
+     * The membarrier system call requires a full memory barrier
+     * after coming from user-space, before storing to rq->curr.
+     */
+    rq_lock(rq, &rf);
+    //smp_mb__after_spinlock();
+
+    /* Promote REQ to ACT */
+    rq->clock_update_flags <<= 1;
+    update_rq_clock(rq);
+
+    switch_count = &prev->nivcsw;
+    if (!preempt && prev->state) {
+        if (signal_pending_state(prev->state, prev)) {
+            prev->state = TASK_RUNNING;
+        } else {
+            deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
+
+            if (prev->in_iowait) {
+                atomic_inc(&rq->nr_iowait);
+                //delayacct_blkio_start();
+            }
+        }
+        switch_count = &prev->nvcsw;
+    }
+
+    pr_info_view_on(stack_depth, "%20s : %lu\n", *switch_count);
+
+    next = pick_next_task(rq, prev, &rf);
+    clear_tsk_need_resched(prev);
+    //clear_preempt_need_resched();
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
+
+    if (likely(prev != next)) {
+        rq->nr_switches++;
+        /*
+         * RCU users of rcu_dereference(rq->curr) may not see
+         * changes to task_struct made by pick_next_task().
+         */
+        RCU_INIT_POINTER(rq->curr, next);
+        /*
+         * The membarrier system call requires each architecture
+         * to have a full memory barrier after updating
+         * rq->curr, before returning to user-space.
+         *
+         * Here are the schemes providing that barrier on the
+         * various architectures:
+         * - mm ? switch_mm() : mmdrop() for x86, s390, sparc, PowerPC.
+         *   switch_mm() rely on membarrier_arch_switch_mm() on PowerPC.
+         * - finish_lock_switch() for weakly-ordered
+         *   architectures where spin_unlock is a full barrier,
+         * - switch_to() for arm64 (weakly-ordered, spin_unlock
+         *   is a RELEASE barrier),
+         */
+        ++*switch_count;
+
+        //trace_sched_switch(preempt, prev, next);
+
+        /* Also unlocks the rq: */
+        rq = context_switch(rq, prev, next, &rf);
+    } else {
+        rq->clock_update_flags &= ~(RQCF_ACT_SKIP|RQCF_REQ_SKIP);
+        rq_unlock_irq(rq, &rf);
+    }
+
+    balance_callback(rq);
+
+    pr_info_view_on(stack_depth, "%20s : %lu\n", *switch_count);
+
+    pr_fn_end_on(stack_depth);
+}
+
+void __noreturn do_task_dead(void)
+{
+    /* Causes final put_task_struct in finish_task_switch(): */
+    set_special_state(TASK_DEAD);
+
+    /* Tell freezer to ignore us: */
+    //current->flags |= PF_NOFREEZE;
+    current_task->flags |= PF_NOFREEZE;
+
+    __schedule(false);
+    BUG();
+
+    /* Avoid "noreturn function does return" - but don't continue if BUG() is a NOP: */
+    for (;;)
+        cpu_relax();
+}
+
+static inline void sched_submit_work(struct task_struct *tsk)
+{
+    if (!tsk->state)
+        return;
+
+    /*
+     * If a worker went to sleep, notify and ask workqueue whether
+     * it wants to wake up a task to maintain concurrency.
+     * As this function is called inside the schedule() context,
+     * we disable preemption to avoid it calling schedule() again
+     * in the possible wakeup of a kworker.
+     */
+    if (tsk->flags & PF_WQ_WORKER) {
+        preempt_disable();
+        //wq_worker_sleeping(tsk);
+        preempt_enable_no_resched();
+    }
+
+    if (tsk_is_pi_blocked(tsk))
+        return;
+
+    /*
+     * If we are going to sleep and we have plugged IO queued,
+     * make sure to submit it to avoid deadlocks.
+     */
+    //if (blk_needs_flush_plug(tsk))
+    //    blk_schedule_flush_plug(tsk);
+}
+
+static void sched_update_worker(struct task_struct *tsk)
+{
+    //if (tsk->flags & PF_WQ_WORKER)
+        //wq_worker_running(tsk);
+}
+
+asmlinkage __visible void __sched schedule(void)
+{
+    pr_fn_start_on(stack_depth);
+
+    //struct task_struct *tsk = current;
+    struct task_struct *tsk = current_task;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+
+    sched_submit_work(tsk);
+    do {
+        preempt_disable();
+        __schedule(false);
+        sched_preempt_enable_no_resched();
+    } while (need_resched());
+    sched_update_worker(tsk);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+
+    pr_fn_end_on(stack_depth);
+}
+EXPORT_SYMBOL(schedule);
+
+/*
+ * synchronize_rcu_tasks() makes sure that no task is stuck in preempted
+ * state (have scheduled out non-voluntarily) by making sure that all
+ * tasks have either left the run queue or have gone into user space.
+ * As idle tasks do not do either, they must not ever be preempted
+ * (schedule out non-voluntarily).
+ *
+ * schedule_idle() is similar to schedule_preempt_disable() except that it
+ * never enables preemption because it does not call sched_submit_work().
+ */
+void __sched schedule_idle(void)
+{
+    /*
+     * As this skips calling sched_submit_work(), which the idle task does
+     * regardless because that function is a nop when the task is in a
+     * TASK_RUNNING state, make sure this isn't used someplace that the
+     * current task can be in any other state. Note, idle is always in the
+     * TASK_RUNNING state.
+     */
+    WARN_ON_ONCE(current->state);
+    do {
+        __schedule(false);
+    } while (need_resched());
+}
+//4176 lines
+
+
+
+
 
 
 
@@ -1922,7 +2637,8 @@ struct task_struct *idle_task(int cpu)
  */
 static struct task_struct *find_process_by_pid(pid_t pid)
 {
-    return pid ? find_task_by_vpid(pid) : current;
+    //return pid ? find_task_by_vpid(pid) : current;
+    return pid ? find_task_by_vpid(pid) : current_task;
 }
 //4673
 /*
@@ -2206,6 +2922,9 @@ change:
 #endif
     }
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", oldpolicy);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->policy);
+
     /* Re-check policy now with rq lock held: */
     if (unlikely(oldpolicy != -1 && oldpolicy != p->policy)) {
         policy = oldpolicy = -1;
@@ -2243,6 +2962,10 @@ change:
 
     queued = task_on_rq_queued(p);
     running = task_current(rq, p);
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", queued);
+    pr_info_view_on(stack_depth, "%30s : %d\n", running);
+
     if (queued)
         dequeue_task(rq, p, queue_flags);
     if (running)

@@ -61,13 +61,18 @@ struct task_struct;
 #include <linux/atomic.h>
 
 struct thread_info {
+    struct task_struct	*task;
 	unsigned long		flags;		/* low level flags */
-	u32			status;		/* thread synchronous flags */
+    unsigned			cpu;
+    int					preempt_count;
+    u32					status;		/* thread synchronous flags */
 };
 
-#define INIT_THREAD_INFO(tsk)			\
-{						\
-	.flags		= 0,			\
+#define INIT_THREAD_INFO(tsk)	\
+{								\
+    .task			= &tsk,		\
+    .flags			= 0,		\
+    .preempt_count	= 0,		\
 }
 
 #else /* !__ASSEMBLY__ */

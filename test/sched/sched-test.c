@@ -248,12 +248,12 @@ _retry:
         return;
     }
 
-    for (i=0; i<7; i++)
+    for (i=SCHED_NORMAL; i <= SCHED_DEADLINE; i++)
         printf("%d: %s\n", i, spolicy[i]);
     printf("Input Policy Number[%d,%d]: ", SCHED_NORMAL, SCHED_DEADLINE);
     scanf("%d", &policy);
 
-    //if policy==RT then prio>0
+    //if policy==RT then prio>=0 and prio<=99
     //if policy==CFS then prio=0
     printf("Input Priority Number[0,%d]: ", MAX_RT_PRIO-1);
     scanf("%d", &prio);
@@ -276,6 +276,32 @@ _retry:
 
     pr_fn_end_on(stack_depth);
 }
+
+static void _sched_schedule_test(void)
+{
+    int cpu;
+    struct rq *rq;
+
+#if 0
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+#endif //0
+
+    cpu = smp_processor_id();
+
+    rq = cpu_rq(cpu);
+    if (!rq->curr) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
+
+    //kernel/sched/core.c
+    schedule();
+}
+
 
 #if 0
 //cat /proc/loadavg
@@ -643,15 +669,16 @@ static int _sched_test_menu(int asize)
     printf(" 2: current task info.\n");
     printf(" 3: deactivate_task test.\n");
     printf(" 4: setscheduler test.\n");
-    printf(" 5: create task group test.\n");
-    printf(" 6: task group info.\n");
-    printf(" 7: task group info(detail).\n");
-    printf(" 8: Basic PELT Test -->\n");
-    printf(" 9: CFS Test -->\n");
-    printf("10: RT Test -->\n");
-    printf("11: DeadLine Test -->\n");
+    printf(" 5: schedule test.\n");
+    printf(" 6: create task group test.\n");
+    printf(" 7: task group info.\n");
+    printf(" 8: task group info(detail).\n");
+    printf(" 9: Basic PELT Test -->\n");
+    printf("10: CFS Test -->\n");
+    printf("11: RT Test -->\n");
+    printf("12: DeadLine Test -->\n");
 
-    printf("12: exit.\n");
+    printf("13: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -666,6 +693,7 @@ void sched_test(void)
         , _sched_current_task_info
         , _sched_deactivate_task_test
         , _sched_setscheduler_test
+        , _sched_schedule_test
         , _sched_create_group_test
         , pr_sched_tg_info
         , pr_sched_tg_info_all

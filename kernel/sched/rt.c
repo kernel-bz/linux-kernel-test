@@ -363,10 +363,14 @@ static void pull_rt_task(struct rq *);
 
 static inline void rt_queue_push_tasks(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (!has_pushable_tasks(rq))
 		return;
 
 	queue_balance_callback(rq, &per_cpu(rt_push_head, rq->cpu), push_rt_tasks);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void rt_queue_pull_task(struct rq *rq)
@@ -1346,7 +1350,9 @@ static void dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 static void
 enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 {
-	struct sched_rt_entity *rt_se = &p->rt;
+    pr_fn_start_on(stack_depth);
+
+    struct sched_rt_entity *rt_se = &p->rt;
 
 	if (flags & ENQUEUE_WAKEUP)
 		rt_se->timeout = 0;
@@ -1355,6 +1361,8 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
 
 	if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
 		enqueue_pushable_task(rq, p);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void dequeue_task_rt(struct rq *rq, struct task_struct *p, int flags)
@@ -1539,6 +1547,8 @@ static void check_preempt_curr_rt(struct rq *rq, struct task_struct *p, int flag
 
 static inline void set_next_task_rt(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	p->se.exec_start = rq_clock_task(rq);
 
 	/* The running task is never eligible for pushing */
@@ -1553,6 +1563,8 @@ static inline void set_next_task_rt(struct rq *rq, struct task_struct *p)
 		update_rt_rq_load_avg(rq_clock_pelt(rq), rq, 0);
 
 	rt_queue_push_tasks(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static struct sched_rt_entity *pick_next_rt_entity(struct rq *rq,
@@ -1603,6 +1615,8 @@ pick_next_task_rt(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 
 static void put_prev_task_rt(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	update_curr_rt(rq);
 
 	update_rt_rq_load_avg(rq_clock_pelt(rq), rq, 1);
@@ -1613,6 +1627,8 @@ static void put_prev_task_rt(struct rq *rq, struct task_struct *p)
 	 */
 	if (on_rt_rq(&p->rt) && p->nr_cpus_allowed > 1)
 		enqueue_pushable_task(rq, p);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_SMP
@@ -2206,6 +2222,8 @@ static void rq_offline_rt(struct rq *rq)
  */
 static void switched_from_rt(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	/*
 	 * If there are other RT tasks then we will reschedule
 	 * and the scheduling of the other RT tasks will handle
@@ -2217,6 +2235,8 @@ static void switched_from_rt(struct rq *rq, struct task_struct *p)
 		return;
 
 	rt_queue_pull_task(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 void __init init_sched_rt_class(void)
@@ -2237,6 +2257,8 @@ void __init init_sched_rt_class(void)
  */
 static void switched_to_rt(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	/*
 	 * If we are already running, then there's nothing
 	 * that needs to be done. But if we are not running
@@ -2252,6 +2274,8 @@ static void switched_to_rt(struct rq *rq, struct task_struct *p)
 		if (p->prio < rq->curr->prio && cpu_online(cpu_of(rq)))
 			resched_curr(rq);
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
