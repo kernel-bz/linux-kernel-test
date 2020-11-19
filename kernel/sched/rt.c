@@ -78,6 +78,8 @@ static void start_rt_bandwidth(struct rt_bandwidth *rt_b)
 
 void init_rt_rq(struct rt_rq *rt_rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct rt_prio_array *array;
 	int i;
 
@@ -103,6 +105,8 @@ void init_rt_rq(struct rt_rq *rt_rq)
 	rt_rq->rt_throttled = 0;
 	rt_rq->rt_runtime = 0;
 	raw_spin_lock_init(&rt_rq->rt_runtime_lock);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_RT_GROUP_SCHED
@@ -160,7 +164,15 @@ void init_tg_rt_entry(struct task_group *tg, struct rt_rq *rt_rq,
 		struct sched_rt_entity *rt_se, int cpu,
 		struct sched_rt_entity *parent)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct rq *rq = cpu_rq(cpu);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rt_rq);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rt_se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
 	rt_rq->highest_prio.curr = MAX_RT_PRIO;
 	rt_rq->rt_nr_boosted = 0;
@@ -181,6 +193,8 @@ void init_tg_rt_entry(struct task_group *tg, struct rt_rq *rt_rq,
 	rt_se->my_q = rt_rq;
 	rt_se->parent = parent;
 	INIT_LIST_HEAD(&rt_se->run_list);
+
+    pr_fn_end_on(stack_depth);
 }
 
 int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)

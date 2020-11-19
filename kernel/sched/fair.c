@@ -600,6 +600,7 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     struct rb_node *parent = NULL;
     struct sched_entity *entry;
     bool leftmost = true;
+    u32 cnt = 0;
 
     pr_fn_start_on(stack_depth);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
@@ -624,6 +625,7 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
          * We dont care about collisions. Nodes with
          * the same key stay together.
          */
+        pr_info_view_on(stack_depth, "%30s : %u\n", cnt++);
         pr_info_view_on(stack_depth, "%30s : %llu\n", se->vruntime);
         pr_info_view_on(stack_depth, "%30s : %llu\n", entry->vruntime);
         if (entity_before(se, entry)) {		//se < entry
@@ -2710,8 +2712,12 @@ wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se);
 static struct sched_entity *
 pick_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_entity *left = __pick_first_entity(cfs_rq);
     struct sched_entity *se;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)left);
 
     /*
      * If curr is set we have to see if its left of the leftmost entity
@@ -2721,6 +2727,11 @@ pick_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *curr)
         left = curr;
 
     se = left; /* ideally we run the leftmost entity */
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->skip);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->last);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->next);
 
     /*
      * Avoid running the skip buddy, if running something else can
@@ -2755,6 +2766,10 @@ pick_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 
     clear_buddies(cfs_rq, se);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+
+    pr_fn_end_on(stack_depth);
+
     return se;
 }
 
@@ -2762,6 +2777,8 @@ static bool check_cfs_rq_runtime(struct cfs_rq *cfs_rq);
 
 static void put_prev_entity(struct cfs_rq *cfs_rq, struct sched_entity *prev)
 {
+    pr_fn_start_on(stack_depth);
+
     /*
      * If still on the runqueue then deactivate_task()
      * was not called and update_curr() has to be done:
@@ -2782,6 +2799,8 @@ static void put_prev_entity(struct cfs_rq *cfs_rq, struct sched_entity *prev)
         update_load_avg(cfs_rq, prev, 0);
     }
     cfs_rq->curr = NULL;
+
+    pr_fn_end_on(stack_depth);
 }
 //4271
 static void
@@ -4839,12 +4858,22 @@ static unsigned long wakeup_gran(struct sched_entity *se)
 static int
 wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     s64 gran, vdiff = curr->vruntime - se->vruntime;
+
+    pr_info_view_on(stack_depth, "%20s : %llu\n", curr->vruntime);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", se->vruntime);
+    pr_info_view_on(stack_depth, "%20s : %lld\n", vdiff);
 
     if (vdiff <= 0)
         return -1;
 
     gran = wakeup_gran(se);
+
+    pr_info_view_on(stack_depth, "%20s : %lld\n", gran);
+    pr_fn_end_on(stack_depth);
+
     if (vdiff > gran)
         return 1;
 
@@ -4853,6 +4882,8 @@ wakeup_preempt_entity(struct sched_entity *curr, struct sched_entity *se)
 
 static void set_last_buddy(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     if (entity_is_task(se) && unlikely(task_has_idle_policy(task_of(se))))
         return;
 
@@ -4861,10 +4892,14 @@ static void set_last_buddy(struct sched_entity *se)
             return;
         cfs_rq_of(se)->last = se;
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void set_next_buddy(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     if (entity_is_task(se) && unlikely(task_has_idle_policy(task_of(se))))
         return;
 
@@ -4873,12 +4908,18 @@ static void set_next_buddy(struct sched_entity *se)
             return;
         cfs_rq_of(se)->next = se;
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void set_skip_buddy(struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
     for_each_sched_entity(se)
         cfs_rq_of(se)->skip = se;
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -4977,6 +5018,8 @@ pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf
     struct task_struct *p;
     int new_tasks;
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&rq->cfs);
+
 again:
     if (!sched_fair_runnable(rq))
         goto idle;
@@ -4995,6 +5038,9 @@ again:
 
     do {
         struct sched_entity *curr = cfs_rq->curr;
+
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)curr);
 
         /*
          * Since we got here without doing put_prev_entity() we also
@@ -5030,6 +5076,9 @@ again:
 
     p = task_of(se);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+
     /*
      * Since we haven't yet done put_prev_entity and if the selected task
      * is a different task than we started out with, try and touch the
@@ -5042,6 +5091,9 @@ again:
             int se_depth = se->depth;
             int pse_depth = pse->depth;
 
+            pr_info_view_on(stack_depth, "%20s : %d\n", se_depth);
+            pr_info_view_on(stack_depth, "%20s : %d\n", pse_depth);
+
             if (se_depth <= pse_depth) {
                 put_prev_entity(cfs_rq_of(pse), pse);
                 pse = parent_entity(pse);
@@ -5052,6 +5104,10 @@ again:
             }
         }
 
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)pse);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+
         put_prev_entity(cfs_rq, pse);
         set_next_entity(cfs_rq, se);
     }
@@ -5059,6 +5115,8 @@ again:
     goto done;
 simple:
 #endif
+
+    pr_out_on(stack_depth, "simple:\n");
     if (prev)
         put_prev_task(rq, prev);
 
@@ -5071,6 +5129,9 @@ simple:
     p = task_of(se);
 
 done: __maybe_unused;
+
+    pr_out_on(stack_depth, "done:\n");
+
 #ifdef CONFIG_SMP
     /*
      * Move the next running task to the front of
@@ -5771,6 +5832,8 @@ static void set_next_task_fair(struct rq *rq, struct task_struct *p)
 //10176
 void init_cfs_rq(struct cfs_rq *cfs_rq)
 {
+    pr_fn_start_on(stack_depth);
+
     cfs_rq->tasks_timeline = RB_ROOT_CACHED;
     cfs_rq->min_vruntime = (u64)(-(1LL << 20));
 #ifndef CONFIG_64BIT
@@ -5779,6 +5842,9 @@ void init_cfs_rq(struct cfs_rq *cfs_rq)
 #ifdef CONFIG_SMP
     raw_spin_lock_init(&cfs_rq->removed.lock);
 #endif
+
+    pr_info_view_on(stack_depth, "%30s : %llu\n", cfs_rq->min_vruntime);
+    pr_fn_end_on(stack_depth);
 }
 //10188
 #ifdef CONFIG_FAIR_GROUP_SCHED

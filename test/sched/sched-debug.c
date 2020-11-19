@@ -159,6 +159,7 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
     if (cfs_rq->on_list > 0) {
         int i=0;
         struct sched_entity *se;
+        struct task_struct *p;
         struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
         while (next) {
             se = rb_entry(next, struct sched_entity, run_node);
@@ -166,6 +167,9 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
             pr_info_view_on(stack_depth, "%30s : %llu\n", se->vruntime);
             pr_info_view_on(stack_depth, "%30s : %d\n", se->on_rq);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
+            p = container_of(se, struct task_struct, se);	//task_of
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
             next = rb_next(&se->run_node);
         }
     }

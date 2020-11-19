@@ -356,6 +356,8 @@ void init_dl_bw(struct dl_bw *dl_b)
 
 void init_dl_rq(struct dl_rq *dl_rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	dl_rq->root = RB_ROOT_CACHED;
 
 #ifdef CONFIG_SMP
@@ -372,6 +374,8 @@ void init_dl_rq(struct dl_rq *dl_rq)
 	dl_rq->running_bw = 0;
 	dl_rq->this_bw = 0;
 	init_dl_rq_bw_ratio(dl_rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_SMP

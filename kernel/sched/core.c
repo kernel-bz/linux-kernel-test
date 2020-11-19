@@ -2027,6 +2027,9 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
     const struct sched_class *class;
     struct task_struct *p;
 
+    pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+    pr_info_view_on(stack_depth, "%20s : %u\n", rq->cfs.h_nr_running);
+
     /*
      * Optimization: we know that if all tasks are in the fair class we can
      * call that function directly, but only if the @prev task wasn't of a
@@ -2045,10 +2048,13 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
         if (unlikely(!p))
             p = idle_sched_class.pick_next_task(rq, prev, rf);
 
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+        pr_fn_end_on(stack_depth);
         return p;
     }
 
 restart:
+    pr_out_on(stack_depth, "restart:\n");
 #ifdef CONFIG_SMP
     /*
      * We must do the balancing pass before put_next_task(), such
@@ -2068,8 +2074,10 @@ restart:
 
     for_each_class(class) {
         p = class->pick_next_task(rq, NULL, NULL);
-        if (p)
+        if (p) {
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
             return p;
+        }
     }
 
     /* The idle class should always have a runnable task: */
@@ -3322,12 +3330,15 @@ void __init sched_init(void)
                 ptr += nr_cpu_ids * sizeof(void **);
                 pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
+
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_se);
 
                 root_task_group.rt_rq = (struct rt_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
+                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_rq);
 
 #endif /* CONFIG_RT_GROUP_SCHED */
         }
@@ -3370,10 +3381,11 @@ void __init sched_init(void)
 
             pr_info_view_on(stack_depth, "%30s : %d\n", i);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
             pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs.avg);
-            pr_sched_avg_info(&rq->cfs.avg);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->rt);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->dl);
+            //pr_sched_avg_info(&rq->cfs.avg);
 
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;
