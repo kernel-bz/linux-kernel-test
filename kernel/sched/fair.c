@@ -922,6 +922,7 @@ static void update_curr(struct cfs_rq *cfs_rq)
 
     pr_info_view_on(stack_depth, "%30s : %llu\n", curr->sum_exec_runtime);
     pr_info_view_on(stack_depth, "%30s : %llu\n", curr->vruntime);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", cfs_rq->min_vruntime);
 
     if (entity_is_task(curr)) {
         struct task_struct *curtask = task_of(curr);
@@ -2681,6 +2682,7 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     update_stats_curr_start(cfs_rq, se);
     cfs_rq->curr = se;
     pr_info_view_on(stack_depth, "%30s : %p\n", cfs_rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %llu\n", se->sum_exec_runtime);
 
     /*
      * Track our maximum slice length, if the CPU's load is at
@@ -2695,6 +2697,8 @@ set_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
     }
 
     se->prev_sum_exec_runtime = se->sum_exec_runtime;
+
+    pr_info_view_on(stack_depth, "%30s : %llu\n", se->prev_sum_exec_runtime);
 
     pr_fn_end_on(stack_depth);
 }
@@ -4927,11 +4931,17 @@ static void set_skip_buddy(struct sched_entity *se)
  */
 static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_flags)
 {
+    pr_fn_start_on(stack_depth);
+
     struct task_struct *curr = rq->curr;
     struct sched_entity *se = &curr->se, *pse = &p->se;
     struct cfs_rq *cfs_rq = task_cfs_rq(curr);
     int scale = cfs_rq->nr_running >= sched_nr_latency;
     int next_buddy_marked = 0;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)se);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)pse);
 
     if (unlikely(se == pse))
         return;
@@ -4945,10 +4955,14 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
     if (unlikely(throttled_hierarchy(cfs_rq_of(pse))))
         return;
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", scale);
+
     if (sched_feat(NEXT_BUDDY) && scale && !(wake_flags & WF_FORK)) {
         set_next_buddy(pse);
         next_buddy_marked = 1;
     }
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", next_buddy_marked);
 
     /*
      * We can come here with TIF_NEED_RESCHED already set from new task
@@ -4960,7 +4974,9 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
      * prevents us from potentially nominating it as a false LAST_BUDDY
      * below.
      */
-    if (test_tsk_need_resched(curr))
+    int need_resched = test_tsk_need_resched(curr);
+    pr_info_view_on(stack_depth, "%20s : %d\n", need_resched);
+    if (need_resched)
         return;
 
     /* Idle tasks are by definition preempted by non-idle tasks. */
@@ -4972,7 +4988,8 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
      * Batch and idle tasks do not preempt non-idle tasks (their preemption
      * is driven by the tick):
      */
-    if (unlikely(p->policy != SCHED_NORMAL) || !sched_feat(WAKEUP_PREEMPTION))
+    //if (unlikely(p->policy != SCHED_NORMAL) || !sched_feat(WAKEUP_PREEMPTION))
+    if (unlikely(p->policy != SCHED_NORMAL))
         return;
 
     find_matching_se(&se, &pse);
@@ -4988,9 +5005,12 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
         goto preempt;
     }
 
+    pr_fn_end_on(stack_depth);
+
     return;
 
 preempt:
+    pr_out_on(stack_depth, "preempt:\n)");
     resched_curr(rq);
     /*
      * Only set the backward buddy when the current task is still

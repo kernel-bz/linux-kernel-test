@@ -1459,7 +1459,11 @@ void wake_up_new_task(struct task_struct *p)
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     //trace_sched_wakeup_new(p);
-    //check_preempt_curr(rq, p, WF_FORK);
+    if (!rq->curr) {
+        pr_err("rq->curr NULL\n");
+        return;
+    }
+    check_preempt_curr(rq, p, WF_FORK);
 #ifdef CONFIG_SMP
     if (p->sched_class->task_woken) {
         /*

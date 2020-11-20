@@ -117,8 +117,8 @@ _retry:
         memcpy(p, current_task, sizeof(*p));
     } else {
         memcpy(p, &init_task, sizeof(init_task));
+        current_task = p;
     }
-    current_task = p;
 
     pr_info_view_on(stack_depth, "%30s : %u\n", cpu);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
@@ -133,15 +133,18 @@ _retry:
     //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
         wake_up_new_task(p);
-        //rq = cpu_rq(cpu);
-        //activate_task(rq, p, ENQUEUE_NOCLOCK);
     }
     rq = task_rq(p);
     rq->curr = p;
+    rq->cfs.curr = &p->se;
+    rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
+    current_task = p;
+
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
     pr_info_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
     pr_info_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);

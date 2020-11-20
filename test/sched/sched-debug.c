@@ -154,8 +154,10 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->next);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->tg);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->rq);
+    pr_info_view_on(stack_depth, "%20s : %u\n", cfs_rq->h_nr_running);
     pr_info_view_on(stack_depth, "%20s : %u\n", cfs_rq->nr_running);
     pr_info_view_on(stack_depth, "%20s : %d\n", cfs_rq->on_list);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", cfs_rq->min_vruntime);
     if (cfs_rq->on_list > 0) {
         int i=0;
         struct sched_entity *se;
@@ -165,8 +167,11 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
             se = rb_entry(next, struct sched_entity, run_node);
             pr_info_view_on(stack_depth, "%30s : %d\n", i++);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", se->vruntime);
+            pr_info_view_on(stack_depth, "%30s : %d\n", se->depth);
             pr_info_view_on(stack_depth, "%30s : %d\n", se->on_rq);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", se->exec_start);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", se->sum_exec_runtime);
+            pr_info_view_on(stack_depth, "%30s : %llu\n", se->vruntime);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)se->my_q);
             p = container_of(se, struct task_struct, se);	//task_of
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
