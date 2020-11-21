@@ -5270,6 +5270,25 @@ static bool yield_to_task_fair(struct rq *rq, struct task_struct *p, bool preemp
 
 
 
+//7077 lines
+static unsigned long __read_mostly max_load_balance_interval = HZ/10;
+
+enum fbq_type { regular, remote, all };
+
+enum group_type {
+    group_other = 0,
+    group_misfit_task,
+    group_imbalanced,
+    group_overloaded,
+};
+
+#define LBF_ALL_PINNED	0x01
+#define LBF_NEED_BREAK	0x02
+#define LBF_DST_PINNED  0x04
+#define LBF_SOME_PINNED	0x08
+#define LBF_NOHZ_STATS	0x10
+#define LBF_NOHZ_AGAIN	0x20
+//7095 lines
 
 
 
@@ -5470,6 +5489,163 @@ static unsigned long task_h_load(struct task_struct *p)
 #endif
 
 /********** Helpers for find_busiest_group ************************/
+//7673
+/*
+ * sg_lb_stats - stats of a sched_group required for load_balancing
+ */
+struct sg_lb_stats {
+    unsigned long avg_load; /*Avg load across the CPUs of the group */
+    unsigned long group_load; /* Total load over the CPUs of the group */
+    unsigned long load_per_task;
+    unsigned long group_capacity;
+    unsigned long group_util; /* Total utilization of the group */
+    unsigned int sum_nr_running; /* Nr tasks running in the group */
+    unsigned int idle_cpus;
+    unsigned int group_weight;
+    enum group_type group_type;
+    int group_no_capacity;
+    unsigned long group_misfit_task_load; /* A CPU has a task too big for its capacity */
+#ifdef CONFIG_NUMA_BALANCING
+    unsigned int nr_numa_running;
+    unsigned int nr_preferred_running;
+#endif
+};
+
+/*
+ * sd_lb_stats - Structure to store the statistics of a sched_domain
+ *		 during load balancing.
+ */
+struct sd_lb_stats {
+    struct sched_group *busiest;	/* Busiest group in this sd */
+    struct sched_group *local;	/* Local group in this sd */
+    unsigned long total_running;
+    unsigned long total_load;	/* Total load of all groups in sd */
+    unsigned long total_capacity;	/* Total capacity of all groups in sd */
+    unsigned long avg_load;	/* Average load across all groups in sd */
+
+    struct sg_lb_stats busiest_stat;/* Statistics of the busiest group */
+    struct sg_lb_stats local_stat;	/* Statistics of the local group */
+};
+//7710 lines
+
+
+
+
+
+
+//7732 lines
+static unsigned long scale_rt_capacity(struct sched_domain *sd, int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    unsigned long max = arch_scale_cpu_capacity(cpu);
+    unsigned long used, free;
+    unsigned long irq;
+
+    irq = cpu_util_irq(rq);
+
+    if (unlikely(irq >= max))
+        return 1;
+
+    used = READ_ONCE(rq->avg_rt.util_avg);
+    used += READ_ONCE(rq->avg_dl.util_avg);
+
+    if (unlikely(used >= max))
+        return 1;
+
+    free = max - used;
+
+    return scale_irq_capacity(free, irq, max);
+}
+
+static void update_cpu_capacity(struct sched_domain *sd, int cpu)
+{
+    unsigned long capacity = scale_rt_capacity(sd, cpu);
+    struct sched_group *sdg = sd->groups;
+
+    cpu_rq(cpu)->cpu_capacity_orig = arch_scale_cpu_capacity(cpu);
+
+    if (!capacity)
+        capacity = 1;
+
+    cpu_rq(cpu)->cpu_capacity = capacity;
+    sdg->sgc->capacity = capacity;
+    sdg->sgc->min_capacity = capacity;
+    sdg->sgc->max_capacity = capacity;
+}
+
+void update_group_capacity(struct sched_domain *sd, int cpu)
+{
+    struct sched_domain *child = sd->child;
+    struct sched_group *group, *sdg = sd->groups;
+    unsigned long capacity, min_capacity, max_capacity;
+    unsigned long interval;
+
+    interval = msecs_to_jiffies(sd->balance_interval);
+    interval = clamp(interval, 1UL, max_load_balance_interval);
+    sdg->sgc->next_update = jiffies + interval;
+
+    if (!child) {
+        update_cpu_capacity(sd, cpu);
+        return;
+    }
+
+    capacity = 0;
+    min_capacity = ULONG_MAX;
+    max_capacity = 0;
+
+    if (child->flags & SD_OVERLAP) {
+        /*
+         * SD_OVERLAP domains cannot assume that child groups
+         * span the current group.
+         */
+
+        for_each_cpu(cpu, sched_group_span(sdg)) {
+            struct sched_group_capacity *sgc;
+            struct rq *rq = cpu_rq(cpu);
+
+            /*
+             * build_sched_domains() -> init_sched_groups_capacity()
+             * gets here before we've attached the domains to the
+             * runqueues.
+             *
+             * Use capacity_of(), which is set irrespective of domains
+             * in update_cpu_capacity().
+             *
+             * This avoids capacity from being 0 and
+             * causing divide-by-zero issues on boot.
+             */
+            if (unlikely(!rq->sd)) {
+                capacity += capacity_of(cpu);
+            } else {
+                sgc = rq->sd->groups->sgc;
+                capacity += sgc->capacity;
+            }
+
+            min_capacity = min(capacity, min_capacity);
+            max_capacity = max(capacity, max_capacity);
+        }
+    } else  {
+        /*
+         * !SD_OVERLAP domains can assume that child groups
+         * span the current group.
+         */
+
+        group = child->groups;
+        do {
+            struct sched_group_capacity *sgc = group->sgc;
+
+            capacity += sgc->capacity;
+            min_capacity = min(sgc->min_capacity, min_capacity);
+            max_capacity = max(sgc->max_capacity, max_capacity);
+            group = group->next;
+        } while (group != child->groups);
+    }
+
+    sdg->sgc->capacity = capacity;
+    sdg->sgc->min_capacity = min_capacity;
+    sdg->sgc->max_capacity = max_capacity;
+}
+//7844 lines
 
 
 

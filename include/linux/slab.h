@@ -70,5 +70,9 @@ static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
     return kmalloc_node(size, flags | __GFP_ZERO, node);
 }
 
+static inline void *kmalloc_array(unsigned n, size_t s, gfp_t gfp)
+{
+    return kmalloc(n * s, gfp);
+}
 
 #endif		/* SLAB_H */

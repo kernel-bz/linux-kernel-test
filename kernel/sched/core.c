@@ -3188,6 +3188,10 @@ err_size:
 
 
 
+//6120 lines
+bool sched_smp_initialized __read_mostly;
+
+
 
 //6304 lines
 void set_rq_online(struct rq *rq)
@@ -3238,9 +3242,10 @@ static int num_cpus_frozen;
 //      kernel_thread(kernel_init, NULL, CLONE_FS)
 //        kernel_init()
 //          kernel_init_freeable()
-#if 0
 void __init sched_init_smp(void)
 {
+    pr_fn_start_on(stack_depth);
+
     sched_init_numa();
 
     /*
@@ -3253,14 +3258,16 @@ void __init sched_init_smp(void)
     mutex_unlock(&sched_domains_mutex);
 
     /* Move init over to a non-isolated CPU */
-    if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
-        BUG();
+    //if (set_cpus_allowed_ptr(current, housekeeping_cpumask(HK_FLAG_DOMAIN)) < 0)
+    //    BUG();
     sched_init_granularity();
 
     init_sched_rt_class();
     init_sched_dl_class();
 
     sched_smp_initialized = true;
+
+    pr_fn_end_on(stack_depth);
 }
 
 static int __init migration_init(void)
@@ -3269,7 +3276,6 @@ static int __init migration_init(void)
     return 0;
 }
 early_initcall(migration_init);
-#endif //0
 
 #else
 void __init sched_init_smp(void)

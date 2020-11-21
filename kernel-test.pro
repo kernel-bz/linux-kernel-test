@@ -362,7 +362,8 @@ HEADERS += \
     include/uapi/linux/limits.h \
     include/linux/sched/signal.h \
     include/asm-generic/preempt.h \
-    include/asm-generic/switch_to.h
+    include/asm-generic/switch_to.h \
+    include/linux/nodemask.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

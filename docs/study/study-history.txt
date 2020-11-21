@@ -87,3 +87,55 @@ init_dl_task_timer(dl_se)
   timer->function = dl_task_timer(); //period timer
 
 cpudl_heapify_up()
+
+
+//D20201121 Scheduler DL & CPU Domain Study ===============================
+
+CBS (Constant Bandwidth)
+EDF (Earliest Deadline First) + CBS
+Energy Aware Scheduling
+
+//CPU topology
+
+parse_dt_topology()
+drivers/base/arch_topology.c
+
+//include/linux/arch_topology.h
+struct cpu_topology {
+        int thread_id;
+        int core_id;
+        int package_id;
+        int llc_id;
+        cpumask_t thread_sibling;
+        cpumask_t core_sibling;
+        cpumask_t llc_sibling;
+};
+
+drivers/base/arch_topology.c
+parse_core()
+
+//device-tree node
+/cpus
+  cpu-map
+    cluster#
+      core#
+        thread#
+
+kernel_init_freeable()
+  smp_prepare_cpus()
+    init_cpu_topology()	//device tree
+  smp_init()
+    cpu_up(cpu)
+  sched_init_smp()
+    sched_init_numa()
+    sched_init_domains()
+
+//arch/*/kernel/topology.c
+store_cpu_topology()
+
+include/linux/cpuhotplug.h
+
+include/linux/sched/topology
+#define SD_LOAD_BALANCE		0x0001
+...
+#define SD_NUMA			0x4000

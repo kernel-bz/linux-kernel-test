@@ -95,6 +95,7 @@
 #include <linux/spinlock.h>
 #include <linux/rbtree.h>
 #include <linux/cpumask.h>
+#include <linux/nodemask.h>
 #include <linux/kern_levels.h>
 #include <linux/gfp.h>
 #include <linux/slab.h>

@@ -27,16 +27,19 @@ extern "C" {
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 
-//include/linux/nodemask.h
-typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
+//include/linux/atomic-fallback.h
+#ifndef atomic_inc_return
+static inline int
+atomic_inc_return(atomic_t *v)
+{
+    //return atomic_add_return(1, v);
+    v->counter += 1;
+    return v->counter;
 
-//include/linux/cgroup-defs.h
-/*
-struct cgroup_subsys_state {
-    int id;
-    struct cgroup_subsys_state	*parent;
-};
-*/
+}
+#define atomic_inc_return atomic_inc_return
+#endif
+
 
 #define this_cpu_read_stable(var)
 

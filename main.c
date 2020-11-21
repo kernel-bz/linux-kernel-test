@@ -26,9 +26,16 @@ int DebugBase = 0;
 //init/main.c
 static void _main_start_kernel(void)
 {
-    sched_init();
+    //sched_init();
 
-    sched_clock_init();
+    //sched_clock_init();
+
+
+    /*
+     *	start_kernel() --> rest_init() --> kernel_init()
+     *	kernel_init_freeable()
+     */
+    sched_init_smp();
 }
 
 static int _main_menu(int asize)
