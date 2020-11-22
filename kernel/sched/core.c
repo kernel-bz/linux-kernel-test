@@ -3236,12 +3236,6 @@ static int num_cpus_frozen;
 
 
 //6496 lines
-//init/main.c:
-//  start_kernel()
-//    rest_init()
-//      kernel_thread(kernel_init, NULL, CLONE_FS)
-//        kernel_init()
-//          kernel_init_freeable()
 void __init sched_init_smp(void)
 {
     pr_fn_start_on(stack_depth);

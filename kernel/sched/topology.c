@@ -1281,12 +1281,12 @@ static void claim_allocations(int cpu, struct sched_domain *sd)
 #ifdef CONFIG_NUMA
 enum numa_topology_type sched_numa_topology_type;
 
-static int			sched_domains_numa_levels;
-static int			sched_domains_curr_level;
+static int				sched_domains_numa_levels;
+static int				sched_domains_curr_level;
 
-int				sched_max_numa_distance;
-static int			*sched_domains_numa_distance;
-static struct cpumask		***sched_domains_numa_masks;
+int						sched_max_numa_distance;
+static int				*sched_domains_numa_distance;
+static struct cpumask	***sched_domains_numa_masks;
 int __read_mostly		node_reclaim_distance = RECLAIM_DISTANCE;
 #endif
 
@@ -1526,7 +1526,12 @@ static void init_numa_topology_type(void)
 {
 	int a, b, c, n;
 
+    pr_fn_start_on(stack_depth);
+
 	n = sched_max_numa_distance;
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", sched_max_numa_distance);
+    pr_info_view_on(stack_depth, "%30s : %d\n", sched_domains_numa_levels);
 
 	if (sched_domains_numa_levels <= 2) {
 		sched_numa_topology_type = NUMA_DIRECT;
@@ -1552,7 +1557,9 @@ static void init_numa_topology_type(void)
 			sched_numa_topology_type = NUMA_BACKPLANE;
 			return;
 		}
-	}
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 void sched_init_numa(void)
@@ -1565,6 +1572,7 @@ void sched_init_numa(void)
     int i, j, k;
 
     pr_info_view_on(stack_depth, "%20s : %d\n", curr_distance);
+    pr_info_view_on(stack_depth, "%20s : %u\n", nr_node_ids);
 
     sched_domains_numa_distance = kzalloc(sizeof(int) * (nr_node_ids + 1), GFP_KERNEL);
     if (!sched_domains_numa_distance)
@@ -1575,7 +1583,6 @@ void sched_init_numa(void)
     sched_domains_numa_levels = level;
 
     pr_info_view_on(stack_depth, "%20s : %d\n", level);
-    pr_info_view_on(stack_depth, "%20s : %d\n", nr_node_ids);
 
     /*
      * O(nr_nodes^2) deduplicating selection sort -- in order to find the
@@ -1985,6 +1992,8 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 	struct sched_domain_topology_level *tl_asym;
 	bool has_asym = false;
 
+    pr_fn_start_on(stack_depth);
+
 	if (WARN_ON(cpumask_empty(cpu_map)))
 		goto error;
 
@@ -2069,6 +2078,8 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 error:
 	__free_domain_allocs(&d, alloc_state, cpu_map);
 
+    pr_fn_end_on(stack_depth);
+
 	return ret;
 }
 
@@ -2143,6 +2154,9 @@ int sched_init_domains(const struct cpumask *cpu_map)
 	if (!doms_cur)
 		doms_cur = &fallback_doms;
 	cpumask_and(doms_cur[0], cpu_map, housekeeping_cpumask(HK_FLAG_DOMAIN));
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", doms_cur[0]->bits[0]);
+
 	err = build_sched_domains(doms_cur[0], NULL);
 	register_sched_domain_sysctl();
 
