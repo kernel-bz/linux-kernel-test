@@ -4,6 +4,7 @@
  */
 
 #include <urcu.h>
+#include <linux/radix-tree-user.h>
 
 #include "sched.h"
 
