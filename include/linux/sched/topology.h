@@ -176,11 +176,11 @@ struct sd_data {
 };
 
 struct sched_domain_topology_level {
-	sched_domain_mask_f mask;
-	sched_domain_flags_f sd_flags;
-	int		    flags;
-	int		    numa_level;
-	struct sd_data      data;
+    sched_domain_mask_f 	mask;
+    sched_domain_flags_f 	sd_flags;
+    int		    			flags;
+    int		    			numa_level;
+    struct sd_data      	data;
 #ifdef CONFIG_SCHED_DEBUG
 	char                *name;
 #endif

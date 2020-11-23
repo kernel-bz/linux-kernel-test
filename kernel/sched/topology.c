@@ -1536,7 +1536,8 @@ static void init_numa_topology_type(void)
 
 	if (sched_domains_numa_levels <= 2) {
 		sched_numa_topology_type = NUMA_DIRECT;
-		return;
+        pr_info_view_on(stack_depth, "%30s : %d\n", sched_numa_topology_type);
+        return;
 	}
 
 	for_each_online_node(a) {
@@ -1597,15 +1598,22 @@ void sched_init_numa(void)
         for (j = 0; j < nr_node_ids; j++) {
             for (k = 0; k < nr_node_ids; k++) {
                 int distance = node_distance(i, k);
+                int distance2 = node_distance(k, i);
+
+                pr_info_view_on(stack_depth, "%20s : %d\n", i);
+                pr_info_view_on(stack_depth, "%20s : %d\n", j);
+                pr_info_view_on(stack_depth, "%20s : %d\n", k);
+                pr_info_view_on(stack_depth, "%20s : %d\n", distance);
+                pr_info_view_on(stack_depth, "%20s : %d\n", distance2);
+                pr_info_view_on(stack_depth, "%20s : %d\n", curr_distance);
+                pr_info_view_on(stack_depth, "%20s : %d\n", next_distance);
 
                 if (distance > curr_distance &&
                     (distance < next_distance ||
-                     next_distance == curr_distance))
+                     next_distance == curr_distance)) {
                     next_distance = distance;
-
-                    pr_info_view_on(stack_depth, "%20s : %d\n", distance);
                     pr_info_view_on(stack_depth, "%20s : %d\n", next_distance);
-
+                }
                 /*
                  * While not a strong assumption it would be nice to know
                  * about cases where if node A is connected to B, B is not
@@ -1618,9 +1626,12 @@ void sched_init_numa(void)
                     sched_numa_warn("Node-0 not representative");
             }
             if (next_distance != curr_distance) {
+                pr_info_view_on(stack_depth, "%20s : %d\n", level);
+                pr_info_view_on(stack_depth, "%20s : %d\n", next_distance);
                 sched_domains_numa_distance[level++] = next_distance;
                 sched_domains_numa_levels = level;
                 curr_distance = next_distance;
+                pr_info_view_on(stack_depth, "%20s : %d\n", curr_distance);
             } else break;
         }
 
@@ -1657,6 +1668,8 @@ void sched_init_numa(void)
     if (!sched_domains_numa_masks)
         return;
 
+    char bits_buf[100];	//for bitmap output
+
     /*
      * Now for each level, construct a mask per node which contains all
      * CPUs of nodes that are that many hops away from us.
@@ -1676,15 +1689,19 @@ void sched_init_numa(void)
 
             pr_info_view_on(stack_depth, "%20s : %d\n", i);
             pr_info_view_on(stack_depth, "%20s : %d\n", j);
-            pr_info_view_on(stack_depth, "%20s : 0x%X\n", mask->bits[0]);
+            bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
+            pr_info_view_on(stack_depth, "%20s : %s\n", bits_buf);
 
             for_each_node(k) {
+                pr_info_view_on(stack_depth, "%30s : %d\n", k);
+                pr_info_view_on(stack_depth, "%30s : %d\n", node_distance(j, k));
                 if (node_distance(j, k) > sched_domains_numa_distance[i])
                     continue;
 
                 cpumask_or(mask, mask, cpumask_of_node(k));
+                bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
+                pr_info_view_on(stack_depth, "%30s : %s\n", bits_buf);
             }
-            pr_info_view_on(stack_depth, "%20s : 0x%X\n", mask->bits[0]);
         }
     }
 
@@ -1692,6 +1709,8 @@ void sched_init_numa(void)
     for (i = 0; sched_domain_topology[i].mask; i++) {
         //pr_info_view_on(stack_depth, "%20s : 0x%X\n", sched_domain_topology[i].mask);
     }
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", i);
 
     tl = kzalloc((i + level + 1) *
             sizeof(struct sched_domain_topology_level), GFP_KERNEL);
@@ -1724,6 +1743,9 @@ void sched_init_numa(void)
             .numa_level = j,
             SD_INIT_NAME(NUMA)
         };
+        pr_info_view_on(stack_depth, "%30s : %d\n", i);
+        pr_info_view_on(stack_depth, "%30s : %d\n", tl[i].flags);
+        pr_info_view_on(stack_depth, "%30s : %d\n", tl[i].numa_level);
     }
 
     sched_domain_topology = tl;

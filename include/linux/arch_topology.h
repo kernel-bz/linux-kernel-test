@@ -7,6 +7,7 @@
 
 #include <linux/types-user.h>
 #include <linux/percpu.h>
+#include <linux/cpumask.h>
 
 void topology_normalize_cpu_scale(void);
 int topology_update_cpu_topology(void);

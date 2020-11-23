@@ -54,6 +54,8 @@ size_t bitmap_scnprintf(unsigned long *bitmap, int nbits,
 	bool first = true;
 	size_t ret = 0;
 
+    memset(bitmap, 0, size);
+
 	rbot = cur = find_first_bit(bitmap, nbits);
 	while (cur < nbits) {
 		rtop = cur;

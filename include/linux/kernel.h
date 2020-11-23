@@ -9,6 +9,8 @@
 #include <endian.h>
 #include <byteswap.h>
 
+#include <linux/mm.h>
+
 #ifndef UINT_MAX
 #define UINT_MAX	(~0U)
 #endif
