@@ -18,12 +18,11 @@
 #include <linux/compiler.h>
 #include <linux/cpumask.h>
 #include <linux/cpuhotplug.h>
+#include <linux/device.h>
 
-//struct device;
-//struct device_node;
+struct device;
+struct device_node;
 //struct attribute_group;
-struct device { };			//include/linux/device.h
-struct device_node { };		//include/linux/of.h
 struct attribute_group { }; //include/linux/sysfs.h
 
 struct cpu {

@@ -24,6 +24,9 @@ extern "C" {
 #define __initdata
 #define __ref
 #define __cpuidle
+#define __malloc
+#define __iomem
+#define __percpu
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 
@@ -89,6 +92,21 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 //kernel/locking/spinlock.c
 #define _raw_read_lock(lock)
 #define _raw_read_unlock(lock)
+
+//include/linux/sysfs.h
+struct attribute {
+    const char		*name;
+    unsigned short	mode;
+};
+
+//include/linux/pm.h
+typedef struct pm_message {
+    int event;
+} pm_message_t;
+
+struct dev_pm_info {
+
+};
 
 
 #ifdef __cplusplus

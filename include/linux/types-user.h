@@ -13,7 +13,7 @@
 
 #include <bits/types/__sigset_t.h>
 
-//typedef u32 __kernel_dev_t;
+typedef unsigned int __kernel_dev_t;
 
 //typedef __kernel_fd_set		fd_set;
 //typedef __kernel_dev_t		dev_t;

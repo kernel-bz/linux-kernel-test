@@ -73,7 +73,25 @@ SOURCES += \
     lib/stack_depth.c \
     test/sched/sched-debug.c \
     lib/plist.c \
-    kernel/sched/clock.c
+    kernel/sched/clock.c \
+    drivers/of/address.c \
+    drivers/of/base.c \
+    drivers/of/device.c \
+    drivers/of/dynamic.c \
+    drivers/of/fdt.c \
+    drivers/of/fdt_address.c \
+    drivers/of/irq.c \
+    drivers/of/kobj.c \
+    drivers/of/of_mdio.c \
+    drivers/of/of_net.c \
+    drivers/of/of_numa.c \
+    drivers/of/of_reserved_mem.c \
+    drivers/of/overlay.c \
+    drivers/of/pdt.c \
+    drivers/of/platform.c \
+    drivers/of/property.c \
+    drivers/of/resolver.c \
+    drivers/of/unittest.c
 
 HEADERS += \
     include/test/test.h \
@@ -363,9 +381,63 @@ HEADERS += \
     include/linux/sched/signal.h \
     include/asm-generic/preempt.h \
     include/asm-generic/switch_to.h \
-    include/linux/nodemask.h
+    include/linux/nodemask.h \
+    drivers/of/of_private.h \
+    include/linux/of_address.h \
+    include/linux/of_clk.h \
+    include/linux/of_device.h \
+    include/linux/of_dma.h \
+    include/linux/of_fdt.h \
+    include/linux/of_gpio.h \
+    include/linux/of_graph.h \
+    include/linux/of_iommu.h \
+    include/linux/of_irq.h \
+    include/linux/of_mdio.h \
+    include/linux/of_net.h \
+    include/linux/of_pci.h \
+    include/linux/of_pdt.h \
+    include/linux/of_platform.h \
+    include/linux/of_reserved_mem.h \
+    include/linux/of.h \
+    include/linux/device.h \
+    include/linux/platform_device.h \
+    include/linux/ioport.h \
+    include/linux/kobject.h \
+    include/linux/kobject_ns.h \
+    include/linux/workqueue.h \
+    include/linux/klist.h \
+    include/linux/uidgid.h \
+    include/linux/highuid.h \
+    include/linux/sort.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
     lib/bpf/libbpf.a \
-    docs/study/study-history.txt
+    docs/study/study-history.txt \
+    drivers/of/unittest-data/overlay.dts \
+    drivers/of/unittest-data/overlay_0.dts \
+    drivers/of/unittest-data/overlay_1.dts \
+    drivers/of/unittest-data/overlay_10.dts \
+    drivers/of/unittest-data/overlay_11.dts \
+    drivers/of/unittest-data/overlay_12.dts \
+    drivers/of/unittest-data/overlay_13.dts \
+    drivers/of/unittest-data/overlay_15.dts \
+    drivers/of/unittest-data/overlay_2.dts \
+    drivers/of/unittest-data/overlay_3.dts \
+    drivers/of/unittest-data/overlay_4.dts \
+    drivers/of/unittest-data/overlay_5.dts \
+    drivers/of/unittest-data/overlay_6.dts \
+    drivers/of/unittest-data/overlay_7.dts \
+    drivers/of/unittest-data/overlay_8.dts \
+    drivers/of/unittest-data/overlay_9.dts \
+    drivers/of/unittest-data/overlay_bad_add_dup_node.dts \
+    drivers/of/unittest-data/overlay_bad_add_dup_prop.dts \
+    drivers/of/unittest-data/overlay_bad_phandle.dts \
+    drivers/of/unittest-data/overlay_bad_symbol.dts \
+    drivers/of/unittest-data/overlay_base.dts \
+    drivers/of/unittest-data/testcases.dts \
+    drivers/of/unittest-data/tests-interrupts.dtsi \
+    drivers/of/unittest-data/tests-match.dtsi \
+    drivers/of/unittest-data/tests-overlay.dtsi \
+    drivers/of/unittest-data/tests-phandle.dtsi \
+    drivers/of/unittest-data/tests-platform.dtsi
