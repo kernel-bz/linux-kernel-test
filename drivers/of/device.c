@@ -8,7 +8,7 @@
 //#include <linux/dma-mapping.h>
 #include <linux/init.h>
 #include <linux/module.h>
-//#include <linux/mod_devicetable.h>
+#include <linux/mod_devicetable.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
 

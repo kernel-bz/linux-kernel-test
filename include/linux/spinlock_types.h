@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include <linux/lockdep.h>
+#include <linux/spinlock.h>
 
 //#ifndef pthread_mutext_t
 #if 0
@@ -57,7 +58,6 @@ typedef struct raw_spinlock {
 
 #define __RAW_SPIN_LOCK_INITIALIZER(lockname)	\
 	{					\
-	.raw_lock = __ARCH_SPIN_LOCK_UNLOCKED,	\
 	SPIN_DEBUG_INIT(lockname)		\
 	SPIN_DEP_MAP_INIT(lockname) }
 

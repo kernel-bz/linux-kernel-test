@@ -8,6 +8,8 @@
 
 #define pr_fmt(fmt)	"OF: fdt: " fmt
 
+#include "test/define-usr.h"
+
 //#include <linux/crc32.h>
 #include <linux/kernel.h>
 //#include <linux/initrd.h>

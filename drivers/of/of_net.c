@@ -4,11 +4,14 @@
  *
  * Initially copied out of arch/powerpc/kernel/prom_parse.c
  */
+
+#include "test/define-usr.h"
+
 //#include <linux/etherdevice.h>
 #include <linux/kernel.h>
 #include <linux/of_net.h>
 #include <linux/of_platform.h>
-//#include <linux/phy.h>
+#include <linux/phy.h>
 #include <linux/export.h>
 #include <linux/device.h>
 

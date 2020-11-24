@@ -78,9 +78,7 @@
         __cmp(unique_x, unique_y, op); })
 
 #define __careful_cmp(x, y, op) \
-    __builtin_choose_expr(__safe_cmp(x, y), \
-        __cmp(x, y, op), \
-        __cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
+        __cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op)
 
 #ifndef max
 #define max(x, y) ({				\

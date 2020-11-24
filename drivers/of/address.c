@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include "test/define-usr.h"
+
 #include <linux/device.h>
-//#include <linux/fwnode.h>
-//#include <linux/io.h>
+#include <linux/fwnode.h>
+#include <linux/io.h>
 #include <linux/ioport.h>
-//#include <linux/logic_pio.h>
+#include <linux/logic_pio.h>
 #include <linux/module.h>
 #include <linux/of_address.h>
 #include <linux/pci.h>
@@ -13,6 +15,8 @@
 #include <linux/sizes.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+
+#include <linux/export.h>
 
 /* Max address size we deal with */
 #define OF_MAX_ADDR_CELLS	4

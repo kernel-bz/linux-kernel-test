@@ -15,15 +15,19 @@
 #include <linux/bitops.h>
 #include <linux/errno.h>
 #include <linux/kobject.h>
-//#include <linux/mod_devicetable.h>
+#include <linux/mod_devicetable.h>
 #include <linux/spinlock.h>
 #include <linux/topology.h>
-//#include <linux/notifier.h>
+#include <linux/notifier.h>
 //#include <linux/property.h>
 #include <linux/list.h>
 
 #include <asm/byteorder.h>
 #include <asm/errno.h>
+#include <linux/err.h>
+
+#include <linux/device.h>
+#include <linux/fwnode.h>
 
 typedef u32 phandle;
 typedef u32 ihandle;

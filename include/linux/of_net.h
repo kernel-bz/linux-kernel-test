@@ -6,6 +6,8 @@
 #ifndef __LINUX_OF_NET_H
 #define __LINUX_OF_NET_H
 
+#include "test/config.h"
+
 #ifdef CONFIG_OF_NET
 #include <linux/of.h>
 

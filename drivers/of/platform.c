@@ -22,6 +22,8 @@
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
 
+#include <linux/export.h>
+
 const struct of_device_id of_default_bus_match_table[] = {
 	{ .compatible = "simple-bus", },
 	{ .compatible = "simple-mfd", },

@@ -91,7 +91,8 @@ SOURCES += \
     drivers/of/platform.c \
     drivers/of/property.c \
     drivers/of/resolver.c \
-    drivers/of/unittest.c
+    drivers/of/unittest.c \
+    drivers/base/arch_topology.c
 
 HEADERS += \
     include/test/test.h \
@@ -408,7 +409,27 @@ HEADERS += \
     include/linux/klist.h \
     include/linux/uidgid.h \
     include/linux/highuid.h \
-    include/linux/sort.h
+    include/linux/sort.h \
+    include/linux/cpuset.h \
+    kernel/workqueue_internal.h \
+    include/linux/io.h \
+    include/linux/logic_pio.h \
+    include/linux/fwnode.h \
+    include/asm-generic/device.h \
+    include/linux/kconfig.h \
+    include/linux/pm.h \
+    include/linux/mod_devicetable.h \
+    include/linux/uuid.h \
+    include/uapi/linux/uuid.h \
+    include/linux/notifier.h \
+    include/linux/irqdomain.h \
+    include/linux/irqhandler.h \
+    include/linux/phy.h \
+    include/linux/phy_fixed.h \
+    include/linux/mdio.h \
+    include/uapi/linux/mdio.h \
+    include/uapi/linux/kernel.h \
+    include/linux/cpufreq.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

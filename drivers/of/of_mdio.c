@@ -7,13 +7,14 @@
  * This file provides helper functions for extracting PHY device information
  * out of the OpenFirmware device tree and using it to populate an mii_bus.
  */
+#include "test/define-usr.h"
 
 #include <linux/kernel.h>
 #include <linux/device.h>
 #include <linux/netdevice.h>
 #include <linux/err.h>
-//#include <linux/phy.h>
-//#include <linux/phy_fixed.h>
+#include <linux/phy.h>
+#include <linux/phy_fixed.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/of_mdio.h>
@@ -22,8 +23,8 @@
 
 #define DEFAULT_GPIO_RESET_DELAY	10	/* in microseconds */
 
-MODULE_AUTHOR("Grant Likely <grant.likely@secretlab.ca>");
-MODULE_LICENSE("GPL");
+//MODULE_AUTHOR("Grant Likely <grant.likely@secretlab.ca>");
+//MODULE_LICENSE("GPL");
 
 /* Extract the clause 22 phy ID from the compatible string of the form
  * ethernet-phy-idAAAA.BBBB */

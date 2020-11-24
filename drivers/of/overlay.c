@@ -21,6 +21,8 @@
 #include <linux/err.h>
 #include <linux/idr.h>
 
+#include <linux/notifier.h>
+
 #include "of_private.h"
 
 /**

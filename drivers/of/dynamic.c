@@ -15,6 +15,8 @@
 #include <linux/string.h>
 #include <linux/proc_fs.h>
 
+#include <linux/export.h>
+
 #include "of_private.h"
 
 static struct device_node *kobj_to_device_node(struct kobject *kobj)

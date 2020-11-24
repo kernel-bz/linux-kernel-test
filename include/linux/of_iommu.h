@@ -3,7 +3,7 @@
 #define __OF_IOMMU_H
 
 #include <linux/device.h>
-#include <linux/iommu.h>
+//#include <linux/iommu.h>
 #include <linux/of.h>
 
 #ifdef CONFIG_OF_IOMMU

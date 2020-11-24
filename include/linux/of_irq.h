@@ -4,8 +4,8 @@
 
 #include <linux/types.h>
 #include <linux/errno.h>
-#include <linux/irq.h>
-#include <linux/irqdomain.h>
+//#include <linux/irq.h>
+//#include <linux/irqdomain.h>
 #include <linux/ioport.h>
 #include <linux/of.h>
 
@@ -48,9 +48,11 @@ extern int of_irq_get_byname(struct device_node *dev, const char *name);
 extern int of_irq_to_resource_table(struct device_node *dev,
 		struct resource *res, int nr_irqs);
 extern struct device_node *of_irq_find_parent(struct device_node *child);
+#if 0
 extern struct irq_domain *of_msi_get_domain(struct device *dev,
 					    struct device_node *np,
 					    enum irq_domain_bus_token token);
+#endif
 extern struct irq_domain *of_msi_map_get_device_domain(struct device *dev,
 						       u32 rid);
 extern void of_msi_configure(struct device *dev, struct device_node *np);

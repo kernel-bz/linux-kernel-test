@@ -11,6 +11,8 @@
 #include <linux/phy.h>
 #include <linux/of.h>
 
+#include <linux/kconfig.h>
+
 #if IS_ENABLED(CONFIG_OF_MDIO)
 extern int of_mdiobus_register(struct mii_bus *mdio, struct device_node *np);
 extern struct phy_device *of_phy_find_device(struct device_node *phy_np);

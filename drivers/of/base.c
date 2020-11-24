@@ -29,6 +29,9 @@
 #include <linux/string.h>
 #include <linux/proc_fs.h>
 
+#include <linux/spinlock_types.h>
+#include <linux/export.h>
+
 #include "of_private.h"
 
 LIST_HEAD(aliases_lookup);
@@ -165,9 +168,9 @@ int of_free_phandle_cache(void)
 
 	return 0;
 }
-#if !defined(CONFIG_MODULES)
-late_initcall_sync(of_free_phandle_cache);
-#endif
+//#if !defined(CONFIG_MODULES)
+//late_initcall_sync(of_free_phandle_cache);
+//#endif
 
 /*
  * Caller must hold devtree_lock.

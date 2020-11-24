@@ -11,6 +11,8 @@
 
 #define pr_fmt(fmt)	"OF: reserved mem: " fmt
 
+#include "test/define-usr.h"
+
 #include <linux/err.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>
@@ -21,6 +23,8 @@
 #include <linux/sort.h>
 #include <linux/slab.h>
 #include <linux/memblock.h>
+
+#include <linux/cache.h>
 
 #define MAX_RESERVED_REGIONS	32
 static struct reserved_mem reserved_mem[MAX_RESERVED_REGIONS];
@@ -172,7 +176,7 @@ static int __init __reserved_mem_init_node(struct reserved_mem *rmem)
 	extern const struct of_device_id __reservedmem_of_table[];
 	const struct of_device_id *i;
 	int ret = -ENOENT;
-
+#if 0
 	for (i = __reservedmem_of_table; i < &__rmem_of_table_sentinel; i++) {
 		reservedmem_of_init_fn initfn = i->data;
 		const char *compat = i->compatible;
@@ -186,7 +190,9 @@ static int __init __reserved_mem_init_node(struct reserved_mem *rmem)
 				rmem->name, compat);
 			break;
 		}
-	}
+    }
+#endif //0
+
 	return ret;
 }
 
