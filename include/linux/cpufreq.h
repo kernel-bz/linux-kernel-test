@@ -17,7 +17,7 @@
 #include <linux/notifier.h>
 //#include <linux/pm_qos.h>
 #include <linux/spinlock.h>
-//#include <linux/sysfs.h>
+#include <linux/sysfs.h>
 
 /*********************************************************************
  *                        CPUFREQ INTERFACE                          *

@@ -2,11 +2,11 @@
 /*
  * workqueue.h --- work queue handling for Linux.
  */
-
-#ifndef _LINUX_WORKQUEUE_H
-#define _LINUX_WORKQUEUE_H
+#ifndef __LINUX_WORKQUEUE_H
+#define __LINUX_WORKQUEUE_H
 
 #include <stdbool.h>
+
 #include <asm-generic/bitsperlong.h>
 #include <asm-generic/atomic-long.h>
 
@@ -656,4 +656,5 @@ int workqueue_offline_cpu(unsigned int cpu);
 int __init workqueue_init_early(void);
 int __init workqueue_init(void);
 
-#endif
+
+#endif	//__LINUX_WORKQUEUE_H

@@ -143,16 +143,6 @@ typedef struct {
 	int counter;
 } atomic_t;
 
-//#ifdef CONFIG_64BIT
-typedef struct {
-    s64 counter;
-} atomic64_t;
-
-//include/asm-generic/atomic-long.h
-//typedef atomic64_t	atomic_long_t;
-
-//#endif
-
 #ifndef __aligned_u64
 # define __aligned_u64 __u64 __attribute__((aligned(8)))
 #endif

@@ -2,6 +2,8 @@
 #ifndef _LINUX_SCHED_H
 #define _LINUX_SCHED_H
 
+#include "test/define-usr.h"
+
 /*
  * Define 'struct task_struct' and provide the main scheduler
  * APIs (schedule(), wakeup variants, etc.)
@@ -42,6 +44,8 @@
 #include <linux/llist.h>
 #include <linux/compiler_types.h>
 #include <linux/cpumask.h>
+
+#include <asm-generic/signal.h>
 
 /* task_struct member predeclarations (sorted alphabetically): */
 struct audit_context;

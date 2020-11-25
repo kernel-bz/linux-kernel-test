@@ -19,6 +19,7 @@
 #include <linux/string.h>
 #include <linux/ctype.h>
 #include <linux/compiler.h>
+#include <linux/export.h>
 
 /**
  * memdup - duplicate region of memory
@@ -161,3 +162,12 @@ char *strreplace(char *s, char old, char new)
 			*s = new;
 	return s;
 }
+
+char *strchrnul(const char *s, int c)
+{
+    while (*s && *s != (char)c)
+        s++;
+    return (char *)s;
+}
+EXPORT_SYMBOL(strchrnul);
+

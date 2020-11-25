@@ -34,7 +34,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
 # define __force
 # define __nocast
 # define __iomem
-# define __chk_user_ptr(x) (void)0
+//# define __chk_user_ptr(x) (void)0
 # define __chk_io_ptr(x) (void)0
 # define __builtin_warning(x, y...) (1)
 # define __must_hold(x)
@@ -189,9 +189,11 @@ struct ftrace_likely_data {
 # define __latent_entropy
 #endif
 
+#if 0
 #ifndef __randomize_layout
 # define __randomize_layout __designated_init
 #endif
+#endif //0
 
 #ifndef __no_randomize_layout
 # define __no_randomize_layout
@@ -242,5 +244,7 @@ struct ftrace_likely_data {
 	__diag_ ## compiler(version, warn, option)
 #define __diag_error(compiler, version, option, comment) \
 	__diag_ ## compiler(version, error, option)
+
+
 
 #endif /* __LINUX_COMPILER_TYPES_H */

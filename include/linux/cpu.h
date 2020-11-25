@@ -22,8 +22,7 @@
 
 struct device;
 struct device_node;
-//struct attribute_group;
-struct attribute_group { }; //include/linux/sysfs.h
+struct attribute_group;
 
 struct cpu {
 	int node_id;		/* The node which contains the CPU */

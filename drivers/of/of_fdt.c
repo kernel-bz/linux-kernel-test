@@ -8,6 +8,8 @@
 
 #define pr_fmt(fmt)	"OF: fdt: " fmt
 
+#include "test/config.h"
+#include "test/debug.h"
 #include "test/define-usr.h"
 
 //#include <linux/crc32.h>
@@ -22,10 +24,10 @@
 #include <linux/string.h>
 #include <linux/errno.h>
 #include <linux/slab.h>
-//#include <linux/libfdt.h>
+#include <linux/libfdt.h>
 //#include <linux/debugfs.h>
 #include <linux/serial_core.h>
-//#include <linux/sysfs.h>
+#include <linux/sysfs.h>
 #include <linux/random.h>
 
 #include <asm/setup.h>  /* for COMMAND_LINE_SIZE */

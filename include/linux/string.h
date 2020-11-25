@@ -2,7 +2,6 @@
 #ifndef _TOOLS_LINUX_STRING_H_
 #define _TOOLS_LINUX_STRING_H_
 
-#include "test/define-usr.h"
 #include <linux/types-user.h>	/* for size_t */
 #include <stdbool.h>
 
@@ -39,6 +38,18 @@ extern char * __must_check skip_spaces(const char *);
 
 extern char *strim(char *);
 
-char *strchrnul(const char *s, int c);
+extern char *strchrnul(const char *s, int c);
+
+/**
+ * kbasename - return the last part of a pathname.
+ *
+ * @path: path to extract the filename from.
+ */
+static inline const char *kbasename(const char *path)
+{
+    const char *tail = strrchr(path, '/');
+    return tail ? tail + 1 : path;
+}
+
 
 #endif /* _TOOLS_LINUX_STRING_H_ */

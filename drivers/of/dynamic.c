@@ -9,6 +9,8 @@
 
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include "test/debug.h"
+
 #include <linux/of.h>
 #include <linux/spinlock.h>
 #include <linux/slab.h>

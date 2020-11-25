@@ -12,7 +12,7 @@ LIBS += -Lpthread
 
 QMAKE_CFLAGS += -Wno-unused-parameter -finstrument-functions
 
-INCLUDEPATH += include/ lib/ lib/traceevent/
+INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/
 
 SOURCES += \
     main.c \
@@ -22,7 +22,6 @@ SOURCES += \
     mm/slab_user.c \
     lib/api/fd/array.c \
     lib/api/fs/fs.c \
-    lib/api/cpu.c \
     lib/api/debug.c \
     lib/math/div64.c \
     lib/subcmd/exec-cmd.c \
@@ -78,7 +77,6 @@ SOURCES += \
     drivers/of/base.c \
     drivers/of/device.c \
     drivers/of/dynamic.c \
-    drivers/of/fdt.c \
     drivers/of/fdt_address.c \
     drivers/of/irq.c \
     drivers/of/kobj.c \
@@ -91,8 +89,25 @@ SOURCES += \
     drivers/of/platform.c \
     drivers/of/property.c \
     drivers/of/resolver.c \
-    drivers/of/unittest.c \
-    drivers/base/arch_topology.c
+    drivers/base/arch_topology.c \
+    drivers/base/dev-core.c \
+    drivers/base/cpu.c \
+    lib/kasprintf.c \
+    lib/kobject.c \
+    lib/kobject_uevent.c \
+    scripts/dtc/libfdt/fdt_addresses.c \
+    scripts/dtc/libfdt/fdt_empty_tree.c \
+    scripts/dtc/libfdt/fdt_overlay.c \
+    scripts/dtc/libfdt/fdt_ro.c \
+    scripts/dtc/libfdt/fdt_rw.c \
+    scripts/dtc/libfdt/fdt_strerror.c \
+    scripts/dtc/libfdt/fdt_sw.c \
+    scripts/dtc/libfdt/fdt_wip.c \
+    scripts/dtc/libfdt/fdt.c \
+    lib/logic_pio.c \
+    lib/api/api-cpu.c \
+    drivers/of/of_fdt.c \
+    mm/util.c
 
 HEADERS += \
     include/test/test.h \
@@ -429,7 +444,19 @@ HEADERS += \
     include/linux/mdio.h \
     include/uapi/linux/mdio.h \
     include/uapi/linux/kernel.h \
-    include/linux/cpufreq.h
+    include/linux/cpufreq.h \
+    include/asm-generic/atomic64.h \
+    include/asm-generic/io.h \
+    drivers/base/base.h \
+    include/linux/sysfs.h \
+    include/asm-generic/signal.h \
+    include/uapi/asm-generic/signal.h \
+    scripts/dtc/libfdt/fdt.h \
+    scripts/dtc/libfdt/libfdt_env.h \
+    scripts/dtc/libfdt/libfdt_internal.h \
+    scripts/dtc/libfdt/libfdt.h \
+    include/linux/libfdt_env.h \
+    include/linux/libfdt.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

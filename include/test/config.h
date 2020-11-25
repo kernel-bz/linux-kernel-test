@@ -72,6 +72,8 @@ extern "C" {
 #define CONFIG_OF_FLATTREE
 #define CONFIG_OF_RESERVED_MEM
 #define CONFIG_OF_NUMA
+#define CONFIG_OF_UNITTEST
+#define CONFIG_OF_EARLY_FLATTREE
 
 
 #ifdef __cplusplus

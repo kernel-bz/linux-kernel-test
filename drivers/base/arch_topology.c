@@ -6,6 +6,8 @@
  * Written by: Juri Lelli, ARM Ltd.
  */
 
+#include "test/debug.h"
+
 //#include <linux/acpi.h>
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
@@ -56,7 +58,8 @@ static ssize_t cpu_capacity_show(struct device *dev,
 static void update_topology_flags_workfn(struct work_struct *work);
 static DECLARE_WORK(update_topology_flags_work, update_topology_flags_workfn);
 
-static DEVICE_ATTR_RO(cpu_capacity);
+//static DEVICE_ATTR_RO(cpu_capacity);
+static struct device_attribute dev_attr_cpu_capacity;
 
 static int register_cpu_capacity_sysctl(void)
 {
@@ -75,7 +78,7 @@ static int register_cpu_capacity_sysctl(void)
 
 	return 0;
 }
-subsys_initcall(register_cpu_capacity_sysctl);
+//subsys_initcall(register_cpu_capacity_sysctl);
 
 static int update_topology;
 
@@ -236,7 +239,7 @@ static int __init register_cpufreq_notifier(void)
 
 	return ret;
 }
-core_initcall(register_cpufreq_notifier);
+//core_initcall(register_cpufreq_notifier);
 
 static void parsing_done_workfn(struct work_struct *work)
 {

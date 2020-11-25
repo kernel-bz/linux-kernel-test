@@ -8,6 +8,8 @@
 
 #define pr_fmt(fmt)	"OF: overlay: " fmt
 
+#include "test/debug.h"
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/of.h>
@@ -17,7 +19,7 @@
 #include <linux/ctype.h>
 #include <linux/errno.h>
 #include <linux/slab.h>
-//#include <linux/libfdt.h>
+#include <linux/libfdt.h>
 #include <linux/err.h>
 #include <linux/idr.h>
 

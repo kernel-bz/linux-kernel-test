@@ -11,8 +11,10 @@
 
 #define pr_fmt(fmt)	"OF: fdt: " fmt
 
+#include "test/debug.h"
+
 #include <linux/kernel.h>
-//#include <linux/libfdt.h>
+#include <linux/libfdt.h>
 #include <linux/of.h>
 #include <linux/of_fdt.h>
 #include <linux/sizes.h>

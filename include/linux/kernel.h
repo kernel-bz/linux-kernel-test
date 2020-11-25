@@ -10,6 +10,7 @@
 #include <byteswap.h>
 
 #include <linux/mm.h>
+#include <uapi/linux/kernel.h>
 
 #ifndef UINT_MAX
 #define UINT_MAX	(~0U)
@@ -306,6 +307,22 @@ extern void __cant_sleep(const char *file, int line, int preempt_offset);
 # define cant_migrate()		do { } while (0)
 #endif
 
+
+extern char *kasprintf(gfp_t gfp, const char *fmt, ...);
+
+
+#define REPEAT_BYTE(x)	((~0ul / 0xff) * (x))
+
+/* @a is a power of 2 value */
+#define ALIGN(x, a)		__ALIGN_KERNEL((x), (a))
+#define ALIGN_DOWN(x, a)	__ALIGN_KERNEL((x) - ((a) - 1), (a))
+#define __ALIGN_MASK(x, mask)	__ALIGN_KERNEL_MASK((x), (mask))
+#define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
+#define IS_ALIGNED(x, a)		(((x) & ((typeof(x))(a) - 1)) == 0)
+
+/* generic data direction definitions */
+#define READ			0
+#define WRITE			1
 
 
 #endif

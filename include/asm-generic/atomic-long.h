@@ -13,6 +13,8 @@
 #include <linux/types-user.h>
 #include <linux/atomic.h>
 
+#include <asm-generic/atomic64.h>
+
 #ifdef CONFIG_64BIT
 typedef atomic64_t atomic_long_t;
 #define ATOMIC_LONG_INIT(i)		ATOMIC64_INIT(i)

@@ -34,6 +34,7 @@
 //#include <asm/device.h>
 
 #include <linux/kern_levels.h>
+#include <linux/export.h>
 
 struct device;
 struct device_private;

@@ -9,6 +9,9 @@
 #ifndef _LINUX_OF_FDT_H
 #define _LINUX_OF_FDT_H
 
+#include "test/config.h"
+#include "test/define-usr.h"
+
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -21,6 +24,9 @@
 #if defined(CONFIG_OF_FLATTREE)
 
 struct device_node;
+
+//init/main-init.c
+extern char __initdata boot_command_line[COMMAND_LINE_SIZE];
 
 /* For scanning an arbitrary device-tree at any time */
 extern void *of_fdt_unflatten_tree(const unsigned long *blob,

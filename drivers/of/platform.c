@@ -9,6 +9,8 @@
 
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include "test/debug.h"
+
 #include <linux/errno.h>
 #include <linux/module.h>
 //#include <linux/amba/bus.h>

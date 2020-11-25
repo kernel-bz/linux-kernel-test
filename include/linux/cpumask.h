@@ -2,6 +2,7 @@
 #ifndef __LINUX_CPUMASK_H
 #define __LINUX_CPUMASK_H
 
+#include "test/config.h"
 #include <unistd.h>
 
 /*
@@ -9,7 +10,6 @@
  * set of CPU's in a system, one bit position per CPU number.  In general,
  * only nr_cpu_ids (<= NR_CPUS) bits are valid.
  */
-#include <linux/types-user.h>
 #include <linux/kernel.h>
 #include <linux/threads.h>
 #include <linux/bitmap.h>
@@ -118,18 +118,7 @@ cpumap_print_to_pagebuf(bool list, char *buf, const struct cpumask *mask)
 #define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
 #define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
 
-#if 0
-const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
-
-    MASK_DECLARE_8(0),	MASK_DECLARE_8(8),
-    MASK_DECLARE_8(16),	MASK_DECLARE_8(24),
-#if BITS_PER_LONG > 32
-    MASK_DECLARE_8(32),	MASK_DECLARE_8(40),
-    MASK_DECLARE_8(48),	MASK_DECLARE_8(56),
-#endif
-};
-const DECLARE_BITMAP(cpu_all_bits, NR_CPUS) = CPU_BITS_ALL;
-#endif //0
+//const DECLARE_BITMAP(cpu_all_bits, NR_CPUS) = CPU_BITS_ALL;
 
 #ifdef CONFIG_INIT_ALL_POSSIBLE
 static struct cpumask __cpu_possible_mask __read_mostly

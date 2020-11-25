@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include "test/debug.h"
 #include "test/define-usr.h"
 
 #include <linux/device.h>
@@ -17,6 +18,7 @@
 #include <linux/string.h>
 
 #include <linux/export.h>
+#include <asm-generic/io.h>
 
 /* Max address size we deal with */
 #define OF_MAX_ADDR_CELLS	4
@@ -863,7 +865,7 @@ void __iomem *of_iomap(struct device_node *np, int index)
 	if (of_address_to_resource(np, index, &res))
 		return NULL;
 
-	return ioremap(res.start, resource_size(&res));
+    return ioremap(res.start, resource_size(&res));
 }
 EXPORT_SYMBOL(of_iomap);
 

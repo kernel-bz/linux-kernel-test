@@ -7,6 +7,7 @@
  * This file provides helper functions for extracting PHY device information
  * out of the OpenFirmware device tree and using it to populate an mii_bus.
  */
+#include "test/debug.h"
 #include "test/define-usr.h"
 
 #include <linux/kernel.h>

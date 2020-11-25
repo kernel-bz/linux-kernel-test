@@ -5,6 +5,7 @@
  * Initially copied out of arch/powerpc/kernel/prom_parse.c
  */
 
+#include "test/debug.h"
 #include "test/define-usr.h"
 
 //#include <linux/etherdevice.h>

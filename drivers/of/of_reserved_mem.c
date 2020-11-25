@@ -11,6 +11,7 @@
 
 #define pr_fmt(fmt)	"OF: reserved mem: " fmt
 
+#include "test/debug.h"
 #include "test/define-usr.h"
 
 #include <linux/err.h>

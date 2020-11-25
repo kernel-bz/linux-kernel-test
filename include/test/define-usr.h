@@ -6,6 +6,8 @@
 #include <asm/thread_info.h>
 #include <linux/signal.h>
 #include <linux/export.h>
+#include <linux/kobject.h>
+#include <linux/kernel.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +34,8 @@ typedef unsigned long 	u_long;
 #define __initconst
 #define __used
 #define __rmem_of_table_sentinel
+#define __randomize_layout
+#define __user
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
 
@@ -98,21 +102,6 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 #define _raw_read_lock(lock)
 #define _raw_read_unlock(lock)
 
-//include/linux/sysfs.h
-struct attribute {
-    const char		*name;
-    unsigned short	mode;
-};
-
-struct bin_attribute {
-    struct attribute	attr;
-    size_t				size;
-    void				*private;
-};
-
-//scripts/dtc/libfdt/libfdt.h
-#define FDT_ERR_NOTFOUND	1
-
 //kernel/printk/printk.c
 static int preferred_console = -1;
 int console_set_on_cmdline;
@@ -154,27 +143,21 @@ void *initial_boot_params;
 
 #define pageblock_order		HUGETLB_PAGE_ORDER
 
-//scripts/dtc/libfdt/fdt.h
-typedef __be32 fdt32_t;
-struct fdt_header {
-    fdt32_t magic;			 /* magic word FDT_MAGIC */
-    fdt32_t totalsize;		 /* total size of DT block */
-    fdt32_t off_dt_struct;		 /* offset to structure */
-    fdt32_t off_dt_strings;		 /* offset to strings */
-    fdt32_t off_mem_rsvmap;		 /* offset to memory reserve map */
-    fdt32_t version;		 /* format version */
-    fdt32_t last_comp_version;	 /* last compatible version */
+//include/linux/acpi.h
+#define acpi_disabled 1
+//include/linux/pci.h
+static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
 
-    /* version 2 fields below */
-    fdt32_t boot_cpuid_phys;	 /* Which physical CPU id we're
-                        booting on */
-    /* version 3 fields below */
-    fdt32_t size_dt_strings;	 /* size of the strings block */
+//include/linux/dma-mapping.h
+#define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
+#define DMA_MASK_NONE	0x0ULL
 
-    /* version 17 fields below */
-    fdt32_t size_dt_struct;		 /* size of the structure block */
-};
+//include/linux/byteorder/generic.h
+#define be32_to_cpup __be32_to_cpup
+#define be32_to_cpus __be32_to_cpus
 
+//include/linux/mm.h
+#define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
 
 
 

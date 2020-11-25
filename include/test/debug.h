@@ -22,7 +22,7 @@ extern int DebugBase;
 //lib/stack_depth.c
 extern int stack_depth;
 
-//#define printk		printf
+#define printk			printf
 #define seq_printf		printf
 #define pr_warning		_pr_warn
 #define pr_debug		printf
