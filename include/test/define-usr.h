@@ -1,17 +1,31 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ *	include/test/define-usr.h
+ *
+ * 	Copyright (C) 2020, www.kernel.bz
+ * 	Author: JaeJoon Jung <rgbi3307@gmail.com>
+ *
+ *	user defined header
+ */
 #ifndef __TEST_DEFINE_USR_H
 #define __TEST_DEFINE_USR_H
 
+#include <stdarg.h>
+#include <stddef.h>
+#include <assert.h>
+#include <endian.h>
+#include <byteswap.h>
+
+#include <linux/compiler.h>
+#include <linux/compiler_attributes.h>
 #include <linux/bitmap.h>
 #include <linux/numa.h>
-#include <asm/thread_info.h>
 #include <linux/signal.h>
 #include <linux/export.h>
 #include <linux/kobject.h>
 #include <linux/kernel.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <asm/thread_info.h>
 
 //include/linux/types.h
 /* bsd */
@@ -22,7 +36,6 @@ typedef unsigned long 	u_long;
 
 //include/linux/compiler.h
 #define notrace
-#define __always_inline		inline
 #define __initdata
 #define __ref
 #define __cpuidle
@@ -32,12 +45,56 @@ typedef unsigned long 	u_long;
 #define __visible
 #define __ro_after_init
 #define __initconst
-#define __used
 #define __rmem_of_table_sentinel
 #define __randomize_layout
 #define __user
+#define __refdata
+#define __initdata_memblock
 
 #define lockdep_assert_held(l)			do { (void)(l); } while (0)
+
+//include/linux/byteorder/generic.h
+//tools/include/linux/kernel.h
+//usr/include/byteswap.h
+#if __BYTE_ORDER == __BIG_ENDIAN
+#define cpu_to_le16 bswap_16
+#define cpu_to_le32 bswap_32
+#define cpu_to_le64 bswap_64
+#define le16_to_cpu bswap_16
+#define le32_to_cpu bswap_32
+#define le64_to_cpu bswap_64
+#define cpu_to_be16
+#define cpu_to_be32
+#define cpu_to_be64
+#define be16_to_cpu
+#define be32_to_cpu
+#define be64_to_cpu
+#else
+#define cpu_to_le16
+#define cpu_to_le32
+#define cpu_to_le64
+#define le16_to_cpu
+#define le32_to_cpu
+#define le64_to_cpu
+#define cpu_to_be16 bswap_16
+#define cpu_to_be32 bswap_32
+#define cpu_to_be64 bswap_64
+#define be16_to_cpu bswap_16
+#define be32_to_cpu bswap_32
+#define be64_to_cpu bswap_64
+
+#define be16_to_cpup bswap_16
+#define be32_to_cpup bswap_32
+#define be64_to_cpup bswap_64
+#endif
+
+//include/linux/byteorder/generic.h
+static inline void be32_add_cpu(__be32 *var, u32 val)
+{
+    *var = cpu_to_be32(be32_to_cpu(*var) + val);
+}
+
+
 
 //include/linux/atomic-fallback.h
 #ifndef atomic_inc_return
@@ -159,10 +216,5 @@ static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
 //include/linux/mm.h
 #define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
 
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // __TEST_DEFINE_USR_H

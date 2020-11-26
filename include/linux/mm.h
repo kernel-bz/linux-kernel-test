@@ -58,9 +58,6 @@ static inline unsigned long page_to_phys(struct page *page)
 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),   \
 	      x, y)
 
-//include/linux/preempt.h
-//#define preemptible() (1)
-
 static inline void *kmap(struct page *page)
 {
 	assert(0);
@@ -101,4 +98,13 @@ static inline void free_page(unsigned long page)
 #define PageSlab(p) (0)
 #define flush_kernel_dcache_page(p)
 
-#endif
+//623 lines
+enum {
+    REGION_INTERSECTS,
+    REGION_DISJOINT,
+    REGION_MIXED,
+};
+
+
+
+#endif	//_LINUX_MM_H

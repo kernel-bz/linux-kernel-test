@@ -24,6 +24,8 @@
 
 #include <linux/bug.h>
 #include <linux/plist.h>
+#include <linux/kernel.h>
+#include <linux/build_bug.h>
 
 #ifdef CONFIG_DEBUG_PLIST
 

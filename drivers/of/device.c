@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "test/debug.h"
+#include "test/define-usr-dev.h"
 
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -13,6 +14,8 @@
 #include <linux/mod_devicetable.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
+
+#include <linux/kmod.h>
 
 #include <asm/errno.h>
 #include "of_private.h"

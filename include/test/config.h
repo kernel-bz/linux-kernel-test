@@ -56,9 +56,15 @@ extern "C" {
 #define CONFIG_USE_PERCPU_NUMA_NODE_ID
 
 #define CONFIG_NUMA
+#define CONFIG_IRQ_DOMAIN
 
 //#define CONFIG_DEBUG_PREEMPT
 //#define CONFIG_PROVE_RCU_LIST
+
+
+//Memory Configuration -----------------------------------
+#define CONFIG_ARCH_KEEP_MEMBLOCK
+
 
 //drivers Configuration -----------------------------------
 #define CONFIG_OF
@@ -74,6 +80,7 @@ extern "C" {
 #define CONFIG_OF_NUMA
 #define CONFIG_OF_UNITTEST
 #define CONFIG_OF_EARLY_FLATTREE
+
 
 
 #ifdef __cplusplus

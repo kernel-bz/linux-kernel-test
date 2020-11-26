@@ -8,11 +8,16 @@
 
 #ifdef __KERNEL__
 
+#define pr_fmt(fmt)	"MBLOCK: " fmt
+
 /*
  * Logical memory blocks.
  *
  * Copyright (C) 2001 Peter Bergner, IBM Corp.
  */
+
+#include "test/config.h"
+//#include "test/debug.h"
 
 #include <linux/init.h>
 #include <linux/mm.h>
@@ -20,6 +25,7 @@
 
 #include <linux/types-user.h>
 #include <linux/numa.h>
+#include <linux/kern_levels.h>
 
 //include/linux/mmzone.h
 typedef struct pglist_data {
@@ -125,11 +131,7 @@ void memblock_allow_resize(void);
 int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
 int memblock_add(phys_addr_t base, phys_addr_t size);
 int memblock_remove(phys_addr_t base, phys_addr_t size);
-
-//mm/memblock.c
-//int memblock_free(phys_addr_t base, phys_addr_t size);
-static inline int memblock_free(phys_addr_t base, phys_addr_t size) { }
-
+int memblock_free(phys_addr_t base, phys_addr_t size);
 int memblock_reserve(phys_addr_t base, phys_addr_t size);
 void memblock_trim_memory(phys_addr_t align);
 bool memblock_overlaps_region(struct memblock_type *type,
@@ -379,10 +381,9 @@ static inline phys_addr_t memblock_phys_alloc(phys_addr_t size,
 void *memblock_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
 				 phys_addr_t min_addr, phys_addr_t max_addr,
 				 int nid);
-//mm/memblock.c
-static inline void *memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align,
+void *memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align,
 			     phys_addr_t min_addr, phys_addr_t max_addr,
-                                           int nid) { }
+                                           int nid);
 
 static inline void * __init memblock_alloc(phys_addr_t size,  phys_addr_t align)
 {

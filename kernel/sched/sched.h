@@ -106,6 +106,7 @@
 
 #include <asm-generic/atomic-long.h>
 #include <asm-generic/bitops/sched.h>
+#include <asm-generic/bug.h>
 
 #include <asm/barrier.h>
 #include <asm/bug.h>

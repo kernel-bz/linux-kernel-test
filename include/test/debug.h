@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <linux/compiler.h>
 #include <linux/sched.h>
+#include <linux/build_bug.h>
+#include <asm-generic/bug.h>
 
 #ifdef __cplusplus
 extern "C" {

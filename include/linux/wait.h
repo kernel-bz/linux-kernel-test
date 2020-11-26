@@ -204,8 +204,7 @@ void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, vo
 void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
 		unsigned int mode, void *key, wait_queue_entry_t *bookmark);
 void __wake_up_sync_key(struct wait_queue_head *wq_head, unsigned int mode, int nr, void *key);
-//void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
-static inline void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr) { }
+void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
 void __wake_up_sync(struct wait_queue_head *wq_head, unsigned int mode, int nr);
 
 #define wake_up(x)			__wake_up(x, TASK_NORMAL, 1, NULL)

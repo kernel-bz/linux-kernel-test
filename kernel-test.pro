@@ -107,7 +107,15 @@ SOURCES += \
     lib/logic_pio.c \
     lib/api/api-cpu.c \
     drivers/of/of_fdt.c \
-    mm/util.c
+    mm/util.c \
+    kernel/resource.c \
+    test/define-usr-dev.c \
+    test/define-usr-lock.c \
+    kernel/sched/wait.c \
+    drivers/base/firmware.c \
+    lib/kstrtox.c \
+    mm/memblock.c \
+    lib/crc32.c
 
 HEADERS += \
     include/test/test.h \
@@ -456,7 +464,21 @@ HEADERS += \
     scripts/dtc/libfdt/libfdt_internal.h \
     scripts/dtc/libfdt/libfdt.h \
     include/linux/libfdt_env.h \
-    include/linux/libfdt.h
+    include/linux/libfdt.h \
+    include/linux/resource.h \
+    include/linux/resource_ext.h \
+    include/uapi/linux/resource.h \
+    include/test/define-usr-dev.h \
+    include/test/define-usr-lock.h \
+    lib/kstrtox.h \
+    include/asm-generic/bug.h \
+    include/linux/build_bug.h \
+    include/linux/kmod.h \
+    include/linux/crc32.h \
+    include/linux/crc32c.h \
+    include/linux/crc32poly.h \
+    lib/crc32defs.h \
+    include/linux/compiler_attributes.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

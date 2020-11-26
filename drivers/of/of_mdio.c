@@ -369,8 +369,9 @@ struct phy_device *of_phy_get_and_connect(struct net_device *dev,
 	if (of_phy_is_fixed_link(np)) {
 		ret = of_phy_register_fixed_link(np);
 		if (ret < 0) {
-			netdev_err(dev, "broken fixed-link specification\n");
-			return NULL;
+            //netdev_err(dev, "broken fixed-link specification\n");
+            pr_err(dev, "broken fixed-link specification\n");
+            return NULL;
 		}
 		phy_np = of_node_get(np);
 	} else {

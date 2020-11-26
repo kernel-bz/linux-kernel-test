@@ -251,8 +251,8 @@ void __init of_core_init(void)
 	mutex_unlock(&of_mutex);
 
 	/* Symlink in /proc as required by userspace ABI */
-	if (of_root)
-		proc_symlink("device-tree", NULL, "/sys/firmware/devicetree/base");
+    //if (of_root)
+        //proc_symlink("device-tree", NULL, "/sys/firmware/devicetree/base");
 }
 
 static struct property *__of_find_property(const struct device_node *np,
