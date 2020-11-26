@@ -171,3 +171,26 @@ char *strchrnul(const char *s, int c)
 }
 EXPORT_SYMBOL(strchrnul);
 
+
+#ifndef __HAVE_ARCH_STRNCHR
+/**
+ * strnchr - Find a character in a length limited string
+ * @s: The string to be searched
+ * @count: The number of characters to be searched
+ * @c: The character to search for
+ *
+ * Note that the %NUL-terminator is considered part of the string, and can
+ * be searched for.
+ */
+char *strnchr(const char *s, size_t count, int c)
+{
+    while (count--) {
+        if (*s == (char)c)
+            return (char *)s;
+        if (*s++ == '\0')
+            break;
+    }
+    return NULL;
+}
+EXPORT_SYMBOL(strnchr);
+#endif

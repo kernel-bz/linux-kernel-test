@@ -60,10 +60,11 @@ extern "C" {
 
 //#define CONFIG_DEBUG_PREEMPT
 //#define CONFIG_PROVE_RCU_LIST
-
+#define CONFIG_GENERIC_ARCH_TOPOLOGY
 
 //Memory Configuration -----------------------------------
 #define CONFIG_ARCH_KEEP_MEMBLOCK
+#define CONFIG_HAVE_MEMBLOCK_NODE_MAP
 
 
 //drivers Configuration -----------------------------------

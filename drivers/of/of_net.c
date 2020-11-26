@@ -7,6 +7,7 @@
 
 #include "test/debug.h"
 #include "test/define-usr.h"
+#include "test/define-usr-dev.h"
 
 //#include <linux/etherdevice.h>
 #include <linux/kernel.h>
@@ -15,6 +16,8 @@
 #include <linux/phy.h>
 #include <linux/export.h>
 #include <linux/device.h>
+#include <linux/memblock.h>
+#include <linux/nodemask.h>
 
 /**
  * of_get_phy_mode - Get phy mode for given device_node
@@ -117,3 +120,25 @@ const void *of_get_mac_address(struct device_node *np)
 	return of_get_mac_addr_nvmem(np);
 }
 EXPORT_SYMBOL(of_get_mac_address);
+
+
+//arch/arm64/mm/numa.c: 200 lines
+int __init numa_add_memblk(int nid, u64 start, u64 end)
+{
+    int ret;
+
+    ret = memblock_set_node(start, (end - start), &memblock.memory, nid);
+    if (ret < 0) {
+        pr_err("memblock [0x%llx - 0x%llx] failed to add on node %d\n",
+            start, (end - 1), nid);
+        return ret;
+    }
+
+    //node_set(nid, numa_nodes_parsed);
+    return ret;
+}
+
+//arch/arm64/mm/numa.c: 312 lines
+void __init numa_set_distance(int from, int to, int distance)
+{
+}

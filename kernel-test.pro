@@ -115,7 +115,10 @@ SOURCES += \
     drivers/base/firmware.c \
     lib/kstrtox.c \
     mm/memblock.c \
-    lib/crc32.c
+    lib/crc32.c \
+    lib/sort.c \
+    lib/uuid.c \
+    lib/hexdump.c
 
 HEADERS += \
     include/test/test.h \

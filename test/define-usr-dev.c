@@ -357,3 +357,77 @@ int __mdiobus_register(struct mii_bus *bus, struct module *owner)
 }
 EXPORT_SYMBOL(__mdiobus_register);
 
+
+//drivers/net/phy/mdio_bus.c: 449 lines
+void mdiobus_unregister(struct mii_bus *bus)
+{
+}
+EXPORT_SYMBOL(mdiobus_unregister);
+
+
+//net/ethernet/eth.c: 573 lines
+int nvmem_get_mac_address(struct device *dev, void *addrbuf)
+{
+    return 0;
+}
+EXPORT_SYMBOL(nvmem_get_mac_address);
+
+
+//drivers/base/devres.c: 966 lines
+void *devm_kmemdup(struct device *dev, const void *src, size_t len, gfp_t gfp)
+{
+    void *p;
+
+    //p = devm_kmalloc(dev, len, gfp);
+    p = kmalloc(len, gfp);
+    if (p)
+        memcpy(p, src, len);
+
+    return p;
+}
+EXPORT_SYMBOL_GPL(devm_kmemdup);
+
+
+//drivers/net/phy/mdio_bus.c: 130 lines
+bool mdiobus_is_registered_device(struct mii_bus *bus, int addr)
+{
+    return bus->mdio_map[addr];
+}
+EXPORT_SYMBOL(mdiobus_is_registered_device);
+
+
+//kernel/cpu.c: 2270 lines
+/* cpu_bit_bitmap[0] is empty - so we can back into it */
+#define MASK_DECLARE_1(x)	[x+1][0] = (1UL << (x))
+#define MASK_DECLARE_2(x)	MASK_DECLARE_1(x), MASK_DECLARE_1(x+1)
+#define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
+#define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
+
+const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
+
+    MASK_DECLARE_8(0),	MASK_DECLARE_8(8),
+    MASK_DECLARE_8(16),	MASK_DECLARE_8(24),
+#if BITS_PER_LONG > 32
+    MASK_DECLARE_8(32),	MASK_DECLARE_8(40),
+    MASK_DECLARE_8(48),	MASK_DECLARE_8(56),
+#endif
+};
+EXPORT_SYMBOL_GPL(cpu_bit_bitmap);
+
+
+
+
+//mm/slab.c: 3662 lines
+void *__kmalloc(size_t size, gfp_t flags)
+{
+    //return __do_kmalloc(size, flags, _RET_IP_);
+    return kmalloc(size, flags);
+}
+EXPORT_SYMBOL(__kmalloc);
+
+void *__kmalloc_track_caller(size_t size, gfp_t flags, unsigned long caller)
+{
+    //return __do_kmalloc(size, flags, caller);
+    return kmalloc(size, flags);
+}
+EXPORT_SYMBOL(__kmalloc_track_caller);

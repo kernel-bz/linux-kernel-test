@@ -1,8 +1,9 @@
 
 #include "test/debug.h"
+#include "test/define-usr-dev.h"
+
 #include <linux/device.h>
 #include <linux/export.h>
-
 
 
 
@@ -16,11 +17,9 @@ static struct kobj_type device_ktype = {
 
 
 
-
 //1529 lines
 /* /sys/devices/ */
 struct kset *devices_kset;
-
 
 
 
@@ -34,7 +33,7 @@ void device_initialize(struct device *dev)
 #ifdef CONFIG_PROVE_LOCKING
     mutex_init(&dev->lockdep_mutex);
 #endif
-    lockdep_set_novalidate_class(&dev->mutex);
+    //lockdep_set_novalidate_class(&dev->mutex);
     spin_lock_init(&dev->devres_lock);
     INIT_LIST_HEAD(&dev->devres_head);
     device_pm_init(dev);

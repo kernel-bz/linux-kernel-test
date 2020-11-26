@@ -4,6 +4,7 @@
 
 #include <linux/types-user.h>
 #include <linux/gfp.h>
+#include <linux/kernel.h>
 #include "linux/mm.h"
 
 #define SLAB_HWCACHE_ALIGN 1
@@ -74,5 +75,10 @@ static inline void *kmalloc_array(unsigned n, size_t s, gfp_t gfp)
 {
     return kmalloc(n * s, gfp);
 }
+
+extern void *__kmalloc_track_caller(size_t, gfp_t, unsigned long);
+#define kmalloc_track_caller(size, flags) \
+    __kmalloc_track_caller(size, flags, _RET_IP_)
+
 
 #endif		/* SLAB_H */

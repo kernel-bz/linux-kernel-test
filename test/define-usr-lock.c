@@ -30,3 +30,22 @@ void __lockfunc _raw_write_unlock(rwlock_t *lock)
 }
 EXPORT_SYMBOL(_raw_write_unlock);
 #endif
+
+
+
+
+//kernel/locking/mutex.c: 40 lines
+void
+__mutex_init(struct mutex *lock, const char *name, struct lock_class_key *key)
+{
+    //atomic_long_set(&lock->owner, 0);
+    //spin_lock_init(&lock->wait_lock);
+    //INIT_LIST_HEAD(&lock->wait_list);
+#ifdef CONFIG_MUTEX_SPIN_ON_OWNER
+    osq_lock_init(&lock->osq);
+#endif
+
+    //debug_mutex_init(lock, name, key);
+}
+EXPORT_SYMBOL(__mutex_init);
+

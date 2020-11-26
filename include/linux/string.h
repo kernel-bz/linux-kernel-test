@@ -51,5 +51,8 @@ static inline const char *kbasename(const char *path)
     return tail ? tail + 1 : path;
 }
 
+#ifndef __HAVE_ARCH_STRNCHR
+extern char * strnchr(const char *, size_t, int);
+#endif
 
 #endif /* _TOOLS_LINUX_STRING_H_ */

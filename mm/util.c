@@ -59,8 +59,7 @@ char *kstrdup(const char *s, gfp_t gfp)
 		return NULL;
 
 	len = strlen(s) + 1;
-    //buf = kmalloc_track_caller(len, gfp);
-    buf = kmalloc(len, gfp);
+    buf = kmalloc_track_caller(len, gfp);
     if (buf)
 		memcpy(buf, s, len);
 	return buf;
@@ -105,8 +104,7 @@ char *kstrndup(const char *s, size_t max, gfp_t gfp)
 		return NULL;
 
 	len = strnlen(s, max);
-    //buf = kmalloc_track_caller(len+1, gfp);
-    buf = kmalloc(len+1, gfp);
+    buf = kmalloc_track_caller(len+1, gfp);
     if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -128,8 +126,7 @@ void *kmemdup(const void *src, size_t len, gfp_t gfp)
 {
 	void *p;
 
-    //p = kmalloc_track_caller(len, gfp);
-    p = kmalloc(len, gfp);
+    p = kmalloc_track_caller(len, gfp);
     if (p)
 		memcpy(p, src, len);
 	return p;
@@ -152,8 +149,7 @@ char *kmemdup_nul(const char *s, size_t len, gfp_t gfp)
 	if (!s)
 		return NULL;
 
-    //buf = kmalloc_track_caller(len + 1, gfp);
-    buf = kmalloc(len + 1, gfp);
+    buf = kmalloc_track_caller(len + 1, gfp);
     if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -175,8 +171,7 @@ void *memdup_user(const void __user *src, size_t len)
 {
 	void *p;
 
-    //p = kmalloc_track_caller(len, GFP_USER | __GFP_NOWARN);
-    p = kmalloc(len, GFP_USER | __GFP_NOWARN);
+    p = kmalloc_track_caller(len, GFP_USER | __GFP_NOWARN);
     if (!p)
 		return ERR_PTR(-ENOMEM);
 #if 0

@@ -51,12 +51,12 @@ typedef unsigned long 	u_long;
 #define __refdata
 #define __initdata_memblock
 
-#define lockdep_assert_held(l)			do { (void)(l); } while (0)
+#define lockdep_assert_held(l)	do { (void)(l); } while (0)
 
 //include/linux/byteorder/generic.h
 //tools/include/linux/kernel.h
 //usr/include/byteswap.h
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if (__BYTE_ORDER == __BIG_ENDIAN)
 #define cpu_to_le16 bswap_16
 #define cpu_to_le32 bswap_32
 #define cpu_to_le64 bswap_64
@@ -89,11 +89,15 @@ typedef unsigned long 	u_long;
 #endif
 
 //include/linux/byteorder/generic.h
+//#define be32_to_cpup __be32_to_cpup
+//#define be32_to_cpus __be32_to_cpus
+
+
+//include/linux/byteorder/generic.h
 static inline void be32_add_cpu(__be32 *var, u32 val)
 {
     *var = cpu_to_be32(be32_to_cpu(*var) + val);
 }
-
 
 
 //include/linux/atomic-fallback.h
@@ -137,11 +141,6 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 
 //tools/testing/radix-tree/idr-test.c
 #define dump_stack()    assert(0)
-
-//arch/arm/include/asm/processor.h
-//#define task_pt_regs(p) \
-//    ((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
-
 
 /* Is there a portable way to do this? */
 #if defined(__x86_64__) || defined(__i386__)
@@ -202,16 +201,13 @@ void *initial_boot_params;
 
 //include/linux/acpi.h
 #define acpi_disabled 1
+
 //include/linux/pci.h
 static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
 
 //include/linux/dma-mapping.h
 #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
 #define DMA_MASK_NONE	0x0ULL
-
-//include/linux/byteorder/generic.h
-#define be32_to_cpup __be32_to_cpup
-#define be32_to_cpus __be32_to_cpus
 
 //include/linux/mm.h
 #define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)

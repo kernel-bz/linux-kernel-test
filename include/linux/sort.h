@@ -3,6 +3,7 @@
 #define _LINUX_SORT_H
 
 #include <linux/types.h>
+#include <linux/types-user.h>
 
 void sort_r(void *base, size_t num, size_t size,
 	    int (*cmp)(const void *, const void *, const void *),
