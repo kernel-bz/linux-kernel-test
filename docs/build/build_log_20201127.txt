@@ -1,0 +1,19 @@
+
+kasprintf.c:(.text+0x90): undefined reference to `no_printk'
+/usr/bin/ld: logic_pio.o: in function `logic_pio_unregister_range':
+logic_pio.c:(.text+0xaa0): undefined reference to `synchronize_rcu_memb'
+/usr/bin/ld: of_fdt.o: in function `unflatten_device_tree':
+of_fdt.c:(.text+0x2cb4): undefined reference to `unittest_unflatten_overlay_base'
+/usr/bin/ld: of_fdt.o: in function `early_init_dt_scan_chosen':
+of_fdt.c:(.text+0x2f40): undefined reference to `add_bootloader_randomness'
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:831: kernel-test] Error 1
+16:25:19: The process "/usr/bin/make" exited with code 2.
+Error while building/deploying project kernel-test (kit: Desktop)
+When executing step "Make"
+
+incluce/asm-generic/bug.h
+no_printk
+
+of_fdt.c
+unittest_unflatten_overlay_base();

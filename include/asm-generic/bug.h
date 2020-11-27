@@ -2,6 +2,10 @@
 #ifndef _ASM_GENERIC_BUG_H
 #define _ASM_GENERIC_BUG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <linux/compiler.h>
 
 #define CUT_HERE		"------------[ cut here ]------------\n"
@@ -185,9 +189,8 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 #endif
 
 #ifndef WARN
-#define WARN(condition, format...) ({					\
-	int __ret_warn_on = !!(condition);				\
-	no_printk(format);						\
+#define WARN(condition, format...) ({			\
+    int __ret_warn_on = !!(condition);			\
 	unlikely(__ret_warn_on);					\
 })
 #endif
@@ -236,5 +239,9 @@ void __warn(const char *file, int line, void *caller, unsigned taint,
 #endif
 
 #endif /* __ASSEMBLY__ */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

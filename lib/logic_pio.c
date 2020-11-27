@@ -111,7 +111,7 @@ void logic_pio_unregister_range(struct logic_pio_hwaddr *range)
 	mutex_lock(&io_range_mutex);
 	list_del_rcu(&range->list);
 	mutex_unlock(&io_range_mutex);
-	synchronize_rcu();
+    //synchronize_rcu();
 }
 
 /**

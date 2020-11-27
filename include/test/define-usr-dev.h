@@ -10,6 +10,10 @@
 #ifndef __TEST_DEFINE_USR_DEV_H
 #define __TEST_DEFINE_USR_DEV_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "test/debug.h"
 
 #include <stdbool.h>
@@ -54,23 +58,13 @@ static inline void device_pm_init(struct device *dev)
 }
 
 
-
-//include/linux/printk.h: 134 lines
-/*
- * Dummy printk for disabled debugging statements to use whilst maintaining
- * gcc's format checking.
- */
-#define no_printk(fmt, ...)				\
-({							\
-    if (0)						\
-        printk(fmt, ##__VA_ARGS__);		\
-    0;						\
-})
-
-
 //include/asm-generic/unaligned.h: 30 lines
 //#define get_unaligned	__get_unaligned_be
 #define get_unaligned(ptr)	0
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif 	//__TEST_DEFINE_USR_DEV_H
