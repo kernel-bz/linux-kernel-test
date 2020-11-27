@@ -3269,7 +3269,7 @@ static int __init migration_init(void)
     sched_cpu_starting(smp_processor_id());
     return 0;
 }
-early_initcall(migration_init);
+//early_initcall(migration_init);
 
 #else
 void __init sched_init_smp(void)

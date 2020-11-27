@@ -7,6 +7,7 @@
  */
 
 #include "test/debug.h"
+#include "test/config.h"
 
 //#include <linux/acpi.h>
 #include <linux/cpu.h>
@@ -266,7 +267,8 @@ static int __init get_cpu_for_node(struct device_node *node)
 	if (cpu >= 0)
 		topology_parse_cpu_capacity(cpu_node, cpu);
 	else
-		pr_crit("Unable to find CPU node for %pOF\n", cpu_node);
+        //pr_crit("Unable to find CPU node for %pOF\n", cpu_node);
+        pr_err("Unable to find CPU node for %pOF\n", cpu_node);
 
 	of_node_put(cpu_node);
 	return cpu;

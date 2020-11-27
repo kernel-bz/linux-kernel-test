@@ -139,3 +139,9 @@ include/linux/sched/topology
 #define SD_LOAD_BALANCE		0x0001
 ...
 #define SD_NUMA			0x4000
+
+arch/arm64/kernel/topology.c
+drivers/base/arch_topology.c
+include/linux/arch_topology.h
+tools/perf/util/cputopo.c
+tools/perf/util/cputopo.h

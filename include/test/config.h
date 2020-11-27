@@ -20,6 +20,11 @@ extern "C" {
 #define COMPAT_USE_64BIT_TIME 	0
 #endif
 
+//Arch Configuraion ----------------------------------
+#define CONFIG_ARM64
+//#define CONFIG_RISCV
+
+
 //Schedular Configuraion ----------------------------------
 #define CONFIG_THREAD_INFO_IN_TASK
 
