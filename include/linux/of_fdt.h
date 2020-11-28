@@ -16,6 +16,8 @@
 #include <linux/init.h>
 #include <linux/errno.h>
 
+#include <asm-generic/setup.h>
+
 /* Definitions used by the flattened device tree */
 #define OF_DT_HEADER		0xd00dfeed	/* marker */
 

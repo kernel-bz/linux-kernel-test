@@ -34,6 +34,9 @@ typedef unsigned short 	u_short;
 typedef unsigned int 	u_int;
 typedef unsigned long 	u_long;
 
+//include/linux/sysfs.h
+#define loff_t	__loff_t
+
 //include/linux/compiler.h
 #define notrace
 #define __initdata
