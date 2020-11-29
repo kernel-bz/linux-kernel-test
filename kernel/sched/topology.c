@@ -664,6 +664,8 @@ static void update_top_cache_domain(int cpu)
 static void
 cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct rq *rq = cpu_rq(cpu);
 	struct sched_domain *tmp;
 
@@ -706,6 +708,8 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 	destroy_sched_domains(tmp);
 
 	update_top_cache_domain(cpu);
+
+    pr_fn_end_on(stack_depth);
 }
 
 struct s_data {
@@ -1243,6 +1247,8 @@ static void __free_domain_allocs(struct s_data *d, enum s_alloc what,
 static enum s_alloc
 __visit_domain_allocation_hell(struct s_data *d, const struct cpumask *cpu_map)
 {
+    pr_fn_start_on(stack_depth);
+
 	memset(d, 0, sizeof(*d));
 
 	if (__sdt_alloc(cpu_map))
@@ -1253,6 +1259,8 @@ __visit_domain_allocation_hell(struct s_data *d, const struct cpumask *cpu_map)
 	d->rd = alloc_rootdomain();
 	if (!d->rd)
 		return sa_sd;
+
+    pr_fn_end_on(stack_depth);
 
 	return sa_rootdomain;
 }
@@ -1320,6 +1328,8 @@ sd_init(struct sched_domain_topology_level *tl,
 	const struct cpumask *cpu_map,
 	struct sched_domain *child, int dflags, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sd_data *sdd = &tl->data;
 	struct sched_domain *sd = *per_cpu_ptr(sdd->sd, cpu);
 	int sd_id, sd_weight, sd_flags = 0;
@@ -1337,10 +1347,13 @@ sd_init(struct sched_domain_topology_level *tl,
 		sd_flags = (*tl->sd_flags)();
 	if (WARN_ONCE(sd_flags & ~TOPOLOGY_SD_FLAGS,
 			"wrong sd_flags in topology description\n"))
-		sd_flags &= ~TOPOLOGY_SD_FLAGS;
+        //sd_flags &= ~TOPOLOGY_SD_FLAGS;
 
 	/* Apply detected topology flags */
 	sd_flags |= dflags;
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", dflags);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd_flags);
 
 	*sd = (struct sched_domain){
 		.min_interval		= sd_weight,
@@ -1381,7 +1394,9 @@ sd_init(struct sched_domain_topology_level *tl,
 	 * Convert topological properties into behaviour.
 	 */
 
-	if (sd->flags & SD_ASYM_CPUCAPACITY) {
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->flags);
+
+    if (sd->flags & SD_ASYM_CPUCAPACITY) {
 		struct sched_domain *t = sd;
 
 		/*
@@ -1429,6 +1444,9 @@ sd_init(struct sched_domain_topology_level *tl,
 	}
 
 	sd->private = sdd;
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->flags);
+    pr_fn_end_on(stack_depth);
 
 	return sd;
 }
@@ -1689,8 +1707,8 @@ void sched_init_numa(void)
 
             pr_info_view_on(stack_depth, "%20s : %d\n", i);
             pr_info_view_on(stack_depth, "%20s : %d\n", j);
-            bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
-            pr_info_view_on(stack_depth, "%20s : %s\n", bits_buf);
+            //bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
+            //pr_info_view_on(stack_depth, "%20s : %s\n", bits_buf);
 
             for_each_node(k) {
                 pr_info_view_on(stack_depth, "%30s : %d\n", k);
@@ -1699,8 +1717,8 @@ void sched_init_numa(void)
                     continue;
 
                 cpumask_or(mask, mask, cpumask_of_node(k));
-                bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
-                pr_info_view_on(stack_depth, "%30s : %s\n", bits_buf);
+                //bitmap_scnprintf(mask->bits, nr_node_ids, bits_buf, sizeof(bits_buf));
+                //pr_info_view_on(stack_depth, "%30s : %s\n", bits_buf);
             }
         }
     }
@@ -1808,11 +1826,15 @@ int sched_numa_find_closest(const struct cpumask *cpus, int cpu)
 
 static int __sdt_alloc(const struct cpumask *cpu_map)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_domain_topology_level *tl;
 	int j;
 
 	for_each_sd_topology(tl) {
 		struct sd_data *sdd = &tl->data;
+
+        pr_info_view_on(stack_depth, "%20s : %p\n", tl);
 
 		sdd->sd = alloc_percpu(struct sched_domain *);
 		if (!sdd->sd)
@@ -1835,6 +1857,8 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 			struct sched_domain_shared *sds;
 			struct sched_group *sg;
 			struct sched_group_capacity *sgc;
+
+            pr_info_view_on(stack_depth, "%20s : %d\n", j);
 
 			sd = kzalloc_node(sizeof(struct sched_domain) + cpumask_size(),
 					GFP_KERNEL, cpu_to_node(j));
@@ -1871,6 +1895,8 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 			*per_cpu_ptr(sdd->sgc, j) = sgc;
 		}
 	}
+
+    pr_fn_end_on(stack_depth);
 
 	return 0;
 }
@@ -1915,6 +1941,8 @@ static struct sched_domain *build_sched_domain(struct sched_domain_topology_leve
 		const struct cpumask *cpu_map, struct sched_domain_attr *attr,
 		struct sched_domain *child, int dflags, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_domain *sd = sd_init(tl, cpu_map, child, dflags, cpu);
 
 	if (child) {
@@ -1938,6 +1966,8 @@ static struct sched_domain *build_sched_domain(struct sched_domain_topology_leve
 	}
 	set_domain_attribute(sd, attr);
 
+    pr_fn_end_on(stack_depth);
+
 	return sd;
 }
 
@@ -1948,6 +1978,8 @@ static struct sched_domain *build_sched_domain(struct sched_domain_topology_leve
 static struct sched_domain_topology_level
 *asym_cpu_capacity_level(const struct cpumask *cpu_map)
 {
+    pr_fn_start_on(stack_depth);
+
 	int i, j, asym_level = 0;
 	bool asym = false;
 	struct sched_domain_topology_level *tl, *asym_tl = NULL;
@@ -1956,12 +1988,17 @@ static struct sched_domain_topology_level
 	/* Is there any asymmetry? */
 	cap = arch_scale_cpu_capacity(cpumask_first(cpu_map));
 
+    pr_info_view_on(stack_depth, "%20s : %lu\n", cap);
+
 	for_each_cpu(i, cpu_map) {
-		if (arch_scale_cpu_capacity(i) != cap) {
+        pr_info_view_on(stack_depth, "%30s : %lu\n", arch_scale_cpu_capacity(i));
+        if (arch_scale_cpu_capacity(i) != cap) {
 			asym = true;
 			break;
 		}
 	}
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", asym);
 
 	if (!asym)
 		return NULL;
@@ -1975,14 +2012,22 @@ static struct sched_domain_topology_level
 		unsigned long max_capacity = arch_scale_cpu_capacity(i);
 		int tl_id = 0;
 
-		for_each_sd_topology(tl) {
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+        for_each_sd_topology(tl) {
 			if (tl_id < asym_level)
 				goto next_level;
+
+            pr_info_view_on(stack_depth, "%20s : 0x%X\n", tl->mask(i)->bits[0]);
 
 			for_each_cpu_and(j, tl->mask(i), cpu_map) {
 				unsigned long capacity;
 
 				capacity = arch_scale_cpu_capacity(j);
+
+                pr_info_view_on(stack_depth, "%20s : %d\n", j);
+                pr_info_view_on(stack_depth, "%20s : %lu\n", capacity);
+                pr_info_view_on(stack_depth, "%20s : %lu\n", max_capacity);
 
 				if (capacity <= max_capacity)
 					continue;
@@ -1990,12 +2035,16 @@ static struct sched_domain_topology_level
 				max_capacity = capacity;
 				asym_level = tl_id;
 				asym_tl = tl;
-			}
+
+                pr_info_view_on(stack_depth, "%20s : %d\n", asym_level);
+                pr_info_view_on(stack_depth, "%20s : %p\n", asym_tl);
+            }
 next_level:
 			tl_id++;
 		}
 	}
 
+    pr_fn_end_on(stack_depth);
 	return asym_tl;
 }
 
@@ -2007,7 +2056,9 @@ next_level:
 static int
 build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *attr)
 {
-	enum s_alloc alloc_state = sa_none;
+    pr_fn_start_on(stack_depth);
+
+    enum s_alloc alloc_state = sa_none;
 	struct sched_domain *sd;
 	struct s_data d;
 	struct rq *rq = NULL;
@@ -2015,22 +2066,28 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 	struct sched_domain_topology_level *tl_asym;
 	bool has_asym = false;
 
-    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", cpu_map->bits[0]);
 
 	if (WARN_ON(cpumask_empty(cpu_map)))
 		goto error;
 
 	alloc_state = __visit_domain_allocation_hell(&d, cpu_map);
-	if (alloc_state != sa_rootdomain)
+    pr_info_view_on(stack_depth, "%20s : %d\n", alloc_state);
+
+    if (alloc_state != sa_rootdomain)
 		goto error;
 
 	tl_asym = asym_cpu_capacity_level(cpu_map);
 
-	/* Set up domains for CPUs specified by the cpu_map: */
+    pr_info_view_on(stack_depth, "%20s : %p\n", tl_asym);
+
+    /* Set up domains for CPUs specified by the cpu_map: */
 	for_each_cpu(i, cpu_map) {
 		struct sched_domain_topology_level *tl;
 
-		sd = NULL;
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+        sd = NULL;
 		for_each_sd_topology(tl) {
 			int dflags = 0;
 
@@ -2052,8 +2109,10 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 
 	/* Build the groups for the domains */
 	for_each_cpu(i, cpu_map) {
-		for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
-			sd->span_weight = cpumask_weight(sched_domain_span(sd));
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+        for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
+            sd->span_weight = cpumask_weight(sched_domain_span(sd));
 			if (sd->flags & SD_OVERLAP) {
 				if (build_overlap_sched_groups(sd, i))
 					goto error;
@@ -2066,7 +2125,9 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 
 	/* Calculate CPU capacity for physical packages and nodes */
 	for (i = nr_cpumask_bits-1; i >= 0; i--) {
-		if (!cpumask_test_cpu(i, cpu_map))
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+        if (!cpumask_test_cpu(i, cpu_map))
 			continue;
 
 		for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
@@ -2078,7 +2139,9 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 	/* Attach the domains */
 	rcu_read_lock();
 	for_each_cpu(i, cpu_map) {
-		rq = cpu_rq(i);
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+
+        rq = cpu_rq(i);
 		sd = *per_cpu_ptr(d.sd, i);
 
 		/* Use READ_ONCE()/WRITE_ONCE() to avoid load/store tearing: */
@@ -2178,6 +2241,7 @@ int sched_init_domains(const struct cpumask *cpu_map)
 		doms_cur = &fallback_doms;
 	cpumask_and(doms_cur[0], cpu_map, housekeeping_cpumask(HK_FLAG_DOMAIN));
 
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", cpu_map->bits[0]);
     pr_info_view_on(stack_depth, "%20s : 0x%X\n", doms_cur[0]->bits[0]);
 
 	err = build_sched_domains(doms_cur[0], NULL);

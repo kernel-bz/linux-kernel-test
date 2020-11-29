@@ -65,6 +65,7 @@ static void _main_start_kernel(void)
 {
     sched_init();
     sched_clock_init();
+
 }
 
 void _main_start_kernel_test(void)

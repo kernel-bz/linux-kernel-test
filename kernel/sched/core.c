@@ -3240,6 +3240,9 @@ void __init sched_init_smp(void)
 {
     pr_fn_start_on(stack_depth);
 
+    cpumask_setall(cpu_active_mask);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", cpu_active_mask->bits[0]);
+
     sched_init_numa();
 
     /*

@@ -3,6 +3,7 @@
 #define __LINUX_PERCPU_H
 
 #include <linux/types-user.h>
+#include <linux/slab.h>
 
 //#define DECLARE_PER_CPU(type, val) extern type val
 #define DECLARE_PER_CPU(type, val) type val
@@ -34,11 +35,14 @@ static inline void *__alloc_percpu(size_t size, size_t align)
 {
     //BUG();
     //return NULL;
+    gfp_t gfp = (gfp_t)align;
+    return kmalloc(size, gfp);
 }
 
 static inline void free_percpu(void *ptr)
 {
     //BUG();
+    kfree(ptr);
 }
 
 #define per_cpu_ptr(ptr, cpu) \
