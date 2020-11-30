@@ -513,4 +513,5 @@ DISTFILES += \
     drivers/of/unittest-data/tests-match.dtsi \
     drivers/of/unittest-data/tests-overlay.dtsi \
     drivers/of/unittest-data/tests-phandle.dtsi \
-    drivers/of/unittest-data/tests-platform.dtsi
+    drivers/of/unittest-data/tests-platform.dtsi \
+    docs/build/build_log_20201127.txt
