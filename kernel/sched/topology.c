@@ -1445,7 +1445,9 @@ sd_init(struct sched_domain_topology_level *tl,
 
 	sd->private = sdd;
 
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->flags);
+    pr_info_view_on(stack_depth, "%20s : %d\n", sd->level);
+    pr_info_view_on(stack_depth, "%20s : %u\n", sd->span_weight);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->span[0]);
     pr_fn_end_on(stack_depth);
 
 	return sd;

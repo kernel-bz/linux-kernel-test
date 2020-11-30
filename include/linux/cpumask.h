@@ -42,7 +42,7 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 #define nr_cpu_ids		1U
 #else
 //extern unsigned int nr_cpu_ids;
-#define nr_cpu_ids	NR_CPUS
+unsigned int nr_cpu_ids;
 #endif
 
 #ifdef CONFIG_CPUMASK_OFFSTACK

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /* bit search implementation
  *
- * Copied from lib/find_bit.c to tools/lib/find_bit.c
- *
  * Copyright (C) 2004 Red Hat, Inc. All Rights Reserved.
  * Written by David Howells (dhowells@redhat.com)
  *
@@ -16,6 +14,7 @@
 
 #include <linux/bitops.h>
 #include <linux/bitmap.h>
+#include <linux/export.h>
 #include <linux/kernel.h>
 
 #if !defined(find_next_bit) || !defined(find_next_zero_bit) || \
@@ -70,6 +69,26 @@ unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
 {
 	return _find_next_bit(addr, NULL, size, offset, 0UL);
 }
+EXPORT_SYMBOL(find_next_bit);
+#endif
+
+#ifndef find_next_zero_bit
+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
+				 unsigned long offset)
+{
+	return _find_next_bit(addr, NULL, size, offset, ~0UL);
+}
+EXPORT_SYMBOL(find_next_zero_bit);
+#endif
+
+#if !defined(find_next_and_bit)
+unsigned long find_next_and_bit(const unsigned long *addr1,
+		const unsigned long *addr2, unsigned long size,
+		unsigned long offset)
+{
+	return _find_next_bit(addr1, addr2, size, offset, 0UL);
+}
+EXPORT_SYMBOL(find_next_and_bit);
 #endif
 
 #ifndef find_first_bit
@@ -87,6 +106,7 @@ unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
 
 	return size;
 }
+EXPORT_SYMBOL(find_first_bit);
 #endif
 
 #ifndef find_first_zero_bit
@@ -104,21 +124,93 @@ unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
 
 	return size;
 }
+EXPORT_SYMBOL(find_first_zero_bit);
 #endif
 
-#ifndef find_next_zero_bit
-unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
-				 unsigned long offset)
+#ifndef find_last_bit
+unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
 {
-	return _find_next_bit(addr, NULL, size, offset, ~0UL);
+	if (size) {
+		unsigned long val = BITMAP_LAST_WORD_MASK(size);
+		unsigned long idx = (size-1) / BITS_PER_LONG;
+
+		do {
+			val &= addr[idx];
+			if (val)
+				return idx * BITS_PER_LONG + __fls(val);
+
+			val = ~0ul;
+		} while (idx--);
+	}
+	return size;
+}
+EXPORT_SYMBOL(find_last_bit);
+#endif
+
+#ifdef __BIG_ENDIAN
+
+/* include/linux/byteorder does not support "unsigned long" type */
+static inline unsigned long ext2_swab(const unsigned long y)
+{
+#if BITS_PER_LONG == 64
+	return (unsigned long) __swab64((u64) y);
+#elif BITS_PER_LONG == 32
+	return (unsigned long) __swab32((u32) y);
+#else
+#error BITS_PER_LONG not defined
+#endif
+}
+
+#if !defined(find_next_bit_le) || !defined(find_next_zero_bit_le)
+static inline unsigned long _find_next_bit_le(const unsigned long *addr1,
+		const unsigned long *addr2, unsigned long nbits,
+		unsigned long start, unsigned long invert)
+{
+	unsigned long tmp;
+
+	if (unlikely(start >= nbits))
+		return nbits;
+
+	tmp = addr1[start / BITS_PER_LONG];
+	if (addr2)
+		tmp &= addr2[start / BITS_PER_LONG];
+	tmp ^= invert;
+
+	/* Handle 1st word. */
+	tmp &= ext2_swab(BITMAP_FIRST_WORD_MASK(start));
+	start = round_down(start, BITS_PER_LONG);
+
+	while (!tmp) {
+		start += BITS_PER_LONG;
+		if (start >= nbits)
+			return nbits;
+
+		tmp = addr1[start / BITS_PER_LONG];
+		if (addr2)
+			tmp &= addr2[start / BITS_PER_LONG];
+		tmp ^= invert;
+	}
+
+	return min(start + __ffs(ext2_swab(tmp)), nbits);
 }
 #endif
 
-#ifndef find_next_and_bit
-unsigned long find_next_and_bit(const unsigned long *addr1,
-		const unsigned long *addr2, unsigned long size,
-		unsigned long offset)
+#ifndef find_next_zero_bit_le
+unsigned long find_next_zero_bit_le(const void *addr, unsigned
+		long size, unsigned long offset)
 {
-	return _find_next_bit(addr1, addr2, size, offset, 0UL);
+	return _find_next_bit_le(addr, NULL, size, offset, ~0UL);
 }
+EXPORT_SYMBOL(find_next_zero_bit_le);
 #endif
+
+#ifndef find_next_bit_le
+unsigned long find_next_bit_le(const void *addr, unsigned
+		long size, unsigned long offset)
+{
+	return _find_next_bit_le(addr, NULL, size, offset, 0UL);
+}
+EXPORT_SYMBOL(find_next_bit_le);
+#endif
+
+#endif /* __BIG_ENDIAN */
