@@ -14,3 +14,9 @@ QMAKE_CFLAGS += -Wno-unused-parameter -finstrument-functions
 
 SOURCES += \
         main.c
+
+HEADERS +=
+
+DISTFILES += \
+    ../pointer/struct-s-data.txt \
+    ../pointer/pcpu-test.txt

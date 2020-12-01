@@ -120,3 +120,26 @@ struct sched_group_capacity {
         int			id;
         unsigned long		cpumask[0];
 };
+
+//kernel/sched/topology.c
+struct s_data {
+        struct sched_domain * __percpu *sd;
+        struct root_domain	*rd;
+};
+
+//kernel/sched/sched.h
+struct root_domain {
+        atomic_t		refcount;
+        atomic_t		rto_count;
+        struct rcu_head		rcu;
+        cpumask_var_t		span;
+        cpumask_var_t		online;
+
+        int			overload;
+        int			overutilized;
+
+        cpumask_var_t		dlo_mask;
+        atomic_t		dlo_count;
+        struct dl_bw		dl_bw;
+        struct cpudl		cpudl;
+}
