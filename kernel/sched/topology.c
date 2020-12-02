@@ -151,11 +151,17 @@ static inline bool sched_debug(void)
 
 static int sd_degenerate(struct sched_domain *sd)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (cpumask_weight(sched_domain_span(sd)) == 1)
 		return 1;
 
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->flags);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->groups);
+    if (!sd->groups) pr_warn("sd->groups is NULL\n");
+
 	/* Following flags need at least 2 groups */
-	if (sd->flags & (SD_LOAD_BALANCE |
+    if (sd->groups && sd->flags & (SD_LOAD_BALANCE |
 			 SD_BALANCE_NEWIDLE |
 			 SD_BALANCE_FORK |
 			 SD_BALANCE_EXEC |
@@ -167,6 +173,8 @@ static int sd_degenerate(struct sched_domain *sd)
 			return 0;
 	}
 
+    pr_fn_end_on(stack_depth);
+
 	/* Following flags don't use groups */
 	if (sd->flags & (SD_WAKE_AFFINE))
 		return 0;
@@ -177,13 +185,25 @@ static int sd_degenerate(struct sched_domain *sd)
 static int
 sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 {
+    pr_fn_start_on(stack_depth);
+
 	unsigned long cflags = sd->flags, pflags = parent->flags;
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", cflags);
 
 	if (sd_degenerate(parent))
 		return 1;
 
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sched_domain_span(sd));
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sched_domain_span(parent));
+
 	if (!cpumask_equal(sched_domain_span(sd), sched_domain_span(parent)))
 		return 0;
+
+    if (!parent->groups) {
+        pr_warn("parent->groups is NULL\n");
+        return 0;
+    }
 
 	/* Flags needing groups don't count if only 1 group in parent */
 	if (parent->groups == parent->groups->next) {
@@ -199,6 +219,11 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 		if (nr_node_ids == 1)
 			pflags &= ~SD_SERIALIZE;
 	}
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", pflags);
+
+    pr_fn_end_on(stack_depth);
+
 	if (~cflags & pflags)
 		return 0;
 
@@ -443,6 +468,8 @@ static void free_rootdomain(struct rcu_head *rcu)
 
 void rq_attach_root(struct rq *rq, struct root_domain *rd)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct root_domain *old_rd = NULL;
 	unsigned long flags;
 
@@ -476,6 +503,8 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
 
 	if (old_rd)
 		call_rcu(&old_rd->rcu, free_rootdomain);
+
+    pr_fn_end_on(stack_depth);
 }
 
 void sched_get_rd(struct root_domain *rd)
@@ -581,6 +610,8 @@ static void free_sched_groups(struct sched_group *sg, int free_sgc)
 
 static void destroy_sched_domain(struct sched_domain *sd)
 {
+    pr_fn_start_on(stack_depth);
+
 	/*
 	 * A normal sched domain may have multiple group references, an
 	 * overlapping domain, having private groups, only one.  Iterate,
@@ -591,6 +622,8 @@ static void destroy_sched_domain(struct sched_domain *sd)
 	if (sd->shared && atomic_dec_and_test(&sd->shared->ref))
 		kfree(sd->shared);
 	kfree(sd);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void destroy_sched_domains_rcu(struct rcu_head *rcu)
@@ -630,6 +663,8 @@ DEFINE_STATIC_KEY_FALSE(sched_asym_cpucapacity);
 
 static void update_top_cache_domain(int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_domain_shared *sds = NULL;
 	struct sched_domain *sd;
 	int id = cpu;
@@ -655,6 +690,8 @@ static void update_top_cache_domain(int cpu)
 
 	sd = lowest_flag_domain(cpu, SD_ASYM_CPUCAPACITY);
 	rcu_assign_pointer(per_cpu(sd_asym_cpucapacity, cpu), sd);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -669,10 +706,16 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 	struct rq *rq = cpu_rq(cpu);
 	struct sched_domain *tmp;
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rd);
+
 	/* Remove the sched domains which do not contribute to scheduling. */
 	for (tmp = sd; tmp; ) {
 		struct sched_domain *parent = tmp->parent;
-		if (!parent)
+
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
+
+        if (!parent)
 			break;
 
 		if (sd_parent_degenerate(tmp, parent)) {
@@ -934,6 +977,8 @@ static void init_overlap_sched_group(struct sched_domain *sd,
 static int
 build_overlap_sched_groups(struct sched_domain *sd, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_group *first = NULL, *last = NULL, *sg;
 	const struct cpumask *span = sched_domain_span(sd);
 	struct cpumask *covered = sched_domains_tmpmask;
@@ -981,6 +1026,8 @@ build_overlap_sched_groups(struct sched_domain *sd, int cpu)
 		last->next = first;
 	}
 	sd->groups = first;
+
+    pr_fn_end_on(stack_depth);
 
 	return 0;
 
@@ -1114,6 +1161,8 @@ build_sched_groups(struct sched_domain *sd, int cpu)
 {
     pr_fn_start_on(stack_depth);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
+
 	struct sched_group *first = NULL, *last = NULL;
 	struct sd_data *sdd = sd->private;
 	const struct cpumask *span = sched_domain_span(sd);
@@ -1125,7 +1174,11 @@ build_sched_groups(struct sched_domain *sd, int cpu)
 
 	cpumask_clear(covered);
 
-	for_each_cpu_wrap(i, span, cpu) {
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", span->bits[0]);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", covered->bits[0]);
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+
+    for_each_cpu_wrap(i, span, cpu) {
 		struct sched_group *sg;
 
         pr_info_view_on(stack_depth, "%20s : %d\n", i);
@@ -1143,7 +1196,8 @@ build_sched_groups(struct sched_domain *sd, int cpu)
 			last->next = sg;
 		last = sg;
 	}
-	last->next = first;
+    if (last)
+        last->next = first;
 	sd->groups = first;
 
     pr_fn_end_on(stack_depth);
@@ -1163,9 +1217,14 @@ build_sched_groups(struct sched_domain *sd, int cpu)
  */
 static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd->groups);
+
 	struct sched_group *sg = sd->groups;
 
 	WARN_ON(!sg);
+    if(!sg) return;
 
 	do {
 		int cpu, max_cpu = -1;
@@ -1191,6 +1250,8 @@ next:
 		return;
 
 	update_group_capacity(sd, cpu);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1263,8 +1324,7 @@ __visit_domain_allocation_hell(struct s_data *d, const struct cpumask *cpu_map)
 	if (__sdt_alloc(cpu_map))
 		return sa_sd_storage;
 
-    //d->sd = alloc_percpu(struct sched_domain *);
-    d->sd = alloc_percpu_usr(d->sd, sizeof(struct sched_domain));
+    d->sd = alloc_percpu(struct sched_domain *);
 
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)d->sd);
 
@@ -1289,7 +1349,11 @@ __visit_domain_allocation_hell(struct s_data *d, const struct cpumask *cpu_map)
  */
 static void claim_allocations(int cpu, struct sched_domain *sd)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sd_data *sdd = sd->private;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", *per_cpu_ptr(sdd->sg, cpu));
 
 	WARN_ON_ONCE(*per_cpu_ptr(sdd->sd, cpu) != sd);
 	*per_cpu_ptr(sdd->sd, cpu) = NULL;
@@ -1302,6 +1366,10 @@ static void claim_allocations(int cpu, struct sched_domain *sd)
 
 	if (atomic_read(&(*per_cpu_ptr(sdd->sgc, cpu))->ref))
 		*per_cpu_ptr(sdd->sgc, cpu) = NULL;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", *per_cpu_ptr(sdd->sg, cpu));
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_NUMA
@@ -1855,23 +1923,19 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 
         pr_info_view_on(stack_depth, "%20s : %p\n", tl);
 
-        //sdd->sd = alloc_percpu(struct sched_domain *);
-        sdd->sd = alloc_percpu_usr(sdd->sd, sizeof(struct sched_domain));
+        sdd->sd = alloc_percpu(struct sched_domain *);
         if (!sdd->sd)
 			return -ENOMEM;
 
-        //sdd->sds = alloc_percpu(struct sched_domain_shared *);
-        sdd->sds = alloc_percpu_usr(sdd->sds, sizeof(struct sched_domain_shared));
+        sdd->sds = alloc_percpu(struct sched_domain_shared *);
         if (!sdd->sds)
 			return -ENOMEM;
 
-        //sdd->sg = alloc_percpu(struct sched_group *);
-        sdd->sg = alloc_percpu_usr(sdd->sg, sizeof(struct sched_group));
+        sdd->sg = alloc_percpu(struct sched_group *);
         if (!sdd->sg)
 			return -ENOMEM;
 
-        //sdd->sgc = alloc_percpu(struct sched_group_capacity *);
-        sdd->sgc = alloc_percpu_usr(sdd->sgc, sizeof(struct sched_group_capacity));
+        sdd->sgc = alloc_percpu(struct sched_group_capacity *);
         if (!sdd->sgc)
 			return -ENOMEM;
 
@@ -2146,7 +2210,8 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 				if (build_sched_groups(sd, i))
 					goto error;
 			}
-		}
+            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd->groups);
+        }
 	}
 
 	/* Calculate CPU capacity for physical packages and nodes */
@@ -2169,6 +2234,9 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 
         rq = cpu_rq(i);
 		sd = *per_cpu_ptr(d.sd, i);
+
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
 
 		/* Use READ_ONCE()/WRITE_ONCE() to avoid load/store tearing: */
 		if (rq->cpu_capacity_orig > READ_ONCE(d.rd->max_cpu_capacity))

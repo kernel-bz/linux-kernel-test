@@ -28,26 +28,18 @@
 #define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
 
 /* Maximum size of any percpu data. */
-#define PERCPU_OFFSET (4 * sizeof(long))
+//#define PERCPU_OFFSET (4 * sizeof(long))
+#define PERCPU_OFFSET (sizeof(void *))
 
 /* Ignore alignment, as CBMC doesn't care about false sharing. */
 #define alloc_percpu(type) __alloc_percpu(sizeof(type), 1)
-
-static inline void **alloc_percpu_usr(void **ptr, size_t size)
-{
-    ptr = kmalloc(nr_cpu_ids * sizeof(void **), GFP_NOWAIT);
-    unsigned int i;
-    for (i=0; i<nr_cpu_ids; i++)
-        *(ptr+i) = kmalloc(size, GFP_NOWAIT);
-    return ptr;
-}
 
 static inline void *__alloc_percpu(size_t size, size_t align)
 {
     //BUG();
     //return NULL;
     gfp_t gfp = (gfp_t)align;
-    return kmalloc(size, gfp);
+    return kmalloc(nr_cpu_ids * size, GFP_NOWAIT);
 }
 
 static inline void free_percpu(void *ptr)
@@ -56,9 +48,9 @@ static inline void free_percpu(void *ptr)
     kfree(ptr);
 }
 
-//#define per_cpu_ptr(ptr, cpu) \
-//    ((typeof(ptr)) ((char *) (ptr) + PERCPU_OFFSET * cpu))
-#define per_cpu_ptr(ptr, cpu)	((typeof(ptr))(ptr) + cpu)
+#define per_cpu_ptr(ptr, cpu) \
+    ((typeof(ptr)) ((char *) (ptr) + PERCPU_OFFSET * cpu))
+//#define per_cpu_ptr(ptr, cpu)	((typeof(ptr))(ptr) + cpu)
 
 #define __this_cpu_inc(pcp) __this_cpu_add(pcp, 1)
 #define __this_cpu_dec(pcp) __this_cpu_sub(pcp, 1)

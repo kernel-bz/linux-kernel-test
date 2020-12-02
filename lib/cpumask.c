@@ -84,9 +84,9 @@ int cpumask_next_wrap(int n, const struct cpumask *mask, int start, bool wrap)
 	int next;
 
 again:
-	next = cpumask_next(n, mask);
+    next = cpumask_next(n, mask);
 
-	if (wrap && n < start && next >= start) {
+    if (wrap && n < start && next >= start) {
 		return nr_cpumask_bits;
 
 	} else if (next >= nr_cpumask_bits) {
