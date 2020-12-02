@@ -9,6 +9,7 @@
 #include <stdio_ext.h>
 
 #include <linux/sched.h>
+#include <linux/sched/topology.h>
 #include <kernel/sched/pelt.h>
 #include <linux/list.h>
 #include "test/debug.h"

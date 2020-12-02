@@ -2521,3 +2521,30 @@ void partition_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
 	partition_sched_domains_locked(ndoms_new, doms_new, dattr_new);
 	mutex_unlock(&sched_domains_mutex);
 }
+
+void pr_debug_sd_topo_level(const struct cpumask *cpu_map)
+{
+    pr_fn_start_on(stack_depth);
+
+    int i;
+    struct sched_domain_topology_level *tl;
+
+    for_each_cpu(i, cpu_map) {
+        unsigned long cpu_capacity = arch_scale_cpu_capacity(i);
+
+        pr_info_view_on(stack_depth, "%20s : %d\n", i);
+        pr_info_view_on(stack_depth, "%20s : %lu\n", cpu_capacity);
+
+        for_each_sd_topology(tl) {
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tl);
+            if (tl->mask)
+                pr_info_view_on(stack_depth, "%30s : 0x%X\n", tl->mask(i)->bits[0]);
+            if (tl->sd_flags)
+                pr_info_view_on(stack_depth, "%30s : 0x%X\n", tl->sd_flags());
+            pr_info_view_on(stack_depth, "%30s : %d\n", tl->numa_level);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", tl->flags);
+            //pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tl->data);
+        }
+    }
+    pr_fn_end_on(stack_depth);
+}

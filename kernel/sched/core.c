@@ -3242,8 +3242,12 @@ void __init sched_init_smp(void)
 
     cpumask_setall(cpu_active_mask);
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_active_mask->bits[0]);
+    cpumask_setall(cpu_online_mask);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_online_mask->bits[0]);
 
     sched_init_numa();
+
+    pr_debug_sd_topo_level(cpu_active_mask);
 
     /*
      * There's no userspace yet to cause hotplug operations; hence all the
@@ -3263,6 +3267,8 @@ void __init sched_init_smp(void)
     init_sched_dl_class();
 
     sched_smp_initialized = true;
+
+    pr_debug_sd_topo_level(cpu_active_mask);
 
     pr_fn_end_on(stack_depth);
 }
