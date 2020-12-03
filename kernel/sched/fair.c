@@ -681,12 +681,47 @@ static struct sched_entity *__pick_next_entity(struct sched_entity *se)
 
     return rb_entry(next, struct sched_entity, run_node);
 }
-//619 lines
+//619
+#ifdef CONFIG_SCHED_DEBUG
+struct sched_entity *__pick_last_entity(struct cfs_rq *cfs_rq)
+{
+    struct rb_node *last = rb_last(&cfs_rq->tasks_timeline.rb_root);
 
+    if (!last)
+        return NULL;
 
+    return rb_entry(last, struct sched_entity, run_node);
+}
 
+/**************************************************************
+ * Scheduling class statistics methods:
+ */
 
-//658 lines
+int sched_proc_update_handler(struct ctl_table *table, int write,
+        void __user *buffer, size_t *lenp,
+        loff_t *ppos)
+{
+    //int ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+    int ret = 0;
+    unsigned int factor = get_update_sysctl_factor();
+
+    if (ret || !write)
+        return ret;
+
+    sched_nr_latency = DIV_ROUND_UP(sysctl_sched_latency,
+                    sysctl_sched_min_granularity);
+
+#define WRT_SYSCTL(name) \
+    (normalized_sysctl_##name = sysctl_##name / (factor))
+    WRT_SYSCTL(sched_min_granularity);
+    WRT_SYSCTL(sched_latency);
+    WRT_SYSCTL(sched_wakeup_granularity);
+#undef WRT_SYSCTL
+
+    return 0;
+}
+#endif
+//658
 /*
  * delta /= w
  */
@@ -6357,12 +6392,45 @@ const struct sched_class fair_sched_class = {
     .uclamp_enabled	= 1,
 #endif
 };
-//10471 lines
 
+//10472
+#ifdef CONFIG_SCHED_DEBUG
+void print_cfs_stats(struct seq_file *m, int cpu)
+{
+    struct cfs_rq *cfs_rq, *pos;
 
+    rcu_read_lock();
+    for_each_leaf_cfs_rq_safe(cpu_rq(cpu), cfs_rq, pos)
+        print_cfs_rq(m, cpu, cfs_rq);
+    rcu_read_unlock();
+}
 
+#ifdef CONFIG_NUMA_BALANCING
+void show_numa_stats(struct task_struct *p, struct seq_file *m)
+{
+    int node;
+    unsigned long tsf = 0, tpf = 0, gsf = 0, gpf = 0;
+    struct numa_group *ng;
 
-//10507 lines
+    rcu_read_lock();
+    ng = rcu_dereference(p->numa_group);
+    for_each_online_node(node) {
+        if (p->numa_faults) {
+            tsf = p->numa_faults[task_faults_idx(NUMA_MEM, node, 0)];
+            tpf = p->numa_faults[task_faults_idx(NUMA_MEM, node, 1)];
+        }
+        if (ng) {
+            gsf = ng->faults[task_faults_idx(NUMA_MEM, node, 0)],
+            gpf = ng->faults[task_faults_idx(NUMA_MEM, node, 1)];
+        }
+        print_numa_stats(m, node, tsf, tpf, gsf, gpf);
+    }
+    rcu_read_unlock();
+}
+#endif /* CONFIG_NUMA_BALANCING */
+#endif /* CONFIG_SCHED_DEBUG */
+
+//10507
 __init void init_sched_fair_class(void)
 {
 #ifdef CONFIG_SMP
@@ -6376,5 +6444,7 @@ __init void init_sched_fair_class(void)
 #endif /* SMP */
 
 }
+//10521 lines
+
 
 

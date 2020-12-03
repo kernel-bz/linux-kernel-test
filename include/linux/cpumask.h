@@ -127,7 +127,8 @@ static struct cpumask __cpu_possible_mask __read_mostly
 static struct cpumask __cpu_possible_mask __read_mostly;
 #endif
 
-static struct cpumask __cpu_online_mask __read_mostly;
+static struct cpumask __cpu_online_mask __read_mostly
+    = {CPU_BITS_ALL};
 static struct cpumask __cpu_present_mask __read_mostly;
 static struct cpumask __cpu_active_mask __read_mostly;
 

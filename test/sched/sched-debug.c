@@ -12,6 +12,7 @@
 #include <linux/sched/topology.h>
 #include <kernel/sched/pelt.h>
 #include <linux/list.h>
+#include <linux/cpumask.h>
 #include "test/debug.h"
 
 static void _pr_sched_rq(struct rq *rq)
@@ -431,4 +432,12 @@ void pr_sched_curr_task_info(struct task_struct *p)
         pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "idle_sched_class");
 
     pr_fn_end_on(stack_depth);
+}
+
+void pr_sched_cpumask_bits_info(void)
+{
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_possible_mask->bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_online_mask->bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_present_mask->bits[0]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_active_mask->bits[0]);
 }

@@ -2,6 +2,8 @@
 #ifndef _LINUX_SCHED_DEBUG_H
 #define _LINUX_SCHED_DEBUG_H
 
+#include "test/config.h"
+
 /*
  * Various scheduler/task debugging interfaces:
  */

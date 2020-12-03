@@ -2,7 +2,10 @@
 #ifndef _LINUX_SCHED_SYSCTL_H
 #define _LINUX_SCHED_SYSCTL_H
 
+#include "test/config.h"
+
 #include <linux/types-user.h>
+#include <linux/compiler.h>
 #include <sys/types.h>
 
 struct ctl_table;

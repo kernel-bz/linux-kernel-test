@@ -7,6 +7,7 @@ extern "C" {
 
 #include <linux/kconfig.h>
 
+//Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
 #define CONFIG_VERSION_3		20201130	//test date
@@ -20,34 +21,15 @@ extern "C" {
 #define COMPAT_USE_64BIT_TIME 	0
 #endif
 
+//xarray.h
+#define CONFIG_BASE_SMALL		0
+#define CONFIG_XARRAY_MULTI		0
+
+
 //Arch Configuraion ----------------------------------
 #define CONFIG_ARM64
 //#define CONFIG_RISCV
 
-
-//Schedular Configuraion ----------------------------------
-#define CONFIG_THREAD_INFO_IN_TASK
-
-#define CONFIG_CGROUPS
-#define CONFIG_CGROUP_CPUACCT
-
-#define CONFIG_CGROUP_SCHED
-#define CONFIG_FAIR_GROUP_SCHED
-#define CONFIG_CFS_BANDWIDTH
-#define CONFIG_RT_GROUP_SCHED
-
-//#define CONFIG_SCHED_SMT
-//#define CONFIG_SCHED_MC
-
-//#define CONFIG_SCHED_AUTOGROUP
-#define CONFIG_SCHEDSTATS
-#define CONFIG_SCHED_INFO
-
-#define CONFIG_NO_HZ_COMMON
-
-//xarray.h
-#define CONFIG_BASE_SMALL		0
-#define CONFIG_XARRAY_MULTI		0
 
 //CPU Configuration ----------------------------------------
 #define CONFIG_NR_CPUS			4
@@ -70,6 +52,31 @@ extern "C" {
 //#define CONFIG_PROVE_RCU_LIST
 #define CONFIG_GENERIC_ARCH_TOPOLOGY
 
+#define CONFIG_DEBUG_PER_CPU_MAPS
+
+
+//Schedular Configuraion ----------------------------------
+#define CONFIG_THREAD_INFO_IN_TASK
+
+#define CONFIG_CGROUPS
+#define CONFIG_CGROUP_CPUACCT
+
+#define CONFIG_CGROUP_SCHED
+#define CONFIG_FAIR_GROUP_SCHED
+#define CONFIG_CFS_BANDWIDTH
+#define CONFIG_RT_GROUP_SCHED
+
+//#define CONFIG_SCHED_SMT
+//#define CONFIG_SCHED_MC
+
+//#define CONFIG_SCHED_AUTOGROUP
+#define CONFIG_SCHEDSTATS
+#define CONFIG_SCHED_INFO
+#define CONFIG_SCHED_DEBUG
+
+#define CONFIG_NO_HZ_COMMON
+
+
 //Memory Configuration -----------------------------------
 #define CONFIG_ARCH_KEEP_MEMBLOCK
 #define CONFIG_HAVE_MEMBLOCK_NODE_MAP
@@ -89,7 +96,6 @@ extern "C" {
 #define CONFIG_OF_NUMA
 #define CONFIG_OF_UNITTEST
 #define CONFIG_OF_EARLY_FLATTREE
-
 
 
 #ifdef __cplusplus
