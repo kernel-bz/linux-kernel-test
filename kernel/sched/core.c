@@ -3197,6 +3197,8 @@ bool sched_smp_initialized __read_mostly;
 //6304 lines
 void set_rq_online(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
     if (!rq->online) {
         const struct sched_class *class;
 
@@ -3208,6 +3210,8 @@ void set_rq_online(struct rq *rq)
                 class->rq_online(rq);
         }
     }
+
+    pr_fn_end_on(stack_depth);
 }
 
 void set_rq_offline(struct rq *rq)
