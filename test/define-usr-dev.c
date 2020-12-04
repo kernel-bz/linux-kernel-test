@@ -396,27 +396,6 @@ bool mdiobus_is_registered_device(struct mii_bus *bus, int addr)
 EXPORT_SYMBOL(mdiobus_is_registered_device);
 
 
-//kernel/cpu.c: 2270 lines
-/* cpu_bit_bitmap[0] is empty - so we can back into it */
-#define MASK_DECLARE_1(x)	[x+1][0] = (1UL << (x))
-#define MASK_DECLARE_2(x)	MASK_DECLARE_1(x), MASK_DECLARE_1(x+1)
-#define MASK_DECLARE_4(x)	MASK_DECLARE_2(x), MASK_DECLARE_2(x+2)
-#define MASK_DECLARE_8(x)	MASK_DECLARE_4(x), MASK_DECLARE_4(x+4)
-
-const unsigned long cpu_bit_bitmap[BITS_PER_LONG+1][BITS_TO_LONGS(NR_CPUS)] = {
-
-    MASK_DECLARE_8(0),	MASK_DECLARE_8(8),
-    MASK_DECLARE_8(16),	MASK_DECLARE_8(24),
-#if BITS_PER_LONG > 32
-    MASK_DECLARE_8(32),	MASK_DECLARE_8(40),
-    MASK_DECLARE_8(48),	MASK_DECLARE_8(56),
-#endif
-};
-EXPORT_SYMBOL_GPL(cpu_bit_bitmap);
-
-
-
-
 //mm/slab.c: 3662 lines
 void *__kmalloc(size_t size, gfp_t flags)
 {

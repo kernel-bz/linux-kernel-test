@@ -3241,13 +3241,6 @@ void __init sched_init_smp(void)
 {
     pr_fn_start_on(stack_depth);
 
-    cpumask_setall(cpu_possible_mask);
-    cpumask_setall(cpu_online_mask);
-    cpumask_setall(cpu_present_mask);
-    cpumask_setall(cpu_active_mask);
-
-    pr_sched_cpumask_bits_info();
-
     sched_init_numa();
 
     pr_debug_sd_topo_level(cpu_active_mask);
@@ -3271,7 +3264,7 @@ void __init sched_init_smp(void)
 
     sched_smp_initialized = true;
 
-    //pr_debug_sd_topo_level(cpu_active_mask);
+    pr_debug_sd_topo_level(cpu_active_mask);
 
     pr_fn_end_on(stack_depth);
 }

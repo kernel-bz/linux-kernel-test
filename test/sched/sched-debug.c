@@ -434,8 +434,10 @@ void pr_sched_curr_task_info(struct task_struct *p)
     pr_fn_end_on(stack_depth);
 }
 
-void pr_sched_cpumask_bits_info(void)
+void pr_sched_cpumask_bits_info(unsigned int nr_cpu)
 {
+    pr_info_view_on(stack_depth, "%30s : %u\n", nr_cpu);
+
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_possible_mask->bits[0]);
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_online_mask->bits[0]);
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_present_mask->bits[0]);

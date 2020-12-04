@@ -33,11 +33,15 @@
 #include <linux/slab.h>
 #include <linux/percpu-rwsem.h>
 
+#include <asm-generic/barrier.h>
+
 //#include <trace/events/power.h>
-#define CREATE_TRACE_POINTS
+//#define CREATE_TRACE_POINTS
 //#include <trace/events/cpuhp.h>
 
 //#include "smpboot.h"
+
+#include "test/debug.h"
 
 /**
  * cpuhp_cpu_state - Per cpu hotplug state storage
@@ -498,7 +502,7 @@ static void __cpuhp_kick_ap(struct cpuhp_cpu_state *st)
 	 */
 	smp_mb();
 	st->should_run = true;
-	wake_up_process(st->thread);
+    //wake_up_process(st->thread);
 	wait_for_ap_thread(st, st->bringup);
 }
 
@@ -527,7 +531,7 @@ static int bringup_wait_for_ap(unsigned int cpu)
 		return -ECANCELED;
 
 	/* Unpark the hotplug thread of the target cpu */
-	kthread_unpark(st->thread);
+    //kthread_unpark(st->thread);
 
 	/*
 	 * SMT soft disabling on X86 requires to bring the CPU out of the
@@ -547,6 +551,7 @@ static int bringup_wait_for_ap(unsigned int cpu)
 
 static int bringup_cpu(unsigned int cpu)
 {
+#if 0
 	struct task_struct *idle = idle_thread_get(cpu);
 	int ret;
 
@@ -555,29 +560,33 @@ static int bringup_cpu(unsigned int cpu)
 	 * setup the vector space for the cpu which comes online.
 	 * Prevent irq alloc/free across the bringup.
 	 */
-	irq_lock_sparse();
+    //irq_lock_sparse();
 
 	/* Arch-specific enabling code. */
 	ret = __cpu_up(cpu, idle);
-	irq_unlock_sparse();
+    //irq_unlock_sparse();
 	if (ret)
-		return ret;
+        return ret;
+#endif //0
+
 	return bringup_wait_for_ap(cpu);
 }
 
 static int finish_cpu(unsigned int cpu)
 {
-	struct task_struct *idle = idle_thread_get(cpu);
-	struct mm_struct *mm = idle->active_mm;
+#if 0
+    struct task_struct *idle = idle_thread_get(cpu);
+    struct mm_struct *mm = idle->active_mm;
 
 	/*
 	 * idle_task_exit() will have switched to &init_mm, now
 	 * clean up any remaining active_mm state.
 	 */
-	if (mm != &init_mm)
-		idle->active_mm = &init_mm;
-	mmdrop(mm);
-	return 0;
+    //if (mm != &init_mm)
+        //idle->active_mm = &init_mm;
+    //mmdrop(mm);
+#endif //0
+    return 0;
 }
 
 /*
@@ -629,10 +638,10 @@ static int cpuhp_up_callbacks(unsigned int cpu, struct cpuhp_cpu_state *st,
  */
 static void cpuhp_create(unsigned int cpu)
 {
-	struct cpuhp_cpu_state *st = per_cpu_ptr(&cpuhp_state, cpu);
+    //struct cpuhp_cpu_state *st = per_cpu_ptr(&cpuhp_state, cpu);
 
-	init_completion(&st->done_up);
-	init_completion(&st->done_down);
+    //init_completion(&st->done_up);
+    //init_completion(&st->done_down);
 }
 
 static int cpuhp_should_run(unsigned int cpu)
@@ -792,13 +801,14 @@ static int cpuhp_kick_ap_work(unsigned int cpu)
 	cpuhp_lock_acquire(true);
 	cpuhp_lock_release(true);
 
-	trace_cpuhp_enter(cpu, st->target, prev_state, cpuhp_kick_ap_work);
+    //trace_cpuhp_enter(cpu, st->target, prev_state, cpuhp_kick_ap_work);
 	ret = cpuhp_kick_ap(st, st->target);
-	trace_cpuhp_exit(cpu, st->state, prev_state, ret);
+    //trace_cpuhp_exit(cpu, st->state, prev_state, ret);
 
 	return ret;
 }
 
+#if 0
 static struct smp_hotplug_thread cpuhp_threads = {
 	.store			= &cpuhp_state.thread,
 	.create			= &cpuhp_create,
@@ -807,11 +817,12 @@ static struct smp_hotplug_thread cpuhp_threads = {
 	.thread_comm		= "cpuhp/%u",
 	.selfparking		= true,
 };
+#endif //0
 
 void __init cpuhp_threads_init(void)
 {
-	BUG_ON(smpboot_register_percpu_thread(&cpuhp_threads));
-	kthread_unpark(this_cpu_read(cpuhp_state.thread));
+    //BUG_ON(smpboot_register_percpu_thread(&cpuhp_threads));
+    //kthread_unpark(this_cpu_read(cpuhp_state.thread));
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
@@ -915,7 +926,7 @@ static int takedown_cpu(unsigned int cpu)
 		/* CPU refused to die */
 		irq_unlock_sparse();
 		/* Unpark the hotplug thread so we can rollback there */
-		kthread_unpark(per_cpu_ptr(&cpuhp_state, cpu)->thread);
+        //kthread_unpark(per_cpu_ptr(&cpuhp_state, cpu)->thread);
 		return err;
 	}
 	BUG_ON(cpu_online(cpu));
@@ -1090,7 +1101,7 @@ void notify_cpu_starting(unsigned int cpu)
 	enum cpuhp_state target = min((int)st->target, CPUHP_AP_ONLINE);
 	int ret;
 
-	rcu_cpu_starting(cpu);	/* Enables RCU usage on this CPU. */
+    //rcu_cpu_starting(cpu);	/* Enables RCU usage on this CPU. */
 	cpumask_set_cpu(cpu, &cpus_booted_once_mask);
 	while (st->state < target) {
 		st->state++;
@@ -1119,7 +1130,7 @@ void cpuhp_online_idle(enum cpuhp_state state)
 	 * Unpart the stopper thread before we start the idle loop (and start
 	 * scheduling); this ensures the stopper task is always available.
 	 */
-	stop_machine_unpark(smp_processor_id());
+    //stop_machine_unpark(smp_processor_id());
 
 	st->state = CPUHP_AP_ONLINE_IDLE;
 	complete_ap_thread(st, true);
@@ -1146,6 +1157,7 @@ static int _cpu_up(unsigned int cpu, int tasks_frozen, enum cpuhp_state target)
 	if (st->state >= target)
 		goto out;
 
+#if 0
 	if (st->state == CPUHP_OFFLINE) {
 		/* Let it fail before we try to bring the cpu up */
 		idle = idle_thread_get(cpu);
@@ -1154,6 +1166,7 @@ static int _cpu_up(unsigned int cpu, int tasks_frozen, enum cpuhp_state target)
 			goto out;
 		}
 	}
+#endif //0
 
 	cpuhp_tasks_frozen = tasks_frozen;
 
@@ -1196,11 +1209,13 @@ static int do_cpu_up(unsigned int cpu, enum cpuhp_state target)
 		pr_err("please check additional_cpus= boot parameter\n");
 #endif
 		return -EINVAL;
-	}
+    }
 
+#if 0
 	err = try_online_node(cpu_to_node(cpu));
 	if (err)
 		return err;
+#endif //0
 
 	cpu_maps_update_begin();
 
@@ -1397,44 +1412,44 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 #ifdef CONFIG_SMP
 	[CPUHP_CREATE_THREADS]= {
 		.name			= "threads:prepare",
-		.startup.single		= smpboot_create_threads,
+        //.startup.single		= smpboot_create_threads,
 		.teardown.single	= NULL,
 		.cant_stop		= true,
 	},
 	[CPUHP_PERF_PREPARE] = {
 		.name			= "perf:prepare",
-		.startup.single		= perf_event_init_cpu,
-		.teardown.single	= perf_event_exit_cpu,
+        //.startup.single		= perf_event_init_cpu,
+        //.teardown.single	= perf_event_exit_cpu,
 	},
 	[CPUHP_WORKQUEUE_PREP] = {
 		.name			= "workqueue:prepare",
-		.startup.single		= workqueue_prepare_cpu,
+        //.startup.single		= workqueue_prepare_cpu,
 		.teardown.single	= NULL,
 	},
 	[CPUHP_HRTIMERS_PREPARE] = {
 		.name			= "hrtimers:prepare",
-		.startup.single		= hrtimers_prepare_cpu,
-		.teardown.single	= hrtimers_dead_cpu,
+        //.startup.single		= hrtimers_prepare_cpu,
+        //.teardown.single	= hrtimers_dead_cpu,
 	},
 	[CPUHP_SMPCFD_PREPARE] = {
 		.name			= "smpcfd:prepare",
-		.startup.single		= smpcfd_prepare_cpu,
-		.teardown.single	= smpcfd_dead_cpu,
+        //.startup.single		= smpcfd_prepare_cpu,
+        //.teardown.single	= smpcfd_dead_cpu,
 	},
 	[CPUHP_RELAY_PREPARE] = {
 		.name			= "relay:prepare",
-		.startup.single		= relay_prepare_cpu,
+        //.startup.single		= relay_prepare_cpu,
 		.teardown.single	= NULL,
 	},
 	[CPUHP_SLAB_PREPARE] = {
 		.name			= "slab:prepare",
-		.startup.single		= slab_prepare_cpu,
-		.teardown.single	= slab_dead_cpu,
+        //.startup.single		= slab_prepare_cpu,
+        //.teardown.single	= slab_dead_cpu,
 	},
 	[CPUHP_RCUTREE_PREP] = {
 		.name			= "RCU/tree:prepare",
-		.startup.single		= rcutree_prepare_cpu,
-		.teardown.single	= rcutree_dead_cpu,
+        //.startup.single		= rcutree_prepare_cpu,
+        //.teardown.single	= rcutree_dead_cpu,
 	},
 	/*
 	 * On the tear-down path, timers_dead_cpu() must be invoked
@@ -1443,8 +1458,8 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	 */
 	[CPUHP_TIMERS_PREPARE] = {
 		.name			= "timers:prepare",
-		.startup.single		= timers_prepare_cpu,
-		.teardown.single	= timers_dead_cpu,
+        //.startup.single		= timers_prepare_cpu,
+        //.teardown.single	= timers_dead_cpu,
 	},
 	/* Kicks the plugged cpu into life */
 	[CPUHP_BRINGUP_CPU] = {
@@ -1468,18 +1483,18 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	/* First state is scheduler control. Interrupts are disabled */
 	[CPUHP_AP_SCHED_STARTING] = {
 		.name			= "sched:starting",
-		.startup.single		= sched_cpu_starting,
-		.teardown.single	= sched_cpu_dying,
+        //.startup.single		= sched_cpu_starting,
+        //.teardown.single	= sched_cpu_dying,
 	},
 	[CPUHP_AP_RCUTREE_DYING] = {
 		.name			= "RCU/tree:dying",
 		.startup.single		= NULL,
-		.teardown.single	= rcutree_dying_cpu,
+        //.teardown.single	= rcutree_dying_cpu,
 	},
 	[CPUHP_AP_SMPCFD_DYING] = {
 		.name			= "smpcfd:dying",
 		.startup.single		= NULL,
-		.teardown.single	= smpcfd_dying_cpu,
+        //.teardown.single	= smpcfd_dying_cpu,
 	},
 	/* Entry state on starting. Interrupts enabled from here on. Transient
 	 * state for synchronsization */
@@ -1499,33 +1514,33 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	/* Handle smpboot threads park/unpark */
 	[CPUHP_AP_SMPBOOT_THREADS] = {
 		.name			= "smpboot/threads:online",
-		.startup.single		= smpboot_unpark_threads,
-		.teardown.single	= smpboot_park_threads,
+        //.startup.single		= smpboot_unpark_threads,
+        //.teardown.single	= smpboot_park_threads,
 	},
 	[CPUHP_AP_IRQ_AFFINITY_ONLINE] = {
 		.name			= "irq/affinity:online",
-		.startup.single		= irq_affinity_online_cpu,
+        //.startup.single		= irq_affinity_online_cpu,
 		.teardown.single	= NULL,
 	},
 	[CPUHP_AP_PERF_ONLINE] = {
 		.name			= "perf:online",
-		.startup.single		= perf_event_init_cpu,
-		.teardown.single	= perf_event_exit_cpu,
+        //.startup.single		= perf_event_init_cpu,
+        //.teardown.single	= perf_event_exit_cpu,
 	},
 	[CPUHP_AP_WATCHDOG_ONLINE] = {
 		.name			= "lockup_detector:online",
-		.startup.single		= lockup_detector_online_cpu,
-		.teardown.single	= lockup_detector_offline_cpu,
+        //.startup.single		= lockup_detector_online_cpu,
+        //.teardown.single	= lockup_detector_offline_cpu,
 	},
 	[CPUHP_AP_WORKQUEUE_ONLINE] = {
 		.name			= "workqueue:online",
-		.startup.single		= workqueue_online_cpu,
-		.teardown.single	= workqueue_offline_cpu,
+        //.startup.single		= workqueue_online_cpu,
+        //.teardown.single	= workqueue_offline_cpu,
 	},
 	[CPUHP_AP_RCUTREE_ONLINE] = {
 		.name			= "RCU/tree:online",
-		.startup.single		= rcutree_online_cpu,
-		.teardown.single	= rcutree_offline_cpu,
+        //.startup.single		= rcutree_online_cpu,
+        //.teardown.single	= rcutree_offline_cpu,
 	},
 #endif
 	/*
@@ -1536,8 +1551,8 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	/* Last state is scheduler control setting the cpu active */
 	[CPUHP_AP_ACTIVE] = {
 		.name			= "sched:active",
-		.startup.single		= sched_cpu_activate,
-		.teardown.single	= sched_cpu_deactivate,
+        //.startup.single		= sched_cpu_activate,
+        //.teardown.single	= sched_cpu_deactivate,
 	},
 #endif
 
@@ -2392,7 +2407,7 @@ void __init boot_cpu_hotplug_init(void)
 #ifdef CONFIG_SMP
 	cpumask_set_cpu(smp_processor_id(), &cpus_booted_once_mask);
 #endif
-	this_cpu_write(cpuhp_state.state, CPUHP_ONLINE);
+    //this_cpu_write(cpuhp_state.state, CPUHP_ONLINE);
 }
 
 /*

@@ -90,7 +90,6 @@ SOURCES += \
     drivers/of/property.c \
     drivers/of/resolver.c \
     drivers/base/arch_topology.c \
-    drivers/base/dev-core.c \
     drivers/base/cpu.c \
     lib/kasprintf.c \
     lib/kobject.c \
@@ -120,7 +119,8 @@ SOURCES += \
     lib/uuid.c \
     lib/hexdump.c \
     kernel/sched/debug_.c \
-    kernel/cpu.c
+    kernel/cpu_.c \
+    drivers/base/core_.c
 
 HEADERS += \
     include/test/test.h \

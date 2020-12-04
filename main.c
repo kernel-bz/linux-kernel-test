@@ -14,6 +14,7 @@
 
 #include <linux/limits.h>
 #include <linux/cpumask.h>
+#include <linux/cpu.h>
 #include <linux/sched/clock.h>
 #include <linux/sched/init.h>
 
@@ -69,14 +70,13 @@ static void _main_start_kernel(void)
     //setup_nr_cpu_ids();	//kernel/smp.c
     nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
 
-    //boot_cpu_init();		//kernel/cpu.c
-    cpumask_setall(cpu_active_mask);
+    boot_cpu_init();		//kernel/cpu.c
+    //cpumask_setall(cpu_active_mask);
 
     sched_init();
     sched_clock_init();
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", nr_cpu_ids);
-    pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_active_mask->bits[0]);
+    pr_sched_cpumask_bits_info(nr_cpu_ids);
 
     pr_fn_end_on(stack_depth);
 }

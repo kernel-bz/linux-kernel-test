@@ -2571,6 +2571,8 @@ void pr_debug_sd_topo_level(const struct cpumask *cpu_map)
 {
     pr_fn_start_on(stack_depth);
 
+    pr_sched_cpumask_bits_info(nr_cpu_ids);
+
     int i=0, cpu;
     struct sched_domain_topology_level *tl;
 
