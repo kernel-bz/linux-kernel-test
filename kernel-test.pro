@@ -119,7 +119,8 @@ SOURCES += \
     lib/sort.c \
     lib/uuid.c \
     lib/hexdump.c \
-    kernel/sched/debug_.c
+    kernel/sched/debug_.c \
+    kernel/cpu.c
 
 HEADERS += \
     include/test/test.h \

@@ -1201,6 +1201,8 @@ build_sched_groups(struct sched_domain *sd, int cpu)
         last->next = first;
 	sd->groups = first;
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd->groups);
+
     pr_fn_end_on(stack_depth);
 
 	return 0;
@@ -1686,6 +1688,8 @@ static void init_numa_topology_type(void)
 void sched_init_numa(void)
 {
     pr_fn_start_on(stack_depth);
+
+    //sched_debug_setup(NULL);
 
     int next_distance, curr_distance = node_distance(0, 0);
     struct sched_domain_topology_level *tl;
@@ -2197,7 +2201,10 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 				has_asym = true;
 			}
 
-			sd = build_sched_domain(tl, cpu_map, attr, sd, dflags, i);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tl);
+            pr_info_view_on(stack_depth, "%30s : %s\n", tl->name);
+
+            sd = build_sched_domain(tl, cpu_map, attr, sd, dflags, i);
 
 			if (tl == sched_domain_topology)
 				*per_cpu_ptr(d.sd, i) = sd;
@@ -2208,15 +2215,25 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 		}
 	}
 
+    for_each_cpu(i, cpu_map) {
+        sd = *per_cpu_ptr(d.sd, i);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
+    }
+    pr_debug_sd_topo_level(cpu_map);
+
 	/* Build the groups for the domains */
 	for_each_cpu(i, cpu_map) {
         pr_info_view_on(stack_depth, "%20s : %d\n", i);
+        int tmp_cnt = 0;
 
         for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
             sd->span_weight = cpumask_weight(sched_domain_span(sd));
-            pr_info_view_on(stack_depth, "%20s : %s\n", sd->name);
-            pr_info_view_on(stack_depth, "%20s : %u\n", sd->span_weight);
-            pr_info_view_on(stack_depth, "%20s : 0x%X\n", sd->flags);
+
+            pr_info_view_on(stack_depth, "%30s : %d\n", tmp_cnt++);
+            pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+            pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
+            pr_info_view_on(stack_depth, "%30s : %p\n", sd->parent);
 
             if (sd->flags & SD_OVERLAP) {
 				if (build_overlap_sched_groups(sd, i))
@@ -2225,7 +2242,6 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 				if (build_sched_groups(sd, i))
 					goto error;
 			}
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd->groups);
         }
 	}
 
@@ -2236,7 +2252,13 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
         if (!cpumask_test_cpu(i, cpu_map))
 			continue;
 
+        int tmp_cnt = 0;
+
         for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
+            pr_info_view_on(stack_depth, "%30s : %d\n", tmp_cnt++);
+            pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+            pr_info_view_on(stack_depth, "%30s : %p\n", sd->parent);
+
             claim_allocations(i, sd);
 			init_sched_groups_capacity(i, sd);
 		}
@@ -2250,8 +2272,9 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
         rq = cpu_rq(i);
 		sd = *per_cpu_ptr(d.sd, i);
 
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
+        pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
 
 		/* Use READ_ONCE()/WRITE_ONCE() to avoid load/store tearing: */
 		if (rq->cpu_capacity_orig > READ_ONCE(d.rd->max_cpu_capacity))
@@ -2269,9 +2292,16 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 			cpumask_pr_args(cpu_map), rq->rd->max_cpu_capacity);
 	}
 
+
+    for_each_cpu(i, cpu_map) {
+        sd = *per_cpu_ptr(d.sd, i);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
+    }
+    pr_debug_sd_topo_level(cpu_map);
+
 	ret = 0;
 error:
-    //__free_domain_allocs(&d, alloc_state, cpu_map);
+    __free_domain_allocs(&d, alloc_state, cpu_map);
 
     pr_fn_end_on(stack_depth);
 
@@ -2544,7 +2574,6 @@ void pr_debug_sd_topo_level(const struct cpumask *cpu_map)
     int i=0, cpu;
     struct sched_domain_topology_level *tl;
 
-
     for_each_sd_topology(tl) {
         struct sd_data *sdd = &tl->data;
         pr_info_view_on(stack_depth, "%20s : %d\n", i++);
@@ -2566,6 +2595,7 @@ void pr_debug_sd_topo_level(const struct cpumask *cpu_map)
             struct sched_domain *sd = *per_cpu_ptr(sdd->sd, cpu);
             if (!sd) continue;
 
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
             pr_info_view_on(stack_depth, "%30s : %d\n", sd->level);
             pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
             pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
