@@ -71,7 +71,12 @@ static void _main_start_kernel(void)
     nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
 
     boot_cpu_init();		//kernel/cpu.c
-    //cpumask_setall(cpu_active_mask);
+    cpumask_setall(cpu_active_mask);
+    //cpumask_setall(cpu_online_mask);
+    cpumask_setall(cpu_present_mask);
+
+    //arch/arm64/mm/numa.c
+    numa_usr_set_node(2);
 
     sched_init();
     sched_clock_init();

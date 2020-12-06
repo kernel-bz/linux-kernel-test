@@ -94,7 +94,9 @@ static inline int numa_node_id(void)
 #ifndef cpu_to_node
 static inline int cpu_to_node(int cpu)
 {
-	return per_cpu(numa_node, cpu);
+    //return per_cpu(numa_node, cpu);
+    //arch/arm64/mm/numa.c
+    return numa_usr_get_node(cpu);
 }
 #endif
 

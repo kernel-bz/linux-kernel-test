@@ -120,7 +120,8 @@ SOURCES += \
     lib/hexdump.c \
     kernel/sched/debug_.c \
     kernel/cpu_.c \
-    drivers/base/core_.c
+    drivers/base/core_.c \
+    arch/arm64/mm/numa.c
 
 HEADERS += \
     include/test/test.h \

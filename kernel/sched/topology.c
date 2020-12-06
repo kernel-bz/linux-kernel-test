@@ -1486,6 +1486,11 @@ sd_init(struct sched_domain_topology_level *tl,
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", tl->mask(cpu)->bits[0]);
     pr_info_view_on(stack_depth, "%30s : 0x%X\n", cpu_online_mask->bits[0]);
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", tl->numa_level);
+    pr_info_view_on(stack_depth, "%30s : %d\n", cpu_to_node(cpu));
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n"
+                    , sched_domains_numa_masks[tl->numa_level][cpu_to_node(cpu)]->bits[0]);
+
     cpumask_and(sched_domain_span(sd), cpu_map, tl->mask(cpu));
 	sd_id = cpumask_first(sched_domain_span(sd));
 
@@ -1947,7 +1952,7 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 			struct sched_group *sg;
 			struct sched_group_capacity *sgc;
 
-            pr_info_view_on(stack_depth, "%20s : %d\n", j);
+            pr_info_view_on(stack_depth, "%20s : cpu: %d\n", j);
 
 			sd = kzalloc_node(sizeof(struct sched_domain) + cpumask_size(),
 					GFP_KERNEL, cpu_to_node(j));
@@ -1980,7 +1985,6 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 #ifdef CONFIG_SCHED_DEBUG
 			sgc->id = j;
 #endif
-
 			*per_cpu_ptr(sdd->sgc, j) = sgc;
 		}
 	}
@@ -2166,12 +2170,16 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
     if (alloc_state != sa_rootdomain)
 		goto error;
 
+    pr_debug_sd_topo_info(cpu_map);
+
 	tl_asym = asym_cpu_capacity_level(cpu_map);
 
     pr_info_view_on(stack_depth, "%20s : %p\n", tl_asym);
 
     /* Set up domains for CPUs specified by the cpu_map: */
-	for_each_cpu(i, cpu_map) {
+    pr_out_on(stack_depth, "Set up domains --------------------------\n");
+
+    for_each_cpu(i, cpu_map) {
 		struct sched_domain_topology_level *tl;
 
         pr_info_view_on(stack_depth, "%10s : cpu: %d\n", i);
@@ -2204,9 +2212,11 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
         pr_info_view_on(stack_depth, "%10s : cpu: %d\n", i);
         pr_info_view_on(stack_depth, "%10s : %p\n", (void*)sd);
     }
-    pr_debug_sd_topo_level(cpu_map);
+    pr_debug_sd_topo_info(cpu_map);
 
 	/* Build the groups for the domains */
+    pr_out_on(stack_depth, "Build Groups ----------------------------\n");
+
 	for_each_cpu(i, cpu_map) {
         pr_info_view_on(stack_depth, "%10s : cpu: %d\n", i);
         int tmp_cnt = 0;
@@ -2231,7 +2241,9 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 	}
 
 	/* Calculate CPU capacity for physical packages and nodes */
-	for (i = nr_cpumask_bits-1; i >= 0; i--) {
+    pr_out_on(stack_depth, "Calculate CPU capacity ------------------\n");
+
+    for (i = nr_cpumask_bits-1; i >= 0; i--) {
         pr_info_view_on(stack_depth, "%10s : cpu: %d\n", i);
 
         if (!cpumask_test_cpu(i, cpu_map))
@@ -2249,8 +2261,10 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 		}
 	}
 
-	/* Attach the domains */
-	rcu_read_lock();
+    /* Attach the domains */
+    pr_out_on(stack_depth, "Attach the domains ----------------------\n");
+
+    rcu_read_lock();
 	for_each_cpu(i, cpu_map) {
         pr_info_view_on(stack_depth, "%10s : cpu: %d\n", i);
 
@@ -2282,7 +2296,7 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
         pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
         pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
     }
-    pr_debug_sd_topo_level(cpu_map);
+    pr_debug_sd_topo_info(cpu_map);
 
 	ret = 0;
 error:
@@ -2552,7 +2566,7 @@ void partition_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
 	mutex_unlock(&sched_domains_mutex);
 }
 
-void pr_debug_sd_topo_level(const struct cpumask *cpu_map)
+void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
 {
     pr_fn_start_on(stack_depth);
 
