@@ -74,9 +74,9 @@ static void _main_start_kernel(void)
     cpumask_setall(cpu_active_mask);
     //cpumask_setall(cpu_online_mask);
     //cpumask_set_cpu(0, cpu_online_mask);
+    //cpumask_clear_cpu(0, cpu_online_mask);
     cpumask_set_cpu(1, cpu_online_mask);
-    cpumask_set_cpu(5, cpu_online_mask);
-    cpumask_set_cpu(7, cpu_online_mask);
+    //cpumask_set_cpu(3, cpu_online_mask);
     cpumask_setall(cpu_present_mask);
 
     //arch/arm64/mm/numa.c
