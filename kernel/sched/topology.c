@@ -906,7 +906,9 @@ build_balance_mask(struct sched_domain *sd, struct sched_group *sg, struct cpuma
 		sibling = *per_cpu_ptr(sdd->sd, i);
 
         pr_info_view_on(stack_depth, "%20s : %d\n", i);
-		/*
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sibling);
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sibling->child);
+        /*
 		 * Can happen in the asymmetric case, where these siblings are
 		 * unused. The mask will not be empty because those CPUs that
 		 * do have the top domain _should_ span the domain.
@@ -976,7 +978,9 @@ static void init_overlap_sched_group(struct sched_domain *sd,
 	struct cpumask *sg_span;
 	int cpu;
 
-	build_balance_mask(sd, sg, mask);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", mask->bits[0]);
+
+    build_balance_mask(sd, sg, mask);
 	cpu = cpumask_first_and(sched_group_span(sg), mask);
 
     pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
