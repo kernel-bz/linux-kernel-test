@@ -487,6 +487,7 @@ static inline int num_node_state(enum node_states state)
 #define next_online_node(nid)	(MAX_NUMNODES)
 //#define nr_node_ids				1U
 #define nr_node_ids				4U
+//#define nr_node_ids				8U
 #define nr_online_nodes			1U
 
 #define node_set_online(node)	   node_set_state((node), N_ONLINE)

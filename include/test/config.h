@@ -34,7 +34,7 @@ extern "C" {
 //CPU Configuration ----------------------------------------
 #define CONFIG_NR_CPUS		4
 //#define CONFIG_NR_CPUS		8
-//#define CONFIG_NR_CPUS		32
+//#define CONFIG_NR_CPUS		16
 #define CONFIG_SMP
 
 #define CONFIG_CPU_FREQ
@@ -47,6 +47,7 @@ extern "C" {
 
 #define CONFIG_NUMA
 #define CONFIG_IRQ_DOMAIN
+//#define CONFIG_NODES_SHIFT		4
 
 //#define CONFIG_DEBUG_PREEMPT
 //#define CONFIG_PROVE_RCU_LIST

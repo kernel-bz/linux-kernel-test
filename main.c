@@ -76,11 +76,12 @@ static void _main_start_kernel(void)
     //cpumask_set_cpu(0, cpu_online_mask);
     //cpumask_clear_cpu(0, cpu_online_mask);
     cpumask_set_cpu(1, cpu_online_mask);
-    //cpumask_set_cpu(3, cpu_online_mask);
+    //cpumask_set_cpu(6, cpu_online_mask);
+    //cpumask_set_cpu(7, cpu_online_mask);
     cpumask_setall(cpu_present_mask);
 
     //arch/arm64/mm/numa.c
-    numa_usr_set_node(2);
+    numa_usr_set_node(NR_CPUS / nr_node_ids);
 
     sched_init();
     sched_clock_init();

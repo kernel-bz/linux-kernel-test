@@ -1288,7 +1288,7 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd->groups);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->groups);
 
 	struct sched_group *sg = sd->groups;
 
@@ -1311,9 +1311,20 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
 		}
 		sg->asym_prefer_cpu = max_cpu;
 
+        pr_info_view_on(stack_depth, "%30s : %u\n", sg->group_weight);
+        pr_info_view_on(stack_depth, "%30s : %d\n", sg->asym_prefer_cpu);
+
 next:
 		sg = sg->next;
 	} while (sg != sd->groups);
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%30s : %d\n", group_balance_cpu(sg));
+
+    pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd->groups);
+    pr_info_view_on(stack_depth, "%40s : %lu\n", sd->groups->sgc->capacity);
+    pr_info_view_on(stack_depth, "%40s : %lu\n", sd->groups->sgc->min_capacity);
+    pr_info_view_on(stack_depth, "%40s : %lu\n", sd->groups->sgc->max_capacity);
 
 	if (cpu != group_balance_cpu(sg))
 		return;
@@ -2367,16 +2378,14 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 			cpumask_pr_args(cpu_map), rq->rd->max_cpu_capacity);
 	}
 
-    for_each_cpu(i, cpu_map) {
-        sd = *per_cpu_ptr(d.sd, i);
-        pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
-        pr_info_view_on(stack_depth, "%20s : d.sd: %p\n", (void*)sd);
-    }
     pr_debug_sd_topo_info(cpu_map);
+    pr_debug_sd_data_info(cpu_map, d);
 
-	ret = 0;
+    ret = 0;
 error:
     __free_domain_allocs(&d, alloc_state, cpu_map);
+
+    //pr_debug_sd_data_info(cpu_map, d);
 
     pr_fn_end_on(stack_depth);
 
@@ -2648,7 +2657,7 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
 
     pr_sched_cpumask_bits_info(nr_cpu_ids);
 
-    int level=0, cpu;
+    int level=0, cpu, cnt;
     struct sched_domain_topology_level *tl;
 
     for_each_sd_topology(tl) {
@@ -2670,52 +2679,107 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
 
             pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
             pr_info_view_on(stack_depth, "%30s : %lu\n", cpu_capacity);
+
             if (tl->mask)
                 pr_info_view_on(stack_depth, "%30s : 0x%X\n", tl->mask(cpu)->bits[0]);
 
             if (!(void*)sdd->sd) continue;
 
-            struct sched_domain *sd = *per_cpu_ptr(sdd->sd, cpu);
-            pr_info_view_on(stack_depth, "%20s : sdd->sd: %p\n", (void*)sd);
-            if (!sd) continue;
+            struct sched_domain *sdd_sd = *per_cpu_ptr(sdd->sd, cpu);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdd_sd);
+            if (!sdd_sd) continue;
 
-            pr_info_view_on(stack_depth, "%30s : %d\n", sd->level);
-            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
-            pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
-            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->span[0]);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->shared);
-            if (sd->shared) {
-                pr_info_view_on(stack_depth, "%40s : %d\n", sd->shared->ref.counter);
-                pr_info_view_on(stack_depth, "%40s : %d\n", sd->shared->nr_busy_cpus.counter);
-                pr_info_view_on(stack_depth, "%40s : %d\n", sd->shared->has_idle_cores);
+            struct sched_domain_shared *sdd_sds = *per_cpu_ptr(sdd->sds, cpu);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdd_sds);
+
+            struct sched_group *sd_groups = sdd_sd->groups;
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd_groups);
+            struct sched_group *sdd_sg = *per_cpu_ptr(sdd->sg, cpu);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdd_sg);
+            struct sched_group_capacity *sdd_sgc = *per_cpu_ptr(sdd->sgc, cpu);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdd_sgc);
+
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdd_sd->private);
+
+            pr_info_view_on(stack_depth, "%30s : %d\n", sdd_sd->level);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sdd_sd->flags);
+            pr_info_view_on(stack_depth, "%30s : %u\n", sdd_sd->span_weight);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sdd_sd->span[0]);
+
+            pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sdd_sd->shared);
+            if (sdd_sd->shared) {
+                pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sd->shared->ref.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sd->shared->nr_busy_cpus.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sd->shared->has_idle_cores);
             }
-            pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd->groups);
-            if (sd->groups) {
-                pr_info_view_on(stack_depth, "%40s : %u\n", sd->groups->group_weight);
-                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sd->groups->cpumask[0]);
-                pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd->groups->next);
-                if (sd->groups->next) {
-                    pr_info_view_on(stack_depth, "%50s : 0x%X\n", sd->groups->next->cpumask[0]);
+            cnt = 0;
+            struct sched_group *sd_sg_next = sd_groups;
+            while (sd_sg_next) {
+                pr_info_view_on(stack_depth, "%40s : %d\n", cnt++);
+                pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);
+                pr_info_view_on(stack_depth, "%40s : %u\n", sd_sg_next->group_weight);
+                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sd_sg_next->cpumask[0]);
+                pr_info_view_on(stack_depth, "%50s : %p\n", (void*)sd_sg_next->sgc);
+                if (sd_sg_next->sgc) {
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->id);
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->ref.counter);
+                    pr_info_view_on(stack_depth, "%50s : %lu\n", sd_sg_next->sgc->capacity);
+                    pr_info_view_on(stack_depth, "%50s : 0x%X\n", sd_sg_next->sgc->cpumask[0]);
                 }
+                if (sd_groups == sd_sg_next->next) break;
+                sd_sg_next = sd_sg_next->next;
             }
-
-            struct sched_group *sg = *per_cpu_ptr(sdd->sg, cpu);
-            pr_info_view_on(stack_depth, "%30s : sdd->sg: %p\n", (void*)sg);
-            pr_info_view_on(stack_depth, "%30s : sdd->sg: %p\n", (void*)sg->next);
-            if (!sg) continue;
-
-            pr_info_view_on(stack_depth, "%30s : %d\n", sg->ref.counter);
-            pr_info_view_on(stack_depth, "%30s : %d\n", sg->asym_prefer_cpu);
-            pr_info_view_on(stack_depth, "%30s : %u\n", sg->group_weight);
-            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sg->cpumask[0]);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sg->sgc);
-            if (sg->sgc) {
-                pr_info_view_on(stack_depth, "%40s : %d\n", sg->sgc->id);
-                pr_info_view_on(stack_depth, "%40s : %d\n", sg->sgc->ref.counter);
-                pr_info_view_on(stack_depth, "%40s : %u\n", sg->sgc->capacity);
-                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sg->sgc->cpumask[0]);
+            cnt = 0;
+            struct sched_group *sdd_sg_next = sdd_sg;
+            while (sdd_sg_next) {
+                pr_info_view_on(stack_depth, "%40s : %d\n", cnt++);
+                pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sdd_sg_next);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sg_next->ref.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sg_next->asym_prefer_cpu);
+                pr_info_view_on(stack_depth, "%40s : %u\n", sdd_sg_next->group_weight);
+                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sdd_sg_next->cpumask[0]);
+                pr_info_view_on(stack_depth, "%50s : %p\n", (void*)sdd_sg_next->sgc);
+                if (sdd_sg_next->sgc) {
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sdd_sg_next->sgc->id);
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sdd_sg_next->sgc->ref.counter);
+                    pr_info_view_on(stack_depth, "%50s : %lu\n", sdd_sg_next->sgc->capacity);
+                    pr_info_view_on(stack_depth, "%50s : 0x%X\n", sdd_sg_next->sgc->cpumask[0]);
+                }
+                if (sdd_sg == sdd_sg_next->next) break;
+                sdd_sg_next = sdd_sg_next->next;
             }
-        }
+        } //for(cpu)
+    } //for(tl)
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
+{
+    pr_fn_start_on(stack_depth);
+
+    int i, cnt;
+    struct sched_domain *sd;
+
+    for_each_cpu(i, cpu_map) {
+        sd = *per_cpu_ptr(d.sd, i);
+        pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
+        pr_info_view_on(stack_depth, "%20s : d.sd: %p\n", (void*)sd);
     }
+
+    for_each_cpu(i, cpu_map) {
+        pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
+
+        cnt = 0;
+        for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
+            pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
+            pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+            pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->parent);
+        } //for(sd)
+    } //for(i)
     pr_fn_end_on(stack_depth);
 }

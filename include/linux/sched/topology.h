@@ -230,6 +230,8 @@ static inline int task_node(const struct task_struct *p)
 	return cpu_to_node(task_cpu(p));
 }
 
+struct s_data;
 void pr_debug_sd_topo_info(const struct cpumask *cpu_map);
+void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d);
 
 #endif /* _LINUX_SCHED_TOPOLOGY_H */

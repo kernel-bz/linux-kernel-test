@@ -5610,6 +5610,8 @@ static void update_cpu_capacity(struct sched_domain *sd, int cpu)
 
 void update_group_capacity(struct sched_domain *sd, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_domain *child = sd->child;
     struct sched_group *group, *sdg = sd->groups;
     unsigned long capacity, min_capacity, max_capacity;
@@ -5679,6 +5681,13 @@ void update_group_capacity(struct sched_domain *sd, int cpu)
     sdg->sgc->capacity = capacity;
     sdg->sgc->min_capacity = min_capacity;
     sdg->sgc->max_capacity = max_capacity;
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sdg);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sdg->sgc->capacity);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sdg->sgc->min_capacity);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sdg->sgc->max_capacity);
+
+    pr_fn_end_on(stack_depth);
 }
 //7844 lines
 
