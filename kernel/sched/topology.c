@@ -190,12 +190,13 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 	unsigned long cflags = sd->flags, pflags = parent->flags;
 
     pr_info_view_on(stack_depth, "%20s : 0x%X\n", cflags);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", pflags);
 
 	if (sd_degenerate(parent))
 		return 1;
 
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sched_domain_span(sd));
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", sched_domain_span(parent));
+    pr_info_view_on(stack_depth, "%40s : 0x%X\n", sched_domain_span(sd)->bits[0]);
+    pr_info_view_on(stack_depth, "%40s : 0x%X\n", sched_domain_span(parent)->bits[0]);
 
 	if (!cpumask_equal(sched_domain_span(sd), sched_domain_span(parent)))
 		return 0;
@@ -220,7 +221,8 @@ sd_parent_degenerate(struct sched_domain *sd, struct sched_domain *parent)
 			pflags &= ~SD_SERIALIZE;
 	}
 
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", pflags);
+    pr_info_view_on(stack_depth, "%40s : 0x%X\n", cflags);
+    pr_info_view_on(stack_depth, "%40s : 0x%X\n", pflags);
 
     pr_fn_end_on(stack_depth);
 
@@ -475,8 +477,12 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
 
 	raw_spin_lock_irqsave(&rq->lock, flags);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rd);
+
 	if (rq->rd) {
 		old_rd = rq->rd;
+
+        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)old_rd);
 
 		if (cpumask_test_cpu(rq->cpu, old_rd->online))
 			set_rq_offline(rq);
@@ -495,8 +501,14 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
 	atomic_inc(&rd->refcount);
 	rq->rd = rd;
 
-	cpumask_set_cpu(rq->cpu, rd->span);
-	if (cpumask_test_cpu(rq->cpu, cpu_active_mask))
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->rd);
+
+    cpumask_set_cpu(rq->cpu, rd->span);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", rq->cpu);
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", rd->span->bits[0]);
+
+    if (cpumask_test_cpu(rq->cpu, cpu_active_mask))
 		set_rq_online(rq);
 
 	raw_spin_unlock_irqrestore(&rq->lock, flags);
@@ -612,6 +624,9 @@ static void destroy_sched_domain(struct sched_domain *sd)
 {
     pr_fn_start_on(stack_depth);
 
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->groups);
+
 	/*
 	 * A normal sched domain may have multiple group references, an
 	 * overlapping domain, having private groups, only one.  Iterate,
@@ -628,6 +643,8 @@ static void destroy_sched_domain(struct sched_domain *sd)
 
 static void destroy_sched_domains_rcu(struct rcu_head *rcu)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_domain *sd = container_of(rcu, struct sched_domain, rcu);
 
 	while (sd) {
@@ -635,6 +652,8 @@ static void destroy_sched_domains_rcu(struct rcu_head *rcu)
 		destroy_sched_domain(sd);
 		sd = parent;
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void destroy_sched_domains(struct sched_domain *sd)
@@ -709,11 +728,13 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
     pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rd);
+    int cnt = 0;
 
 	/* Remove the sched domains which do not contribute to scheduling. */
 	for (tmp = sd; tmp; ) {
 		struct sched_domain *parent = tmp->parent;
 
+        pr_info_view_on(stack_depth, "%20s : %d\n", cnt++);
         pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
         if (!parent)
@@ -730,7 +751,9 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 			 */
 			if (parent->flags & SD_PREFER_SIBLING)
 				tmp->flags |= SD_PREFER_SIBLING;
-			destroy_sched_domain(parent);
+
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)parent);
+            destroy_sched_domain(parent);
 		} else
 			tmp = tmp->parent;
 	}
@@ -749,6 +772,12 @@ cpu_attach_domain(struct sched_domain *sd, struct root_domain *rd, int cpu)
 	tmp = rq->sd;
 	rcu_assign_pointer(rq->sd, sd);
 	dirty_sched_domain_sysctl(cpu);
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->rd);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->sd);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)tmp);
+
 	destroy_sched_domains(tmp);
 
 	update_top_cache_domain(cpu);
@@ -2366,7 +2395,7 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
 		if (rq->cpu_capacity_orig > READ_ONCE(d.rd->max_cpu_capacity))
 			WRITE_ONCE(d.rd->max_cpu_capacity, rq->cpu_capacity_orig);
 
-		cpu_attach_domain(sd, d.rd, i);
+        cpu_attach_domain(sd, d.rd, i);
 	}
 	rcu_read_unlock();
 
@@ -2386,6 +2415,7 @@ error:
     __free_domain_allocs(&d, alloc_state, cpu_map);
 
     //pr_debug_sd_data_info(cpu_map, d);
+    pr_debug_sd_rq_info(cpu_map);
 
     pr_fn_end_on(stack_depth);
 
@@ -2731,6 +2761,8 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
                 if (sd_groups == sd_sg_next->next) break;
                 sd_sg_next = sd_sg_next->next;
             }
+            if (sd_groups == sdd_sg) continue;
+
             cnt = 0;
             struct sched_group *sdd_sg_next = sdd_sg;
             while (sdd_sg_next) {
@@ -2759,7 +2791,7 @@ void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
 {
     pr_fn_start_on(stack_depth);
 
-    int i, cnt;
+    int i, cnt, gcnt;
     struct sched_domain *sd;
 
     for_each_cpu(i, cpu_map) {
@@ -2779,6 +2811,70 @@ void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
             pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
             pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
             pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->parent);
+            gcnt = 0;
+            struct sched_group *sd_sg_next = sd->groups;
+            while (sd_sg_next) {
+                pr_info_view_on(stack_depth, "%40s : %d\n", gcnt++);
+                pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);
+                pr_info_view_on(stack_depth, "%40s : %u\n", sd_sg_next->group_weight);
+                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sd_sg_next->cpumask[0]);
+                pr_info_view_on(stack_depth, "%50s : %p\n", (void*)sd_sg_next->sgc);
+                if (sd_sg_next->sgc) {
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->id);
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->ref.counter);
+                    pr_info_view_on(stack_depth, "%50s : %lu\n", sd_sg_next->sgc->capacity);
+                    pr_info_view_on(stack_depth, "%50s : 0x%X\n", sd_sg_next->sgc->cpumask[0]);
+                }
+                if (sd->groups == sd_sg_next->next) break;
+                sd_sg_next = sd_sg_next->next;
+            }
+        } //for(sd)
+    } //for(i)
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_debug_sd_rq_info(const struct cpumask *cpu_map)
+{
+    pr_fn_start_on(stack_depth);
+
+    int cpu, cnt, gcnt;
+    struct sched_domain *sd;
+    //struct root_domain *rd;
+
+    for_each_cpu(cpu, cpu_map) {
+        pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+        struct rq *rq = cpu_rq(cpu);
+        //rd = rq->rd;
+
+        cnt = 0;
+        for (sd = rq->sd; sd; sd = sd->parent) {
+            pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
+            pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+            pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
+            pr_info_view_on(stack_depth, "%30s : 0x%X\n", sd->flags);
+            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd->parent);
+            gcnt = 0;
+            struct sched_group *sd_sg_next = sd->groups;
+            while (sd_sg_next) {
+                pr_info_view_on(stack_depth, "%40s : %d\n", gcnt++);
+                pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
+                pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);
+                pr_info_view_on(stack_depth, "%40s : %u\n", sd_sg_next->group_weight);
+                pr_info_view_on(stack_depth, "%40s : 0x%X\n", sd_sg_next->cpumask[0]);
+                pr_info_view_on(stack_depth, "%50s : %p\n", (void*)sd_sg_next->sgc);
+                if (sd_sg_next->sgc) {
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->id);
+                    pr_info_view_on(stack_depth, "%50s : %d\n", sd_sg_next->sgc->ref.counter);
+                    pr_info_view_on(stack_depth, "%50s : %lu\n", sd_sg_next->sgc->capacity);
+                    pr_info_view_on(stack_depth, "%50s : 0x%X\n", sd_sg_next->sgc->cpumask[0]);
+                }
+                if (sd->groups == sd_sg_next->next) break;
+                sd_sg_next = sd_sg_next->next;
+            }
         } //for(sd)
     } //for(i)
     pr_fn_end_on(stack_depth);

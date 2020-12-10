@@ -5594,8 +5594,13 @@ static unsigned long scale_rt_capacity(struct sched_domain *sd, int cpu)
 
 static void update_cpu_capacity(struct sched_domain *sd, int cpu)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long capacity = scale_rt_capacity(sd, cpu);
     struct sched_group *sdg = sd->groups;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %lu\n", capacity);
 
     cpu_rq(cpu)->cpu_capacity_orig = arch_scale_cpu_capacity(cpu);
 
@@ -5606,6 +5611,8 @@ static void update_cpu_capacity(struct sched_domain *sd, int cpu)
     sdg->sgc->capacity = capacity;
     sdg->sgc->min_capacity = capacity;
     sdg->sgc->max_capacity = capacity;
+
+    pr_fn_end_on(stack_depth);
 }
 
 void update_group_capacity(struct sched_domain *sd, int cpu)
