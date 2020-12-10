@@ -2681,6 +2681,9 @@ void partition_sched_domains(int ndoms_new, cpumask_var_t doms_new[],
 	mutex_unlock(&sched_domains_mutex);
 }
 
+
+//----------------- User Defined Functions --------------------------
+
 void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
 {
     pr_fn_start_on(stack_depth);

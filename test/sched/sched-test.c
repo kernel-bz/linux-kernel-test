@@ -570,7 +570,8 @@ static int _sched_cfs_test_menu(int asize)
     printf("1: sched pelt info.\n");
     printf("2: leaf cfs_rq info.\n");
     printf("3: set_user_nice test.\n");
-    printf("4: exit.\n");
+    printf("4: run rebalance test.\n");
+    printf("5: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -583,6 +584,7 @@ static void _sched_cfs_test(void)
     void (*fn[])(void) = { _sched_test_help
         , _sched_pelt_info, pr_leaf_cfs_rq_info
         , _sched_set_user_nice_test
+        , sched_fair_run_rebalance	//kernel/sched/fair.c
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);

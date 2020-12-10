@@ -18,6 +18,8 @@ void decay_load_test(void);
 //test/sched/update_load_avg.c
 void update_load_avg_test(void);
 
+//kernel/sched/fair.c
+void sched_fair_run_rebalance(void);
 
 
 #ifdef __cplusplus
