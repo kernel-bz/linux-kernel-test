@@ -484,7 +484,8 @@ HEADERS += \
     include/linux/crc32c.h \
     include/linux/crc32poly.h \
     lib/crc32defs.h \
-    include/linux/compiler_attributes.h
+    include/linux/compiler_attributes.h \
+    arch/arm64/include/asm/numa_.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

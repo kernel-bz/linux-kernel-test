@@ -2711,6 +2711,7 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
             unsigned long cpu_capacity = arch_scale_cpu_capacity(cpu);
 
             pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
+            pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : %lu\n", cpu_capacity);
 
             if (tl->mask)
@@ -2749,6 +2750,7 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
             struct sched_group *sd_sg_next = sd_groups;
             while (sd_sg_next) {
                 pr_info_view_on(stack_depth, "%40s : %d\n", cnt++);
+                pr_out_on(stack_depth, "---------------------------------\n");
                 pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);
@@ -2770,6 +2772,7 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
             struct sched_group *sdd_sg_next = sdd_sg;
             while (sdd_sg_next) {
                 pr_info_view_on(stack_depth, "%40s : %d\n", cnt++);
+                pr_out_on(stack_depth, "---------------------------------\n");
                 pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sdd_sg_next);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sg_next->ref.counter);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sdd_sg_next->asym_prefer_cpu);
@@ -2805,10 +2808,12 @@ void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
 
     for_each_cpu(i, cpu_map) {
         pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
+        pr_out_on(stack_depth, "---------------------------------\n");
 
         cnt = 0;
         for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
             pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
             pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
             pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
@@ -2818,6 +2823,7 @@ void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
             struct sched_group *sd_sg_next = sd->groups;
             while (sd_sg_next) {
                 pr_info_view_on(stack_depth, "%40s : %d\n", gcnt++);
+                pr_out_on(stack_depth, "---------------------------------\n");
                 pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);
@@ -2848,12 +2854,15 @@ void pr_debug_sd_rq_info(const struct cpumask *cpu_map)
 
     for_each_cpu(cpu, cpu_map) {
         pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+        pr_out_on(stack_depth, "---------------------------------\n");
+
         struct rq *rq = cpu_rq(cpu);
         //rd = rq->rd;
 
         cnt = 0;
         for (sd = rq->sd; sd; sd = sd->parent) {
             pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
             pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
             pr_info_view_on(stack_depth, "%30s : %u\n", sd->span_weight);
@@ -2863,6 +2872,7 @@ void pr_debug_sd_rq_info(const struct cpumask *cpu_map)
             struct sched_group *sd_sg_next = sd->groups;
             while (sd_sg_next) {
                 pr_info_view_on(stack_depth, "%40s : %d\n", gcnt++);
+                pr_out_on(stack_depth, "---------------------------------\n");
                 pr_info_view_on(stack_depth, "%40s : %p\n", (void*)sd_sg_next);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->ref.counter);
                 pr_info_view_on(stack_depth, "%40s : %d\n", sd_sg_next->asym_prefer_cpu);

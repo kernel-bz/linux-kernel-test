@@ -440,7 +440,7 @@ EXPORT_SYMBOL_GPL(cpu_topology);
 
 const struct cpumask *cpu_coregroup_mask(int cpu)
 {
-	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
+    const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
 
 	/* Find the smaller of NUMA, core or LLC siblings */
 	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {

@@ -90,6 +90,8 @@
  * for such situations. See below and CPUMASK_ALLOC also.
  */
 
+#include "test/config.h"
+
 #include <linux/kernel.h>
 #include <linux/threads.h>
 #include <linux/bitmap.h>
@@ -446,6 +448,8 @@ static inline int next_memory_node(int nid)
 
 extern unsigned int nr_node_ids;
 extern unsigned int nr_online_nodes;
+
+#define nr_node_ids				4U
 
 static inline void node_set_online(int nid)
 {

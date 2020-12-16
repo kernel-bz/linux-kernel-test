@@ -14,9 +14,11 @@
 
 #include <linux/limits.h>
 #include <linux/cpumask.h>
+#include <linux/nodemask.h>
 #include <linux/cpu.h>
 #include <linux/sched/clock.h>
 #include <linux/sched/init.h>
+#include <linux/topology.h>
 
 #include "test/config.h"
 #include "test/debug.h"
@@ -70,23 +72,24 @@ static void _main_start_kernel(void)
     //setup_nr_cpu_ids();	//kernel/smp.c
     nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
 
-    boot_cpu_init();		//kernel/cpu.c
-    cpumask_setall(cpu_active_mask);
-    //cpumask_setall(cpu_online_mask);
-    //cpumask_set_cpu(0, cpu_online_mask);
-    //cpumask_clear_cpu(0, cpu_online_mask);
-    cpumask_set_cpu(1, cpu_online_mask);
-    //cpumask_set_cpu(6, cpu_online_mask);
-    //cpumask_set_cpu(7, cpu_online_mask);
-    cpumask_setall(cpu_present_mask);
-
     //arch/arm64/mm/numa.c
     numa_usr_set_node(NR_CPUS / nr_node_ids);
+#ifdef CONFIG_ARM64
+    arm64_numa_init();
+#endif
+
+    boot_cpu_init();		//kernel/cpu.c
+    cpumask_setall(cpu_active_mask);
+    cpumask_setall(cpu_online_mask);
+    //cpumask_set_cpu(0, cpu_online_mask);
+    //cpumask_clear_cpu(0, cpu_online_mask);
+    cpumask_setall(cpu_present_mask);
 
     sched_init();
     sched_clock_init();
 
     pr_sched_cpumask_bits_info(nr_cpu_ids);
+    numa_distance_info();
 
     pr_fn_end_on(stack_depth);
 }

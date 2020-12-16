@@ -11,6 +11,7 @@
 #include <linux/cache.h>
 
 #include <asm-generic/page.h>
+#include <arch/arm64/include/asm/numa_.h>
 
 /**
  * cpumask_next - get the next cpu in a cpumask

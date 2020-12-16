@@ -2,6 +2,7 @@
 #ifndef _LINUX_NUMA_H
 #define _LINUX_NUMA_H
 
+#include "test/config.h"
 
 #ifdef CONFIG_NODES_SHIFT
 #define NODES_SHIFT     CONFIG_NODES_SHIFT

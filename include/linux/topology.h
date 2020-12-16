@@ -36,6 +36,7 @@
 //#include <asm/topology.h>
 
 #include <linux/percpu.h>
+#include <arch/arm64/include/asm/numa_.h>
 
 #ifndef nr_cpus_node
 #define nr_cpus_node(node) cpumask_weight(cpumask_of_node(node))
@@ -50,9 +51,13 @@ int arch_update_cpu_topology(void);
 /* Conform to ACPI 2.0 SLIT distance definitions */
 #define LOCAL_DISTANCE		10
 #define REMOTE_DISTANCE		20
+
+#ifndef CONFIG_ARM64
 #ifndef node_distance
 #define node_distance(from,to)	((from) == (to) ? LOCAL_DISTANCE : REMOTE_DISTANCE)
 #endif
+#endif
+
 #ifndef RECLAIM_DISTANCE
 /*
  * If the distance between nodes in a system is larger than RECLAIM_DISTANCE

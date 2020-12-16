@@ -10,6 +10,10 @@
 #ifndef __TEST_DEFINE_USR_H
 #define __TEST_DEFINE_USR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <assert.h>
@@ -129,12 +133,14 @@ static inline int signal_pending_state(long state, struct task_struct *p) { }
 static inline void kmemleak_update_trace(const void *ptr) { }
 
 //include/asm-generic/topology.h
+#if 0
 #ifndef cpumask_of_node
   #ifdef CONFIG_NEED_MULTIPLE_NODES
     #define cpumask_of_node(node)	((node) == 0 ? cpu_online_mask : cpu_none_mask)
   #else
     #define cpumask_of_node(node)	((void)(node), cpu_online_mask)
   #endif
+#endif
 #endif
 
 //include/linux/sched/cputime.h
@@ -215,5 +221,9 @@ static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
 //include/linux/mm.h
 #define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __TEST_DEFINE_USR_H

@@ -11,7 +11,6 @@
 
 #include <linux/of.h>
 #include <linux/of_address.h>
-#include <linux/nodemask.h>
 
 //#include <asm/numa.h>
 
