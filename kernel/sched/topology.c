@@ -2710,6 +2710,7 @@ void pr_debug_sd_topo_info(const struct cpumask *cpu_map)
         for_each_cpu(cpu, cpu_map) {
             unsigned long cpu_capacity = arch_scale_cpu_capacity(cpu);
 
+            pr_out_on(stack_depth, "=================================\n");
             pr_info_view_on(stack_depth, "%30s : %d\n", cpu);
             pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : %lu\n", cpu_capacity);
@@ -2807,12 +2808,14 @@ void pr_debug_sd_data_info(const struct cpumask *cpu_map, struct s_data d)
     }
 
     for_each_cpu(i, cpu_map) {
+        pr_out_on(stack_depth, "=================================\n");
         pr_info_view_on(stack_depth, "%20s : cpu: %d\n", i);
         pr_out_on(stack_depth, "---------------------------------\n");
 
         cnt = 0;
         for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
-            pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_out_on(stack_depth, "---------------------------------\n");
+            pr_info_view_on(stack_depth, "%30s : d.sd->parent: %d\n", cnt++);
             pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
             pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
@@ -2853,6 +2856,7 @@ void pr_debug_sd_rq_info(const struct cpumask *cpu_map)
     //struct root_domain *rd;
 
     for_each_cpu(cpu, cpu_map) {
+        pr_out_on(stack_depth, "=================================\n");
         pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
         pr_out_on(stack_depth, "---------------------------------\n");
 
@@ -2861,7 +2865,8 @@ void pr_debug_sd_rq_info(const struct cpumask *cpu_map)
 
         cnt = 0;
         for (sd = rq->sd; sd; sd = sd->parent) {
-            pr_info_view_on(stack_depth, "%30s : %d\n", cnt++);
+            pr_out_on(stack_depth, "---------------------------------\n");
+            pr_info_view_on(stack_depth, "%30s : rq->sd->parent: %d\n", cnt++);
             pr_out_on(stack_depth, "---------------------------------\n");
             pr_info_view_on(stack_depth, "%30s : d.sd: %p\n", (void*)sd);
             pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);

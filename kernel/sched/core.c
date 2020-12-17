@@ -3270,9 +3270,6 @@ void __init sched_init_smp(void)
 
     sched_smp_initialized = true;
 
-    pr_debug_sd_topo_info(cpu_active_mask);
-    pr_debug_sd_rq_info(cpu_active_mask);
-
     pr_fn_end_on(stack_depth);
 }
 
