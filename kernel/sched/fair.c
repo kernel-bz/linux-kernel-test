@@ -7357,14 +7357,26 @@ out:
 static inline unsigned long
 get_sd_balance_interval(struct sched_domain *sd, int cpu_busy)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long interval = sd->balance_interval;
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sd->balance_interval);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sd->busy_factor);
+    pr_info_view_on(stack_depth, "%30s : %d\n", cpu_busy);
 
     if (cpu_busy)
         interval *= sd->busy_factor;
 
+    pr_info_view_on(stack_depth, "%30s : ms: %lu\n", interval);
+
     /* scale ms to jiffies */
     interval = msecs_to_jiffies(interval);
     interval = clamp(interval, 1UL, max_load_balance_interval);
+
+    pr_info_view_on(stack_depth, "%30s : jiffies: %lu\n", interval);
+
+    pr_fn_end_on(stack_depth);
 
     return interval;
 }
@@ -7510,8 +7522,12 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
 
     rcu_read_lock();
     for_each_domain(cpu, sd) {
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)sd);
-        pr_info_view_on(stack_depth, "%20s : %s\n", sd->name);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
+        pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", next_balance);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
         /*
          * Decay the newidle max times here because this is a regular
          * visit to all the domains. Decay ~1% per second.
@@ -7540,8 +7556,12 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
 
         interval = get_sd_balance_interval(sd, idle != CPU_IDLE);
 
-        pr_info_view_on(stack_depth, "%30s : %lu\n", interval);
         pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", interval);
+        pr_info_view_on(stack_depth, "%30s : %d\n", need_decay);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
+        pr_info_view_on(stack_depth, "%30s : %llu\n", max_cost);
 
         need_serialize = sd->flags & SD_SERIALIZE;
         if (need_serialize) {
@@ -7570,11 +7590,13 @@ out:
             update_next_balance = 1;
         }
 
+        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
         pr_info_view_on(stack_depth, "%30s : %lu\n", interval);
         pr_info_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
         pr_info_view_on(stack_depth, "%30s : %lu\n", next_balance);
+        pr_info_view_on(stack_depth, "%30s : %d\n", update_next_balance);
         pr_info_view_on(stack_depth, "%30s : %d\n", continue_balancing);
-        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        jiffies += 3;
     }
     if (need_decay) {
         /*
@@ -7608,10 +7630,31 @@ out:
 #endif
     }
 
+    pr_info_view_on(stack_depth, "%30s : %lu\n", rq->next_balance);
+
     pr_fn_end_on(stack_depth);
 }
-//9301 lines
 
+static inline int on_null_domain(struct rq *rq)
+{
+    return unlikely(!rcu_dereference_sched(rq->sd));
+}
+//9306 lines
+
+
+
+//9745 lines
+//#else /* !CONFIG_NO_HZ_COMMON */
+static inline void nohz_balancer_kick(struct rq *rq) { }
+
+static inline bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
+{
+    return false;
+}
+
+static inline void nohz_newidle_balance(struct rq *this_rq) { }
+//#endif /* CONFIG_NO_HZ_COMMON */
+//9756 lines
 
 
 
@@ -7648,11 +7691,21 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
     pr_fn_end_on(stack_depth);
 }
 
+/*
+ * Trigger the SCHED_SOFTIRQ if it is time to do periodic load balancing.
+ */
+void trigger_load_balance(struct rq *rq)
+{
+    /* Don't need to rebalance while attached to NULL domain */
+    if (unlikely(on_null_domain(rq)))
+        return;
 
+    //if (time_after_eq(jiffies, rq->next_balance))
+    //	raise_softirq(SCHED_SOFTIRQ);
 
-
-
-//9915 lines
+    nohz_balancer_kick(rq);
+}
+//9915
 static void rq_online_fair(struct rq *rq)
 {
     update_sysctl();
