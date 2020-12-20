@@ -6266,6 +6266,8 @@ static inline void update_sg_lb_stats(struct lb_env *env,
                       struct sg_lb_stats *sgs,
                       int *sg_status)
 {
+    pr_fn_start_on(stack_depth);
+
     int i, nr_running;
 
     memset(sgs, 0, sizeof(*sgs));
@@ -6315,6 +6317,20 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 
     sgs->group_no_capacity = group_is_overloaded(env, sgs);
     sgs->group_type = group_classify(group, sgs);
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->avg_load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->group_load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->load_per_task);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->group_capacity);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->group_util);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sgs->group_misfit_task_load);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sgs->sum_nr_running);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sgs->idle_cpus);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sgs->group_weight);
+    pr_info_view_on(stack_depth, "%30s : %u\n", sgs->group_no_capacity);
+    pr_info_view_on(stack_depth, "%30s : %d\n", sgs->group_type);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -6532,6 +6548,11 @@ next_group:
         WRITE_ONCE(rd->overutilized, SG_OVERUTILIZED);
         //trace_sched_overutilized_tp(rd, SG_OVERUTILIZED);
     }
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_running);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_capacity);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", sds->avg_load);
 
     pr_fn_end_on(stack_depth);
 }
@@ -7524,6 +7545,7 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
     for_each_domain(cpu, sd) {
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sd);
         pr_info_view_on(stack_depth, "%30s : %s\n", sd->name);
+        pr_out_on(stack_depth, "-------------------------------------------\n");
         pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
         pr_info_view_on(stack_depth, "%30s : %lu\n", next_balance);
         pr_info_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
@@ -7590,8 +7612,6 @@ out:
             update_next_balance = 1;
         }
 
-        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
-        pr_info_view_on(stack_depth, "%30s : %lu\n", interval);
         pr_info_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
         pr_info_view_on(stack_depth, "%30s : %lu\n", next_balance);
         pr_info_view_on(stack_depth, "%30s : %d\n", update_next_balance);
