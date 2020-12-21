@@ -1152,12 +1152,46 @@ update_stats_curr_start(struct cfs_rq *cfs_rq, struct sched_entity *se)
      */
     se->exec_start = rq_clock_task(rq_of(cfs_rq));
 }
-
+//1048
 /**************************************************
  * Scheduling class queueing methods:
  */
-//1052 lines
 
+//#ifdef CONFIG_NUMA_BALANCING
+/*
+ * Approximate time to scan a full NUMA task in ms. The task scan period is
+ * calculated based on the tasks virtual memory size and
+ * numa_balancing_scan_size.
+ */
+unsigned int sysctl_numa_balancing_scan_period_min = 1000;
+unsigned int sysctl_numa_balancing_scan_period_max = 60000;
+
+/* Portion of address space to scan in MB */
+unsigned int sysctl_numa_balancing_scan_size = 256;
+
+/* Scan @scan_size MB every @scan_period after an initial @scan_delay in ms */
+unsigned int sysctl_numa_balancing_scan_delay = 1000;
+
+struct numa_group {
+    refcount_t refcount;
+
+    spinlock_t lock; /* nr_tasks, tasks */
+    int nr_tasks;
+    pid_t gid;
+    int active_nodes;
+
+    struct rcu_head rcu;
+    unsigned long total_faults;
+    unsigned long max_faults_cpu;
+    /*
+     * Faults_cpu is used to decide whether memory should move
+     * towards the CPU. As a consequence, these stats are weighted
+     * more by CPU use than by memory faults.
+     */
+    unsigned long *faults_cpu;
+    unsigned long faults[0];
+};
+//1087 lines
 
 
 
@@ -1198,7 +1232,7 @@ account_entity_enqueue(struct cfs_rq *cfs_rq, struct sched_entity *se)
         pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs_tasks);
 
         //account_numa_enqueue(rq, task_of(se));
-        //list_add(&se->group_node, &rq->cfs_tasks);	//error
+        list_add(&se->group_node, &rq->cfs_tasks);	//error
     }
 #endif
     cfs_rq->nr_running++;
@@ -5450,6 +5484,8 @@ static inline int migrate_degrades_locality(struct task_struct *p,
 static
 int can_migrate_task(struct task_struct *p, struct lb_env *env)
 {
+    pr_fn_start_on(stack_depth);
+
     int tsk_cache_hot;
 
     lockdep_assert_held(&env->src_rq->lock);
@@ -5521,6 +5557,8 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
         return 1;
     }
 
+    pr_fn_end_on(stack_depth);
+
     schedstat_inc(p->se.statistics.nr_failed_migrations_hot);
     return 0;
 }
@@ -5576,6 +5614,8 @@ static const unsigned int sched_nr_migrate_break = 32;
  */
 static int detach_tasks(struct lb_env *env)
 {
+    pr_fn_start_on(stack_depth);
+
     struct list_head *tasks = &env->src_rq->cfs_tasks;
     struct task_struct *p;
     unsigned long load;
@@ -5585,6 +5625,8 @@ static int detach_tasks(struct lb_env *env)
 
     if (env->imbalance <= 0)
         return 0;
+
+    pr_info_view_on(stack_depth, "%30s : %u\n", env->loop_max);
 
     while (!list_empty(tasks)) {
         /*
@@ -5597,6 +5639,8 @@ static int detach_tasks(struct lb_env *env)
         p = list_last_entry(tasks, struct task_struct, se.group_node);
 
         env->loop++;
+        pr_info_view_on(stack_depth, "%30s : %u\n", env->loop);
+
         /* We've more or less seen every task there is, call it quits */
         if (env->loop > env->loop_max)
             break;
@@ -5612,6 +5656,9 @@ static int detach_tasks(struct lb_env *env)
             goto next;
 
         load = task_h_load(p);
+
+        pr_info_view_on(stack_depth, "%30s : task: %lu\n", load);
+        pr_info_view_on(stack_depth, "%30s : task: %lu\n", env->imbalance);
 
         if (sched_feat(LB_MIN) && load < 16 && !env->sd->nr_balance_failed)
             goto next;
@@ -5654,6 +5701,9 @@ next:
      */
     schedstat_add(env->sd->lb_gained[env->idle], detached);
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", detached);
+    pr_fn_end_on(stack_depth);
+
     return detached;
 }
 
@@ -5689,6 +5739,8 @@ static void attach_one_task(struct rq *rq, struct task_struct *p)
  */
 static void attach_tasks(struct lb_env *env)
 {
+    pr_fn_start_on(stack_depth);
+
     struct list_head *tasks = &env->tasks;
     struct task_struct *p;
     struct rq_flags rf;
@@ -5704,6 +5756,8 @@ static void attach_tasks(struct lb_env *env)
     }
 
     rq_unlock(env->dst_rq, &rf);
+
+    pr_fn_end_on(stack_depth);
 }
 //7478
 #ifdef CONFIG_NO_HZ_COMMON
@@ -6267,6 +6321,7 @@ static inline void update_sg_lb_stats(struct lb_env *env,
                       int *sg_status)
 {
     pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", group->cpumask[0]);
 
     int i, nr_running;
 
@@ -6549,6 +6604,8 @@ next_group:
         //trace_sched_overutilized_tp(rd, SG_OVERUTILIZED);
     }
 
+    pr_info_view_on(stack_depth, "%30s : %s\n", env->sd->name);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", env->sd->span[0]);
     pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_running);
     pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_load);
     pr_info_view_on(stack_depth, "%30s : %lu\n", sds->total_capacity);
@@ -6680,11 +6737,16 @@ void fix_small_imbalance(struct lb_env *env, struct sd_lb_stats *sds)
  */
 static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *sds)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long max_pull, load_above_capacity = ~0UL;
     struct sg_lb_stats *local, *busiest;
 
     local = &sds->local_stat;
     busiest = &sds->busiest_stat;
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", local->group_type);
+    pr_info_view_on(stack_depth, "%30s : %d\n", busiest->group_type);
 
     if (busiest->group_type == group_imbalanced) {
         /*
@@ -6742,6 +6804,8 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
         env->imbalance = max_t(long, env->imbalance,
                        busiest->group_misfit_task_load);
     }
+
+    pr_fn_end_on(stack_depth);
 
     /*
      * if *imbalance is less than the average load per runnable task
@@ -6811,6 +6875,7 @@ static struct sched_group *find_busiest_group(struct lb_env *env)
     pr_info_view_on(stack_depth, "%30s : %lu\n", sds.avg_load);
     pr_info_view_on(stack_depth, "%30s : %lu\n", local->avg_load);
     pr_info_view_on(stack_depth, "%30s : %lu\n", busiest->avg_load);
+    pr_info_view_on(stack_depth, "%30s : %d\n", busiest->group_type);
 
     /*
      * If the busiest group is imbalanced the below checks don't
@@ -6873,6 +6938,7 @@ force_balance:
     calculate_imbalance(env, &sds);
 
     pr_info_view_on(stack_depth, "%30s : %ld\n", env->imbalance);
+    pr_info_view_on(stack_depth, "%30s : %d\n", env->src_grp_type);
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)sds.busiest);
     pr_fn_end_on(stack_depth);
 
@@ -6881,6 +6947,7 @@ force_balance:
 out_balanced:
     env->imbalance = 0;
 
+    pr_info_view_on(stack_depth, "%30s : %ld\n", env->imbalance);
     pr_fn_end_on(stack_depth);
 
     return NULL;
@@ -6892,6 +6959,8 @@ out_balanced:
 static struct rq *find_busiest_queue(struct lb_env *env,
                      struct sched_group *group)
 {
+    pr_fn_start_on(stack_depth);
+
     struct rq *busiest = NULL, *rq;
     unsigned long busiest_load = 0, busiest_capacity = 1;
     int i;
@@ -6901,7 +6970,14 @@ static struct rq *find_busiest_queue(struct lb_env *env,
         enum fbq_type rt;
 
         rq = cpu_rq(i);
+
+        pr_info_view_on(stack_depth, "%30s : cpu: %d\n", i);
+        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+
         rt = fbq_classify_rq(rq);
+
+        pr_info_view_on(stack_depth, "%30s : fbq_type: %d\n", rt);
+        pr_info_view_on(stack_depth, "%30s : %d\n", env->fbq_type);
 
         /*
          * We classify groups/runqueues into three groups:
@@ -6925,6 +7001,8 @@ static struct rq *find_busiest_queue(struct lb_env *env,
         if (rt > env->fbq_type)
             continue;
 
+        pr_info_view_on(stack_depth, "%30s : %d\n", env->src_grp_type);
+
         /*
          * For ASYM_CPUCAPACITY domains with misfit tasks we simply
          * seek the "biggest" misfit task.
@@ -6939,6 +7017,7 @@ static struct rq *find_busiest_queue(struct lb_env *env,
         }
 
         capacity = capacity_of(i);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", capacity);
 
         /*
          * For ASYM_CPUCAPACITY domains, don't pick a CPU that could
@@ -6952,6 +7031,8 @@ static struct rq *find_busiest_queue(struct lb_env *env,
             continue;
 
         load = cpu_runnable_load(rq);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", load);
+        pr_info_view_on(stack_depth, "%30s : %d\n", rq->nr_running);
 
         /*
          * When comparing with imbalance, use cpu_runnable_load()
@@ -6979,6 +7060,12 @@ static struct rq *find_busiest_queue(struct lb_env *env,
             busiest = rq;
         }
     }
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", busiest_load);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", busiest_capacity);
+    pr_info_view_on(stack_depth, "%30s : rq: %p\n", (void*)busiest);
+
+    pr_fn_end_on(stack_depth);
 
     return busiest;
 }
@@ -7144,12 +7231,18 @@ redo:
         goto out_balanced;
     }
 
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)busiest);
+    pr_info_view_on(stack_depth, "%30s : %d\n", env.dst_cpu);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)env.dst_rq);
     BUG_ON(busiest == env.dst_rq);
 
     schedstat_add(sd->lb_imbalance[idle], env.imbalance);
 
     env.src_cpu = busiest->cpu;
     env.src_rq = busiest;
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", env.src_cpu);
+    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)env.src_rq);
 
     ld_moved = 0;
     if (busiest->nr_running > 1) {
@@ -7171,6 +7264,8 @@ more_balance:
          * ld_moved     - cumulative load moved across iterations
          */
         cur_ld_moved = detach_tasks(&env);
+
+        pr_info_view_on(stack_depth, "%30s : %d\n", cur_ld_moved);
 
         /*
          * We've detached some tasks from busiest_rq. Every
@@ -7565,6 +7660,8 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
         if (!(sd->flags & SD_LOAD_BALANCE))
             continue;
 
+        pr_info_view_on(stack_depth, "%30s : %d\n", continue_balancing);
+
         /*
          * Stop the load balance at this level. There is another
          * CPU in our sched group which is doing load balancing more
@@ -7579,6 +7676,7 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
         interval = get_sd_balance_interval(sd, idle != CPU_IDLE);
 
         pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_info_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
         pr_info_view_on(stack_depth, "%30s : %lu\n", interval);
         pr_info_view_on(stack_depth, "%30s : %d\n", need_decay);
         pr_info_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
@@ -7586,10 +7684,12 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
         pr_info_view_on(stack_depth, "%30s : %llu\n", max_cost);
 
         need_serialize = sd->flags & SD_SERIALIZE;
+        pr_info_view_on(stack_depth, "%30s : %d\n", need_serialize);
+
         if (need_serialize) {
             //if (!spin_trylock(&balancing))
-            if (!spin_lock(&balancing))
-                goto out;
+            //if (!spin_lock(&balancing))
+                //goto out;
         }
 
         if (time_after_eq(jiffies, sd->last_balance + interval)) {
@@ -7706,7 +7806,8 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 
     /* normal load balance */
     update_blocked_averages(this_rq->cpu);
-    rebalance_domains(this_rq, idle);
+    //rebalance_domains(this_rq, idle);
+    rebalance_domains(this_rq, CPU_IDLE);
 
     pr_fn_end_on(stack_depth);
 }

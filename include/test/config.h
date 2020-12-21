@@ -10,7 +10,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20201210	//test date
+#define CONFIG_VERSION_3		20201221	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -76,7 +76,7 @@ extern "C" {
 #define CONFIG_SCHED_DEBUG
 
 #define CONFIG_NO_HZ_COMMON
-
+//#define CONFIG_NUMA_BALANCING
 
 //Memory Configuration -----------------------------------
 #define CONFIG_ARCH_KEEP_MEMBLOCK
