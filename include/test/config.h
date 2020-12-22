@@ -78,6 +78,9 @@ extern "C" {
 #define CONFIG_NO_HZ_COMMON
 //#define CONFIG_NUMA_BALANCING
 
+#define CONFIG_HAVE_SCHED_AVG_IRQ
+
+
 //Memory Configuration -----------------------------------
 #define CONFIG_ARCH_KEEP_MEMBLOCK
 #define CONFIG_HAVE_MEMBLOCK_NODE_MAP

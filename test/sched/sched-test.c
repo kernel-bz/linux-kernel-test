@@ -342,19 +342,12 @@ static int loadavg_proc_show(struct seq_file *m, void *v)
 static void _calc_global_load_test(void)
 {
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
-    int i, dbase, dlevel, loop_cnt=20;
+    int i, loop_cnt=20;
     int step=1;
 
     __fpurge(stdin);
-    printf("Enter Debug Base Number[0,%d]: ", DebugBase);
-    scanf("%d", &dbase);
-    printf("Enter Debug Level Number[0,%d]: ", DebugLevel);
-    scanf("%d", &dlevel);
     printf("Enter tick loop counter[1,%d]: ", loop_cnt);
     scanf("%d", &loop_cnt);
-
-    DebugLevel = dlevel;
-    DebugBase = dbase;
 
     pr_fn_start_on(stack_depth);
 

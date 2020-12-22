@@ -25,7 +25,8 @@
 #include "test/basic.h"
 #include "test/test.h"
 
-int DebugLevel = S32_MAX;
+//int DebugLevel = S32_MAX;
+int DebugLevel = 200;
 int DebugBase = 0;
 
 static void _main_menu_help(void)
@@ -57,6 +58,20 @@ static int _main_start_kernel_menu(int asize)
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
     return (idx >= 0 && idx < asize) ? idx : -1;
+}
+
+static void _main_config_set_debug_level(void)
+{
+    int dbase, dlevel;
+
+    __fpurge(stdin);
+    printf("Enter Debug Base Number[0,%d]: ", DebugBase);
+    scanf("%d", &dbase);
+    printf("Enter Debug Level Number[0,%d]: ", DebugLevel);
+    scanf("%d", &dlevel);
+
+    DebugLevel = dlevel;
+    DebugBase = dbase;
 }
 
 //init/main.c:
@@ -119,11 +134,12 @@ static int _main_menu(int asize)
     printf("\n");
     printf("[*] Linux Kernel Source Test (c)www.kernel.bz\n");
     printf("0: help.\n");
-    printf("1: basic types test.\n");
-    printf("2: cpu mask test.\n");
-    printf("3: Start Kernel Test -->\n");
-    printf("4: Scheduler Source Test -->\n");
-    printf("5: exit.\n");
+    printf("1: Config Set Debug Level.\n");
+    printf("2: basic types test.\n");
+    printf("3: cpu mask test.\n");
+    printf("4: Start Kernel Test -->\n");
+    printf("5: Scheduler Source Test -->\n");
+    printf("6: exit.\n");
     printf("Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
@@ -136,7 +152,9 @@ static int _main_menu(int asize)
 int main(void)
 {
     void (*fn[])(void) = { _main_menu_help
-            , basic_types_test, cpus_mask_test
+            , _main_config_set_debug_level
+            , basic_types_test
+            , cpus_mask_test
             , _main_start_kernel_test
             , sched_test
     };
