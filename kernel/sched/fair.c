@@ -6705,6 +6705,8 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
 static inline
 void fix_small_imbalance(struct lb_env *env, struct sd_lb_stats *sds)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long tmp, capa_now = 0, capa_move = 0;
     unsigned int imbn = 2;
     unsigned long scaled_busy_load_per_task;
@@ -6763,6 +6765,13 @@ void fix_small_imbalance(struct lb_env *env, struct sd_lb_stats *sds)
     /* Move if we gain throughput */
     if (capa_move > capa_now)
         env->imbalance = busiest->load_per_task;
+
+    pr_info_view_on(stack_depth, "%30s : %lu\n", capa_now);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", capa_move);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", busiest->load_per_task);
+    pr_info_view_on(stack_depth, "%30s : %ld\n", env->imbalance);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -6841,6 +6850,8 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
                        busiest->group_misfit_task_load);
     }
 
+    pr_info_view_on(stack_depth, "%30s : %ld\n", env->imbalance);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", busiest->load_per_task);
     pr_fn_end_on(stack_depth);
 
     /*

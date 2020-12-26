@@ -12,14 +12,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <linux/limits.h>
-#include <linux/cpumask.h>
-#include <linux/nodemask.h>
-#include <linux/cpu.h>
-#include <linux/sched/clock.h>
-#include <linux/sched/init.h>
-#include <linux/topology.h>
-
 #include "test/config.h"
 #include "test/debug.h"
 #include "test/basic.h"
@@ -42,90 +34,6 @@ static void _main_menu_help(void)
     return;
 }
 
-static int _main_start_kernel_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Start Kernel Test Menu\n");
-    printf("0: help.\n");
-    printf("1: sched_init test.\n");
-    printf("2: sched_init_smp test.\n");
-    printf("3: exit.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
-}
-
-static void _main_config_set_debug_level(void)
-{
-    int dbase, dlevel;
-
-    __fpurge(stdin);
-    printf("Enter Debug Base Number[0,%d]: ", DebugBase);
-    scanf("%d", &dbase);
-    printf("Enter Debug Level Number[0,%d]: ", DebugLevel);
-    scanf("%d", &dlevel);
-
-    DebugLevel = dlevel;
-    DebugBase = dbase;
-}
-
-//init/main.c:
-//  start_kernel()
-//    rest_init()
-//      kernel_thread(kernel_init, NULL, CLONE_FS)
-//        kernel_init()
-//          kernel_init_freeable()
-static void _main_start_kernel(void)
-{
-    pr_fn_start_on(stack_depth);
-
-    //setup_nr_cpu_ids();	//kernel/smp.c
-    nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
-
-    //arch/arm64/mm/numa.c
-    numa_usr_set_node(NR_CPUS / nr_node_ids);
-#ifdef CONFIG_ARM64
-    arm64_numa_init();
-#endif
-
-    boot_cpu_init();		//kernel/cpu.c
-    cpumask_setall(cpu_active_mask);
-    cpumask_setall(cpu_online_mask);
-    //cpumask_set_cpu(0, cpu_online_mask);
-    //cpumask_clear_cpu(0, cpu_online_mask);
-    cpumask_setall(cpu_present_mask);
-
-    sched_init();
-    sched_clock_init();
-
-    pr_sched_cpumask_bits_info(nr_cpu_ids);
-    numa_distance_info();
-
-    pr_fn_end_on(stack_depth);
-}
-
-void _main_start_kernel_test(void)
-{
-    void (*fn[])(void) = { _main_menu_help
-        , _main_start_kernel
-        , sched_init_smp	//kernel/sched/core.c
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-_retry:
-    idx = _main_start_kernel_menu(asize);
-    if (idx >= 0) {
-        fn[idx]();
-        goto _retry;
-    }
-}
-
 static int _main_menu(int asize)
 {
     int idx;
@@ -134,9 +42,9 @@ static int _main_menu(int asize)
     printf("\n");
     printf("[*] Linux Kernel Source Test (c)www.kernel.bz\n");
     printf("0: help.\n");
-    printf("1: Config Set Debug Level.\n");
-    printf("2: basic types test.\n");
-    printf("3: cpu mask test.\n");
+    printf("1: Config Setting -->\n");
+    printf("2: Basic Training -->\n");
+    printf("3: Struct & Algorithm -->\n");
     printf("4: Start Kernel Test -->\n");
     printf("5: Scheduler Source Test -->\n");
     printf("6: exit.\n");
@@ -152,10 +60,10 @@ static int _main_menu(int asize)
 int main(void)
 {
     void (*fn[])(void) = { _main_menu_help
-            , _main_config_set_debug_level
-            , basic_types_test
-            , cpus_mask_test
-            , _main_start_kernel_test
+            , config_setting
+            , basic_training
+            , struct_algorithm
+            , init_start_kernel
             , sched_test
     };
     int idx;

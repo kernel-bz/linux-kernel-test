@@ -5,8 +5,10 @@
 extern "C" {
 #endif
 
-//test/cpu/cpus-mask-test.c
-void cpus_mask_test(void);
+//test/algorithm
+void struct_algorithm(void);
+
+void init_start_kernel(void);
 
 //test/sched/sched-test.c
 void sched_test(void);

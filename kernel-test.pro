@@ -16,7 +16,6 @@ INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/
 
 SOURCES += \
     main.c \
-    test/cpu/cpus-mask-test.c \
     test/sched/decay_load.c \
     test/sched/update_load_avg.c \
     mm/slab_user.c \
@@ -121,7 +120,12 @@ SOURCES += \
     kernel/sched/debug_.c \
     kernel/cpu_.c \
     drivers/base/core_.c \
-    arch/arm64/mm/numa.c
+    arch/arm64/mm/numa.c \
+    test/basic/cpus-mask-test.c \
+    test/config/config.c \
+    test/basic/basic.c \
+    test/algorithm/algorithm.c \
+    test/init/init.c
 
 HEADERS += \
     include/test/test.h \

@@ -10,7 +10,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20201221	//test date
+#define CONFIG_VERSION_3		20201226	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -33,7 +33,7 @@ extern "C" {
 
 //CPU Configuration ----------------------------------------
 //#define CONFIG_NR_CPUS		4
-#define CONFIG_NR_CPUS		8
+#define CONFIG_NR_CPUS			8
 //#define CONFIG_NR_CPUS		16
 #define CONFIG_SMP
 
@@ -101,6 +101,8 @@ extern "C" {
 #define CONFIG_OF_UNITTEST
 #define CONFIG_OF_EARLY_FLATTREE
 
+
+void config_setting(void);
 
 #ifdef __cplusplus
 }
