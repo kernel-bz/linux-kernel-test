@@ -10,6 +10,24 @@
 #include <stdlib.h>
 
 #include "test/debug.h"
+#include "test/config.h"
+
+static void _config_view(void)
+{
+    printf("\n");
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_HZ);
+#ifdef CONFIG_ARM64
+    pr_info_view_on(stack_depth, "%20s : %s\n", "CONFIG_ARM64");
+#endif
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_NR_CPUS);
+#ifdef CONFIG_NUMA
+    pr_info_view_on(stack_depth, "%20s : %s\n", "CONFIG_NUMA");
+#endif
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_NODES_SHIFT);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", DebugBase);
+    pr_info_view_on(stack_depth, "%20s : %d\n", DebugLevel);
+}
 
 static void _config_set_debug_level(void)
 {
@@ -46,8 +64,9 @@ static int _config_setting_menu(int asize)
     printf("\n");
     printf("[#]--> Config Setting Menu\n");
     printf("0: help.\n");
-    printf("1: Set Debug Level.\n");
-    printf("2: exit.\n");
+    printf("1: Config View.\n");
+    printf("2: Set Debug Level.\n");
+    printf("3: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -58,6 +77,7 @@ static int _config_setting_menu(int asize)
 void config_setting(void)
 {
     void (*fn[])(void) = { _config_setting_help
+        , _config_view
         , _config_set_debug_level
     };
     int idx;
