@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 #include "test/debug.h"
+#include "test/test.h"
 
 static void _struct_algo_help(void)
 {
@@ -31,13 +32,18 @@ static int _struct_algo_menu(int asize)
 
     printf("\n");
     printf("[#]--> Struct & Algorithm Menu\n");
-    printf("0: help.\n");
-    printf("1: Sort Test.\n");
-    printf("2: Linked List.\n");
-    printf("3: Red-Black Tree.\n");
-    printf("4: IRA, IDA.\n");
-    printf("5: Xarray Test.\n");
-    printf("6: exit.\n");
+    printf(" 0: help.\n");
+    printf(" 1: Sort Test.\n");
+    printf(" 2: Linked List Test01.\n");
+    printf(" 3: Linked List Test02.\n");
+    printf(" 4: Linked List Test03.\n");
+    printf(" 5: Linked List Test04.\n");
+    printf(" 6: Red-Black Tree Test01.\n");
+    printf(" 7: Red-Black Tree Test02.\n");
+    printf(" 8: Red-Black Tree Test03.\n");
+    printf(" 9: IRA, IDA.\n");
+    printf("10: Xarray Test.\n");
+    printf("11: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -49,8 +55,13 @@ void struct_algorithm(void)
 {
     void (*fn[])(void) = { _struct_algo_help
         , _struct_algo_help
-        , _struct_algo_help
-        , _struct_algo_help
+        , list_test01
+        , list_test02
+        , list_test03
+        , list_test04
+        , rbtree_test01
+        , rbtree_test02
+        , rbtree_test03
         , _struct_algo_help
         , _struct_algo_help
     };

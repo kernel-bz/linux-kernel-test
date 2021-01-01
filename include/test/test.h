@@ -7,6 +7,13 @@ extern "C" {
 
 //test/algorithm
 void struct_algorithm(void);
+int list_test01(void);
+int list_test02(void);
+int list_test03(void);
+int list_test04(void);
+int rbtree_test01(void);
+int rbtree_test02(void);
+int rbtree_test03(void);
 
 void init_start_kernel(void);
 

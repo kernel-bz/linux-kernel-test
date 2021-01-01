@@ -125,7 +125,14 @@ SOURCES += \
     test/config/config.c \
     test/basic/basic.c \
     test/algorithm/algorithm.c \
-    test/init/init.c
+    test/init/init.c \
+    test/algorithm/rbtree03.c \
+    test/algorithm/rbtree02.c \
+    test/algorithm/rbtree01.c \
+    test/algorithm/list04.c \
+    test/algorithm/list03.c \
+    test/algorithm/list02.c \
+    test/algorithm/list01.c
 
 HEADERS += \
     include/test/test.h \
@@ -489,7 +496,11 @@ HEADERS += \
     include/linux/crc32poly.h \
     lib/crc32defs.h \
     include/linux/compiler_attributes.h \
-    arch/arm64/include/asm/numa_.h
+    arch/arm64/include/asm/numa_.h \
+    include/asm-generic/timex.h \
+    include/linux/random_.h \
+    include/uapi/linux/random.h \
+    include/linux/once.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
