@@ -9,6 +9,7 @@
 #include "test/define-usr.h"
 #include <linux/idr.h>
 #include <linux/module.h>
+#include <linux/export.h>
 
 static unsigned int tests_run;
 static unsigned int tests_passed;
@@ -171,6 +172,14 @@ static int ida_checks(void)
 static void ida_exit(void)
 {
 }
+
+void lib_ida_test(void)
+{
+    int ret;
+    ret = ida_checks();
+    pr_info("result = %d\n", ret);
+}
+EXPORT_SYMBOL(lib_ida_test);
 
 //module_init(ida_checks);
 //module_exit(ida_exit);

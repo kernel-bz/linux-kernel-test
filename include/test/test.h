@@ -5,17 +5,25 @@
 extern "C" {
 #endif
 
+void init_start_kernel(void);
+
 //test/algorithm
 void struct_algorithm(void);
-int list_test01(void);
-int list_test02(void);
-int list_test03(void);
-int list_test04(void);
-int rbtree_test01(void);
-int rbtree_test02(void);
-int rbtree_test03(void);
+void list_test01(void);
+void list_test02(void);
+void list_test03(void);
+void list_test04(void);
+void lib_list_sort_test(void);
 
-void init_start_kernel(void);
+void rbtree_test01(void);
+void rbtree_test02(void);
+void rbtree_test03(void);
+
+void lib_sort_test(void);
+
+void lib_ida_test(void);
+void lib_xarray_test(void);
+
 
 //test/sched/sched-test.c
 void sched_test(void);

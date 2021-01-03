@@ -34,8 +34,8 @@ static ssize_t of_node_property_read(struct file *filp, struct kobject *kobj,
 				struct bin_attribute *bin_attr, char *buf,
 				loff_t offset, size_t count)
 {
-	struct property *pp = container_of(bin_attr, struct property, attr);
-	return memory_read_from_buffer(buf, count, &offset, pp->value, pp->length);
+    //struct property *pp = container_of(bin_attr, struct property, attr);
+    //return memory_read_from_buffer(buf, count, &offset, pp->value, pp->length);
 }
 
 /* always return newly allocated name, caller must free after use */

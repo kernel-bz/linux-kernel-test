@@ -708,9 +708,9 @@ static void cpuhp_thread_fun(unsigned int cpu)
 	WARN_ON_ONCE(!cpuhp_is_ap_state(state));
 
 	if (cpuhp_is_atomic_state(state)) {
-		local_irq_disable();
+        //local_irq_disable();
 		st->result = cpuhp_invoke_callback(cpu, state, bringup, st->node, &st->last);
-		local_irq_enable();
+        //local_irq_enable();
 
 		/*
 		 * STARTING/DYING must not fail!

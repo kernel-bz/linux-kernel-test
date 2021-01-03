@@ -144,12 +144,12 @@ sched_feat_write(struct file *filp, const char __user *ubuf,
 	cmp = strstrip(buf);
 
 	/* Ensure the static_key remains in a consistent state */
-	inode = file_inode(filp);
-	cpus_read_lock();
-	inode_lock(inode);
+    //inode = file_inode(filp);
+    //cpus_read_lock();
+    //inode_lock(inode);
 	ret = sched_feat_set(cmp);
-	inode_unlock(inode);
-	cpus_read_unlock();
+    //inode_unlock(inode);
+    //cpus_read_unlock();
 	if (ret < 0)
 		return ret;
 
@@ -160,7 +160,7 @@ sched_feat_write(struct file *filp, const char __user *ubuf,
 
 static int sched_feat_open(struct inode *inode, struct file *filp)
 {
-	return single_open(filp, sched_feat_show, NULL);
+    //return single_open(filp, sched_feat_show, NULL);
 }
 
 #if 0
@@ -177,12 +177,13 @@ __read_mostly bool sched_debug_enabled;
 
 static __init int sched_init_debug(void)
 {
-    //debugfs_create_file("sched_features", 0644, NULL, NULL,
-        //	&sched_feat_fops);
+#if 0
+    debugfs_create_file("sched_features", 0644, NULL, NULL,
+            &sched_feat_fops);
 
-	debugfs_create_bool("sched_debug", 0644, NULL,
+    debugfs_create_bool("sched_debug", 0644, NULL,
 			&sched_debug_enabled);
-
+#endif
 	return 0;
 }
 //late_initcall(sched_init_debug);

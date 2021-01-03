@@ -38,6 +38,11 @@ extern char * __must_check skip_spaces(const char *);
 
 extern char *strim(char *);
 
+static inline __must_check char *strstrip(char *str)
+{
+    return strim(str);
+}
+
 extern char *strchrnul(const char *s, int c);
 
 /**
@@ -54,5 +59,8 @@ static inline const char *kbasename(const char *path)
 #ifndef __HAVE_ARCH_STRNCHR
 extern char * strnchr(const char *, size_t, int);
 #endif
+
+//197 lines
+int match_string(const char * const *array, size_t n, const char *string);
 
 #endif /* _TOOLS_LINUX_STRING_H_ */

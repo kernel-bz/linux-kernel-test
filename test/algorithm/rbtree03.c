@@ -1,12 +1,9 @@
-/**
- *  File name :     rbtree_perf.c
- *  Comments :       rbtree study in the Linux Kerenl
- *  Source from:    /lib/rbtree_test.c
- *  Author :        Jung,JaeJoon (rgbi3307@nate.com)
- *  Creation:       2016-02-26
- *      GPL 라이센서에 따라서 위의 저자정보는 삭제하지 마시고 공유해 주시기 바랍니다.
-  *          수정한 내용은 아래의  Edition란에 추가해 주세요.
- *  Edition :
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/algorithm/rbtree03.c
+ *  Red-Black Tree Test 03
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 
  #include <stdio.h>
@@ -252,7 +249,7 @@ static int rbtree_test_init(void)
 	///time3 = div_u64(time, PERF_LOOPS);
 	///time3 = time3 / PERF_LOOPS;
 	///printf(" -> %llu cycles\n", (unsigned long long)time3);
-	printf("runtime: %d seconds\n", time3);
+    printf("*runtime: %d seconds\n", time3);
 
 	for (i = 0; i < CHECK_LOOPS; i++) {
 		init();
@@ -288,7 +285,7 @@ static int rbtree_test_init(void)
 	//time3 = div_u64(time, PERF_LOOPS);
 	//time3 = time3 / PERF_LOOPS;
 	//printf(" -> %llu cycles\n", (unsigned long long)time3);
-	printf("runtime: %d seconds\n", time3);
+    printf("*runtime: %d seconds\n", time3);
 
 	for (i = 0; i < CHECK_LOOPS; i++) {
 		init();
@@ -312,13 +309,8 @@ static void rbtree_test_exit(void)
 	printf("test exit.\n");
 }
 
-
-int rbtree_test03(void)
+void rbtree_test03(void)
 {
     rbtree_test_init();
-
     rbtree_test_exit();
-
-    return 0;
 }
-

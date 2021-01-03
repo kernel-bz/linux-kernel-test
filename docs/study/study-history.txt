@@ -145,3 +145,12 @@ drivers/base/arch_topology.c
 include/linux/arch_topology.h
 tools/perf/util/cputopo.c
 tools/perf/util/cputopo.h
+
+
+//D20210102 Load Balancing ===============================
+
+NUMA Autobalancing
+active_load_balance_cpu_stop()
+newidle_balance
+nohz_idle_balance
+nohz_newidle_balance

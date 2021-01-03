@@ -33,17 +33,18 @@ static int _struct_algo_menu(int asize)
     printf("\n");
     printf("[#]--> Struct & Algorithm Menu\n");
     printf(" 0: help.\n");
-    printf(" 1: Sort Test.\n");
-    printf(" 2: Linked List Test01.\n");
-    printf(" 3: Linked List Test02.\n");
-    printf(" 4: Linked List Test03.\n");
-    printf(" 5: Linked List Test04.\n");
+    printf(" 1: Linked List Test01.\n");
+    printf(" 2: Linked List Test02.\n");
+    printf(" 3: Linked List Test03.\n");
+    printf(" 4: Linked List Test04.\n");
+    printf(" 5: List Sort Test.\n");
     printf(" 6: Red-Black Tree Test01.\n");
     printf(" 7: Red-Black Tree Test02.\n");
     printf(" 8: Red-Black Tree Test03.\n");
-    printf(" 9: IRA, IDA.\n");
-    printf("10: Xarray Test.\n");
-    printf("11: exit.\n");
+    printf(" 9: Sort Test.\n");
+    printf("10: IDA Test.\n");
+    printf("11: Xarray Test.\n");
+    printf("12: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -54,16 +55,17 @@ static int _struct_algo_menu(int asize)
 void struct_algorithm(void)
 {
     void (*fn[])(void) = { _struct_algo_help
-        , _struct_algo_help
         , list_test01
         , list_test02
         , list_test03
         , list_test04
+        , lib_list_sort_test
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
-        , _struct_algo_help
-        , _struct_algo_help
+        , lib_sort_test
+        , lib_ida_test
+        , lib_xarray_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);

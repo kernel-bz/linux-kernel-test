@@ -315,7 +315,8 @@ static inline u32 reciprocal_scale(u32 val, u32 ep_ro)
 #define might_fault() __might_fault(__FILE__, __LINE__)
 void __might_fault(const char *file, int line);
 #else
-static inline void might_fault(void) { }
+//static inline void might_fault(void) { }
+#define might_fault()
 #endif
 
 extern struct atomic_notifier_head panic_notifier_list;

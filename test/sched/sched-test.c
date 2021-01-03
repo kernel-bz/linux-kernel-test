@@ -575,7 +575,8 @@ static int _sched_cfs_test_menu(int asize)
 static void _sched_cfs_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , _sched_pelt_info, pr_leaf_cfs_rq_info
+        , _sched_pelt_info
+        , pr_leaf_cfs_rq_info
         , _sched_set_user_nice_test
         , sched_fair_run_rebalance	//kernel/sched/fair.c
     };

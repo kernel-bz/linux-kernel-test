@@ -1,18 +1,16 @@
-/**
- *  File name :     list02.c
- *  Comments :       list study in the Linux Kerenl
- *  Source from:    /linux/include/list.h
- *  Author :        Jung,JaeJoon (rgbi3307@nate.com) on the www.kernel.bz
- *  Creation:       2016-02-26
- *      GPL 라이센서에 따라서 위의 저자정보는 삭제하지 마시고 공유해 주시기 바랍니다.
-  *          수정한 내용은 아래의  Edition란에 추가해 주세요.
- *  Edition :
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/algorithm/list04.c
+ *  Linked List Test 04
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <linux/list.h>
+#include "test/debug.h"
 
 struct fox {
 	char				name[20];
@@ -25,7 +23,7 @@ struct fox {
 //list head define and init
 static LIST_HEAD (ListHeadFox);
 
-struct fox* fox_alloc(char *name, unsigned long tail, unsigned long weight, int isf)
+static struct fox* fox_alloc(char *name, unsigned long tail, unsigned long weight, int isf)
 {
 	struct fox* fox;
 
@@ -36,62 +34,97 @@ struct fox* fox_alloc(char *name, unsigned long tail, unsigned long weight, int 
 	fox->tail_length = tail;
 	fox->weight = weight;
 	fox->is_fantastic = isf;
-
-	//INIT_LIST_HEAD(&fox->list);
+    INIT_LIST_HEAD(&fox->list);
 
 	return fox;
 }
 
-void list_output(struct list_head *head)
+static void list_free(struct list_head *head)
 {
+    pr_fn_start_on(stack_depth);
+
+    struct list_head *list_head;
+    struct fox* fox;
+
+    list_for_each(list_head, head) {
+        fox = list_entry(list_head, struct fox, list);
+        pr_info_view_on(stack_depth, "%20s : %s\n", fox->name);
+        list_del(head);
+        free(fox);
+    }
+
+    pr_fn_end_on(stack_depth);
+}
+
+static void list_output(struct list_head *head)
+{
+    pr_fn_start_on(stack_depth);
+
 	struct list_head *list_head;
 	struct fox* fox;
 
-	printf ("-- list output --\n");
     list_for_each(list_head, head) {
 		fox = list_entry(list_head, struct fox, list);
-		printf ("fox value: %s, %d, %d, %d\n", fox->name
-										, fox->tail_length
-										, fox->weight
-										, fox->is_fantastic);
+        pr_out_on(stack_depth, "fox value: %12s, %d, %d, %d\n"
+                  , fox->name, fox->tail_length, fox->weight, fox->is_fantastic);
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
-int list_test04(void)
+static void fox_alloc_run(void)
+{
+    struct fox* fox;
+
+    fox = fox_alloc("first_fox", 11, 10, 0);
+    if (!fox) return -1;
+    list_add(&fox->list, &ListHeadFox);
+
+    fox = fox_alloc("second_fox", 22, 20, 1);
+    if (!fox) return -1;
+    list_add(&fox->list, &ListHeadFox);
+
+    fox = fox_alloc("third_fox", 33, 30, 2);
+    if (!fox) return -1;
+    list_add(&fox->list, &ListHeadFox);
+
+    fox = fox_alloc("fourth_fox", 44, 40, 3);
+    if (!fox) return -1;
+    list_add(&fox->list, &ListHeadFox);
+}
+
+void list_test04(void)
 {
 	LIST_HEAD (list_head_fox2);
 	LIST_HEAD (list_head_fox3);
-	struct list_head *list_head_tmp;
-	struct fox* fox;
 
-	fox = fox_alloc("red_fox", 30, 20, 0);
-	if (!fox) return -1;
-	list_add(&fox->list, &ListHeadFox);	//add to ListHeadFox
-
-	fox = fox_alloc("white_fox", 40, 30, 1);
-	if (!fox) return -1;
-	list_add(&fox->list, &ListHeadFox);	//add to ListHeadFox
-
-	fox = fox_alloc("black_fox", 20, 10, 2);
-	if (!fox) return -1;
-	list_add(&fox->list, &list_head_fox2);	//add to list_head_fox2
-
-	fox = fox_alloc("yellow_fox", 15, 10, 3);
-	if (!fox) return -1;
-	list_add(&fox->list, &list_head_fox2);	//add to list_head_fox2
-
+    fox_alloc_run();
 	list_output(&ListHeadFox);
-	list_output(&list_head_fox2);
 
-	list_splice(&list_head_fox2, &ListHeadFox);	//merge list_head_fox2 to ListHeadFox
-
+    //cut to list_head_fox2 from ListHeadFox
+    list_cut_position(&list_head_fox2, &ListHeadFox, (&ListHeadFox)->next->next);
 	list_output(&ListHeadFox);
-	//list_output(&list_head_fox2);
+    list_output(&list_head_fox2);
 
-	//cut to list_head_fox3 from ListHeadFox
-	list_cut_position(&list_head_fox3, &ListHeadFox, (&ListHeadFox)->next->next);
-	list_output(&ListHeadFox);
-	list_output(&list_head_fox3);
+    //merge ListHeadFox to list_head_fox3
+    list_splice(&ListHeadFox, &list_head_fox3);
+    //merge list_head_fox2 to list_head_fox3
+    list_splice(&list_head_fox2, &list_head_fox3);
 
-	return 0;
+    //list_output(&ListHeadFox);	//infinite
+    if (list_empty(&ListHeadFox)) {
+        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
+    }
+    //list_output(&list_head_fox2);	//infinite
+    if (list_empty(&list_head_fox2)) {
+        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
+    }
+    list_output(&list_head_fox3);
+
+#if 0
+    list_free(&list_head_fox3);	//fault
+    if (list_empty(&list_head_fox3)) {
+        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
+    }
+#endif
 }

@@ -132,7 +132,13 @@ SOURCES += \
     test/algorithm/list04.c \
     test/algorithm/list03.c \
     test/algorithm/list02.c \
-    test/algorithm/list01.c
+    test/algorithm/list01.c \
+    lib/test_xarray.c \
+    lib/test_list_sort.c \
+    lib/list_sort.c \
+    lib/random32.c \
+    lib/test_sort.c \
+    lib/usercopy.c
 
 HEADERS += \
     include/test/test.h \
@@ -500,7 +506,10 @@ HEADERS += \
     include/asm-generic/timex.h \
     include/linux/random_.h \
     include/uapi/linux/random.h \
-    include/linux/once.h
+    include/linux/once.h \
+    include/linux/list_sort.h \
+    include/linux/clockchips.h \
+    include/asm-generic/uaccess.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

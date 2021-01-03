@@ -270,7 +270,8 @@ do {									\
 
 #endif	/* CONFIG_SMP */
 
-#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+//#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+#define per_cpu(cpu)
 
 /*
  * Must be an lvalue. Since @var must be a simple identifier,

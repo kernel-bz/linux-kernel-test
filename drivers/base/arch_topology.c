@@ -74,7 +74,7 @@ static int register_cpu_capacity_sysctl(void)
 			       __func__, i);
 			continue;
 		}
-		device_create_file(cpu, &dev_attr_cpu_capacity);
+        //device_create_file(cpu, &dev_attr_cpu_capacity);
 	}
 
 	return 0;
@@ -95,7 +95,7 @@ int topology_update_cpu_topology(void)
 static void update_topology_flags_workfn(struct work_struct *work)
 {
 	update_topology = 1;
-	rebuild_sched_domains();
+    //rebuild_sched_domains();
 	pr_debug("sched_domain hierarchy rebuilt, flags updated\n");
 	update_topology = 0;
 }
@@ -232,8 +232,8 @@ static int __init register_cpufreq_notifier(void)
 
 	cpumask_copy(cpus_to_visit, cpu_possible_mask);
 
-	ret = cpufreq_register_notifier(&init_cpu_capacity_notifier,
-					CPUFREQ_POLICY_NOTIFIER);
+    //ret = cpufreq_register_notifier(&init_cpu_capacity_notifier,
+    //				CPUFREQ_POLICY_NOTIFIER);
 
 	if (ret)
 		free_cpumask_var(cpus_to_visit);
@@ -244,8 +244,8 @@ static int __init register_cpufreq_notifier(void)
 
 static void parsing_done_workfn(struct work_struct *work)
 {
-	cpufreq_unregister_notifier(&init_cpu_capacity_notifier,
-					 CPUFREQ_POLICY_NOTIFIER);
+    //cpufreq_unregister_notifier(&init_cpu_capacity_notifier,
+    //				 CPUFREQ_POLICY_NOTIFIER);
 	free_cpumask_var(cpus_to_visit);
 }
 

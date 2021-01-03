@@ -4,6 +4,7 @@
  * Helper functions for bitmap.h.
  */
 #include <linux/bitmap.h>
+#include <linux/export.h>
 
 //45 lines
 int __bitmap_equal(const unsigned long *bitmap1,
@@ -111,6 +112,26 @@ void bitmap_clear(unsigned long *map, unsigned int start, int len)
         *p &= ~mask_to_clear;
     }
 }
+
+
+
+//208 lines
+int __bitmap_andnot(unsigned long *dst, const unsigned long *bitmap1,
+                const unsigned long *bitmap2, unsigned int bits)
+{
+    unsigned int k;
+    unsigned int lim = bits/BITS_PER_LONG;
+    unsigned long result = 0;
+
+    for (k = 0; k < lim; k++)
+        result |= (dst[k] = bitmap1[k] & ~bitmap2[k]);
+    if (bits % BITS_PER_LONG)
+        result |= (dst[k] = bitmap1[k] & ~bitmap2[k] &
+               BITMAP_LAST_WORD_MASK(bits));
+    return result != 0;
+}
+EXPORT_SYMBOL(__bitmap_andnot);
+
 
 
 

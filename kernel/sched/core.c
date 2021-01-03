@@ -27,6 +27,9 @@
 
 #include "pelt.h"
 
+#include <linux/uaccess.h>
+#include <linux/cpu.h>
+
 #define CREATE_TRACE_POINTS
 //#include <trace/events/sched.h>
 
@@ -2651,7 +2654,7 @@ struct task_struct *idle_task(int cpu)
 static struct task_struct *find_process_by_pid(pid_t pid)
 {
     //return pid ? find_task_by_vpid(pid) : current;
-    return pid ? find_task_by_vpid(pid) : current_task;
+    return current_task;
 }
 //4673
 /*
@@ -3235,14 +3238,164 @@ void set_rq_offline(struct rq *rq)
  * used to mark begin/end of suspend/resume:
  */
 static int num_cpus_frozen;
-//6339 lines
+//6339
+/*
+ * Update cpusets according to cpu_active mask.  If cpusets are
+ * disabled, cpuset_update_active_cpus() becomes a simple wrapper
+ * around partition_sched_domains().
+ *
+ * If we come here as part of a suspend/resume, don't touch cpusets because we
+ * want to restore it back to its original state upon resume anyway.
+ */
+static void cpuset_cpu_active(void)
+{
+    if (cpuhp_tasks_frozen) {
+        /*
+         * num_cpus_frozen tracks how many CPUs are involved in suspend
+         * resume sequence. As long as this is not the last online
+         * operation in the resume sequence, just build a single sched
+         * domain, ignoring cpusets.
+         */
+        partition_sched_domains(1, NULL, NULL);
+        if (--num_cpus_frozen)
+            return;
+        /*
+         * This is the last CPU online operation. So fall through and
+         * restore the original sched domains by considering the
+         * cpuset configurations.
+         */
+        //cpuset_force_rebuild();
+    }
+    //cpuset_update_active_cpus();
+}
 
+static int cpuset_cpu_inactive(unsigned int cpu)
+{
+    if (!cpuhp_tasks_frozen) {
+        if (dl_cpu_busy(cpu))
+            return -EBUSY;
+        //cpuset_update_active_cpus();
+    } else {
+        num_cpus_frozen++;
+        partition_sched_domains(1, NULL, NULL);
+    }
+    return 0;
+}
 
+int sched_cpu_activate(unsigned int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    struct rq_flags rf;
 
+#ifdef CONFIG_SCHED_SMT
+    /*
+     * When going up, increment the number of cores with SMT present.
+     */
+    if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+        static_branch_inc_cpuslocked(&sched_smt_present);
+#endif
+    set_cpu_active(cpu, true);
 
+    if (sched_smp_initialized) {
+        sched_domains_numa_masks_set(cpu);
+        cpuset_cpu_active();
+    }
 
+    /*
+     * Put the rq online, if not already. This happens:
+     *
+     * 1) In the early boot process, because we build the real domains
+     *    after all CPUs have been brought up.
+     *
+     * 2) At runtime, if cpuset_cpu_active() fails to rebuild the
+     *    domains.
+     */
+    rq_lock_irqsave(rq, &rf);
+    if (rq->rd) {
+        BUG_ON(!cpumask_test_cpu(cpu, rq->rd->span));
+        set_rq_online(rq);
+    }
+    rq_unlock_irqrestore(rq, &rf);
 
-//6496 lines
+    return 0;
+}
+
+int sched_cpu_deactivate(unsigned int cpu)
+{
+    int ret;
+
+    set_cpu_active(cpu, false);
+    /*
+     * We've cleared cpu_active_mask, wait for all preempt-disabled and RCU
+     * users of this state to go away such that all new such users will
+     * observe it.
+     *
+     * Do sync before park smpboot threads to take care the rcu boost case.
+     */
+    //synchronize_rcu();
+
+#ifdef CONFIG_SCHED_SMT
+    /*
+     * When going down, decrement the number of cores with SMT present.
+     */
+    if (cpumask_weight(cpu_smt_mask(cpu)) == 2)
+        static_branch_dec_cpuslocked(&sched_smt_present);
+#endif
+
+    if (!sched_smp_initialized)
+        return 0;
+
+    ret = cpuset_cpu_inactive(cpu);
+    if (ret) {
+        set_cpu_active(cpu, true);
+        return ret;
+    }
+    sched_domains_numa_masks_clear(cpu);
+    return 0;
+}
+
+static void sched_rq_cpu_starting(unsigned int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+
+    rq->calc_load_update = calc_load_update;
+    update_max_interval();
+}
+
+int sched_cpu_starting(unsigned int cpu)
+{
+    sched_rq_cpu_starting(cpu);
+    //sched_tick_start(cpu);
+    return 0;
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+int sched_cpu_dying(unsigned int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    struct rq_flags rf;
+
+    /* Handle pending wakeups and then migrate everything off */
+    sched_ttwu_pending();
+    sched_tick_stop(cpu);
+
+    rq_lock_irqsave(rq, &rf);
+    if (rq->rd) {
+        BUG_ON(!cpumask_test_cpu(cpu, rq->rd->span));
+        set_rq_offline(rq);
+    }
+    migrate_tasks(rq, &rf);
+    BUG_ON(rq->nr_running != 1);
+    rq_unlock_irqrestore(rq, &rf);
+
+    calc_load_migrate(rq);
+    update_max_interval();
+    nohz_balance_exit_idle(rq);
+    hrtick_clear(rq);
+    return 0;
+}
+#endif
+//6496
 void __init sched_init_smp(void)
 {
     pr_fn_start_on(stack_depth);

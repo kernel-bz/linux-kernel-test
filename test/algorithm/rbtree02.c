@@ -1,26 +1,21 @@
-/**
- *  File name :     rbtree_test.c
- *  Comments :       rbtree study in the Linux Kerenl
- *  Source from:    /lib/rbtree_test.c
- *  Author :        Jung,JaeJoon (rgbi3307@nate.com)
- *  Creation:       2016-02-26
- *      GPL 라이센서에 따라서 위의 저자정보는 삭제하지 마시고 공유해 주시기 바랍니다.
-  *          수정한 내용은 아래의  Edition란에 추가해 주세요.
- *  Edition :
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/algorithm/rbtree02.c
+ *  Red-Black Tree Test 02
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 
- #include <stdio.h>
- #include <stdlib.h>
- #include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+//#include <sys/time.h>
 
-//#include <linux/module.h>
-//#include <asm/timex.h>
 #include <linux/time.h>
 #include <linux/rbtree_augmented.h>
 #include <linux/random_.h>
 
 #define NodeCnt     8
-
 
 struct rb_test {
 	u32 key;
@@ -33,7 +28,6 @@ struct rb_test {
 
 static struct rb_root root = RB_ROOT;
 static struct rb_test Nodes[NodeCnt];
-
 
 static void rbtree_insert(struct rb_test *node, struct rb_root *root)
 {
@@ -132,7 +126,7 @@ static void rbtree_search_postorder_foreach(int nr_nodes)
 	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
 		count++;
 
-	///WARN_ON_ONCE(count != nr_nodes);
+    WARN_ON_ONCE(count != nr_nodes);
 }
 
 static void rbtree_search_postorder(int nr_nodes)
@@ -142,7 +136,7 @@ static void rbtree_search_postorder(int nr_nodes)
 	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
 		count++;
 
-	///WARN_ON_ONCE(count != nr_nodes);
+    WARN_ON_ONCE(count != nr_nodes);
 }
 
 static void rbtree_search(int nr_nodes)
@@ -171,11 +165,11 @@ static void rbtree_search(int nr_nodes)
 	}
 	printf("\n");
 
-	///WARN_ON_ONCE(count != nr_nodes);
+    WARN_ON_ONCE(count != nr_nodes);
 	///WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
 
-	rbtree_search_postorder(nr_nodes);
-	rbtree_search_postorder_foreach(nr_nodes);
+    rbtree_search_postorder(nr_nodes);
+    rbtree_search_postorder_foreach(nr_nodes);
 }
 
 static void rbtree_search_augmented(int nr_nodes)
@@ -206,10 +200,12 @@ static void rbtree_nodes_init(int idx)
 static int rbtree_test(void)
 {
 	int j;
-	struct timeval time1, time2, time3;
+    //struct timeval time1, time2, time3;
+    time_t time1, time2, time3;  ///long int
 
     printf("rbtree insert testing...wait...\n");
-    gettimeofday(&time1);
+    //gettimeofday(&time1);
+    time(&time1);
 
     for (j = 0; j < NodeCnt; j++)
 		rbtree_insert(Nodes + j, &root);
@@ -223,10 +219,13 @@ static int rbtree_test(void)
 
     rbtree_search(0);
 
-	gettimeofday(&time2);
-	time3.tv_sec = time2.tv_sec - time1.tv_sec;
-	time3.tv_usec = time2.tv_usec - time1.tv_usec;
-	printf("*runtime: %d sec %d usec\n\n", time3.tv_sec, time3.tv_usec);
+    //gettimeofday(&time2);	//error
+    //time3.tv_sec = time2.tv_sec - time1.tv_sec;
+    //time3.tv_usec = time2.tv_usec - time1.tv_usec;
+    //printf("*runtime: %d sec %d usec\n\n", time3.tv_sec, time3.tv_usec);
+    time(&time2);
+    time3 = time2 - time1;
+    printf("*runtime: %d seconds\n", time3);
 
 	return 0;
 }
@@ -235,10 +234,12 @@ static int rbtree_test(void)
 static int rbtree_augmented_test(void)
 {
 	int j;
-	struct timeval time1, time2, time3;
+    //struct timeval time1, time2, time3;
+    time_t time1, time2, time3;  ///long int
 
 	printf("augmented rbtree insert testing...wait...\n");
-	gettimeofday(&time1);
+    //gettimeofday(&time1);
+    time(&time1);
 
     for (j = 0; j < NodeCnt; j++)
         rbtree_insert_augmented(Nodes + j, &root);
@@ -252,15 +253,14 @@ static int rbtree_augmented_test(void)
 
     rbtree_search(0);
 
-	gettimeofday(&time2);
-	time3.tv_sec = time2.tv_sec - time1.tv_sec;
-	time3.tv_usec = time2.tv_usec - time1.tv_usec;
-	printf("*runtime: %d sec %d usec\n\n", time3.tv_sec, time3.tv_usec);
+    time(&time2);
+    time3 = time2 - time1;
+    printf("*runtime: %d seconds\n", time3);
 
 	return 0;
 }
 
-int rbtree_test02(void)
+void rbtree_test02(void)
 {
     int i;
 
@@ -273,10 +273,8 @@ int rbtree_test02(void)
     for (i=0; i<3; i++) {
         rbtree_nodes_init(i);
         rbtree_test();
-        ///rbtree_augmented_test();
+        rbtree_augmented_test();
     }
     printf("test end.\n");
-
-    return 0;
 }
 

@@ -35,6 +35,7 @@ extern int stack_depth;
 #define panic 					pr_err
 #define print_tainted() 		""
 #define printk_deferred_once	_pr_warn
+#define pr_crit					pr_err
 
 
 #define pr_err(format, ...)							\

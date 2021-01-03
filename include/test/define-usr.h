@@ -57,6 +57,7 @@ typedef unsigned long 	u_long;
 #define __user
 #define __refdata
 #define __initdata_memblock
+#define __exit
 
 #define lockdep_assert_held(l)	do { (void)(l); } while (0)
 

@@ -216,4 +216,13 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
 #define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
 
 
+#ifndef RELOC_HIDE
+# define RELOC_HIDE(ptr, off)					\
+  ({ unsigned long __ptr;					\
+     __ptr = (unsigned long) (ptr);				\
+    (typeof(ptr)) (__ptr + (off)); })
+#endif
+
+
+
 #endif /* _TOOLS_LINUX_COMPILER_H */

@@ -193,4 +193,23 @@ char *strnchr(const char *s, size_t count, int c)
     return NULL;
 }
 EXPORT_SYMBOL(strnchr);
+
+//687 lines
+int match_string(const char * const *array, size_t n, const char *string)
+{
+    int index;
+    const char *item;
+
+    for (index = 0; index < n; index++) {
+        item = array[index];
+        if (!item)
+            break;
+        if (!strcmp(item, string))
+            return index;
+    }
+
+    return -EINVAL;
+}
+EXPORT_SYMBOL(match_string);
+
 #endif

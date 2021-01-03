@@ -10,7 +10,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20201226	//test date
+#define CONFIG_VERSION_3		20210103	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -23,6 +23,7 @@ extern "C" {
 
 //xarray.h
 #define CONFIG_BASE_SMALL		0
+//#define CONFIG_BASE_SMALL		1
 #define CONFIG_XARRAY_MULTI		0
 
 

@@ -495,7 +495,7 @@ extern void wq_worker_comm(char *buf, size_t size, struct task_struct *task);
 static inline bool queue_work(struct workqueue_struct *wq,
 			      struct work_struct *work)
 {
-	return queue_work_on(WORK_CPU_UNBOUND, wq, work);
+    //return queue_work_on(WORK_CPU_UNBOUND, wq, work);
 }
 
 /**
@@ -553,7 +553,7 @@ static inline bool schedule_work_on(int cpu, struct work_struct *work)
  */
 static inline bool schedule_work(struct work_struct *work)
 {
-	return queue_work(system_wq, work);
+    //return queue_work(system_wq, work);
 }
 
 /**

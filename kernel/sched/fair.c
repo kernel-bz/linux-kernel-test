@@ -4735,6 +4735,11 @@ static int wake_cap(struct task_struct *p, int cpu, int prev_cpu)
 
 
 
+//6333 lines
+static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
+{
+    return -1;
+}
 
 
 
@@ -7423,6 +7428,8 @@ more_balance:
             goto out_all_pinned;
         }
     }
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", ld_moved);
 
     if (!ld_moved) {
         schedstat_inc(sd->lb_failed[idle]);

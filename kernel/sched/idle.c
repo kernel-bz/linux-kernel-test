@@ -54,7 +54,7 @@ __setup("hlt", cpu_idle_nopoll_setup);
 
 static noinline int __cpuidle cpu_idle_poll(void)
 {
-	rcu_idle_enter();
+    //rcu_idle_enter();
     //trace_cpu_idle_rcuidle(0, smp_processor_id());
 	local_irq_enable();
 	stop_critical_timings();
@@ -64,7 +64,7 @@ static noinline int __cpuidle cpu_idle_poll(void)
 		cpu_relax();
 	start_critical_timings();
     //trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
-	rcu_idle_exit();
+    //rcu_idle_exit();
 
 	return 1;
 }

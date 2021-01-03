@@ -1596,8 +1596,9 @@ int radix_tree_cpu_dead(unsigned int cpu)
 	struct radix_tree_node *node;
 
 	/* Free per-cpu pool of preloaded nodes */
-	rtp = &per_cpu(radix_tree_preloads, cpu);
-	while (rtp->nr) {
+    //rtp = &per_cpu(radix_tree_preloads, cpu);
+    rtp = &radix_tree_preloads;
+    while (rtp->nr) {
 		node = rtp->nodes;
 		rtp->nodes = node->parent;
 		kmem_cache_free(radix_tree_node_cachep, node);

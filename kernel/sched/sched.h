@@ -103,6 +103,9 @@
 #include <linux/atomic.h>
 #include <linux/interrupt.h>
 #include <linux/jump_label.h>
+#include <linux/clockchips.h>
+#include <linux/uaccess.h>
+#include <linux/string.h>
 
 #include <asm-generic/atomic-long.h>
 #include <asm-generic/bitops/sched.h>

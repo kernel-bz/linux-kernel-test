@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <linux/list.h>
+#include "test/debug.h"
 
 struct fox {
 	char				name[20];
@@ -19,50 +20,60 @@ struct fox {
 	struct list_head	list;
 };
 
-static struct fox red_fox = {
-	.name = "red_fox",
-	.tail_length = 40,
+static struct fox first_fox = {
+    .name = "first_fox",
+    .tail_length = 11,
 	.weight = 10,
 	.is_fantastic = 0,
-	.list = LIST_HEAD_INIT (red_fox.list),
-	//INIT_LIST_HEAD (&red_fox->list);
+    .list = LIST_HEAD_INIT(first_fox.list),
 };
 
-static struct fox white_fox = {
-	.name = "white_fox",
-	.tail_length = 50,
+static struct fox second_fox = {
+    .name = "second_fox",
+    .tail_length = 22,
 	.weight = 20,
 	.is_fantastic = 1,
-	.list = LIST_HEAD_INIT (white_fox.list),
+    .list = LIST_HEAD_INIT(second_fox.list),
 };
 //list head define and init
-static LIST_HEAD (fox_list);
+static LIST_HEAD(fox_list);
 
-int list_test02(void)
+void list_test02(void)
 {
-	struct list_head *p;
-	struct fox *f;
+    pr_fn_start_on(stack_depth);
 
-	list_add(&red_fox.list, &fox_list);
-	list_add(&white_fox.list, &fox_list);
+    struct list_head *p;
+    struct fox *f, *fox3, *fox4;
 
-	f = malloc(sizeof(*f));
-	strcpy(f->name,  "black_fox");
-	f->tail_length = 30;
-	f->weight = 5;
-	f->is_fantastic = 0;
-	//f->list = LIST_HEAD_INIT (f->list);
+    list_add(&first_fox.list, &fox_list);
+    list_add(&second_fox.list, &fox_list);
 
-	list_add(&f->list, &fox_list);
+    fox3 = malloc(sizeof(*fox3));
+    strcpy(fox3->name,  "third_fox");
+    fox3->tail_length = 33;
+    fox3->weight = 30;
+    fox3->is_fantastic = 0;
+    INIT_LIST_HEAD(&fox3->list);
+
+    list_add(&fox3->list, &fox_list);
+
+    fox4 = malloc(sizeof(*fox4));
+    *fox4 = (struct fox) {
+            .name = "fourth_fox",
+            .tail_length = 44,
+            .weight = 40,
+            .is_fantastic = 1,
+            .list = LIST_HEAD_INIT(fox4->list)
+    };
+
+    list_add(&fox4->list, &fox_list);
 
     list_for_each(p, &fox_list) {
 		f = list_entry(p, struct fox, list);
-		printf ("fox value: %s, %d, %d, %d\n", f->name
-										, f->tail_length
-										, f->weight
-										, f->is_fantastic);
-		printf ("\n");
+        pr_out_on(stack_depth, "fox value: %12s, %d, %d, %d\n"
+                  , f->name, f->tail_length, f->weight, f->is_fantastic);
 	}
-	return 0;
+
+    pr_fn_end_on(stack_depth);
 }
 

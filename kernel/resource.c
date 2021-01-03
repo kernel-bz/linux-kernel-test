@@ -1499,10 +1499,10 @@ static int __init reserve_setup(char *str)
 		int x = reserved;
 		struct resource *parent;
 
-		if (get_option(&str, &io_start) != 2)
-			break;
-		if (get_option(&str, &io_num) == 0)
-			break;
+        //if (get_option(&str, &io_start) != 2)
+            //break;
+        //if (get_option(&str, &io_num) == 0)
+            //break;
 		if (x < MAXRESERVE) {
 			struct resource *res = reserve + x;
 

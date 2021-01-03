@@ -1,26 +1,28 @@
-//
-//	file name	: rb01.c
-//	author		: Jung,JaeJoon(rgbi3307@nate.com) on the www.kernel.bz
-//	comments	: kernel red-black tree test
-//				  kernel version 2.6.31
-//
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/algorithm/rbtree01.c
+ *  Red-Black Tree Test 01
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <linux/rbtree.h>
 
-struct my_struct {
+struct rb_test_struct {
 	int value;
 	struct rb_node node;
 };
 
-//struct rb_root my_rb_root = RB_ROOT;
+//struct rb_root rb_test_root = RB_ROOT;
 
-struct my_struct *my_rb_search(struct rb_root *root, int value)
+static struct rb_test_struct *rb_test_search(struct rb_root *root, int value)
+
 {
 	struct rb_node *node = root->rb_node;  //top of the tree
 
 	while (node) {
-		struct my_struct *this = rb_entry(node, struct my_struct, node);	//container_of
+        struct rb_test_struct *this = rb_entry(node, struct rb_test_struct, node);	//container_of
 
 	    if (this->value > value)
 			node = node->rb_left;
@@ -32,7 +34,7 @@ struct my_struct *my_rb_search(struct rb_root *root, int value)
 	return NULL;
 }
 
-void my_rb_insert(struct rb_root *root, struct my_struct *new)
+static void rb_test_insert(struct rb_root *root, struct rb_test_struct *new)
 {
 	struct rb_node **link = &root->rb_node, *parent = NULL;
 	int value = new->value;
@@ -40,7 +42,7 @@ void my_rb_insert(struct rb_root *root, struct my_struct *new)
 	//go to the bottom of the tree
 	while (*link) {
 	    parent = *link;
-	    struct my_struct *this = rb_entry(parent, struct my_struct, node);
+        struct rb_test_struct *this = rb_entry(parent, struct rb_test_struct, node);
 
 	    if (this->value > value)
 			link = &(*link)->rb_left;
@@ -53,65 +55,63 @@ void my_rb_insert(struct rb_root *root, struct my_struct *new)
 	rb_insert_color(&(new->node), root);
 }
 
-void my_rb_output(struct rb_root *my_rb_root)
+static void rb_test_output(struct rb_root *rb_test_root)
 {
 	struct rb_node *node;
 
-	printf("rb_node: ");
-	for (node = rb_first(my_rb_root); node; node = rb_next(node))
-		printf("%d, ", rb_entry(node, struct my_struct, node)->value);
+    printf("\t output rb_node: ");
+    for (node = rb_first(rb_test_root); node; node = rb_next(node))
+        printf("%d, ", rb_entry(node, struct rb_test_struct, node)->value);
 	printf("\n");
 }
 
-void my_rb_drop(struct rb_root *my_rb_root)
+static void rb_test_drop(struct rb_root *rb_test_root)
 {
 	struct rb_node *node;
 
-	printf("rb_drop: ");
-	for (node = rb_first(my_rb_root); node; node = rb_next(node))
-		free(rb_entry(node, struct my_struct, node));
-	my_rb_root->rb_node = NULL;
+    printf("\t drop rb_node: ");
+    for (node = rb_first(rb_test_root); node; node = rb_next(node))
+        free(rb_entry(node, struct rb_test_struct, node));
+    rb_test_root->rb_node = NULL;
 	printf("\n");
 }
 
-int rbtree_test01(void)
+void rbtree_test01(void)
 {
-	struct rb_root my_rb_root = RB_ROOT;
-	struct my_struct *new;
+    struct rb_root rb_test_root = RB_ROOT;
+    struct rb_test_struct *new;
 	struct rb_node *node;
 	int i;
 
 	//insert to rbtree
 	for (i = 0; i < 20; i++) {
-		new = malloc(sizeof(struct my_struct));
+        new = malloc(sizeof(struct rb_test_struct));
 		new->value = i%8;
-		my_rb_insert(&my_rb_root, new);
+        rb_test_insert(&rb_test_root, new);
 	}
 	//output from rbtree
-	my_rb_output(&my_rb_root);
+    rb_test_output(&rb_test_root);
 
-	new = my_rb_search(&my_rb_root, 0);
+    new = rb_test_search(&rb_test_root, 0);
 	if (new) {
-		printf ("value=%d, ", new->value);
-		rb_erase(&new->node, &my_rb_root);
+        printf ("\t value=%d, ", new->value);
+        rb_erase(&new->node, &rb_test_root);
 		free(new);
 		printf("rb_erase.\n");
 	}
-	else printf ("Cannot find!\n");
+    else printf ("\t Cannot find!\n");
 
-	my_rb_output(&my_rb_root);
-	my_rb_drop(&my_rb_root);
-	my_rb_output(&my_rb_root);
+    rb_test_output(&rb_test_root);
+    rb_test_drop(&rb_test_root);
+    rb_test_output(&rb_test_root);
 
 	//insert to rbtree
 	for (i = 0; i < 20; i++) {
-		new = malloc(sizeof(struct my_struct));
+        new = malloc(sizeof(struct rb_test_struct));
 		new->value = i%8;
-		my_rb_insert(&my_rb_root, new);
+        rb_test_insert(&rb_test_root, new);
 	}
 	//output from rbtree
-	my_rb_output(&my_rb_root);
-
-	return 0;
+    rb_test_output(&rb_test_root);
 }
 
