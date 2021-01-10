@@ -509,7 +509,9 @@ HEADERS += \
     include/linux/once.h \
     include/linux/list_sort.h \
     include/linux/clockchips.h \
-    include/asm-generic/uaccess.h
+    include/asm-generic/uaccess.h \
+    include/asm-generic/cmpxchg.h \
+    include/asm-generic/cmpxchg-local.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

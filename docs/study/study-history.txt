@@ -151,6 +151,30 @@ tools/perf/util/cputopo.h
 
 NUMA Autobalancing
 active_load_balance_cpu_stop()
-newidle_balance
-nohz_idle_balance
-nohz_newidle_balance
+
+scheduler_tick()
+        trigger_load_balance()
+                nohz_balancer_kick()
+
+run_rebalance_domains()
+        nohz_idle_balance()
+        rebalance_domains()
+
+balance_fair()
+pick_next_task_fair()
+        newidle_balance()
+                nohz_newidle_balance()
+
+//D20210109 Load Balancing ===============================
+
+wake_up_process(p)
+        try_to_wake_up()
+                select_task_rq()
+
+pick_next_task_fair()
+
+try_to_wake_up() 	SD_BALANCE_WAKE
+wake_up_new_task()	SD_BALANCE_FORK
+sched_exec()		SD_BALANCE_EXEC
+select_task_rq()
+

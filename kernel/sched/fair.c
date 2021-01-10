@@ -7840,11 +7840,198 @@ static inline int on_null_domain(struct rq *rq)
     return unlikely(!rcu_dereference_sched(rq->sd));
 }
 //9306 lines
+#ifdef CONFIG_NO_HZ_COMMON
+/*
+ * idle load balancing details
+ * - When one of the busy CPUs notice that there may be an idle rebalancing
+ *   needed, they will kick the idle load balancer, which then does idle
+ *   load balancing for all the idle CPUs.
+ * - HK_FLAG_MISC CPUs are used for this task, because HK_FLAG_SCHED not set
+ *   anywhere yet.
+ */
+//9316 lines
+
+
+//9357 lines
+static void nohz_balancer_kick(struct rq *rq)
+{
+    if (unlikely(rq->idle_balance))
+        return;
+}
+//9472 lines
 
 
 
-//9745 lines
-//#else /* !CONFIG_NO_HZ_COMMON */
+//9578 lines
+/*
+ * Internal function that runs load balance for all idle cpus. The load balance
+ * can be a simple update of blocked load or a complete load balance with
+ * tasks movement depending of flags.
+ * The function returns false if the loop has stopped before running
+ * through all idle CPUs.
+ */
+static bool _nohz_idle_balance(struct rq *this_rq, unsigned int flags,
+                   enum cpu_idle_type idle)
+{
+    /* Earliest time when we have to do rebalance again */
+    unsigned long now = jiffies;
+    unsigned long next_balance = now + 60*HZ;
+    bool has_blocked_load = false;
+    int update_next_balance = 0;
+    int this_cpu = this_rq->cpu;
+    int balance_cpu;
+    int ret = false;
+    struct rq *rq;
+
+    SCHED_WARN_ON((flags & NOHZ_KICK_MASK) == NOHZ_BALANCE_KICK);
+
+    /*
+     * We assume there will be no idle load after this update and clear
+     * the has_blocked flag. If a cpu enters idle in the mean time, it will
+     * set the has_blocked flag and trig another update of idle load.
+     * Because a cpu that becomes idle, is added to idle_cpus_mask before
+     * setting the flag, we are sure to not clear the state and not
+     * check the load of an idle cpu.
+     */
+    WRITE_ONCE(nohz.has_blocked, 0);
+
+    /*
+     * Ensures that if we miss the CPU, we must see the has_blocked
+     * store from nohz_balance_enter_idle().
+     */
+    smp_mb();
+
+    for_each_cpu(balance_cpu, nohz.idle_cpus_mask) {
+        if (balance_cpu == this_cpu || !idle_cpu(balance_cpu))
+            continue;
+
+        /*
+         * If this CPU gets work to do, stop the load balancing
+         * work being done for other CPUs. Next load
+         * balancing owner will pick it up.
+         */
+        if (need_resched()) {
+            has_blocked_load = true;
+            goto abort;
+        }
+
+        rq = cpu_rq(balance_cpu);
+
+        has_blocked_load |= update_nohz_stats(rq, true);
+
+        /*
+         * If time for next balance is due,
+         * do the balance.
+         */
+        if (time_after_eq(jiffies, rq->next_balance)) {
+            struct rq_flags rf;
+
+            rq_lock_irqsave(rq, &rf);
+            update_rq_clock(rq);
+            rq_unlock_irqrestore(rq, &rf);
+
+            if (flags & NOHZ_BALANCE_KICK)
+                rebalance_domains(rq, CPU_IDLE);
+        }
+
+        if (time_after(next_balance, rq->next_balance)) {
+            next_balance = rq->next_balance;
+            update_next_balance = 1;
+        }
+    }
+
+    /* Newly idle CPU doesn't need an update */
+    if (idle != CPU_NEWLY_IDLE) {
+        update_blocked_averages(this_cpu);
+        has_blocked_load |= this_rq->has_blocked_load;
+    }
+
+    if (flags & NOHZ_BALANCE_KICK)
+        rebalance_domains(this_rq, CPU_IDLE);
+
+    WRITE_ONCE(nohz.next_blocked,
+        now + msecs_to_jiffies(LOAD_AVG_PERIOD));
+
+    /* The full idle balance loop has been done */
+    ret = true;
+
+abort:
+    /* There is still blocked load, enable periodic update */
+    if (has_blocked_load)
+        WRITE_ONCE(nohz.has_blocked, 1);
+
+    /*
+     * next_balance will be updated only when there is a need.
+     * When the CPU is attached to null domain for ex, it will not be
+     * updated.
+     */
+    if (likely(update_next_balance))
+        nohz.next_balance = next_balance;
+
+    return ret;
+}
+
+/*
+ * In CONFIG_NO_HZ_COMMON case, the idle balance kickee will do the
+ * rebalancing for all the cpus for whom scheduler ticks are stopped.
+ */
+static bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
+{
+    int this_cpu = this_rq->cpu;
+    unsigned int flags;
+
+    if (!(atomic_read(nohz_flags(this_cpu)) & NOHZ_KICK_MASK))
+        return false;
+#if 0
+    if (idle != CPU_IDLE) {
+        atomic_andnot(NOHZ_KICK_MASK, nohz_flags(this_cpu));
+        return false;
+    }
+
+    /* could be _relaxed() */
+    flags = atomic_fetch_andnot(NOHZ_KICK_MASK, nohz_flags(this_cpu));
+    if (!(flags & NOHZ_KICK_MASK))
+        return false;
+#endif
+
+    _nohz_idle_balance(this_rq, flags, idle);
+
+    return true;
+}
+
+static void nohz_newidle_balance(struct rq *this_rq)
+{
+    int this_cpu = this_rq->cpu;
+
+    /*
+     * This CPU doesn't want to be disturbed by scheduler
+     * housekeeping
+     */
+    if (!housekeeping_cpu(this_cpu, HK_FLAG_SCHED))
+        return;
+
+    /* Will wake up very soon. No time for doing anything else*/
+    if (this_rq->avg_idle < sysctl_sched_migration_cost)
+        return;
+
+    /* Don't need to update blocked load of idle CPUs*/
+    if (!READ_ONCE(nohz.has_blocked) ||
+        time_before(jiffies, READ_ONCE(nohz.next_blocked)))
+        return;
+
+    raw_spin_unlock(&this_rq->lock);
+    /*
+     * This CPU is going to be idle and blocked load of idle CPUs
+     * need to be updated. Run the ilb locally as it is a good
+     * candidate for ilb instead of waking up another idle CPU.
+     * Kick an normal ilb if we failed to do the update.
+     */
+    //if (!_nohz_idle_balance(this_rq, NOHZ_STATS_KICK, CPU_NEWLY_IDLE))
+        //kick_ilb(NOHZ_STATS_KICK);
+    raw_spin_lock(&this_rq->lock);
+}
+//9745
+#else /* !CONFIG_NO_HZ_COMMON */
 static inline void nohz_balancer_kick(struct rq *rq) { }
 
 static inline bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
@@ -7853,7 +8040,7 @@ static inline bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle
 }
 
 static inline void nohz_newidle_balance(struct rq *this_rq) { }
-//#endif /* CONFIG_NO_HZ_COMMON */
+#endif /* CONFIG_NO_HZ_COMMON */
 //9756 lines
 
 
@@ -7881,8 +8068,8 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
      * and abort nohz_idle_balance altogether if we pull some load.
      */
     //CONFIG_NO_HZ_COMMON
-    //if (nohz_idle_balance(this_rq, idle))
-    //    return;
+    if (nohz_idle_balance(this_rq, idle))
+        return;
 
     /* normal load balance */
     update_blocked_averages(this_rq->cpu);

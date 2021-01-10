@@ -502,7 +502,7 @@ static void __cpuhp_kick_ap(struct cpuhp_cpu_state *st)
 	 */
 	smp_mb();
 	st->should_run = true;
-    //wake_up_process(st->thread);
+    wake_up_process(st->thread);
 	wait_for_ap_thread(st, st->bringup);
 }
 

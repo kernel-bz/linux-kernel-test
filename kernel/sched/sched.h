@@ -1921,8 +1921,7 @@ extern void update_group_capacity(struct sched_domain *sd, int cpu);
 
 extern void trigger_load_balance(struct rq *rq);
 
-//extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask);
-static inline void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask) { }
+extern void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_mask);
 
 #endif
 
