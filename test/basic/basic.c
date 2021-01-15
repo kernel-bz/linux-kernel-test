@@ -7,10 +7,12 @@
  */
 
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 
 #include "test/config.h"
 #include "test/basic.h"
+#include "test/test.h"
 
 static void _basic_training_help(void)
 {
@@ -34,9 +36,12 @@ static int _basic_training_menu(int asize)
     printf("[#]--> Basic Training Menu\n");
     printf("0: help.\n");
     printf("1: Data Types.\n");
-    printf("2: Bits Operation Test.\n");
-    printf("3: CPU Mask Test.\n");
-    printf("4: exit.\n");
+    printf("2: Basic Pointer Test.\n");
+    printf("3: Basic Struct Test.\n");
+    printf("4: Bits Operation Test.\n");
+    printf("5: CPU Mask Test.\n");
+    printf("6: Sort Test.\n");
+    printf("7: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -48,8 +53,11 @@ void basic_training(void)
 {
     void (*fn[])(void) = { _basic_training_help
         , basic_types_test
+        , basic_ptr_test
+        , basic_struct_test
+        , _basic_training_help
         , cpus_mask_test
-        , cpus_mask_test
+        , lib_sort_test
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);

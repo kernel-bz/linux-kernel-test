@@ -31,6 +31,9 @@ extern "C" {
 
 #include <asm/thread_info.h>
 
+/* Disable: warning C4127: conditional expression is constant */
+#pragma warning(disable:4127)
+
 //include/linux/types.h
 /* bsd */
 typedef unsigned char 	u_char;
@@ -43,9 +46,10 @@ typedef unsigned long 	u_long;
 
 //include/linux/compiler.h
 #define notrace
+#define __randomize_layout
 #define __initdata
-#define __ref
 #define __cpuidle
+#define __ref
 #define __malloc
 #define __iomem
 #define __percpu
@@ -53,12 +57,10 @@ typedef unsigned long 	u_long;
 #define __ro_after_init
 #define __initconst
 #define __rmem_of_table_sentinel
-#define __randomize_layout
 #define __user
 #define __refdata
 #define __initdata_memblock
 #define __exit
-
 #define lockdep_assert_held(l)	do { (void)(l); } while (0)
 
 //include/linux/byteorder/generic.h

@@ -41,10 +41,9 @@ static int _struct_algo_menu(int asize)
     printf(" 6: Red-Black Tree Test01.\n");
     printf(" 7: Red-Black Tree Test02.\n");
     printf(" 8: Red-Black Tree Test03.\n");
-    printf(" 9: Sort Test.\n");
-    printf("10: IDA Test.\n");
-    printf("11: Xarray Test.\n");
-    printf("12: exit.\n");
+    printf(" 9: IDA Test.\n");
+    printf("10: Xarray Test.\n");
+    printf("11: exit.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -63,7 +62,6 @@ void struct_algorithm(void)
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
-        , lib_sort_test
         , lib_ida_test
         , lib_xarray_test
     };

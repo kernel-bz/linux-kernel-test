@@ -57,7 +57,7 @@ void list_test01(void)
     pr_out_on(stack_depth, "size: %d, %d, %d, %d\n",
         sizeof(struct fox), sizeof(unsigned long), sizeof(int), sizeof(struct list_head));
 
-    pr_out_on(stack_depth, "first_fox value: %d, %d, %d\n"
+    pr_out_on(stack_depth, "first_fox value: %lu, %lu, %d\n"
         , first_fox.tail_length, first_fox.weight, first_fox.is_fantastic);
 
     pr_out_on(stack_depth, "first_fox addr: %p, %p, %p, %p, %p\n"

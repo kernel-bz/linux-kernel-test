@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-void init_start_kernel(void);
+//test/basic/
+void basic_struct_test(void);
+void basic_ptr_test(void);
 
 //test/algorithm
 void struct_algorithm(void);
@@ -24,6 +26,8 @@ void lib_sort_test(void);
 void lib_ida_test(void);
 void lib_xarray_test(void);
 
+//test/init
+void init_start_kernel(void);
 
 //test/sched/sched-test.c
 void sched_test(void);

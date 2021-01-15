@@ -10,7 +10,8 @@ DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
 
 LIBS += -Lpthread
 
-QMAKE_CFLAGS += -Wno-unused-parameter -finstrument-functions
+QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
+        -Wvariadic-macros
 
 INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/
 
@@ -138,7 +139,8 @@ SOURCES += \
     lib/list_sort.c \
     lib/random32.c \
     lib/test_sort.c \
-    lib/usercopy.c
+    lib/usercopy.c \
+    test/basic/struct-test.c
 
 HEADERS += \
     include/test/test.h \
