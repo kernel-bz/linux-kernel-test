@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 
 #include "test/debug.h"
@@ -63,15 +64,15 @@ static int _config_setting_menu(int asize)
 
     printf("\n");
     printf("[#]--> Config Setting Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: Config View.\n");
     printf("2: Set Debug Level.\n");
-    printf("3: exit.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 void config_setting(void)
@@ -79,14 +80,14 @@ void config_setting(void)
     void (*fn[])(void) = { _config_setting_help
         , _config_view
         , _config_set_debug_level
+        , _config_setting_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _config_setting_menu(asize);
-    if (idx >= 0) {
+    while(1) {
+        idx = _config_setting_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }

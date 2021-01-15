@@ -10,7 +10,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210103	//test date
+#define CONFIG_VERSION_3		20210115	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1

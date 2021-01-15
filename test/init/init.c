@@ -7,6 +7,7 @@
  */
 
 #include <stdio.h>
+#include <stdio_ext.h>
 #include <stdlib.h>
 
 #include "test/config.h"
@@ -69,15 +70,15 @@ static int _init_menu(int asize)
 
     printf("\n");
     printf("[#]--> Start Kernel Test Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: sched_init test.\n");
     printf("2: sched_init_smp test.\n");
-    printf("3: exit.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 void init_start_kernel(void)
@@ -85,14 +86,14 @@ void init_start_kernel(void)
     void (*fn[])(void) = { _init_menu_help
         , _init_start_kernel
         , sched_init_smp	//kernel/sched/core.c
+        , _init_menu_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _init_menu(asize);
-    if (idx >= 0) {
+    while(1) {
+        idx = _init_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }

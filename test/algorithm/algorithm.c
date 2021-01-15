@@ -32,7 +32,7 @@ static int _struct_algo_menu(int asize)
 
     printf("\n");
     printf("[#]--> Struct & Algorithm Menu\n");
-    printf(" 0: help.\n");
+    printf(" 0: exit.\n");
     printf(" 1: Linked List Test01.\n");
     printf(" 2: Linked List Test02.\n");
     printf(" 3: Linked List Test03.\n");
@@ -43,12 +43,12 @@ static int _struct_algo_menu(int asize)
     printf(" 8: Red-Black Tree Test03.\n");
     printf(" 9: IDA Test.\n");
     printf("10: Xarray Test.\n");
-    printf("11: exit.\n");
+    printf("11: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 void struct_algorithm(void)
@@ -64,14 +64,14 @@ void struct_algorithm(void)
         , rbtree_test03
         , lib_ida_test
         , lib_xarray_test
+        , _struct_algo_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _struct_algo_menu(asize);
-    if (idx >= 0) {
+    while(1) {
+        idx = _struct_algo_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }

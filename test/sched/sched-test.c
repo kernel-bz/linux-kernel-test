@@ -547,32 +547,34 @@ static int _sched_basic_pelt_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler --> Basic PELT Test Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: calc_global_load test.\n");
     printf("2: decay_load() test.\n");
     printf("3: update_load_avg() test.\n");
-    printf("4: exit.\n");
+    printf("4: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 static void _sched_basic_pelt_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
         , _calc_global_load_test
-        , decay_load_test, update_load_avg_test
+        , decay_load_test
+        , update_load_avg_test
+        , _sched_test_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
-    idx = _sched_basic_pelt_test_menu(asize);
-    if (idx >= 0) {
+    while (1) {
+        idx = _sched_basic_pelt_test_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }
 
@@ -583,17 +585,17 @@ static int _sched_cfs_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler --> CFS Test Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: sched pelt info.\n");
     printf("2: leaf cfs_rq info.\n");
     printf("3: set_user_nice test.\n");
     printf("4: run rebalance test.\n");
-    printf("5: exit.\n");
+    printf("5: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 static void _sched_cfs_test(void)
@@ -603,15 +605,15 @@ static void _sched_cfs_test(void)
         , pr_leaf_cfs_rq_info
         , _sched_set_user_nice_test
         , sched_fair_run_rebalance	//kernel/sched/fair.c
+        , _sched_test_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _sched_cfs_test_menu(asize);
-    if (idx >= 0) {
+    while (1) {
+        idx = _sched_cfs_test_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }
 
@@ -622,27 +624,27 @@ static int _sched_rt_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler --> RT Test Menu\n");
-    printf("0: help.\n");
-    printf("1: exit.\n");
+    printf("0: exit.\n");
+    printf("1: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 static void _sched_rt_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
+           , _sched_test_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _sched_rt_test_menu(asize);
-    if (idx >= 0) {
+    while (1) {
+        idx = _sched_rt_test_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }
 
@@ -653,30 +655,31 @@ static int _sched_dl_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler --> DeadLine Test Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: deadline enqueue test.\n");
     printf("2: cpudl test.\n");
-    printf("3: exit.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 static void _sched_dl_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , sched_dl_enqueue_test, sched_cpudl_test
+        , sched_dl_enqueue_test
+        , sched_cpudl_test
+        , _sched_test_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _sched_dl_test_menu(asize);
-    if (idx >= 0) {
+    while (1) {
+        idx = _sched_dl_test_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }
 
@@ -687,7 +690,8 @@ static int _sched_test_menu(int asize)
 
     printf("\n");
     printf("[#]--> Scheduler Source Test Menu\n");
-    printf(" 0: help.\n");
+    printf(" 0: exit.\n");
+
     printf(" 1: wake_up_new_task test.\n");
     printf(" 2: current task info.\n");
     printf(" 3: deactivate_task test.\n");
@@ -702,12 +706,12 @@ static int _sched_test_menu(int asize)
     printf("12: RT Test -->\n");
     printf("13: DeadLine Test -->\n");
 
-    printf("14: exit.\n");
+    printf("14: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 void sched_test(void)
@@ -726,14 +730,14 @@ void sched_test(void)
         , _sched_cfs_test
         , _sched_rt_test
         , _sched_dl_test
+        , _sched_test_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _sched_test_menu(asize);
-    if (idx >= 0) {
+    while(1) {
+        idx = _sched_test_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }

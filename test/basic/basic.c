@@ -34,19 +34,19 @@ static int _basic_training_menu(int asize)
 
     printf("\n");
     printf("[#]--> Basic Training Menu\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: Data Types.\n");
     printf("2: Basic Pointer Test.\n");
     printf("3: Basic Struct Test.\n");
     printf("4: Bits Operation Test.\n");
     printf("5: CPU Mask Test.\n");
     printf("6: Sort Test.\n");
-    printf("7: exit.\n");
+    printf("7: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 void basic_training(void)
@@ -58,14 +58,14 @@ void basic_training(void)
         , _basic_training_help
         , cpus_mask_test
         , lib_sort_test
+        , _basic_training_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _basic_training_menu(asize);
-    if (idx >= 0) {
+    while(1) {
+        idx = _basic_training_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 }

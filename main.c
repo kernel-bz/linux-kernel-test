@@ -41,20 +41,20 @@ static int _main_menu(int asize)
 
     printf("\n");
     printf("[*] Linux Kernel Source Test (c)www.kernel.bz\n");
-    printf("0: help.\n");
+    printf("0: exit.\n");
     printf("1: Config Setting -->\n");
     printf("2: Basic Training -->\n");
     printf("3: Struct & Algorithm -->\n");
     printf("4: Start Kernel Test -->\n");
     printf("5: Scheduler Source Test -->\n");
-    printf("6: exit.\n");
+    printf("6: help.\n");
     printf("Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
     scanf("%d", &idx);
-    return (idx >= 0 && idx < asize) ? idx : -1;
+    return (idx > 0 && idx < asize) ? idx : -1;
 }
 
 int main(void)
@@ -65,16 +65,18 @@ int main(void)
             , struct_algorithm
             , init_start_kernel
             , sched_test
+            , _main_menu_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
-_retry:
-    idx = _main_menu(asize);
-    if(idx >= 0) {
+    while(1) {
+        idx = _main_menu(asize);
+        if (idx < 0) break;
         fn[idx]();
-        goto _retry;
     }
 
+    printf("\n");
+    printf("The end of test. Thanks.\n\n");
     return 0;
 }
