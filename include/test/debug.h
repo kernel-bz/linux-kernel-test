@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  include/test/debug.h
+ *  User Debug Macro
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
+ */
 #ifndef __TEST_DEBUG_H
 #define __TEST_DEBUG_H
 
@@ -28,7 +35,7 @@ extern int stack_depth;
 #define seq_printf		printf
 #define pr_warning		_pr_warn
 #define pr_debug		printf
-#define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
+//#define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
 #define pr_warn 				_pr_warn
 #define pr_warn_once			_pr_warn
 #define pr_cont 				pr_err
@@ -80,6 +87,17 @@ extern int stack_depth;
       }												\
     } while (0)
 
+#define pr_info_enable(level, enable, ...)						\
+    do {											\
+      int depth = level - DebugBase;				\
+      if (depth > 0 || enable) {								\
+        if (level > DebugLevel) break;				\
+        while (depth--) { printf("    "); }			\
+        printf("<%d> | %s : ", level, __func__); 	\
+        printf(__VA_ARGS__); 						\
+      }												\
+    } while (0)
+
 #define pr_info_view_on(level, format, args)		\
     do {											\
       int depth = level - DebugBase;				\
@@ -87,6 +105,17 @@ extern int stack_depth;
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | ", level); 					\
+        printf(format, #args, args);				\
+      }												\
+    } while (0)
+
+#define pr_info_view_enable(level, enable, format, args) \
+    do {											\
+      int depth = level - DebugBase;				\
+      if (depth > 0 || enable) {					\
+        if (level > DebugLevel) break;				\
+        while (depth--) { printf("    "); }			\
+        printf("<%d> | %s : ", level, __func__); 	\
         printf(format, #args, args);				\
       }												\
     } while (0)

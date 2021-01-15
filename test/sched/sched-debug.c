@@ -414,11 +414,16 @@ void pr_sched_curr_task_info(struct task_struct *p)
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
     if (!p) return;
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->cpu);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->on_cpu);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->wake_cpu);
+    pr_info_view_on(stack_depth, "%30s : %d\n", p->recent_used_cpu);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->normal_prio);
     pr_info_view_on(stack_depth, "%30s : %d\n", p->static_prio);
     pr_info_view_on(stack_depth, "%30s : %u\n", p->rt_priority);
     pr_info_view_on(stack_depth, "%30s : %s\n", spolicy[p->policy]);
+    pr_info_view_on(stack_depth, "%30s : 0x%X\n", p->state);
 
     if (p->sched_class == &stop_sched_class)
         pr_out_on(stack_depth, "%30s : %s\n", "p->sched_class", "stop_sched_class");

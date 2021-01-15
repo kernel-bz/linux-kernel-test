@@ -1438,6 +1438,8 @@ void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
  */
 static int select_fallback_rq(int cpu, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
     int nid = cpu_to_node(cpu);
     const struct cpumask *nodemask = NULL;
     enum { cpuset, possible, fail } state = cpuset;
@@ -1503,6 +1505,8 @@ out:
                     task_pid_nr(p), p->comm, cpu);
         }
     }
+
+    pr_fn_end_on(stack_depth);
 
     return dest_cpu;
 }
@@ -1608,6 +1612,8 @@ ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
 static void ttwu_do_wakeup(struct rq *rq, struct task_struct *p, int wake_flags,
                struct rq_flags *rf)
 {
+    pr_fn_start_on(stack_depth);
+
     check_preempt_curr(rq, p, wake_flags);
     p->state = TASK_RUNNING;
     //trace_sched_wakeup(p);
@@ -1635,6 +1641,8 @@ static void ttwu_do_wakeup(struct rq *rq, struct task_struct *p, int wake_flags,
         rq->idle_stamp = 0;
     }
 #endif
+
+    pr_fn_end_on(stack_depth);
 }
 //2247
 static void
@@ -1665,6 +1673,8 @@ ttwu_do_activate(struct rq *rq, struct task_struct *p, int wake_flags,
  */
 static int ttwu_remote(struct task_struct *p, int wake_flags)
 {
+    pr_fn_start_on(stack_depth);
+
     struct rq_flags rf;
     struct rq *rq;
     int ret = 0;
@@ -1677,6 +1687,8 @@ static int ttwu_remote(struct task_struct *p, int wake_flags)
         ret = 1;
     }
     __task_rq_unlock(rq, &rf);
+
+    pr_fn_end_on(stack_depth);
 
     return ret;
 }
@@ -1855,8 +1867,13 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
 static int
 try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long flags;
     int cpu, success = 0;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", p);
+    pr_info_view_on(stack_depth, "%20s : %p\n", current);
 
     preempt_disable();
     if (p == current) {
@@ -1890,6 +1907,13 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
      */
     raw_spin_lock_irqsave(&p->pi_lock, flags);
     //smp_mb__after_spinlock();
+
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", p->state);
+    p->state = TASK_INTERRUPTIBLE;		//as test
+    //p->on_rq = TASK_ON_RQ_MIGRATING;	//as test
+    p->on_rq = 0;	//as test
+    pr_info_view_on(stack_depth, "%20s : 0x%X\n", state);
+
     if (!(p->state & state))
         goto unlock;
 
@@ -1981,12 +2005,19 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
 #endif /* CONFIG_SMP */
 
     ttwu_queue(p, cpu, wake_flags);
+
 unlock:
+    pr_info_on(stack_depth, "unlock:\n");
     raw_spin_unlock_irqrestore(&p->pi_lock, flags);
+
 out:
+    pr_info_on(stack_depth, "out:\n");
+
     if (success)
         ttwu_stat(p, cpu, wake_flags);
     preempt_enable();
+
+    pr_fn_end_on(stack_depth);
 
     return success;
 }

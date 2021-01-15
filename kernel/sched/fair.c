@@ -4759,6 +4759,8 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
 static int
 select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_flags)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_domain *tmp, *sd = NULL;
     int cpu = smp_processor_id();
     int new_cpu = prev_cpu;
@@ -4815,6 +4817,8 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
             current->recent_used_cpu = cpu;
     }
     rcu_read_unlock();
+
+    pr_fn_end_on(stack_depth);
 
     return new_cpu;
 }

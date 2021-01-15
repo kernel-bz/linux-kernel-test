@@ -172,8 +172,10 @@ _retry:
     rq = cpu_rq(cpu);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-
     pr_sched_curr_task_info(rq->curr);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current);
+    pr_sched_curr_task_info(current);	//current_task
 
     pr_fn_end_on(stack_depth);
 }
@@ -309,7 +311,7 @@ static void _sched_wake_up_process_test(void)
 {
     struct rq *rq;
     struct task_struct *p;
-    int cpu, ret;
+    int cpu;
 
 _retry:
      __fpurge(stdin);
@@ -324,10 +326,7 @@ _retry:
         return;
     }
 
-    ret = wake_up_process(p);
-    pr_info_view_on(stack_depth, "%20s : %d\n", ret);
-
-    pr_fn_end_on(stack_depth);
+    wake_up_process(p);
 }
 
 #if 0
