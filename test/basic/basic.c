@@ -40,8 +40,9 @@ static int _basic_training_menu(int asize)
     printf("3: Basic Struct Test.\n");
     printf("4: Bits Operation Test.\n");
     printf("5: CPU Mask Test.\n");
-    printf("6: Sort Test.\n");
-    printf("7: help.\n");
+    printf("6: Run Time(CPU cycles) Test.\n");
+    printf("7: Sort Test.\n");
+    printf("8: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -57,6 +58,7 @@ void basic_training(void)
         , basic_struct_test
         , _basic_training_help
         , cpus_mask_test
+        , basic_run_time_test
         , lib_sort_test
         , _basic_training_help
     };

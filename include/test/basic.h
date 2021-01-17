@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+//test/basic/basic-test.c
+void basic_run_time_test(void);
+
 //test/basic/ptr-test.c
 void basic_ptr_test(void);
 

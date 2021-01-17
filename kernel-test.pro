@@ -13,7 +13,7 @@ LIBS += -Lpthread
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
         -Wvariadic-macros
 
-INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/
+INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ arch/x86/include/
 
 SOURCES += \
     main.c \
@@ -140,7 +140,8 @@ SOURCES += \
     lib/random32.c \
     lib/test_sort.c \
     lib/usercopy.c \
-    test/basic/struct-test.c
+    test/basic/struct-test.c \
+    test/basic/basic-test.c
 
 HEADERS += \
     include/test/test.h \
@@ -513,7 +514,13 @@ HEADERS += \
     include/linux/clockchips.h \
     include/asm-generic/uaccess.h \
     include/asm-generic/cmpxchg.h \
-    include/asm-generic/cmpxchg-local.h
+    include/asm-generic/cmpxchg-local.h \
+    arch/x86/include/asm/msr.h \
+    arch/x86/include/asm/tsc.h \
+    include/uapi/asm/msr.h \
+    arch/x86/include/asm/asm.h \
+    arch/x86/include/asm/cpumask.h \
+    arch/x86/include/asm/msr-index.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

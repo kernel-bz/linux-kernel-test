@@ -4277,6 +4277,8 @@ find_idlest_group_cpu(struct sched_group *group, struct task_struct *p, int this
 static inline int find_idlest_cpu(struct sched_domain *sd, struct task_struct *p,
                   int cpu, int prev_cpu, int sd_flag)
 {
+    pr_fn_start_on(stack_depth);
+
     int new_cpu = cpu;
 
     if (!cpumask_intersects(sched_domain_span(sd), p->cpus_ptr))
@@ -4323,6 +4325,8 @@ static inline int find_idlest_cpu(struct sched_domain *sd, struct task_struct *p
                 sd = tmp;
         }
     }
+
+    pr_fn_end_on(stack_depth);
 
     return new_cpu;
 }
@@ -4462,12 +4466,16 @@ static inline int select_idle_smt(struct task_struct *p, int target)
  */
 static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int target)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_domain *this_sd;
     u64 avg_cost, avg_idle;
     u64 time, cost;
     s64 delta;
     int this = smp_processor_id();
     int cpu, nr = INT_MAX, si_cpu = -1;
+
+    pr_info_view_on(stack_depth, "%20s : %llu\n", this_rq()->avg_idle);
 
     this_sd = rcu_dereference(*this_cpu_ptr(&sd_llc));
     if (!this_sd)
@@ -4479,6 +4487,9 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
      */
     avg_idle = this_rq()->avg_idle / 512;
     avg_cost = this_sd->avg_scan_cost + 1;
+
+    pr_info_view_on(stack_depth, "%20s : %llu\n", avg_idle);
+    pr_info_view_on(stack_depth, "%20s : %llu\n", avg_cost);
 
     if (sched_feat(SIS_AVG_CPU) && avg_idle < avg_cost)
         return -1;
@@ -4509,6 +4520,7 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
     delta = (s64)(time - cost) / 8;
     this_sd->avg_scan_cost += delta;
 
+    pr_fn_end_on(stack_depth);
     return cpu;
 }
 
@@ -4517,12 +4529,17 @@ static int select_idle_cpu(struct task_struct *p, struct sched_domain *sd, int t
  */
 static int select_idle_sibling(struct task_struct *p, int prev, int target)
 {
+    pr_fn_start_on(stack_depth);
+
     struct sched_domain *sd;
     int i, recent_used_cpu;
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", target);
 
     if (available_idle_cpu(target) || sched_idle_cpu(target))
         return target;
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", prev);
     /*
      * If the previous CPU is cache affine and idle, don't be stupid:
      */
@@ -4532,6 +4549,8 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
 
     /* Check a recently used CPU as a potential idle candidate: */
     recent_used_cpu = p->recent_used_cpu;
+    pr_info_view_on(stack_depth, "%20s : %d\n", recent_used_cpu);
+
     if (recent_used_cpu != prev &&
         recent_used_cpu != target &&
         cpus_share_cache(recent_used_cpu, target) &&
@@ -4561,6 +4580,7 @@ static int select_idle_sibling(struct task_struct *p, int prev, int target)
     if ((unsigned)i < nr_cpumask_bits)
         return i;
 
+    pr_fn_end_on(stack_depth);
     return target;
 }
 
@@ -4767,6 +4787,10 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
     int want_affine = 0;
     int sync = (wake_flags & WF_SYNC) && !(current->flags & PF_EXITING);
 
+    pr_info_view_on(stack_depth, "%15s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%15s : %d\n", prev_cpu);
+    pr_info_view_on(stack_depth, "%15s : %d\n", sync);
+
     if (sd_flag & SD_BALANCE_WAKE) {
         record_wakee(p);
 
@@ -4781,10 +4805,15 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
                   cpumask_test_cpu(cpu, p->cpus_ptr);
     }
 
+    pr_info_view_on(stack_depth, "%15s : %d\n", want_affine);
+
     rcu_read_lock();
     for_each_domain(cpu, tmp) {
         if (!(tmp->flags & SD_LOAD_BALANCE))
             break;
+
+        pr_info_view_on(stack_depth, "%20s : %s\n", tmp->name);
+        pr_info_view_on(stack_depth, "%20s : 0x%X\n", tmp->span[0]);
 
         /*
          * If both 'cpu' and 'prev_cpu' are part of this domain,
@@ -4817,6 +4846,8 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
             current->recent_used_cpu = cpu;
     }
     rcu_read_unlock();
+
+    pr_info_view_on(stack_depth, "%15s : %d\n", new_cpu);
 
     pr_fn_end_on(stack_depth);
 

@@ -17,28 +17,28 @@ typedef unsigned int __kernel_dev_t;
 
 //typedef __kernel_fd_set		fd_set;
 //typedef __kernel_dev_t		dev_t;
-typedef __kernel_ino_t		ino_t;
+typedef __kernel_ino_t			ino_t;
 //typedef __kernel_mode_t		mode_t;		//sys/types.h
-typedef unsigned short		umode_t;
-//typedef u32			nlink_t;
+typedef unsigned short			umode_t;
+//typedef u32					nlink_t;
 //typedef __kernel_off_t		off_t;
-typedef __kernel_pid_t		pid_t;
-typedef __kernel_daddr_t	daddr_t;
+typedef __kernel_pid_t			pid_t;
+typedef __kernel_daddr_t		daddr_t;
 //typedef __kernel_key_t		key_t;
 typedef __kernel_suseconds_t	suseconds_t;
-//typedef __kernel_timer_t	timer_t;
-typedef __kernel_clockid_t	clockid_t;
+//typedef __kernel_timer_t		timer_t;
+typedef __kernel_clockid_t		clockid_t;
 //typedef __kernel_mqd_t		mqd_t;
 
 //stdbool.h
 //typedef _Bool			bool;
 
-typedef __kernel_uid32_t	uid_t;
-typedef __kernel_gid32_t	gid_t;
+typedef __kernel_uid32_t		uid_t;
+typedef __kernel_gid32_t		gid_t;
 typedef __kernel_uid16_t        uid16_t;
 typedef __kernel_gid16_t        gid16_t;
 
-//typedef unsigned long		uintptr_t;
+//typedef unsigned long			uintptr_t;
 
 #ifdef CONFIG_HAVE_UID16
 /* This is defined by include/asm-{arch}/posix_types.h */
@@ -91,6 +91,7 @@ typedef __s8  s8;
 #define __user
 #define __must_check
 #define __cold
+#define notrace
 
 typedef __u16 __bitwise __le16;
 typedef __u16 __bitwise __be16;

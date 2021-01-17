@@ -1067,6 +1067,12 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
 
     const struct sched_class *class;
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    if (!rq->curr) {
+        pr_err("rq->curr is NULL.\n");
+        return;
+    }
+
     if (p->sched_class == rq->curr->sched_class) {
         rq->curr->sched_class->check_preempt_curr(rq, p, flags);
     } else {
@@ -1539,7 +1545,7 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags)
     if (unlikely(!is_cpu_allowed(p, cpu)))
         cpu = select_fallback_rq(task_cpu(p), p);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_info_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
 
     pr_fn_end_on(stack_depth);
     return cpu;
@@ -1988,7 +1994,14 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
         atomic_dec(&task_rq(p)->nr_iowait);
     }
 
+    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
+
     cpu = select_task_rq(p, p->wake_cpu, SD_BALANCE_WAKE, wake_flags);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_info_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
+
     if (task_cpu(p) != cpu) {
         wake_flags |= WF_MIGRATED;
         psi_ttwu_dequeue(p);
@@ -2321,7 +2334,6 @@ void wake_up_new_task(struct task_struct *p)
      */
     p->recent_used_cpu = task_cpu(p);
     __set_task_cpu(p, select_task_rq(p, task_cpu(p), SD_BALANCE_FORK, 0));
-    //__set_task_cpu(p, p->cpu);
 #endif
     rq = __task_rq_lock(p, &rf);
     rq->cpu = p->cpu;

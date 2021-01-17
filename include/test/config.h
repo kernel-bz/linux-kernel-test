@@ -7,6 +7,21 @@ extern "C" {
 
 #include <linux/kconfig.h>
 
+//Arch Configuraion ----------------------------------
+#define ARCH_X86			1
+#define ARCH_X86_64			2
+#define ARCH_ARM			3
+#define ARCH_ARM64			4
+#define ARCH_RISCV			5
+
+#define CONFIG_RUN_ARCH 	ARCH_X86_64
+
+#define CONFIG_X86_TSC
+
+#define CONFIG_ARM64
+//#define CONFIG_RISCV
+
+
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
@@ -25,11 +40,6 @@ extern "C" {
 #define CONFIG_BASE_SMALL		0
 //#define CONFIG_BASE_SMALL		1
 #define CONFIG_XARRAY_MULTI		0
-
-
-//Arch Configuraion ----------------------------------
-#define CONFIG_ARM64
-//#define CONFIG_RISCV
 
 
 //CPU Configuration ----------------------------------------

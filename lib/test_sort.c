@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#include <stdio.h>
+#include <stdio_ext.h>
+
 #include <linux/sort.h>
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -9,35 +12,33 @@
 
 /* a simple boot-time regression test */
 
-#define TEST_LEN 1000
-
 static int __init cmpint(const void *a, const void *b)
 {
 	return *(int *)a - *(int *)b;
 }
 
-static int __init test_sort_init(void)
+static int __init test_sort_init(int cnt)
 {
 	int *a, i, r = 1, err = -ENOMEM;
 
-	a = kmalloc_array(TEST_LEN, sizeof(*a), GFP_KERNEL);
+    a = kmalloc_array(cnt, sizeof(*a), GFP_KERNEL);
 	if (!a)
 		return err;
 
-    printf("Random Source Data[%d] ---->\n", TEST_LEN);
-    for (i = 0; i < TEST_LEN; i++) {
+    printf("Random Source Data[%d] ---->\n", cnt);
+    for (i = 0; i < cnt; i++) {
 		r = (r * 725861) % 6599;
 		a[i] = r;
         printf("%d, ", a[i]);
     }
 
-	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
+    sort(a, cnt, sizeof(*a), cmpint, NULL);
 
     printf("\n\n");
-    printf("Sorting Data ---->\n");
+    printf("Sorting Data[%d] ---->\n", cnt);
 
     err = -EINVAL;
-    for (i = 0; i < TEST_LEN-1; i++) {
+    for (i = 0; i < cnt-1; i++) {
         printf("%d, ", a[i]);
 
         if (a[i] > a[i+1]) {
@@ -46,6 +47,7 @@ static int __init test_sort_init(void)
 		}
     }
 	err = 0;
+    printf("\n");
     pr_info("Sorting test passed.\n");
 
 exit:
@@ -59,8 +61,11 @@ static void __exit test_sort_exit(void)
 
 void lib_sort_test(void)
 {
-    int err;
-    err = test_sort_init();
+    int err, cnt;
+    __fpurge(stdin);
+    printf("Enter Sorting Data Counter: ");
+    scanf("%d", &cnt);
+    err = test_sort_init(cnt);
     pr_info("err = %d\n", err);
 }
 EXPORT_SYMBOL(lib_sort_test);
