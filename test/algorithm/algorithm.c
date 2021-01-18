@@ -12,7 +12,7 @@
 #include "test/debug.h"
 #include "test/test.h"
 
-static void _struct_algo_help(void)
+static void _algo_struct_help(void)
 {
     //help messages...
     printf("\n");
@@ -25,13 +25,13 @@ static void _struct_algo_help(void)
     return;
 }
 
-static int _struct_algo_menu(int asize)
+static int _algo_struct_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
 
     printf("\n");
-    printf("[#]--> Struct & Algorithm Menu\n");
+    printf("[#]--> Algorithm & Struct Menu\n");
     printf(" 0: exit.\n");
     printf(" 1: Linked List Test01.\n");
     printf(" 2: Linked List Test02.\n");
@@ -51,9 +51,9 @@ static int _struct_algo_menu(int asize)
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-void struct_algorithm(void)
+void algorithm_struct(void)
 {
-    void (*fn[])(void) = { _struct_algo_help
+    void (*fn[])(void) = { _algo_struct_help
         , list_test01
         , list_test02
         , list_test03
@@ -64,13 +64,13 @@ void struct_algorithm(void)
         , rbtree_test03
         , lib_ida_test
         , lib_xarray_test
-        , _struct_algo_help
+        , _algo_struct_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _struct_algo_menu(asize);
+        idx = _algo_struct_menu(asize);
         if (idx < 0) break;
         fn[idx]();
     }

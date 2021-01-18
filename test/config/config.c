@@ -15,19 +15,28 @@
 
 static void _config_view(void)
 {
-    printf("\n");
-    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_HZ);
-#ifdef CONFIG_ARM64
-    pr_info_view_on(stack_depth, "%20s : %s\n", "CONFIG_ARM64");
-#endif
-    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_NR_CPUS);
-#ifdef CONFIG_NUMA
-    pr_info_view_on(stack_depth, "%20s : %s\n", "CONFIG_NUMA");
-#endif
-    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_NODES_SHIFT);
+    u8 *arch[] = { "ALL", "X86", "X86_64", "ARM", "ARM64", "RISCV" };
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", DebugBase);
-    pr_info_view_on(stack_depth, "%20s : %d\n", DebugLevel);
+    printf("\n");
+    pr_info_view_on(stack_depth, "%30s : %s\n", arch[CONFIG_RUN_ARCH]);
+    pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_HZ);
+    pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_NR_CPUS);
+
+#ifdef CONFIG_ARM64
+    pr_info_view_on(stack_depth, "%30s : %s\n", "CONFIG_ARM64");
+#endif
+#ifdef CONFIG_NUMA
+    pr_info_view_on(stack_depth, "%30s : %s\n", "CONFIG_NUMA");
+#endif
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_NODES_SHIFT);
+
+    pr_info_view_on(stack_depth, "%30s : %d\n", DebugBase);
+    pr_info_view_on(stack_depth, "%30s : %d\n", DebugLevel);
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_VERSION_1);
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_VERSION_2);
+    pr_info_view_on(stack_depth, "%20s : %d\n", CONFIG_VERSION_3);
 }
 
 static void _config_set_debug_level(void)

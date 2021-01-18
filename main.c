@@ -44,7 +44,7 @@ static int _main_menu(int asize)
     printf("0: exit.\n");
     printf("1: Config Setting -->\n");
     printf("2: Basic Training -->\n");
-    printf("3: Struct & Algorithm -->\n");
+    printf("3: Algorithm & Struct -->\n");
     printf("4: Start Kernel Test -->\n");
     printf("5: Scheduler Source Test -->\n");
     printf("6: help.\n");
@@ -62,7 +62,7 @@ int main(void)
     void (*fn[])(void) = { _main_menu_help
             , config_setting
             , basic_training
-            , struct_algorithm
+            , algorithm_struct
             , init_start_kernel
             , sched_test
             , _main_menu_help

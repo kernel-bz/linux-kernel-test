@@ -10,7 +10,7 @@ void basic_struct_test(void);
 void basic_ptr_test(void);
 
 //test/algorithm
-void struct_algorithm(void);
+void algorithm_struct(void);
 void list_test01(void);
 void list_test02(void);
 void list_test03(void);

@@ -9,11 +9,12 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
-//ARCH_X86_64
+#include "test/config.h"
+#include "test/debug.h"
+
+#if (CONFIG_RUN_ARCH == ARCH_X86 || CONFIG_RUN_ARCH == ARCH_X86_64)
 //arch/x86/include/
 #include <asm/tsc.h>
-
-#include "test/debug.h"
 
 static void _test_busy_loop(u64 iters)
 {
@@ -59,3 +60,12 @@ void basic_run_time_test(void)
 
     _run_time_test(loop, cnt);
 }
+
+#else
+
+void basic_run_time_test(void)
+{
+   pr_warn("This function can run on ARCH_X86\n");
+}
+
+#endif

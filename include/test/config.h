@@ -8,13 +8,14 @@ extern "C" {
 #include <linux/kconfig.h>
 
 //Arch Configuraion ----------------------------------
+#define ARCH_ALL			0
 #define ARCH_X86			1
 #define ARCH_X86_64			2
 #define ARCH_ARM			3
 #define ARCH_ARM64			4
 #define ARCH_RISCV			5
 
-#define CONFIG_RUN_ARCH 	ARCH_X86_64
+#define CONFIG_RUN_ARCH 	ARCH_ARM
 
 #define CONFIG_X86_TSC
 
