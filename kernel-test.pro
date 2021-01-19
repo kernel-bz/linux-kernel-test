@@ -141,7 +141,9 @@ SOURCES += \
     lib/test_sort.c \
     lib/usercopy.c \
     test/basic/struct-test.c \
-    test/basic/basic-test.c
+    test/basic/basic-test.c \
+    kernel/power/energy_model.c \
+    kernel/sched/sched_user_.c
 
 HEADERS += \
     include/test/test.h \
@@ -520,7 +522,11 @@ HEADERS += \
     include/uapi/asm/msr.h \
     arch/x86/include/asm/asm.h \
     arch/x86/include/asm/cpumask.h \
-    arch/x86/include/asm/msr-index.h
+    arch/x86/include/asm/msr-index.h \
+    include/linux/energy_model.h \
+    include/linux/kthread.h \
+    include/linux/irq_work.h \
+    include/linux/timer.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

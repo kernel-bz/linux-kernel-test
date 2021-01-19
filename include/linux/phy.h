@@ -20,7 +20,7 @@
 #include <linux/mdio.h>
 #include <linux/mii.h>
 #include <linux/module.h>
-//#include <linux/timer.h>
+#include <linux/timer.h>
 #include <linux/workqueue.h>
 #include <linux/mod_devicetable.h>
 

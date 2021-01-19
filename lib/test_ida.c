@@ -7,6 +7,8 @@
  */
 
 #include "test/define-usr.h"
+#include "test/debug.h"
+
 #include <linux/idr.h>
 #include <linux/module.h>
 #include <linux/export.h>
@@ -17,13 +19,13 @@ static unsigned int tests_passed;
 #ifdef __KERNEL__
 void ida_dump(struct ida *ida) { }
 #endif
-#define IDA_BUG_ON(ida, x) do {						\
-	tests_run++;							\
-	if (x) {							\
-		ida_dump(ida);						\
-		dump_stack();						\
-	} else {							\
-		tests_passed++;						\
+#define IDA_BUG_ON(ida, x) do {		\
+    tests_run++;					\
+    if (x) {						\
+        ida_dump(ida);				\
+        dump_stack();				\
+    } else {						\
+        tests_passed++;				\
 	}								\
 } while (0)
 
@@ -32,27 +34,30 @@ void ida_dump(struct ida *ida) { }
  */
 static void ida_check_alloc(struct ida *ida)
 {
+    pr_fn_start_on(stack_depth);
 	int i, id;
 
-	for (i = 0; i < 10000; i++)
-		IDA_BUG_ON(ida, ida_alloc(ida, GFP_KERNEL) != i);
+    for (i = 0; i < 10000; i++)
+        IDA_BUG_ON(ida, ida_alloc(ida, GFP_KERNEL) != i);
 
 	ida_free(ida, 20);
 	ida_free(ida, 21);
 	for (i = 0; i < 3; i++) {
 		id = ida_alloc(ida, GFP_KERNEL);
 		IDA_BUG_ON(ida, id < 0);
-		if (i == 2)
-			IDA_BUG_ON(ida, id != 10000);
+        if (i == 2)
+            IDA_BUG_ON(ida, id != 10000);
 	}
 
-	for (i = 0; i < 5000; i++)
-		ida_free(ida, i);
+    for (i = 0; i < 5000; i++)
+        ida_free(ida, i);
 
-	IDA_BUG_ON(ida, ida_alloc_min(ida, 5000, GFP_KERNEL) != 10001);
+    IDA_BUG_ON(ida, ida_alloc_min(ida, 5000, GFP_KERNEL) != 10001);
 	ida_destroy(ida);
 
 	IDA_BUG_ON(ida, !ida_is_empty(ida));
+
+    pr_fn_end_on(stack_depth);
 }
 
 /* Destroy an IDA with a single entry at @base */
@@ -157,13 +162,21 @@ static DEFINE_IDA(ida);
 static int ida_checks(void)
 {
 	IDA_BUG_ON(&ida, !ida_is_empty(&ida));
+
+    printk("ida_check_alloc()...\n");
 	ida_check_alloc(&ida);
-	ida_check_destroy(&ida);
-	ida_check_leaf(&ida, 0);
-	ida_check_leaf(&ida, 1024);
-	ida_check_leaf(&ida, 1024 * 64);
-	ida_check_max(&ida);
-	ida_check_conv(&ida);
+    printk("ida_check_destroy()...\n");
+    ida_check_destroy(&ida);
+    printk("ida_check_leaf(0)...\n");
+    ida_check_leaf(&ida, 0);
+    printk("ida_check_leaf(1024)...\n");
+    ida_check_leaf(&ida, 1024);
+    printk("ida_check_leaf(1024 * 64)...\n");
+    ida_check_leaf(&ida, 1024 * 64);
+    printk("ida_check_max()...\n");
+    ida_check_max(&ida);
+    printk("ida_check_conv()...\n");
+    ida_check_conv(&ida);
 
 	printk("IDA: %u of %u tests passed\n", tests_passed, tests_run);
 	return (tests_run != tests_passed) ? 0 : -EINVAL;

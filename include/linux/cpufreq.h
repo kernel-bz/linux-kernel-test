@@ -165,8 +165,17 @@ struct cpufreq_freqs {
 
 #ifdef CONFIG_CPU_FREQ
 struct cpufreq_policy *cpufreq_cpu_get_raw(unsigned int cpu);
-struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu);
-void cpufreq_cpu_put(struct cpufreq_policy *policy);
+//struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu);
+//drivers/cpufreq/cpufreq.c
+static inline struct cpufreq_policy *cpufreq_cpu_get(unsigned int cpu)
+{
+    return NULL;
+}
+//void cpufreq_cpu_put(struct cpufreq_policy *policy);
+static inline void cpufreq_cpu_put(struct cpufreq_policy *policy)
+{
+    kobject_put(&policy->kobj);
+}
 #else
 static inline struct cpufreq_policy *cpufreq_cpu_get_raw(unsigned int cpu)
 {

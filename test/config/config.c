@@ -12,6 +12,7 @@
 
 #include "test/debug.h"
 #include "test/config.h"
+#include <linux/xarray.h>
 
 static void _config_view(void)
 {
@@ -29,6 +30,9 @@ static void _config_view(void)
     pr_info_view_on(stack_depth, "%30s : %s\n", "CONFIG_NUMA");
 #endif
 
+    pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_BASE_SMALL);
+    pr_info_view_on(stack_depth, "%30s : %d\n", XA_CHUNK_SHIFT);
+    pr_info_view_on(stack_depth, "%30s : %lu\n", XA_CHUNK_SIZE);
     pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_NODES_SHIFT);
 
     pr_info_view_on(stack_depth, "%30s : %d\n", DebugBase);

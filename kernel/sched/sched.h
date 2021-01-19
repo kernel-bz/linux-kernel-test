@@ -59,10 +59,10 @@
 #include <linux/ctype.h>
 //#include <linux/debugfs.h>
 //#include <linux/delayacct.h>
-//#include <linux/energy_model.h>
+#include <linux/energy_model.h>
 #include <linux/init_task.h>
 //#include <linux/kprobes.h>
-//#include <linux/kthread.h>
+#include <linux/kthread.h>
 #include <linux/membarrier.h>
 //#include <linux/migrate.h>
 //#include <linux/mmu_context.h>
@@ -106,6 +106,7 @@
 #include <linux/clockchips.h>
 #include <linux/uaccess.h>
 #include <linux/string.h>
+#include <linux/irq_work.h>
 
 #include <asm-generic/atomic-long.h>
 #include <asm-generic/bitops/sched.h>
@@ -2489,6 +2490,8 @@ enum schedutil_type {
 
 #ifdef CONFIG_CPU_FREQ_GOV_SCHEDUTIL
 
+//kernel/sched/cpufreq_schedutil.c
+//kernel/shced/sched_user_.c
 unsigned long schedutil_cpu_util(int cpu, unsigned long util_cfs,
 				 unsigned long max, enum schedutil_type type,
 				 struct task_struct *p);

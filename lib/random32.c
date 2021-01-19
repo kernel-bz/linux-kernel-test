@@ -43,7 +43,7 @@
 #include <linux/percpu.h>
 #include <linux/percpu-defs.h>
 #include <asm-generic/percpu.h>
-//#include <linux/timer.h>
+#include <linux/timer.h>
 #include <linux/timex.h>
 
 #ifdef CONFIG_RANDOM32_SELFTEST
@@ -222,7 +222,7 @@ static int __init prandom_init(void)
 
 	return 0;
 }
-core_initcall(prandom_init);
+//core_initcall(prandom_init);
 
 //static void __prandom_timer(struct timer_list *unused);
 

@@ -40,7 +40,8 @@ extern "C" {
 //xarray.h
 #define CONFIG_BASE_SMALL		0
 //#define CONFIG_BASE_SMALL		1
-#define CONFIG_XARRAY_MULTI		0
+//#define CONFIG_XARRAY_MULTI	0
+#define CONFIG_XARRAY_MULTI		1
 
 
 //CPU Configuration ----------------------------------------
@@ -67,6 +68,9 @@ extern "C" {
 
 //#define CONFIG_DEBUG_PER_CPU_MAPS
 
+//include/linux/energy_model.h
+#define CONFIG_ENERGY_MODEL
+#define CONFIG_CPU_FREQ_GOV_SCHEDUTIL
 
 //Schedular Configuraion ----------------------------------
 #define CONFIG_THREAD_INFO_IN_TASK

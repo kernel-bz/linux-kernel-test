@@ -10,7 +10,7 @@
 #include <asm-generic/bitsperlong.h>
 #include <asm-generic/atomic-long.h>
 
-//#include <linux/timer.h>
+#include <linux/timer.h>
 #include <linux/linkage.h>
 #include <linux/bitops.h>
 #include <linux/lockdep.h>
