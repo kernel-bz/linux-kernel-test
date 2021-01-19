@@ -284,47 +284,6 @@ void * __init prom_early_alloc(unsigned long size)
 }
 
 
-
-//drivers/base/platform.c: 1271 lines
-struct bus_type platform_bus_type = {
-    .name		= "platform",
-    //.dev_groups	= platform_dev_groups,
-    //.match		= platform_match,
-    //.uevent		= platform_uevent,
-    //.dma_configure	= platform_dma_configure,
-    //.pm		= &platform_dev_pm_ops,
-};
-EXPORT_SYMBOL_GPL(platform_bus_type);
-
-
-
-
-//drivers/base/platform.c: 350 lines
-void platform_device_put(struct platform_device *pdev)
-{
-    //if (!IS_ERR_OR_NULL(pdev))
-        //put_device(&pdev->dev);
-}
-EXPORT_SYMBOL_GPL(platform_device_put);
-
-
-//drivers/base/platform.c: 378 lines
-struct platform_device *platform_device_alloc(const char *name, int id)
-{
-    return NULL;
-}
-EXPORT_SYMBOL_GPL(platform_device_alloc);
-
-
-//drivers/base/platform.c: 604 lines
-void platform_device_unregister(struct platform_device *pdev)
-{
-    //platform_device_del(pdev);
-    //platform_device_put(pdev);
-}
-EXPORT_SYMBOL_GPL(platform_device_unregister);
-
-
 //drivers/base/core.c: 2000 lines
 int dev_set_name(struct device *dev, const char *fmt, ...)
 {
@@ -340,14 +299,6 @@ int device_for_each_child(struct device *parent, void *data,
     return 0;
 }
 EXPORT_SYMBOL_GPL(device_for_each_child);
-
-
-
-//drivers/base/platform.c: 37 lines
-struct device platform_bus = {
-    .init_name	= "platform",
-};
-EXPORT_SYMBOL_GPL(platform_bus);
 
 
 //drivers/net/phy/mdio_bus.c: 367 lines

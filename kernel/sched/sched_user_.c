@@ -10,6 +10,26 @@
 //kernel/sched/cpufreq_schedutil.c: 636 lines
 struct cpufreq_governor schedutil_gov;
 
+/*
+ * This function computes an effective utilization for the given CPU, to be
+ * used for frequency selection given the linear relation: f = u * f_max.
+ *
+ * The scheduler tracks the following metrics:
+ *
+ *   cpu_util_{cfs,rt,dl,irq}()
+ *   cpu_bw_dl()
+ *
+ * Where the cfs,rt and dl util numbers are tracked with the same metric and
+ * synchronized windows and are thus directly comparable.
+ *
+ * The cfs,rt,dl utilization are the running times measured with rq->clock_task
+ * which excludes things like IRQ and steal-time. These latter are then accrued
+ * in the irq utilization.
+ *
+ * The DL bandwidth number otoh is not a measured metric but a value computed
+ * based on the task model parameters and gives the minimal utilization
+ * required to meet deadlines.
+ */
 //kernel/sched/cpufreq_schedutil.c: 208 lines
 unsigned long schedutil_cpu_util(int cpu, unsigned long util_cfs,
                  unsigned long max, enum schedutil_type type,

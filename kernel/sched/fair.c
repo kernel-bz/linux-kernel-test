@@ -4883,6 +4883,8 @@ compute_energy(struct task_struct *p, int dst_cpu, struct perf_domain *pd)
  */
 static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
 {
+    pr_fn_start_on(stack_depth);
+
     unsigned long prev_delta = ULONG_MAX, best_delta = ULONG_MAX;
     struct root_domain *rd = cpu_rq(smp_processor_id())->rd;
     unsigned long cpu_cap, util, base_energy = 0;
@@ -4957,6 +4959,7 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
         }
     }
 unlock:
+    pr_out_on(stack_depth, "unlock:\n");
     rcu_read_unlock();
 
     /*
@@ -4972,7 +4975,10 @@ unlock:
     return prev_cpu;
 
 fail:
+    pr_out_on(stack_depth, "fail:\n");
     rcu_read_unlock();
+
+    pr_fn_end_on(stack_depth);
 
     return -1;
 }

@@ -143,7 +143,8 @@ SOURCES += \
     test/basic/struct-test.c \
     test/basic/basic-test.c \
     kernel/power/energy_model.c \
-    kernel/sched/sched_user_.c
+    kernel/sched/sched_user_.c \
+    drivers/base/platform.c
 
 HEADERS += \
     include/test/test.h \
@@ -526,7 +527,13 @@ HEADERS += \
     include/linux/energy_model.h \
     include/linux/kthread.h \
     include/linux/irq_work.h \
-    include/linux/timer.h
+    include/linux/timer.h \
+    include/linux/moduleparam.h \
+    include/asm-generic/module.h \
+    include/linux/property.h \
+    include/linux/pm_runtime.h \
+    include/linux/pm_domain.h \
+    include/linux/acpi.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
