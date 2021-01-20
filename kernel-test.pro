@@ -141,7 +141,6 @@ SOURCES += \
     test/basic/struct-test.c \
     test/basic/basic-test.c \
     kernel/power/energy_model.c \
-    drivers/base/platform.c \
     drivers/base/driver.c \
     kernel/locking/rwsem.c \
     lib/klist.c \
@@ -152,7 +151,8 @@ SOURCES += \
     test/user/user-driver.c \
     test/user/user-lock.c \
     test/user/user-sched.c \
-    drivers/base/property_.c
+    drivers/base/property_.c \
+    drivers/base/platform_.c
 
 HEADERS += \
     include/test/test.h \

@@ -16,19 +16,19 @@ static unsigned int tests_run;
 static unsigned int tests_passed;
 
 #ifndef XA_DEBUG
-# ifdef __KERNEL__
-void xa_dump(const struct xarray *xa) { }
-# endif
+//# ifdef __KERNEL__
+//void xa_dump(const struct xarray *xa) { }
+//# endif
 #undef XA_BUG_ON
-#define XA_BUG_ON(xa, x) do {					\
+#define XA_BUG_ON(xa, x) do {			\
 	tests_run++;						\
-	if (x) {						\
+    if (x) {							\
 		printk("BUG at %s:%d\n", __func__, __LINE__);	\
 		xa_dump(xa);					\
 		dump_stack();					\
-	} else {						\
+    } else {							\
 		tests_passed++;					\
-	}							\
+    }									\
 } while (0)
 #endif
 
