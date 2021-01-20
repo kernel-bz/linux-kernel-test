@@ -44,3 +44,8 @@ static char *ramdisk_execute_command;
 bool static_key_initialized __read_mostly;
 EXPORT_SYMBOL_GPL(static_key_initialized);
 //151 lines
+
+
+
+//511 lines
+bool initcall_debug;

@@ -9,7 +9,7 @@
 #include "test/debug.h"
 #include "test/config.h"
 
-//#include <linux/acpi.h>
+#include <linux/acpi.h>
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
 #include <linux/device.h>

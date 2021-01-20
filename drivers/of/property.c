@@ -30,6 +30,8 @@
 
 #include "of_private.h"
 
+#include <linux/export.h>
+
 /**
  * of_property_count_elems_of_size - Count the number of elements in a property
  *

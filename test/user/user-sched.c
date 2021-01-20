@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- *  test/sched/sched_user_.c
+ *  test/user/user-sched.c
  *  Linux Kernel Schedular Temp Source
  *
  *  Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
-#include "sched.h"
+#include "kernel/sched/sched.h"
 
 //kernel/sched/cpufreq_schedutil.c: 636 lines
 struct cpufreq_governor schedutil_gov;

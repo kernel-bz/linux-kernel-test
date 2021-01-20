@@ -9,6 +9,8 @@
  * information.
  */
 
+#include "test/debug.h"
+
 #include <linux/string.h>
 #include <linux/platform_device.h>
 #include <linux/of_device.h>
@@ -29,7 +31,9 @@
 //#include <linux/kmemleak.h>
 
 #include "base.h"
-//#include "power/power.h"
+#include "power/power.h"
+
+#include <linux/of_platform.h>
 
 /* For automatically allocated device IDs */
 static DEFINE_IDA(platform_devid_ida);

@@ -9,6 +9,8 @@
 #include <uapi/linux/mdio.h>
 #include <linux/mod_devicetable.h>
 
+#include <linux/device.h>
+
 struct gpio_desc;
 struct mii_bus;
 

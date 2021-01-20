@@ -53,7 +53,7 @@ struct dev_pin_info;
 struct iommu_param;
 
 struct bus_attribute {
-//	struct attribute	attr;
+    struct attribute	attr;
 	ssize_t (*show)(struct bus_type *bus, char *buf);
 	ssize_t (*store)(struct bus_type *bus, const char *buf, size_t count);
 };

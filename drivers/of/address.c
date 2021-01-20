@@ -17,6 +17,7 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 
+#include <linux/of.h>
 #include <linux/export.h>
 #include <asm-generic/io.h>
 

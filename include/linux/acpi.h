@@ -19,7 +19,7 @@
 #ifndef _LINUX
 #define _LINUX
 #endif
-//#include <acpi/acpi.h>
+#include <acpi/acpi.h>
 
 #ifdef	CONFIG_ACPI
 

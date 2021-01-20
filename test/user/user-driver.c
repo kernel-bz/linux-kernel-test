@@ -1,13 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+// SPDX-License-Identifier: GPL-2.0
 /*
- *	test/define-usr-dev.c
+ *  test/user/user-driver.c
+ *  User Functions for drivers
  *
- * 	Copyright (C) 2020, www.kernel.bz
- * 	Author: JaeJoon Jung <rgbi3307@gmail.com>
- *
- *	user defined functions for devices
+ *  Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
-
 #include <stddef.h>
 
 #include <linux/device.h>
@@ -19,7 +16,6 @@
 #include <linux/notifier.h>
 #include <linux/irqdomain.h>
 #include <linux/phy.h>
-
 
 //drivers/base/devres.c: 121 lines
 #ifdef CONFIG_DEBUG_DEVRES
@@ -73,77 +69,7 @@ int devres_release(struct device *dev, dr_release_t release,
 EXPORT_SYMBOL_GPL(devres_release);
 
 
-
-//kernel/printk/printk.c: 2215 lines
-int add_preferred_console(char *name, int idx, char *options)
-{
-    //return __add_preferred_console(name, idx, options, NULL);
-    return 0;
-}
-
-//drivers/base/core.c: 2405 lines
-void device_unregister(struct device *dev)
-{
-    //pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
-    //device_del(dev);
-    //put_device(dev);
-}
-EXPORT_SYMBOL_GPL(device_unregister);
-
-
-
-//kernel/notifier.c: 215 lines
-int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
-        struct notifier_block *n)
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
-
-
-//kernel/notifier.c: 268 lines
-int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
-        struct notifier_block *n)
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
-
-
-//kernel/notifier.c: 327 lines
-int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
-        unsigned long val, void *v)
-{
-    //return __blocking_notifier_call_chain(nh, val, v, -1, NULL);
-    return 0;
-}
-EXPORT_SYMBOL_GPL(blocking_notifier_call_chain);
-
-
-
-//kernel/irq/irqdomain.c: 852 lines
-unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(irq_create_of_mapping);
-
-//kernel/irq/irqdomain.c: 384 lines
-struct irq_domain *irq_find_matching_fwspec(struct irq_fwspec *fwspec,
-                        enum irq_domain_bus_token bus_token)
-{
-    return NULL;
-}
-EXPORT_SYMBOL_GPL(irq_find_matching_fwspec);
-
-
-//kernel/irq/chip.c: 158 lines
-struct irq_data *irq_get_irq_data(unsigned int irq)
-{
-    return NULL;
-}
-EXPORT_SYMBOL_GPL(irq_get_irq_data);
-
+#if 0
 
 //drivers/base/bus.c: 325 lines
 struct device *bus_find_device(struct bus_type *bus,
@@ -212,6 +138,23 @@ int device_match_any(struct device *dev, const void *unused)
 }
 EXPORT_SYMBOL_GPL(device_match_any);
 
+//drivers/base/core.c: 2000 lines
+int dev_set_name(struct device *dev, const char *fmt, ...)
+{
+    return 0;
+}
+EXPORT_SYMBOL_GPL(dev_set_name);
+
+
+//drivers/base/core.c: 2496 lines
+int device_for_each_child(struct device *parent, void *data,
+              int (*fn)(struct device *dev, void *data))
+{
+    return 0;
+}
+EXPORT_SYMBOL_GPL(device_for_each_child);
+
+#endif
 
 
 //drivers/net/phy/mdio_bus.c: 726 lines
@@ -221,7 +164,6 @@ struct bus_type mdio_bus_type = {
     //.uevent		= mdio_uevent,
 };
 EXPORT_SYMBOL(mdio_bus_type);
-
 
 
 //drivers/net/phy/phy_device.c: 945 lines
@@ -241,7 +183,6 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
     return 0;
 }
 EXPORT_SYMBOL(phy_attach_direct);
-
 
 
 //drivers/net/phy/mdio_device.c: 25 lines
@@ -276,31 +217,6 @@ struct phy_device *phy_device_create(struct mii_bus *bus, int addr, int phy_id,
 EXPORT_SYMBOL(phy_device_create);
 
 
-
-//arch
-void * __init prom_early_alloc(unsigned long size)
-{
-    return NULL;
-}
-
-
-//drivers/base/core.c: 2000 lines
-int dev_set_name(struct device *dev, const char *fmt, ...)
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(dev_set_name);
-
-
-//drivers/base/core.c: 2496 lines
-int device_for_each_child(struct device *parent, void *data,
-              int (*fn)(struct device *dev, void *data))
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(device_for_each_child);
-
-
 //drivers/net/phy/mdio_bus.c: 367 lines
 int __mdiobus_register(struct mii_bus *bus, struct module *owner)
 {
@@ -314,14 +230,6 @@ void mdiobus_unregister(struct mii_bus *bus)
 {
 }
 EXPORT_SYMBOL(mdiobus_unregister);
-
-
-//net/ethernet/eth.c: 573 lines
-int nvmem_get_mac_address(struct device *dev, void *addrbuf)
-{
-    return 0;
-}
-EXPORT_SYMBOL(nvmem_get_mac_address);
 
 
 //drivers/base/devres.c: 966 lines
@@ -346,18 +254,3 @@ bool mdiobus_is_registered_device(struct mii_bus *bus, int addr)
 }
 EXPORT_SYMBOL(mdiobus_is_registered_device);
 
-
-//mm/slab.c: 3662 lines
-void *__kmalloc(size_t size, gfp_t flags)
-{
-    //return __do_kmalloc(size, flags, _RET_IP_);
-    return kmalloc(size, flags);
-}
-EXPORT_SYMBOL(__kmalloc);
-
-void *__kmalloc_track_caller(size_t size, gfp_t flags, unsigned long caller)
-{
-    //return __do_kmalloc(size, flags, caller);
-    return kmalloc(size, flags);
-}
-EXPORT_SYMBOL(__kmalloc_track_caller);

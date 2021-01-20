@@ -5,7 +5,7 @@ CONFIG -= qt
 
 #linux/time.h sys/time.h
 DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
-        __timespec_defined _SYS_TIME_H \
+        __timespec_defined _SYS_TIME_H __KERNEL__ \
         HAS_CAA_GET_CYCLES UATOMIC_NO_LINK_ERROR
 
 LIBS += -Lpthread
@@ -108,8 +108,6 @@ SOURCES += \
     drivers/of/of_fdt.c \
     mm/util.c \
     kernel/resource.c \
-    test/define-usr-dev.c \
-    test/define-usr-lock.c \
     kernel/sched/wait.c \
     drivers/base/firmware.c \
     lib/kstrtox.c \
@@ -143,8 +141,18 @@ SOURCES += \
     test/basic/struct-test.c \
     test/basic/basic-test.c \
     kernel/power/energy_model.c \
-    kernel/sched/sched_user_.c \
-    drivers/base/platform.c
+    drivers/base/platform.c \
+    drivers/base/driver.c \
+    kernel/locking/rwsem.c \
+    lib/klist.c \
+    drivers/base/bus.c \
+    drivers/base/dd.c \
+    drivers/base/swnode.c \
+    test/user/user-common.c \
+    test/user/user-driver.c \
+    test/user/user-lock.c \
+    test/user/user-sched.c \
+    drivers/base/property_.c
 
 HEADERS += \
     include/test/test.h \
@@ -533,7 +541,51 @@ HEADERS += \
     include/linux/property.h \
     include/linux/pm_runtime.h \
     include/linux/pm_domain.h \
-    include/linux/acpi.h
+    include/linux/acpi.h \
+    include/acpi/platform/acenv.h \
+    include/acpi/platform/acenvex.h \
+    include/acpi/platform/acgcc.h \
+    include/acpi/platform/acgccex.h \
+    include/acpi/platform/acintel.h \
+    include/acpi/platform/aclinux.h \
+    include/acpi/platform/aclinuxex.h \
+    include/acpi/acbuffer.h \
+    include/acpi/acconfig.h \
+    include/acpi/acexcep.h \
+    include/acpi/acnames.h \
+    include/acpi/acoutput.h \
+    include/acpi/acpi.h \
+    include/acpi/acpi_bus.h \
+    include/acpi/acpi_drivers.h \
+    include/acpi/acpi_io.h \
+    include/acpi/acpi_lpat.h \
+    include/acpi/acpi_numa.h \
+    include/acpi/acpiosxf.h \
+    include/acpi/acpixf.h \
+    include/acpi/acrestyp.h \
+    include/acpi/actbl.h \
+    include/acpi/actbl1.h \
+    include/acpi/actbl2.h \
+    include/acpi/actbl3.h \
+    include/acpi/actypes.h \
+    include/acpi/acuuid.h \
+    include/acpi/apei.h \
+    include/acpi/battery.h \
+    include/acpi/button.h \
+    include/acpi/cppc_acpi.h \
+    include/acpi/ghes.h \
+    include/acpi/hed.h \
+    include/acpi/nfit.h \
+    include/acpi/pcc.h \
+    include/acpi/pdc_intel.h \
+    include/acpi/processor.h \
+    include/acpi/reboot.h \
+    include/acpi/video.h \
+    include/linux/stat.h \
+    include/linux/init.h \
+    include/linux/async.h \
+    drivers/base/power/power.h \
+    include/test/user.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
