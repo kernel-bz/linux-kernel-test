@@ -3,7 +3,7 @@
 #ifndef _UAPI__LINUX_BTF_H__
 #define _UAPI__LINUX_BTF_H__
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 #define BTF_MAGIC	0xeB9F
 #define BTF_VERSION	1

@@ -6,7 +6,7 @@
  * Copyright (C) 2001 Peter Bergner.
  */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 #include "test/debug.h"
 
 #include <linux/kernel.h>

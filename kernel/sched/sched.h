@@ -2,14 +2,14 @@
 #define __SCHED_SCHED_H
 
 #include "test/config.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
+#include "test/user-types.h"
 #include "test/debug.h"
 
 #include <urcu.h>
 #include <urcu-pointer.h>
 #include <linux/rcupdate.h>
 
-#include <linux/types-user.h>
 #include <uapi/linux/sched.h>
 
 /* SPDX-License-Identifier: GPL-2.0 */

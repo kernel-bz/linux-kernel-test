@@ -2,7 +2,7 @@
 #ifndef _GFP_H
 #define _GFP_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 #define ___GFP_DMA		0x01u
 #define ___GFP_HIGHMEM		0x02u

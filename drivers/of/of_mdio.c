@@ -8,7 +8,7 @@
  * out of the OpenFirmware device tree and using it to populate an mii_bus.
  */
 #include "test/debug.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/kernel.h>
 #include <linux/device.h>

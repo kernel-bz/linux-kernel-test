@@ -18,7 +18,7 @@
 	const typeof( ((type *)0)->member ) *__mptr = (ptr); \
 	(type *)( (char *)__mptr - offsetof(type, member) ); })
 
-//include/linux/types.h //types-user.h
+//include/linux/types.h
 struct list_head {
 	struct list_head *next, *prev;
 };

@@ -18,7 +18,7 @@
 //#include <linux/etherdevice.h>
 #include <linux/phy.h>
 
-#include "test/user.h"
+#include "test/user-kernel.h"
 
 struct fwnode_handle *dev_fwnode(struct device *dev)
 {

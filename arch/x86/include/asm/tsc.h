@@ -9,10 +9,10 @@
 #define _ASM_X86_TSC_H
 
 #include "test/config.h"
+#include "test/user-types.h"
 
 //#include <asm/processor.h>
 #include <asm/msr.h>
-#include <linux/types-user.h>
 
 #define NS_SCALE	10 /* 2^10, carefully chosen */
 #define US_SCALE	32 /* 2^32, arbitralrily chosen */

@@ -2,8 +2,9 @@
 #ifndef __SUBCMD_RUN_COMMAND_H
 #define __SUBCMD_RUN_COMMAND_H
 
+#include "test/user-types.h"
+
 #include <unistd.h>
-#include <linux/types-user.h>
 
 enum {
 	ERR_RUN_COMMAND_FORK = 10000,

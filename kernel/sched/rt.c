@@ -4,7 +4,7 @@
  * policies)
  */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include "sched.h"
 

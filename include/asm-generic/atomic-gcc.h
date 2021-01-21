@@ -2,8 +2,8 @@
 #ifndef __TOOLS_ASM_GENERIC_ATOMIC_H
 #define __TOOLS_ASM_GENERIC_ATOMIC_H
 
+#include "test/user-types.h"
 #include <linux/compiler.h>
-#include <linux/types-user.h>
 
 /*
  * Atomic operations that C can't guarantee us.  Useful for

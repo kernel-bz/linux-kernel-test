@@ -15,7 +15,7 @@
 #ifndef _KOBJECT_H_
 #define _KOBJECT_H_
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/types.h>
 #include <linux/list.h>

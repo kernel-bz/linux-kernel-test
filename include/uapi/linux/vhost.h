@@ -11,8 +11,9 @@
  * device configuration.
  */
 
-#include <linux/vhost_types.h>
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
+//#include <linux/vhost_types.h>
 #include <linux/ioctl.h>
 
 /* ioctls */

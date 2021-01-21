@@ -2,7 +2,7 @@
 #define pr_fmt(fmt)	"OF: " fmt
 
 #include "test/debug.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/device.h>
 #include <linux/fwnode.h>

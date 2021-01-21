@@ -6,7 +6,7 @@
 #ifndef _LINUX_IO_H
 #define _LINUX_IO_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/types.h>
 #include <linux/init.h>

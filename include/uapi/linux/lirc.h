@@ -7,7 +7,8 @@
 #ifndef _LINUX_LIRC_H
 #define _LINUX_LIRC_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/ioctl.h>
 
 #define PULSE_BIT       0x01000000

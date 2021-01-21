@@ -11,8 +11,8 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include "test/debug.h"
-#include "test/define-usr-dev.h"
-#include "test/define-usr-lock.h"
+#include "test/user-drivers.h"
+#include "test/user-lock.h"
 
 #include <linux/export.h>
 #include <linux/errno.h>

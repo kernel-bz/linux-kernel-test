@@ -2,7 +2,8 @@
 #ifndef __LINUX_PKT_CLS_H
 #define __LINUX_PKT_CLS_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/pkt_sched.h>
 
 #define TC_COOKIE_MAX_SIZE 16

@@ -9,6 +9,8 @@
  *
  */
 
+#include "test/user-types.h"
+
 #include <linux/sched.h>
 #include <linux/cpumask.h>
 //#include <linux/nodemask.h>
@@ -18,7 +20,6 @@
 #include <linux/seq_file.h>
 //#include <linux/kernfs.h>
 //#include <linux/jump_label.h>
-#include <linux/types-user.h>
 //#include <linux/ns_common.h>
 //#include <linux/nsproxy.h>
 //#include <linux/user_namespace.h>

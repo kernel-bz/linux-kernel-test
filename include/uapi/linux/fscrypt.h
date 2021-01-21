@@ -8,7 +8,7 @@
 #ifndef _UAPI_LINUX_FSCRYPT_H
 #define _UAPI_LINUX_FSCRYPT_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 /* Encryption policy flags */
 #define FSCRYPT_POLICY_FLAGS_PAD_4		0x00

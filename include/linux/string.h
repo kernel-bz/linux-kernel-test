@@ -2,7 +2,8 @@
 #ifndef _TOOLS_LINUX_STRING_H_
 #define _TOOLS_LINUX_STRING_H_
 
-#include <linux/types-user.h>	/* for size_t */
+#include "test/user-types.h"
+
 #include <stdbool.h>
 
 void *memdup(const void *src, size_t len);

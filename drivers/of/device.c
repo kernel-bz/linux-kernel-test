@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 #include "test/debug.h"
-#include "test/define-usr-dev.h"
+#include "test/user-drivers.h"
 
 #include <linux/string.h>
 #include <linux/kernel.h>

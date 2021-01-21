@@ -17,7 +17,8 @@
 #define pr_fmt(fmt)	"OF: " fmt
 
 #include "test/debug.h"
-#include "test/define-usr-dev.h"
+#include "test/user-drivers.h"
+#include "test/user-kernel.h"
 
 #include <linux/device.h>
 #include <linux/errno.h>

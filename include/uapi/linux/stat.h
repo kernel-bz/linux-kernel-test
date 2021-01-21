@@ -2,7 +2,7 @@
 #ifndef _UAPI_LINUX_STAT_H
 #define _UAPI_LINUX_STAT_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 #if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
 

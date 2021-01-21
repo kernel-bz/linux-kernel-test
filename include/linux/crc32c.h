@@ -2,8 +2,8 @@
 #ifndef _LINUX_CRC32C_H
 #define _LINUX_CRC32C_H
 
+#include "test/user-types.h"
 #include <linux/types.h>
-#include <linux/types-user.h>
 
 extern u32 crc32c(u32 crc, const void *address, unsigned int length);
 extern const char *crc32c_impl(void);

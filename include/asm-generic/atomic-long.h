@@ -7,10 +7,10 @@
 #define _ASM_GENERIC_ATOMIC_LONG_H
 
 #include "test/config.h"
+#include "test/user-types.h"
 
 #include <asm/types.h>
 #include <linux/types.h>
-#include <linux/types-user.h>
 #include <linux/atomic.h>
 
 #include <asm-generic/atomic64.h>

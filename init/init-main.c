@@ -13,7 +13,7 @@
 
 #define DEBUG		/* Enable initcall_debug */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/export.h>
 #include <uapi/asm-generic/setup.h>

@@ -8,6 +8,7 @@
 #ifndef _LINUX_RADIX_TREE_H
 #define _LINUX_RADIX_TREE_H
 
+#include "test/user-types.h"
 #include <urcu.h>
 #include <urcu-pointer.h>
 
@@ -17,7 +18,6 @@
 #include <linux/preempt.h>
 //#include <linux/rcupdate.h>
 #include <linux/spinlock.h>
-#include <linux/types-user.h>
 #include <linux/xarray.h>
 
 /* Keep unconverted code working */

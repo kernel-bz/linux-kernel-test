@@ -6,7 +6,7 @@
  * Author: Matthew Wilcox <willy@infradead.org>
  */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 #include "test/debug.h"
 
 #include <linux/idr.h>

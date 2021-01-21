@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdio_ext.h>
 
+#include "test/user-define.h"
+#include "test/debug.h"
+
 #include <linux/sort.h>
 #include <linux/slab.h>
 #include <linux/module.h>
 
 #include <linux/export.h>
-#include "test/debug.h"
-#include "test/define-usr.h"
 
 /* a simple boot-time regression test */
 

@@ -18,12 +18,12 @@
 
 #include "test/config.h"
 //#include "test/debug.h"
+#include "test/user-types.h"
 
 #include <linux/init.h>
 #include <linux/mm.h>
 //#include <asm/dma.h>
 
-#include <linux/types-user.h>
 #include <linux/numa.h>
 #include <linux/kern_levels.h>
 

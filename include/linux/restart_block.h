@@ -5,8 +5,9 @@
 #ifndef __LINUX_RESTART_BLOCK_H
 #define __LINUX_RESTART_BLOCK_H
 
+#include "test/user-types.h"
+
 #include <linux/compiler.h>
-#include <linux/types-user.h>
 #include <linux/time64.h>
 #include <linux/time32.h>
 

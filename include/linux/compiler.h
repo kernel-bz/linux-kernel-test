@@ -84,7 +84,7 @@
 
 #define uninitialized_var(x) x = *(&(x))
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 /*
  * Following functions are taken from kernel sources and

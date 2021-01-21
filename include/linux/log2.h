@@ -8,8 +8,9 @@
 #ifndef _TOOLS_LINUX_LOG2_H
 #define _TOOLS_LINUX_LOG2_H
 
+#include "test/user-types.h"
+
 #include <linux/bitops.h>
-#include <linux/types-user.h>
 
 /*
  * non-constant log of base 2 calculators

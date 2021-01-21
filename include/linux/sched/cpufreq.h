@@ -3,7 +3,7 @@
 #define _LINUX_SCHED_CPUFREQ_H
 
 #include "test/config.h"
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 /*
  * Interface between cpufreq drivers and the scheduler:

@@ -21,7 +21,7 @@
  *       beware of side effects!
  */
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 #include <linux/compiler.h>
 
 #if BITS_PER_LONG == 64

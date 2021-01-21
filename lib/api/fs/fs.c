@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
+#include "test/user-types.h"
+#include "test/debug.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -13,11 +16,8 @@
 #include <unistd.h>
 #include <sys/mount.h>
 
-#include <linux/types-user.h>
-
 #include "fs.h"
 //#include "debug-internal.h"
-#include "test/debug.h"
 
 #define _STR(x) #x
 #define STR(x) _STR(x)

@@ -3,8 +3,8 @@
 #define _LINUX_SCHED_SYSCTL_H
 
 #include "test/config.h"
+#include "test/user-types.h"
 
-#include <linux/types-user.h>
 #include <linux/compiler.h>
 #include <sys/types.h>
 

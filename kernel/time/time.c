@@ -25,7 +25,7 @@
  */
 
 #include "test/config.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/export.h>
 #include <linux/kernel.h>

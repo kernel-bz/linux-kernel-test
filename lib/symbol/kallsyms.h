@@ -2,9 +2,10 @@
 #ifndef __TOOLS_KALLSYMS_H_
 #define __TOOLS_KALLSYMS_H_ 1
 
+#include "test/user-types.h"
+
 #include <elf.h>
 #include <linux/ctype.h>
-#include <linux/types-user.h>
 
 #ifndef KSYM_NAME_LEN
 #define KSYM_NAME_LEN 256

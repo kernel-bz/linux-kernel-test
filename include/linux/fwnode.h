@@ -9,7 +9,7 @@
 #ifndef _LINUX_FWNODE_H_
 #define _LINUX_FWNODE_H_
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/types.h>
 

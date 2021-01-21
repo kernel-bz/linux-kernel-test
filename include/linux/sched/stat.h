@@ -2,7 +2,8 @@
 #ifndef _LINUX_SCHED_STAT_H
 #define _LINUX_SCHED_STAT_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/percpu.h>
 
 /*

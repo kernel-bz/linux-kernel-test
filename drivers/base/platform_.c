@@ -10,6 +10,7 @@
  */
 
 #include "test/debug.h"
+#include "test/user-kernel.h"
 
 #include <linux/string.h>
 #include <linux/platform_device.h>

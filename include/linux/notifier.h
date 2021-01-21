@@ -15,6 +15,8 @@
 #include <linux/rwsem.h>
 //#include <linux/srcu.h>
 
+#include "test/config.h"
+
 /*
  * Notifier chains are of four types:
  *
@@ -139,7 +141,7 @@ extern void srcu_init_notifier_head(struct srcu_notifier_head *nh);
 #define SRCU_NOTIFIER_HEAD_STATIC(name)				\
 	_SRCU_NOTIFIER_HEAD(name, static)
 
-//#ifdef __KERNEL__
+#ifdef __KERNEL__
 
 extern int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
 		struct notifier_block *nb);
@@ -237,5 +239,5 @@ static inline int notifier_to_errno(int ret)
 
 extern struct blocking_notifier_head reboot_notifier_list;
 
-//#endif /* __KERNEL__ */
+#endif /* __KERNEL__ */
 #endif /* _LINUX_NOTIFIER_H */

@@ -3,7 +3,7 @@
 #define __ASM_NUMA_H
 
 #include "test/config.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 //#include <asm/topology.h>
 

@@ -2,7 +2,7 @@
 #ifndef _UAPI_LINUX_KCMP_H
 #define _UAPI_LINUX_KCMP_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 /* Comparison type */
 enum kcmp_type {

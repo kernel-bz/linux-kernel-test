@@ -2,7 +2,7 @@
 #ifndef _LINUX_SCHED_SIGNAL_H
 #define _LINUX_SCHED_SIGNAL_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/rculist.h>
 #include <linux/signal.h>

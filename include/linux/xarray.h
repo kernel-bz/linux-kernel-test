@@ -4,6 +4,7 @@
 
 #include "test/config.h"
 #include "test/debug.h"
+#include "test/user-types.h"
 
 #include <urcu.h>
 
@@ -15,7 +16,6 @@
  * See Documentation/core-api/xarray.rst for how to use the XArray.
  */
 
-#include <linux/types-user.h>
 #include <linux/bug.h>
 #include <linux/time.h>
 #include <linux/compiler.h>

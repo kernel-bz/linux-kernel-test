@@ -63,7 +63,6 @@ SOURCES += \
     kernel/sched/topology.c \
     kernel/sched/cpupri.c \
     init/init_task.c \
-    init/main-init.c \
     test/sched/sched-test.c \
     lib/lockdep/common.c \
     test/basic/ptr-test.c \
@@ -90,7 +89,6 @@ SOURCES += \
     drivers/of/property.c \
     drivers/of/resolver.c \
     drivers/base/arch_topology.c \
-    drivers/base/cpu.c \
     lib/kasprintf.c \
     lib/kobject.c \
     lib/kobject_uevent.c \
@@ -117,7 +115,6 @@ SOURCES += \
     lib/uuid.c \
     lib/hexdump.c \
     kernel/sched/debug_.c \
-    kernel/cpu_.c \
     drivers/base/core_.c \
     arch/arm64/mm/numa.c \
     test/basic/cpus-mask-test.c \
@@ -148,11 +145,15 @@ SOURCES += \
     drivers/base/dd.c \
     drivers/base/swnode.c \
     test/user/user-common.c \
-    test/user/user-driver.c \
     test/user/user-lock.c \
     test/user/user-sched.c \
     drivers/base/property_.c \
-    drivers/base/platform_.c
+    drivers/base/platform_.c \
+    init/init-main.c \
+    drivers/base/cpu_.c \
+    kernel/cpu.c \
+    test/user/user-kernel.c \
+    test/user/user-drivers.c
 
 HEADERS += \
     include/test/test.h \
@@ -355,7 +356,6 @@ HEADERS += \
     kernel/sched/cpudeadline.h \
     kernel/sched/cpupri.h \
     kernel/sched/features.h \
-    include/test/define-usr.h \
     include/linux/smp.h \
     include/linux/thread_info.h \
     include/linux/smp.h \
@@ -363,7 +363,6 @@ HEADERS += \
     include/asm/thread_info.h \
     include/asm/current.h \
     include/linux/seqlock.h \
-    include/linux/types-user.h \
     include/linux/ktime.h \
     include/linux/jiffies.h \
     include/generated/timeconst.h \
@@ -505,8 +504,6 @@ HEADERS += \
     include/linux/resource.h \
     include/linux/resource_ext.h \
     include/uapi/linux/resource.h \
-    include/test/define-usr-dev.h \
-    include/test/define-usr-lock.h \
     lib/kstrtox.h \
     include/asm-generic/bug.h \
     include/linux/build_bug.h \
@@ -585,7 +582,11 @@ HEADERS += \
     include/linux/init.h \
     include/linux/async.h \
     drivers/base/power/power.h \
-    include/test/user.h
+    include/test/user-define.h \
+    include/test/user-drivers.h \
+    include/test/user-kernel.h \
+    include/test/user-lock.h \
+    include/test/user-types.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

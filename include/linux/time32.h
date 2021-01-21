@@ -9,7 +9,7 @@
  * code to time64_t should get removed.
  */
 
-#include "linux/types-user.h"
+#include "test/user-types.h"
 
 #include <linux/time64.h>
 #include <linux/timex.h>

@@ -5,10 +5,10 @@
 #ifndef _LINUX_CRC32_H
 #define _LINUX_CRC32_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
+#include "test/user-types.h"
 
 #include <linux/types.h>
-#include <linux/types-user.h>
 //#include <linux/bitrev.h>
 
 u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len);

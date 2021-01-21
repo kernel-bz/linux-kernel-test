@@ -2,7 +2,7 @@
 #ifndef _LINUX_SCHED_CLOCK_H
 #define _LINUX_SCHED_CLOCK_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 #include "test/debug.h"
 
 #include <linux/smp.h>

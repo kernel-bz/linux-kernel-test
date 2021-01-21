@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdio_ext.h>
 
+#include "test/user-types.h"
 #include "test/config.h"
 #include "test/debug.h"
 
-#include <linux/types-user.h>
 #include <linux/sched.h>
 #include <linux/math64.h>
 #include <linux/limits.h>

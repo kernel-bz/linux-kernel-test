@@ -9,8 +9,8 @@
 #define _LINUX_THREAD_INFO_H
 
 #include "test/config.h"
+#include "test/user-types.h"
 
-#include <linux/types-user.h>
 #include <linux/bug.h>
 #include <linux/restart_block.h>
 

@@ -19,7 +19,8 @@
 #ifndef _UAPI_LINUX_IN_H
 #define _UAPI_LINUX_IN_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/libc-compat.h>
 #include <linux/socket.h>
 

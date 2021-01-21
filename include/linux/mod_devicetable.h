@@ -8,7 +8,7 @@
 #ifndef LINUX_MOD_DEVICETABLE_H
 #define LINUX_MOD_DEVICETABLE_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 //#ifdef __KERNEL__
 #include <linux/types.h>

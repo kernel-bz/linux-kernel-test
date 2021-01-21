@@ -3,7 +3,7 @@
  * lib/hexdump.c
  */
 
-#include "test/define-usr-dev.h"
+#include "test/user-drivers.h"
 
 #include <linux/types.h>
 #include <linux/ctype.h>

@@ -25,7 +25,7 @@
 #define _UAPI__SOUND_ASOUND_H
 
 #if defined(__KERNEL__) || defined(__linux__)
-#include <linux/types-user.h>
+#include "test/user-types.h"
 #else
 #include <sys/ioctl.h>
 #endif

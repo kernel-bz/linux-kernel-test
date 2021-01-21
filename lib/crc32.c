@@ -26,13 +26,13 @@
 
 /* see: Documentation/crc32.txt for a description of algorithms */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
+#include "test/user-types.h"
 
 #include <linux/crc32.h>
 #include <linux/crc32poly.h>
 #include <linux/module.h>
 #include <linux/types.h>
-#include <linux/types-user.h>
 #include <linux/sched.h>
 #include "crc32defs.h"
 

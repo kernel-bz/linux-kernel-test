@@ -4,8 +4,9 @@
 #ifndef KERNEL_TIMECONST_H
 #define KERNEL_TIMECONST_H
 
+#include "test/user-types.h"
+
 #include <linux/param.h>
-#include <linux/types-user.h>
 
 //usr/include/asm-generic/param.h
 //HZ = 100

@@ -12,7 +12,7 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <unistd.h>
 #include <sys/types.h>

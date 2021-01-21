@@ -17,7 +17,7 @@
 #define pr_fmt(fmt)	"OF: " fmt
 
 #include "test/debug.h"
-#include "test/user.h"
+#include "test/user-kernel.h"
 
 #include <linux/bitmap.h>
 //#include <linux/console.h>

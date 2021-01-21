@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/cpumask.h>
 #include <linux/sched/prio.h>
 

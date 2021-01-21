@@ -6,7 +6,8 @@
  * (balbir@in.ibm.com).
  */
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
+
 #include "sched.h"
 
 #ifdef CONFIG_CGROUPS

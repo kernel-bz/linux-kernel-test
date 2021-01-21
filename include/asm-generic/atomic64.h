@@ -8,7 +8,7 @@
 #ifndef _ASM_GENERIC_ATOMIC64_H
 #define _ASM_GENERIC_ATOMIC64_H
 #include <linux/types.h>
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 typedef struct {
 	s64 counter;

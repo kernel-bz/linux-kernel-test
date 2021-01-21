@@ -7,7 +7,8 @@
  *
  *	user defined functions for lock
  */
-#include "test/define-usr-lock.h"
+#include "test/user-lock.h"
+
 #include <linux/rwlock_types.h>
 #include <linux/export.h>
 

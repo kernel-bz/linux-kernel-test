@@ -38,13 +38,15 @@
 
 #if defined(__KERNEL__)
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <asm/ioctl.h>
 typedef unsigned int drm_handle_t;
 
 #elif defined(__linux__)
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <asm/ioctl.h>
 typedef unsigned int drm_handle_t;
 

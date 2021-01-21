@@ -2,9 +2,10 @@
 #ifndef _UAPI__LINUX_NETLINK_H
 #define _UAPI__LINUX_NETLINK_H
 
+#include "test/user-types.h"
+
 #include <linux/kernel.h>
 #include <linux/socket.h> /* for __kernel_sa_family_t */
-#include <linux/types-user.h>
 
 #define NETLINK_ROUTE		0	/* Routing/device hook				*/
 #define NETLINK_UNUSED		1	/* Unused number				*/

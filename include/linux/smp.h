@@ -7,8 +7,9 @@
  *		Alan Cox. <alan@redhat.com>
  */
 
+#include "test/user-types.h"
+
 #include <linux/errno.h>
-#include <linux/types-user.h>
 #include <linux/list.h>
 #include <linux/cpumask.h>
 #include <linux/init.h>

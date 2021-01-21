@@ -8,7 +8,7 @@
 #ifndef _LINUX_CPUFREQ_H
 #define _LINUX_CPUFREQ_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 //#include <linux/clk.h>
 #include <linux/cpumask.h>

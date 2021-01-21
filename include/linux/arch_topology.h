@@ -5,7 +5,8 @@
 #ifndef _LINUX_ARCH_TOPOLOGY_H_
 #define _LINUX_ARCH_TOPOLOGY_H_
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/percpu.h>
 #include <linux/cpumask.h>
 

@@ -2,10 +2,11 @@
 #ifndef _LINUX_JIFFIES_H
 #define _LINUX_JIFFIES_H
 
+#include "test/user-types.h"
+
 #include <linux/cache.h>
 #include <linux/math64.h>
 #include <linux/kernel.h>
-#include <linux/types-user.h>
 //#include <asm/param.h>			/* for HZ */
 #include <asm-generic/param.h>
 #include <generated/timeconst.h>

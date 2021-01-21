@@ -34,7 +34,7 @@
 #ifndef _UAPI_LINUX_TLS_H
 #define _UAPI_LINUX_TLS_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 /* TLS socket options */
 #define TLS_TX			1	/* Set transmit parameters */

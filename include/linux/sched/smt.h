@@ -2,7 +2,7 @@
 #ifndef _LINUX_SCHED_SMT_H
 #define _LINUX_SCHED_SMT_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 //#include <linux/static_key.h>
 
 #ifdef CONFIG_SCHED_SMT

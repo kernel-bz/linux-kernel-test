@@ -16,11 +16,12 @@
 #define UTIME_NOW	((1l << 30) - 1l)
 #define UTIME_OMIT	((1l << 30) - 2l)
 
+#include "test/user-types.h"
+
 #include <linux/types.h>
 #include <linux/time.h>
 #include <linux/uidgid.h>
 
-#include <linux/types-user.h>
 #include <linux/time64.h>
 
 #define KSTAT_QUERY_FLAGS (AT_STATX_SYNC_TYPE)

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0
+#include "test/user-types.h"
+
 #include <linux/compiler.h>
 #include <linux/string.h>
-#include <linux/types-user.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

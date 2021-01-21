@@ -2,7 +2,8 @@
 #ifndef __LINUX_PERCPU_H
 #define __LINUX_PERCPU_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/slab.h>
 #include <linux/cpumask.h>
 #include <linux/gfp.h>

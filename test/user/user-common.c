@@ -9,13 +9,7 @@
 
 #include <linux/device.h>
 #include <linux/export.h>
-#include <linux/wait.h>
-#include <linux/slab.h>
 #include <linux/kernel.h>
-
-#include <linux/notifier.h>
-#include <linux/irqdomain.h>
-#include <linux/phy.h>
 
 
 //net/ethernet/eth.c: 573 lines

@@ -10,7 +10,7 @@
 #define _LINUX_OF_FDT_H
 
 #include "test/config.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <linux/types.h>
 #include <linux/init.h>

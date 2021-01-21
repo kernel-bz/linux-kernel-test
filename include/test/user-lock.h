@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
- *	test/define-usr-dev.c
+ *	test/user-lock.h
  *
  * 	Copyright (C) 2020, www.kernel.bz
  * 	Author: JaeJoon Jung <rgbi3307@gmail.com>

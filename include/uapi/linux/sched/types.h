@@ -2,7 +2,7 @@
 #ifndef _UAPI_LINUX_SCHED_TYPES_H
 #define _UAPI_LINUX_SCHED_TYPES_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
 
 #if 0
 struct sched_param {

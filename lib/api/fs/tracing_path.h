@@ -2,7 +2,8 @@
 #ifndef __API_FS_TRACING_PATH_H
 #define __API_FS_TRACING_PATH_H
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <dirent.h>
 
 DIR *tracing_events__opendir(void);

@@ -6,7 +6,7 @@
  */
 
 #include "test/debug.h"
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 #include <urcu.h>
 #include <urcu-pointer.h>

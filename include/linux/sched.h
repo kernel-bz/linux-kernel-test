@@ -2,7 +2,7 @@
 #ifndef _LINUX_SCHED_H
 #define _LINUX_SCHED_H
 
-#include "test/define-usr.h"
+#include "test/user-define.h"
 
 /*
  * Define 'struct task_struct' and provide the main scheduler

@@ -6,8 +6,8 @@
  */
 
 #include "test/debug.h"
-#include "test/define-usr.h"
-#include "test/define-usr-dev.h"
+#include "test/user-kernel.h"
+#include "test/user-drivers.h"
 
 //#include <linux/etherdevice.h>
 #include <linux/kernel.h>

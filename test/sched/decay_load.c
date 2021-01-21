@@ -2,8 +2,8 @@
 #include <stdio_ext.h>
 
 #include "test/debug.h"
+#include "test/user-types.h"
 
-#include <linux/types-user.h>
 #include <linux/math64.h>
 #include "kernel/sched/sched-pelt.h"
 

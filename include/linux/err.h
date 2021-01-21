@@ -2,8 +2,9 @@
 #ifndef __TOOLS_LINUX_ERR_H
 #define __TOOLS_LINUX_ERR_H
 
+#include "test/user-types.h"
+
 #include <linux/compiler.h>
-#include <linux/types-user.h>
 
 #include <asm/errno.h>
 

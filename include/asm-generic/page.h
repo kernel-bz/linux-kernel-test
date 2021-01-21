@@ -22,8 +22,9 @@
 #define PAGE_MASK	(~(PAGE_SIZE-1))
 #endif
 
+#include "test/user-types.h"
+
 #include <asm/setup.h>
-#include <linux/types-user.h>
 #include <linux/mm.h>
 
 #ifndef __ASSEMBLY__

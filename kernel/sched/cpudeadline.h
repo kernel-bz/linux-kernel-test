@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-#include <linux/types-user.h>
+#include "test/user-types.h"
+
 #include <linux/spinlock.h>
 #include <linux/cpumask.h>
 
