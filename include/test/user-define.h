@@ -7,8 +7,8 @@
  *
  *	user defined header
  */
-#ifndef __TEST_DEFINE_USR_H
-#define __TEST_DEFINE_USR_H
+#ifndef __TEST_USER_DEFINE_H
+#define __TEST_USER_DEFINE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -229,4 +229,4 @@ static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
 }
 #endif
 
-#endif // __TEST_DEFINE_USR_H
+#endif // __TEST_USER_DEFINE_H

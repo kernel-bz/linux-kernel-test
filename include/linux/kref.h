@@ -13,6 +13,11 @@
 #ifndef _KREF_H_
 #define _KREF_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <linux/atomic.h>
 #include <linux/spinlock.h>
 #include <linux/refcount.h>
 
@@ -110,4 +115,10 @@ static inline int __must_check kref_get_unless_zero(struct kref *kref)
 {
 	return refcount_inc_not_zero(&kref->refcount);
 }
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* _KREF_H_ */

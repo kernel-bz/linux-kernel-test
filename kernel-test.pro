@@ -153,7 +153,8 @@ SOURCES += \
     drivers/base/cpu_.c \
     kernel/cpu.c \
     test/user/user-kernel.c \
-    test/user/user-drivers.c
+    test/user/user-drivers.c \
+    lib/refcount.c
 
 HEADERS += \
     include/test/test.h \
@@ -198,7 +199,6 @@ HEADERS += \
     include/linux/rbtree_augmented.h \
     include/linux/rbtree.h \
     include/linux/rcu.h \
-    include/linux/refcount.h \
     include/linux/ring_buffer.h \
     include/linux/seq_file.h \
     include/linux/sizes.h \
@@ -586,7 +586,13 @@ HEADERS += \
     include/test/user-drivers.h \
     include/test/user-kernel.h \
     include/test/user-lock.h \
-    include/test/user-types.h
+    include/test/user-types.h \
+    include/linux/kdev_t.h \
+    include/uapi/linux/kdev_t.h \
+    include/test/user-common.h \
+    include/linux/refcount.h \
+    include/linux/clk/clk-conf.h \
+    mm/slab.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

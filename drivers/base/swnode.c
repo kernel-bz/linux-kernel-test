@@ -904,11 +904,11 @@ static int __init software_node_init(void)
 		return -ENOMEM;
 	return 0;
 }
-postcore_initcall(software_node_init);
+//postcore_initcall(software_node_init);
 
 static void __exit software_node_exit(void)
 {
 	ida_destroy(&swnode_root_ids);
 	kset_unregister(swnode_kset);
 }
-__exitcall(software_node_exit);
+//__exitcall(software_node_exit);

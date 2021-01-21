@@ -691,7 +691,7 @@ class_find_device_by_fwnode(struct class *class,
 static inline struct device *class_find_device_by_devt(struct class *class,
 						       dev_t devt)
 {
-	return class_find_device(class, NULL, &devt, device_match_devt);
+    //return class_find_device(class, NULL, &devt, device_match_devt);
 }
 
 #ifdef CONFIG_ACPI

@@ -46,6 +46,14 @@ EXPORT_SYMBOL_GPL(static_key_initialized);
 //151 lines
 
 
+//472 lines
+void __init parse_early_options(char *cmdline)
+{
+    //parse_args("early options", cmdline, NULL, 0, 0, 0, NULL,
+    //	   do_early_param);
+}
+
+
 
 //511 lines
 bool initcall_debug;

@@ -7,8 +7,8 @@
  *
  *	user defined functions for devices
  */
-#ifndef __TEST_DEFINE_USR_LOCK_H
-#define __TEST_DEFINE_USR_LOCK_H
+#ifndef __TEST_USER_LOCK_H
+#define __TEST_USER_LOCK_H
 
 #include <linux/spinlock.h>
 #include <linux/spinlock_types.h>
@@ -38,4 +38,4 @@ static inline void __raw_write_unlock(rwlock_t *lock)
 
 
 
-#endif	//__TEST_DEFINE_USR_LOCK_H
+#endif	//__TEST_USER_LOCK_H

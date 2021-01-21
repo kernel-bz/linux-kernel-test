@@ -12,11 +12,18 @@
  * to detect when we overlook these differences.
  *
  */
+
+#include "test/user-types.h"
+
 #include <linux/types.h>
 #include <linux/highuid.h>
 
-struct user_namespace;
-extern struct user_namespace init_user_ns;
+//include/linux/user_namespace.h
+//struct user_namespace;
+struct user_namespace { };
+//kernel/user.c
+//extern struct user_namespace init_user_ns;
+struct user_namespace init_user_ns;
 
 typedef struct {
 	uid_t val;

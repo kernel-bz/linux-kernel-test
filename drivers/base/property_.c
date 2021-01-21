@@ -19,6 +19,7 @@
 #include <linux/phy.h>
 
 #include "test/user-kernel.h"
+#include "test/user-drivers.h"
 
 struct fwnode_handle *dev_fwnode(struct device *dev)
 {

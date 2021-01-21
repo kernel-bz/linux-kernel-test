@@ -22,6 +22,8 @@
 #include <linux/kern_levels.h>
 #include <linux/export.h>
 
+#include "test/user-common.h"
+
 /**
  * kobject_namespace() - Return @kobj's namespace tag.
  * @kobj: kobject in question

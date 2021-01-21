@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifndef _TOOLS_LINUX_TYPES_USER_H_
-#define _TOOLS_LINUX_TYPES_USER_H_
+#ifndef __TEST_USER_TYPES_H
+#define __TEST_USER_TYPES_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -197,4 +197,4 @@ struct callback_head {
 typedef void (*rcu_callback_t)(struct rcu_head *head);
 typedef void (*call_rcu_func_t)(struct rcu_head *head, rcu_callback_t func);
 
-#endif /* _TOOLS_LINUX_TYPES_H_ */
+#endif /* __TEST_USER_TYPES_H */

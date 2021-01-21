@@ -7,8 +7,8 @@
  *
  *	user defined header for devices
  */
-#ifndef __TEST_DEFINE_USR_DEV_H
-#define __TEST_DEFINE_USR_DEV_H
+#ifndef __TEST_USER_DRIVERS_H
+#define __TEST_USER_DRIVERS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,4 +65,4 @@ static inline bool is_valid_ether_addr(const u8 *addr)
 }
 #endif
 
-#endif 	//__TEST_DEFINE_USR_DEV_H
+#endif 	//__TEST_USER_DRIVERS_H

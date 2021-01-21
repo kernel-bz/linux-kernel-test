@@ -308,7 +308,7 @@ static void deferred_probe_timeout_work_func(struct work_struct *work)
 
 	deferred_probe_timeout = 0;
 	driver_deferred_probe_trigger();
-	flush_work(&deferred_probe_work);
+    flush_work(&deferred_probe_work);
 
 	list_for_each_entry_safe(private, p, &deferred_probe_pending_list, deferred_probe)
 		dev_info(private->device, "deferred probe pending");
@@ -330,7 +330,7 @@ static int deferred_probe_initcall(void)
 	driver_deferred_probe_enable = true;
 	driver_deferred_probe_trigger();
 	/* Sort as many dependencies as possible before exiting initcalls */
-	flush_work(&deferred_probe_work);
+    flush_work(&deferred_probe_work);
 	initcalls_done = true;
 
 	/*
@@ -350,7 +350,7 @@ late_initcall(deferred_probe_initcall);
 
 static void __exit deferred_probe_exit(void)
 {
-	debugfs_remove_recursive(deferred_devices);
+    //debugfs_remove_recursive(deferred_devices);
 }
 __exitcall(deferred_probe_exit);
 
@@ -526,9 +526,9 @@ re_probe:
 	dev->driver = drv;
 
 	/* If using pinctrl, bind pins now before probing */
-	ret = pinctrl_bind_pins(dev);
-	if (ret)
-		goto pinctrl_bind_failed;
+    //ret = pinctrl_bind_pins(dev);
+    //if (ret)
+    //	goto pinctrl_bind_failed;
 
 	if (dev->bus->dma_configure) {
 		ret = dev->bus->dma_configure(dev);
@@ -584,7 +584,7 @@ re_probe:
 		goto re_probe;
 	}
 
-	pinctrl_init_done(dev);
+    //pinctrl_init_done(dev);
 
 	if (dev->pm_domain && dev->pm_domain->sync)
 		dev->pm_domain->sync(dev);
@@ -607,7 +607,7 @@ probe_failed:
 pinctrl_bind_failed:
 	device_links_no_driver(dev);
 	devres_release_all(dev);
-	arch_teardown_dma_ops(dev);
+    //arch_teardown_dma_ops(dev);
 	driver_sysfs_remove(dev);
 	dev->driver = NULL;
 	dev_set_drvdata(dev, NULL);
@@ -652,10 +652,10 @@ static int really_probe_debug(struct device *dev, struct device_driver *drv)
 	ktime_t calltime, delta, rettime;
 	int ret;
 
-	calltime = ktime_get();
+    //calltime = ktime_get();
 	ret = really_probe(dev, drv);
-	rettime = ktime_get();
-	delta = ktime_sub(rettime, calltime);
+    //rettime = ktime_get();
+    //delta = ktime_sub(rettime, calltime);
 	printk(KERN_DEBUG "probe of %s returned %d after %lld usecs\n",
 	       dev_name(dev), ret, (s64) ktime_to_us(delta));
 	return ret;
@@ -687,7 +687,7 @@ void wait_for_device_probe(void)
 
 	/* wait for the known devices to complete their probing */
 	wait_event(probe_waitqueue, atomic_read(&probe_count) == 0);
-	async_synchronize_full();
+    //async_synchronize_full();
 }
 EXPORT_SYMBOL_GPL(wait_for_device_probe);
 
@@ -734,7 +734,7 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
 
 static inline bool cmdline_requested_async_probing(const char *drv_name)
 {
-	return parse_option_str(async_probe_drv_names, drv_name);
+    //return parse_option_str(async_probe_drv_names, drv_name);
 }
 
 /* The option format is "driver_async_probe=drv_name1,drv_name2,..." */
@@ -1140,7 +1140,7 @@ static void __device_release_driver(struct device *dev, struct device *parent)
 		device_links_driver_cleanup(dev);
 
 		devres_release_all(dev);
-		arch_teardown_dma_ops(dev);
+        //arch_teardown_dma_ops(dev);
 		dev->driver = NULL;
 		dev_set_drvdata(dev, NULL);
 		if (dev->pm_domain && dev->pm_domain->dismiss)
@@ -1214,8 +1214,8 @@ void driver_detach(struct device_driver *drv)
 	struct device_private *dev_prv;
 	struct device *dev;
 
-	if (driver_allows_async_probing(drv))
-		async_synchronize_full();
+    //if (driver_allows_async_probing(drv))
+        //async_synchronize_full();
 
 	for (;;) {
 		spin_lock(&drv->p->klist_devices.k_lock);

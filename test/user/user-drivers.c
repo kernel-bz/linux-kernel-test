@@ -69,94 +69,6 @@ int devres_release(struct device *dev, dr_release_t release,
 EXPORT_SYMBOL_GPL(devres_release);
 
 
-#if 0
-
-//drivers/base/bus.c: 325 lines
-struct device *bus_find_device(struct bus_type *bus,
-                   struct device *start, const void *data,
-                   int (*match)(struct device *dev, const void *data))
-{
-    return NULL;
-}
-EXPORT_SYMBOL_GPL(bus_find_device);
-
-
-
-//drivers/base/core.c: 3440 lines
-/**
- * device_set_of_node_from_dev - reuse device-tree node of another device
- * @dev: device whose device-tree node is being set
- * @dev2: device whose device-tree node is being reused
- *
- * Takes another reference to the new device-tree node after first dropping
- * any reference held to the old node.
- */
-void device_set_of_node_from_dev(struct device *dev, const struct device *dev2)
-{
-    //of_node_put(dev->of_node);
-    //dev->of_node = of_node_get(dev2->of_node);
-    //dev->of_node_reused = true;
-}
-EXPORT_SYMBOL_GPL(device_set_of_node_from_dev);
-
-int device_match_name(struct device *dev, const void *name)
-{
-    //return sysfs_streq(dev_name(dev), name);
-    return 0;
-}
-EXPORT_SYMBOL_GPL(device_match_name);
-
-int device_match_of_node(struct device *dev, const void *np)
-{
-    return dev->of_node == np;
-}
-EXPORT_SYMBOL_GPL(device_match_of_node);
-
-int device_match_fwnode(struct device *dev, const void *fwnode)
-{
-    //return dev_fwnode(dev) == fwnode;
-    return 0;
-}
-EXPORT_SYMBOL_GPL(device_match_fwnode);
-
-int device_match_devt(struct device *dev, const void *pdevt)
-{
-    return dev->devt == *(dev_t *)pdevt;
-}
-EXPORT_SYMBOL_GPL(device_match_devt);
-
-int device_match_acpi_dev(struct device *dev, const void *adev)
-{
-    //return ACPI_COMPANION(dev) == adev;
-    return 0;
-}
-EXPORT_SYMBOL(device_match_acpi_dev);
-
-int device_match_any(struct device *dev, const void *unused)
-{
-    return 1;
-}
-EXPORT_SYMBOL_GPL(device_match_any);
-
-//drivers/base/core.c: 2000 lines
-int dev_set_name(struct device *dev, const char *fmt, ...)
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(dev_set_name);
-
-
-//drivers/base/core.c: 2496 lines
-int device_for_each_child(struct device *parent, void *data,
-              int (*fn)(struct device *dev, void *data))
-{
-    return 0;
-}
-EXPORT_SYMBOL_GPL(device_for_each_child);
-
-#endif
-
-
 //drivers/net/phy/mdio_bus.c: 726 lines
 struct bus_type mdio_bus_type = {
     .name		= "mdio_bus",
@@ -253,3 +165,19 @@ bool mdiobus_is_registered_device(struct mii_bus *bus, int addr)
     return bus->mdio_map[addr];
 }
 EXPORT_SYMBOL(mdiobus_is_registered_device);
+
+//include/linux/of_pdt.h
+//arch/x86/platform/olpc/olpc_dt.c
+void * __init prom_early_alloc(unsigned long size)
+{
+    return NULL;
+}
+
+//drivers/base/base.h
+//drivers/base/devres.c
+int devres_release_all(struct device *dev)
+{
+    return -ENODEV;
+}
+
+

@@ -35,6 +35,7 @@
 #include "power/power.h"
 
 #include <linux/of_platform.h>
+#include <linux/clk/clk-conf.h>
 
 /* For automatically allocated device IDs */
 static DEFINE_IDA(platform_devid_ida);
@@ -125,7 +126,7 @@ static int __platform_get_irq(struct platform_device *dev, unsigned int num)
 		irqd = irq_get_irq_data(r->start);
 		if (!irqd)
 			return -ENXIO;
-		irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
+        //irqd_set_trigger_type(irqd, r->flags & IORESOURCE_BITS);
 	}
 
 	if (r)
@@ -648,7 +649,7 @@ struct platform_device *platform_device_register_full(
 		if (!pdev->dev.dma_mask)
 			goto err;
 
-		kmemleak_ignore(pdev->dev.dma_mask);
+        //kmemleak_ignore(pdev->dev.dma_mask);
 
 		*pdev->dev.dma_mask = pdevinfo->dma_mask;
 		pdev->dev.coherent_dma_mask = pdevinfo->dma_mask;
@@ -1424,7 +1425,7 @@ void __init early_platform_driver_register_all(char *class_str)
 	 * the kernel command line. early_platform_driver_register() handles
 	 * this case for us.
 	 */
-	parse_early_options(class_str);
+    parse_early_options(class_str);
 }
 
 /**

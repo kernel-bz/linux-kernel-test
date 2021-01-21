@@ -8,6 +8,7 @@
  * Copyright (c) 2006 Novell, Inc.
  */
 
+#include <unistd.h>
 #include "test/debug.h"
 
 #include <linux/acpi.h>
@@ -897,7 +898,8 @@ int lock_device_hotplug_sysfs(void)
 		return 0;
 
 	/* Avoid busy looping (5 ms of sleep should do). */
-	msleep(5);
+    //msleep(5);
+    usleep(5 * 1000);
 	return restart_syscall();
 }
 
@@ -1705,7 +1707,7 @@ void device_initialize(struct device *dev)
 #ifdef CONFIG_PROVE_LOCKING
 	mutex_init(&dev->lockdep_mutex);
 #endif
-	lockdep_set_novalidate_class(&dev->mutex);
+    //lockdep_set_novalidate_class(&dev->mutex);
 	spin_lock_init(&dev->devres_lock);
 	INIT_LIST_HEAD(&dev->devres_head);
 	device_pm_init(dev);
@@ -3182,7 +3184,7 @@ void device_shutdown(void)
 	wait_for_device_probe();
 	device_block_probing();
 
-	cpufreq_suspend();
+    //cpufreq_suspend();
 
 	spin_lock(&devices_kset->list_lock);
 	/*
@@ -3458,7 +3460,7 @@ EXPORT_SYMBOL_GPL(device_set_of_node_from_dev);
 
 int device_match_name(struct device *dev, const void *name)
 {
-	return sysfs_streq(dev_name(dev), name);
+    //return sysfs_streq(dev_name(dev), name);
 }
 EXPORT_SYMBOL_GPL(device_match_name);
 

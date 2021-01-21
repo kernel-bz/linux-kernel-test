@@ -87,7 +87,7 @@ async_schedule_domain(async_func_t func, void *data,
 static inline async_cookie_t
 async_schedule_dev(async_func_t func, struct device *dev)
 {
-	return async_schedule_node(func, dev, dev_to_node(dev));
+    //return async_schedule_node(func, dev, dev_to_node(dev));
 }
 
 /**

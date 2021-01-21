@@ -194,7 +194,7 @@ static void klist_release(struct kref *kref)
 
 		list_del(&waiter->list);
 		waiter->woken = 1;
-		mb();
+        //mb();
 		wake_up_process(waiter->process);
 	}
 	spin_unlock(&klist_remove_lock);
@@ -249,7 +249,7 @@ void klist_remove(struct klist_node *n)
 	klist_del(n);
 
 	for (;;) {
-		set_current_state(TASK_UNINTERRUPTIBLE);
+        //set_current_state(TASK_UNINTERRUPTIBLE);
 		if (waiter.woken)
 			break;
 		schedule();
