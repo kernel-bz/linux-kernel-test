@@ -6,6 +6,7 @@
  *  Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 #include <stddef.h>
+#include <stdlib.h>
 
 #include <linux/device.h>
 #include <linux/export.h>
@@ -43,9 +44,21 @@ bool slab_is_available(void)
 
 
 //lib/vsprintf.c
+long simple_strtol(const char *cp, char **endp, unsigned int base)
+{
+    return strtol(cp, endp, base);
+}
+EXPORT_SYMBOL(simple_strtol);
+
+unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
+{
+    return strtoull(cp, endp, base);
+}
+EXPORT_SYMBOL(simple_strtoull);
+
 unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
 {
     //return simple_strtoull(cp, endp, base);
-    return 0;
+    return strtoull(cp, endp, base);
 }
 EXPORT_SYMBOL(simple_strtoul);

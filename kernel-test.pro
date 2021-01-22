@@ -13,7 +13,8 @@ LIBS += -Lpthread
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
         -Wvariadic-macros
 
-INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ arch/x86/include/
+INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ \
+    arch/x86/include/ arch/arm64/include/
 
 SOURCES += \
     main.c \
@@ -154,7 +155,13 @@ SOURCES += \
     kernel/cpu.c \
     test/user/user-kernel.c \
     test/user/user-drivers.c \
-    lib/refcount.c
+    lib/refcount.c \
+    kernel/params.c \
+    lib/cmdline.c \
+    arch/arm/kernel/setup-arm.c \
+    arch/arm64/kernel/setup-arm64.c \
+    arch/riscv/kernel/setup-riscv.c \
+    arch/x86/kernel/setup-x86.c
 
 HEADERS += \
     include/test/test.h \
@@ -592,7 +599,8 @@ HEADERS += \
     include/test/user-common.h \
     include/linux/refcount.h \
     include/linux/clk/clk-conf.h \
-    mm/slab.h
+    mm/slab.h \
+    include/linux/start_kernel.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

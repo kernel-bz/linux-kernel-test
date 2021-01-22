@@ -14,40 +14,12 @@
 #include "test/debug.h"
 #include "test/test.h"
 #include <linux/sched/init.h>
+#include <linux/start_kernel.h>
 
-//init/main.c:
-//  start_kernel()
-//    rest_init()
-//      kernel_thread(kernel_init, NULL, CLONE_FS)
-//        kernel_init()
-//          kernel_init_freeable()
 static void _init_start_kernel(void)
 {
-    pr_fn_start_on(stack_depth);
-
-    //setup_nr_cpu_ids();	//kernel/smp.c
-    nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
-
-    //arch/arm64/mm/numa.c
-    numa_usr_set_node(NR_CPUS / nr_node_ids);
-#ifdef CONFIG_ARM64
-    arm64_numa_init();
-#endif
-
-    boot_cpu_init();		//kernel/cpu.c
-    cpumask_setall(cpu_active_mask);
-    cpumask_setall(cpu_online_mask);
-    //cpumask_set_cpu(0, cpu_online_mask);
-    //cpumask_clear_cpu(0, cpu_online_mask);
-    cpumask_setall(cpu_present_mask);
-
-    sched_init();
-    sched_clock_init();
-
-    pr_sched_cpumask_bits_info(nr_cpu_ids);
-    numa_distance_info();
-
-    pr_fn_end_on(stack_depth);
+    //init/main.c
+    start_kernel();
 }
 
 static void _init_menu_help(void)

@@ -5,6 +5,9 @@
 extern "C" {
 #endif
 
+//test/config/
+void config_setting(void);
+
 //test/basic/
 void basic_struct_test(void);
 void basic_ptr_test(void);

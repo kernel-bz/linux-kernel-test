@@ -2,6 +2,8 @@
 #ifndef _LINUX_INIT_H
 #define _LINUX_INIT_H
 
+#include "test/user-define.h"
+
 #include <linux/compiler.h>
 #include <linux/types.h>
 
@@ -142,8 +144,7 @@ struct file_system_type;
 
 /* Defined in init/main.c */
 extern int do_one_initcall(initcall_t fn);
-//extern char __initdata boot_command_line[];
-extern char boot_command_line[];
+extern char __initdata boot_command_line[];
 extern char *saved_command_line;
 extern unsigned int reset_devices;
 
@@ -290,7 +291,7 @@ struct obs_kernel_param {
 	__setup_param(str_off, parse_##var##_off, parse_##var##_off, 1)
 
 /* Relies on boot_command_line being set */
-//void __init parse_early_param(void);
+void __init parse_early_param(void);
 void __init parse_early_options(char *cmdline);
 #endif /* __ASSEMBLY__ */
 

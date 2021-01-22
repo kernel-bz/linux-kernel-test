@@ -43,6 +43,8 @@ extern "C" {
 //#define CONFIG_XARRAY_MULTI	0
 #define CONFIG_XARRAY_MULTI		1
 
+#define CONFIG_CMDLINE_FORCE
+#define CONFIG_CMDLINE			"cmd line test"
 
 //CPU Configuration ----------------------------------------
 //#define CONFIG_NR_CPUS		4
@@ -117,8 +119,6 @@ extern "C" {
 #define CONFIG_OF_UNITTEST
 #define CONFIG_OF_EARLY_FLATTREE
 
-
-void config_setting(void);
 
 #ifdef __cplusplus
 }
