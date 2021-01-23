@@ -15,7 +15,7 @@ extern "C" {
 #define ARCH_ARM64			4
 #define ARCH_RISCV			5
 
-#define CONFIG_RUN_ARCH 	ARCH_ARM
+#define CONFIG_RUN_ARCH 	ARCH_X86_64
 
 #define CONFIG_X86_TSC
 
@@ -26,7 +26,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210121	//test date
+#define CONFIG_VERSION_3		20210123	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
