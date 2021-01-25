@@ -12,6 +12,7 @@
 
 #include "test/debug.h"
 #include "test/config.h"
+#include "test/dtb-test.h"
 #include <linux/xarray.h>
 
 void config_view(void)
@@ -34,6 +35,8 @@ void config_view(void)
     pr_info_view_on(stack_depth, "%30s : %d\n", XA_CHUNK_SHIFT);
     pr_info_view_on(stack_depth, "%30s : %lu\n", XA_CHUNK_SIZE);
     pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_NODES_SHIFT);
+
+    pr_info_view_on(stack_depth, "%30s : %s\n", dtb_file_name);
 
     pr_info_view_on(stack_depth, "%30s : %d\n", DebugBase);
     pr_info_view_on(stack_depth, "%30s : %d\n", DebugLevel);

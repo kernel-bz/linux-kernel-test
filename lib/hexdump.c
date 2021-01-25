@@ -3,6 +3,7 @@
  * lib/hexdump.c
  */
 
+#include "test/config.h"
 #include "test/user-drivers.h"
 
 #include <linux/types.h>
@@ -263,7 +264,7 @@ void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
 			break;
 		case DUMP_PREFIX_OFFSET:
 			printk("%s%s%.8x: %s\n", level, prefix_str, i, linebuf);
-			break;
+            break;
 		default:
 			printk("%s%s%s\n", level, prefix_str, linebuf);
 			break;

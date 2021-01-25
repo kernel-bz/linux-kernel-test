@@ -5,13 +5,24 @@
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
+#ifndef __DTB_TEST_H
+#define __DTB_TEST_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "test/user-types.h"
 
-//0xd00dfeed
-u8 dtb_test_blob[] = {
-    0xd0, 0x0d, 0xfe, 0xed,
-    0x00, 0x00, 0x00, 0x08,
-};
+//test/config/config-set.c
+extern char dtb_file_name[80];
+extern void *dtb_early_va;
 
-void *dtb_early_va = (void*)dtb_test_blob;
+void dtb_test_read_file(void);
+void dtb_test_hex_dump(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

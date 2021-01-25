@@ -164,7 +164,9 @@ SOURCES += \
     test/menu/config.c \
     test/menu/init.c \
     test/menu/sched.c \
-    test/config/config-set.c
+    test/config/config-set.c \
+    test/drivers/dtb-test.c \
+    test/menu/drivers.c
 
 HEADERS += \
     include/test/test.h \

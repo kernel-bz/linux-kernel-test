@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/test.h
+ *  Test Functions Header
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
+ */
 #ifndef __TEST_H
 #define __TEST_H
 
@@ -11,6 +18,7 @@ void menu_algorithm(void);
 void menu_config(void);
 void menu_init(void);
 void menu_sched_test(void);
+void menu_drivers(void);
 
 //test/config/
 void config_view(void);

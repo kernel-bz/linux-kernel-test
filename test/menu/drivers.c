@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  test/menu/init.c
- *  init routine menu
+ *  test/menu/config.c
+ *  Drivers Test Menu
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -10,11 +10,12 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
-#include "test/config.h"
 #include "test/debug.h"
+#include "test/config.h"
 #include "test/test.h"
+#include "test/dtb-test.h"
 
-static void _init_menu_help(void)
+static void _drivers_menu_help(void)
 {
     //help messages...
     printf("\n");
@@ -27,19 +28,17 @@ static void _init_menu_help(void)
     return;
 }
 
-static int _init_menu(int asize)
+static int _drivers_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
 
     printf("\n");
-    printf("[#]--> Start Kernel Test Menu\n");
+    printf("[#]--> Drivers Test Menu\n");
     printf("0: exit.\n");
-    printf("1: setup_arch test.\n");
-    printf("2: sched_init test.\n");
-    printf("3: numa_init test.\n");
-    printf("4: sched_init_smp test.\n");
-    printf("5: help.\n");
+    printf("1: DTB Read From File.\n");
+    printf("2: DTB Hex Dump.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -47,21 +46,18 @@ static int _init_menu(int asize)
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-//init/main.c: start_kernel()
-void menu_init(void)
+void menu_drivers(void)
 {
-    void (*fn[])(void) = { _init_menu_help
-        , test_setup_arch
-        , test_sched_init
-        , test_numa_init
-        , test_sched_init_smp
-        , _init_menu_help
+    void (*fn[])(void) = { _drivers_menu_help
+        , dtb_test_read_file
+        , dtb_test_hex_dump
+        , _drivers_menu_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _init_menu(asize);
+        idx = _drivers_menu(asize);
         if (idx < 0) break;
         fn[idx]();
     }
