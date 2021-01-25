@@ -31,6 +31,10 @@ void lib_xarray_test(void);
 
 //test/init
 void init_start_kernel(void);
+void test_setup_arch(void);
+void test_sched_init(void);
+void test_sched_init_smp(void);
+void test_numa_init(void);
 
 //test/sched/sched-test.c
 void sched_test(void);

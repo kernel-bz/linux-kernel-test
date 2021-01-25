@@ -178,5 +178,23 @@ wake_up_new_task()	SD_BALANCE_FORK
 sched_exec()		SD_BALANCE_EXEC
 select_task_rq()
 
-//D20210116 Load Balancing ===============================
+//D20210123 EWS ===========================================
 
+find_energy_efficient_cpu()
+    compute_energy(*p, int dst_cpu, struct perf_domain *pd)
+    em_pd_energy(struct em_perf_domain *pd, max_util, sum_util)
+
+cs->cap = (cs->freq / cpu_max_freq) * scale_cpu
+cpu_nrg = (cpu_util / cs->cap) * cs->power
+cpu_nrg = (cpu_util * cpu_max_freq * cs->power) / (cs->freq * scale_cpu)
+cpu_nrg = (cs->cost * sum_util) / scale_cpu
+
+cs->cost = (cpu_max_freq * cs->power) / cs->freq
+        = (cpu_max_freq / cs->freq) * cs->power
+
+//include/linux/energy_model.h
+struct em_cap_state {
+        u64	frequency;	//cs->cap
+        u64	power;
+        u64	cost;
+}

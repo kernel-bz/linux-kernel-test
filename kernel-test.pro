@@ -161,7 +161,8 @@ SOURCES += \
     arch/arm/kernel/setup-arm.c \
     arch/arm64/kernel/setup-arm64.c \
     arch/riscv/kernel/setup-riscv.c \
-    arch/x86/kernel/setup-x86.c
+    arch/x86/kernel/setup-x86.c \
+    test/init/start-kernel.c
 
 HEADERS += \
     include/test/test.h \

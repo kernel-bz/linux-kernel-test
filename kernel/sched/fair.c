@@ -5015,6 +5015,8 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 
         bool em_enable = sched_energy_enabled();	//as test
         pr_info_view_on(stack_depth, "%15s : %d\n", em_enable);
+        em_enable = true;	//as test
+        pr_info_view_on(stack_depth, "%15s : %d\n", em_enable);
 
         if (em_enable) {
             new_cpu = find_energy_efficient_cpu(p, prev_cpu);

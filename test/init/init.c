@@ -13,14 +13,6 @@
 #include "test/config.h"
 #include "test/debug.h"
 #include "test/test.h"
-#include <linux/sched/init.h>
-#include <linux/start_kernel.h>
-
-static void _init_start_kernel(void)
-{
-    //init/main.c
-    start_kernel();
-}
 
 static void _init_menu_help(void)
 {
@@ -43,9 +35,11 @@ static int _init_menu(int asize)
     printf("\n");
     printf("[#]--> Start Kernel Test Menu\n");
     printf("0: exit.\n");
-    printf("1: sched_init test.\n");
-    printf("2: sched_init_smp test.\n");
-    printf("3: help.\n");
+    printf("1: setup_arch test.\n");
+    printf("2: sched_init test.\n");
+    printf("3: numa_init test.\n");
+    printf("4: sched_init_smp test.\n");
+    printf("5: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -56,8 +50,10 @@ static int _init_menu(int asize)
 void init_start_kernel(void)
 {
     void (*fn[])(void) = { _init_menu_help
-        , _init_start_kernel
-        , sched_init_smp	//kernel/sched/core.c
+        , test_setup_arch
+        , test_sched_init
+        , test_numa_init
+        , test_sched_init_smp
         , _init_menu_help
     };
     int idx;

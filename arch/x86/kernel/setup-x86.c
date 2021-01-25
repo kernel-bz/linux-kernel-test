@@ -37,6 +37,8 @@ unsigned long boot_cpu_hartid;
 
 void __init parse_dtb(void)
 {
+    pr_fn_start_on(stack_depth);
+
     //if (early_init_dt_scan(dtb_early_va))
         //return;
 
@@ -45,10 +47,15 @@ void __init parse_dtb(void)
 	strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
 	pr_info("Forcing kernel command line to: %s\n", boot_command_line);
 #endif
+
+    pr_info_view_on(stack_depth, "%20s : %s\n", boot_command_line);
+    pr_fn_end_on(stack_depth);
 }
 
 void __init setup_arch(char **cmdline_p)
 {
+    pr_fn_start_on(stack_depth);
+
     parse_dtb();
 	*cmdline_p = boot_command_line;
 
@@ -67,6 +74,8 @@ void __init setup_arch(char **cmdline_p)
 #endif
 
     //riscv_fill_hwcap();
+
+    pr_fn_end_on(stack_depth);
 }
 
 #endif

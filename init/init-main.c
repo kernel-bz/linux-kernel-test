@@ -89,6 +89,8 @@ void __init parse_early_options(char *cmdline)
 /* Arch code calls this early on, or if not, just before other parsing. */
 void __init parse_early_param(void)
 {
+    pr_fn_start_on(stack_depth);
+
     static int done __initdata;
     static char tmp_cmdline[COMMAND_LINE_SIZE] __initdata;
 
@@ -99,6 +101,8 @@ void __init parse_early_param(void)
     strlcpy(tmp_cmdline, boot_command_line, COMMAND_LINE_SIZE);
     parse_early_options(tmp_cmdline);
     done = 1;
+
+    pr_fn_end_on(stack_depth);
 }
 //493 lines
 
@@ -113,40 +117,7 @@ asmlinkage __visible void __init start_kernel(void)
 {
     pr_fn_start_on(stack_depth);
 
-    char *command_line;
-
-    nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
-
-    //592 lines
-    boot_cpu_init();		//kernel/cpu.c
-    cpumask_setall(cpu_active_mask);
-    cpumask_setall(cpu_online_mask);
-    //cpumask_set_cpu(0, cpu_online_mask);
-    //cpumask_clear_cpu(0, cpu_online_mask);
-    cpumask_setall(cpu_present_mask);
-
-    //596 lines
-    setup_arch(&command_line);
-    //setup_command_line(command_line);
-
-    //setup_nr_cpu_ids();	//kernel/smp.c
-
-    pr_notice("Kernel command line: %s\n", boot_command_line);
-    parse_early_param();
-
-    //638 lines
-    sched_init();
-    sched_clock_init();
-
-    pr_sched_cpumask_bits_info(nr_cpu_ids);
-
-    //arch/arm64/mm/numa.c
-    numa_usr_set_node(NR_CPUS / nr_node_ids);
-#ifdef CONFIG_ARM64
-    arm64_numa_init();
-#endif
-
-    numa_distance_info();
+    //test/init/start_kernel.c
 
     pr_fn_end_on(stack_depth);
 }

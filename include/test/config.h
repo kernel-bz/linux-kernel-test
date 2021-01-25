@@ -44,7 +44,7 @@ extern "C" {
 #define CONFIG_XARRAY_MULTI		1
 
 #define CONFIG_CMDLINE_FORCE
-#define CONFIG_CMDLINE			"cmd line test"
+#define CONFIG_CMDLINE			"cmd=test1,test2 dtb=dts1 dts2"
 
 //CPU Configuration ----------------------------------------
 //#define CONFIG_NR_CPUS		4
