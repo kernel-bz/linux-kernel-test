@@ -78,7 +78,7 @@ static u64 decay_load(u64 val, u64 n)
  * static u64 decay_load(u64 val, u64 n)
  *
  */
-void decay_load_test(void)
+void test_decay_load(void)
 {
     u64 val, load=1024, sum=0, n, dcnt;
 

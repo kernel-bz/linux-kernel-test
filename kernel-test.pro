@@ -119,10 +119,6 @@ SOURCES += \
     drivers/base/core_.c \
     arch/arm64/mm/numa.c \
     test/basic/cpus-mask-test.c \
-    test/config/config.c \
-    test/basic/basic.c \
-    test/algorithm/algorithm.c \
-    test/init/init.c \
     test/algorithm/rbtree03.c \
     test/algorithm/rbtree02.c \
     test/algorithm/rbtree01.c \
@@ -162,7 +158,13 @@ SOURCES += \
     arch/arm64/kernel/setup-arm64.c \
     arch/riscv/kernel/setup-riscv.c \
     arch/x86/kernel/setup-x86.c \
-    test/init/start-kernel.c
+    test/init/start-kernel.c \
+    test/menu/algorithm.c \
+    test/menu/basic.c \
+    test/menu/config.c \
+    test/menu/init.c \
+    test/menu/sched.c \
+    test/config/config-set.c
 
 HEADERS += \
     include/test/test.h \

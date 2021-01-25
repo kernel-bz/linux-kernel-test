@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  test/algorithm/algorithm.c
- *  Algorithm & Struct Trainging
+ *  test/menu/algorithm.c
+ *  Algorithm & Struct Trainging Menu
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -51,7 +51,7 @@ static int _algo_struct_menu(int asize)
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-void algorithm_struct(void)
+void menu_algorithm(void)
 {
     void (*fn[])(void) = { _algo_struct_help
         , list_test01

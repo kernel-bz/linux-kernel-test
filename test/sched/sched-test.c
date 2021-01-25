@@ -21,7 +21,7 @@
 
 struct task_struct *current_task;
 
-struct task_group *sched_test_tg_select(void)
+static struct task_group *_sched_test_tg_select(void)
 {
     int tg_max, idx, cnt=0;
     struct task_group *tg;
@@ -51,7 +51,7 @@ struct task_group *sched_test_tg_select(void)
  * 		sched_autogroup_create_attach(struct task_struct *p)
  *	 		autogroup_create();
  */
-static void _sched_create_group_test(void)
+void test_sched_create_group(void)
 {
     struct task_group *parent = &root_task_group;
     struct task_group *tg;
@@ -59,7 +59,7 @@ static void _sched_create_group_test(void)
 
     pr_fn_start_on(stack_depth);
 
-    parent = sched_test_tg_select();
+    parent = _sched_test_tg_select();
     if (!parent) return;
 
     tg = sched_create_group(parent);
@@ -94,7 +94,7 @@ _do_fork()
     activate_task()
         enqueue_task();
 */
-static void _sched_new_task_test(void)
+void test_sched_new_task(void)
 {
     struct task_struct *p;
     struct rq *rq;
@@ -125,7 +125,7 @@ _retry:
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
 
-    p->sched_task_group = sched_test_tg_select();
+    p->sched_task_group = _sched_test_tg_select();
     p->cpu = cpu;
     pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_info_view_on(stack_depth, "%30s : %u\n", p->cpu);
@@ -156,7 +156,7 @@ _retry:
     pr_fn_end_on(stack_depth);
 }
 
-static void _sched_current_task_info(void)
+void test_sched_current_task_info(void)
 {
     struct rq *rq;
     unsigned int cpu;
@@ -190,7 +190,7 @@ _retry:
  * 	   next = pick_next_task(rq, prev, &rf);
  *     rq = context_switch(rq, prev, next, &rf);
  */
-static void _sched_deactivate_task_test(void)
+void test_sched_deactivate_task(void)
 {
     struct task_struct *prev, *next;
     struct rq *rq;
@@ -230,7 +230,7 @@ _retry:
         set_next_task(rq, p);
    }
  */
-static void _sched_setscheduler_test(void)
+void test_sched_setscheduler(void)
 {
     struct rq *rq;
     struct task_struct *p;
@@ -282,7 +282,7 @@ _retry:
     pr_fn_end_on(stack_depth);
 }
 
-static void _sched_schedule_test(void)
+void test_sched_schedule(void)
 {
     int cpu;
     struct rq *rq;
@@ -307,7 +307,7 @@ _retry:
     schedule();
 }
 
-static void _sched_wake_up_process_test(void)
+void test_sched_wake_up_process(void)
 {
     struct rq *rq;
     struct task_struct *p;
@@ -362,7 +362,7 @@ static int loadavg_proc_show(struct seq_file *m, void *v)
  *			task_tick_fair();
  * 			calc_global_load_tick();
  */
-static void _calc_global_load_test(void)
+void test_calc_global_load(void)
 {
     //u32 tick = 1 / HZ;	//1/100 == 0.01s == 10ms
     int i, loop_cnt=20;
@@ -408,7 +408,7 @@ static void _calc_global_load_test(void)
     pr_fn_end_on(stack_depth);
 }
 
-static void _sched_pelt_info(void)
+void test_sched_pelt_info(void)
 {
     struct task_group *tg;
     struct sched_entity *se;
@@ -423,7 +423,7 @@ _retry:
 
     pr_fn_start_on(stack_depth);
 
-    tg = sched_test_tg_select();
+    tg = _sched_test_tg_select();
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg->se[cpu]);
     se = tg->se[cpu];
@@ -441,7 +441,7 @@ _retry:
     pr_fn_end_on(stack_depth);
 }
 
-static void _sched_set_user_nice_test(void)
+void test_sched_set_user_nice(void)
 {
     struct rq *rq;
     unsigned int cpu;
@@ -471,7 +471,7 @@ _retry:
  *	dl_task_timer(*hrtimer)
  *		enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
 */
-static void sched_dl_enqueue_test(void)
+void test_sched_dl_enqueue(void)
 {
     int cpu;
     struct rq *rq;
@@ -507,7 +507,7 @@ _retry:
     p->prio = p->normal_prio;
 }
 
-static void sched_cpudl_test(void)
+void test_sched_cpudl(void)
 {
     int i;
     struct rq *rq;
@@ -526,217 +526,5 @@ static void sched_cpudl_test(void)
 
     for (i=0; i<asize; i++) {
         cpudl_set(&rq->rd->cpudl, cpu[i], dl[i]);
-    }
-}
-
-static void _sched_test_help(void)
-{
-    //help messages...
-    printf("\n");
-    printf("You can test the Linux kernel scheduler \n");
-    printf("  at the user level as follows:\n");
-    printf("\n");
-    return;
-}
-
-static int _sched_basic_pelt_test_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Scheduler --> Basic PELT Test Menu\n");
-    printf("0: exit.\n");
-    printf("1: calc_global_load test.\n");
-    printf("2: decay_load() test.\n");
-    printf("3: update_load_avg() test.\n");
-    printf("4: help.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx > 0 && idx < asize) ? idx : -1;
-}
-
-static void _sched_basic_pelt_test(void)
-{
-    void (*fn[])(void) = { _sched_test_help
-        , _calc_global_load_test
-        , decay_load_test
-        , update_load_avg_test
-        , _sched_test_help
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-_retry:
-    while (1) {
-        idx = _sched_basic_pelt_test_menu(asize);
-        if (idx < 0) break;
-        fn[idx]();
-    }
-}
-
-static int _sched_cfs_test_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Scheduler --> CFS Test Menu\n");
-    printf("0: exit.\n");
-    printf("1: sched pelt info.\n");
-    printf("2: leaf cfs_rq info.\n");
-    printf("3: set_user_nice test.\n");
-    printf("4: run rebalance test.\n");
-    printf("5: help.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx > 0 && idx < asize) ? idx : -1;
-}
-
-static void _sched_cfs_test(void)
-{
-    void (*fn[])(void) = { _sched_test_help
-        , _sched_pelt_info
-        , pr_leaf_cfs_rq_info
-        , _sched_set_user_nice_test
-        , sched_fair_run_rebalance	//kernel/sched/fair.c
-        , _sched_test_help
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-    while (1) {
-        idx = _sched_cfs_test_menu(asize);
-        if (idx < 0) break;
-        fn[idx]();
-    }
-}
-
-static int _sched_rt_test_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Scheduler --> RT Test Menu\n");
-    printf("0: exit.\n");
-    printf("1: help.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx > 0 && idx < asize) ? idx : -1;
-}
-
-static void _sched_rt_test(void)
-{
-    void (*fn[])(void) = { _sched_test_help
-           , _sched_test_help
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-    while (1) {
-        idx = _sched_rt_test_menu(asize);
-        if (idx < 0) break;
-        fn[idx]();
-    }
-}
-
-static int _sched_dl_test_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Scheduler --> DeadLine Test Menu\n");
-    printf("0: exit.\n");
-    printf("1: deadline enqueue test.\n");
-    printf("2: cpudl test.\n");
-    printf("3: help.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx > 0 && idx < asize) ? idx : -1;
-}
-
-static void _sched_dl_test(void)
-{
-    void (*fn[])(void) = { _sched_test_help
-        , sched_dl_enqueue_test
-        , sched_cpudl_test
-        , _sched_test_help
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-    while (1) {
-        idx = _sched_dl_test_menu(asize);
-        if (idx < 0) break;
-        fn[idx]();
-    }
-}
-
-static int _sched_test_menu(int asize)
-{
-    int idx;
-    __fpurge(stdin);
-
-    printf("\n");
-    printf("[#]--> Scheduler Source Test Menu\n");
-    printf(" 0: exit.\n");
-
-    printf(" 1: wake_up_new_task test.\n");
-    printf(" 2: current task info.\n");
-    printf(" 3: deactivate_task test.\n");
-    printf(" 4: setscheduler test.\n");
-    printf(" 5: schedule test.\n");
-    printf(" 6: create task group test.\n");
-    printf(" 7: wake up process test.\n");
-    printf(" 8: task group info.\n");
-    printf(" 9: task group info(detail).\n");
-    printf("10: Basic PELT Test -->\n");
-    printf("11: CFS Test -->\n");
-    printf("12: RT Test -->\n");
-    printf("13: DeadLine Test -->\n");
-
-    printf("14: help.\n");
-    printf("\n");
-
-    printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
-    return (idx > 0 && idx < asize) ? idx : -1;
-}
-
-void sched_test(void)
-{
-    void (*fn[])(void) = { _sched_test_help
-        , _sched_new_task_test
-        , _sched_current_task_info
-        , _sched_deactivate_task_test
-        , _sched_setscheduler_test
-        , _sched_schedule_test
-        , _sched_create_group_test
-        , _sched_wake_up_process_test
-        , pr_sched_tg_info
-        , pr_sched_tg_info_all
-        , _sched_basic_pelt_test
-        , _sched_cfs_test
-        , _sched_rt_test
-        , _sched_dl_test
-        , _sched_test_help
-    };
-    int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
-
-    while(1) {
-        idx = _sched_test_menu(asize);
-        if (idx < 0) break;
-        fn[idx]();
     }
 }

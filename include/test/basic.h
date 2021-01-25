@@ -15,9 +15,6 @@ void basic_ptr_test(void);
 void basic_types_test(void);
 void cpus_mask_test(void);
 
-void basic_training(void);
-
-
 
 #ifdef __cplusplus
 }

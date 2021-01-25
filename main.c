@@ -60,11 +60,11 @@ static int _main_menu(int asize)
 int main(void)
 {
     void (*fn[])(void) = { _main_menu_help
-            , config_setting
-            , basic_training
-            , algorithm_struct
-            , init_start_kernel
-            , sched_test
+            , menu_config
+            , menu_basic_train
+            , menu_algorithm
+            , menu_init
+            , menu_sched_test
             , _main_menu_help
     };
     int idx;

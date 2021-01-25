@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  test/basic/basic.c
- *  Basic Trainging
+ *  test/menu/config.c
+ *  Config Setting Menu
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -10,11 +10,11 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
+#include "test/debug.h"
 #include "test/config.h"
-#include "test/basic.h"
 #include "test/test.h"
 
-static void _basic_training_help(void)
+static void _config_setting_help(void)
 {
     //help messages...
     printf("\n");
@@ -27,22 +27,17 @@ static void _basic_training_help(void)
     return;
 }
 
-static int _basic_training_menu(int asize)
+static int _config_setting_menu(int asize)
 {
     int idx;
     __fpurge(stdin);
 
     printf("\n");
-    printf("[#]--> Basic Training Menu\n");
+    printf("[#]--> Config Setting Menu\n");
     printf("0: exit.\n");
-    printf("1: Data Types.\n");
-    printf("2: Basic Pointer Test.\n");
-    printf("3: Basic Struct Test.\n");
-    printf("4: Bits Operation Test.\n");
-    printf("5: CPU Mask Test.\n");
-    printf("6: Run Time(CPU cycles) Test.\n");
-    printf("7: Sort Test.\n");
-    printf("8: help.\n");
+    printf("1: Config View.\n");
+    printf("2: Set Debug Level.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -50,23 +45,18 @@ static int _basic_training_menu(int asize)
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-void basic_training(void)
+void menu_config(void)
 {
-    void (*fn[])(void) = { _basic_training_help
-        , basic_types_test
-        , basic_ptr_test
-        , basic_struct_test
-        , _basic_training_help
-        , cpus_mask_test
-        , basic_run_time_test
-        , lib_sort_test
-        , _basic_training_help
+    void (*fn[])(void) = { _config_setting_help
+        , config_view
+        , config_set_debug_level
+        , _config_setting_help
     };
     int idx;
     int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _basic_training_menu(asize);
+        idx = _config_setting_menu(asize);
         if (idx < 0) break;
         fn[idx]();
     }

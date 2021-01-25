@@ -272,7 +272,7 @@ update_load_avg()
         ___update_load_avg(*sa, load, runnable)
 #endif //0
 
-void update_load_avg_test(void)
+void test_update_load_avg(void)
 {
     unsigned long load, runnable, load_avg, runnable_avg;
     int running;

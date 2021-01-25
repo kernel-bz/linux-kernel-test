@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  test/init/init.c
- *  init routine
+ *  test/menu/init.c
+ *  init routine menu
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -47,7 +47,7 @@ static int _init_menu(int asize)
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-void init_start_kernel(void)
+void menu_init(void)
 {
     void (*fn[])(void) = { _init_menu_help
         , test_setup_arch
