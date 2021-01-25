@@ -3,6 +3,9 @@
  * libfdt - Flat Device Tree manipulation
  * Copyright (C) 2006 David Gibson, IBM Corporation.
  */
+
+#include "test/debug.h"
+
 #include "libfdt_env.h"
 
 #include "fdt.h"
@@ -67,11 +70,16 @@ size_t fdt_header_size_(uint32_t version)
 
 int fdt_check_header(const void *fdt)
 {
-	size_t hdrsize;
+    pr_fn_start_on(stack_depth);
+
+    size_t hdrsize;
 
 	if (fdt_magic(fdt) != FDT_MAGIC)
 		return -FDT_ERR_BADMAGIC;
 	hdrsize = fdt_header_size(fdt);
+
+    pr_info_view_on(stack_depth, "%20s : %lu\n", hdrsize);
+
 	if ((fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
 	    || (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION))
 		return -FDT_ERR_BADVERSION;
@@ -103,6 +111,7 @@ int fdt_check_header(const void *fdt)
 			  fdt_off_dt_strings(fdt), fdt_size_dt_strings(fdt)))
 		return -FDT_ERR_TRUNCATED;
 
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 

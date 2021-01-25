@@ -99,16 +99,10 @@ typedef unsigned long 	u_long;
 #endif
 
 //include/linux/byteorder/generic.h
-//#define be32_to_cpup __be32_to_cpup
-//#define be32_to_cpus __be32_to_cpus
-
-
-//include/linux/byteorder/generic.h
 static inline void be32_add_cpu(__be32 *var, u32 val)
 {
     *var = cpu_to_be32(be32_to_cpu(*var) + val);
 }
-
 
 //include/linux/atomic-fallback.h
 #ifndef atomic_inc_return
@@ -179,24 +173,21 @@ EXPORT_SYMBOL(console_set_on_cmdline);
 #define FW_WARN		"[Firmware Warn]: "
 #define FW_INFO		"[Firmware Info]: "
 
-//include/linux/of_fdt.h
-void *initial_boot_params;
-
 //include/uapi/linux/if_ether.h
-#define ETH_ALEN	6		/* Octets in one ethernet addr	 */
-#define ETH_TLEN	2		/* Octets in ethernet type field */
-#define ETH_HLEN	14		/* Total octets in header.	 */
-#define ETH_ZLEN	60		/* Min. octets in frame sans FCS */
+#define ETH_ALEN		6		/* Octets in one ethernet addr	 */
+#define ETH_TLEN		2		/* Octets in ethernet type field */
+#define ETH_HLEN		14		/* Total octets in header.	 */
+#define ETH_ZLEN		60		/* Min. octets in frame sans FCS */
 #define ETH_DATA_LEN	1500		/* Max. octets in payload	 */
 #define ETH_FRAME_LEN	1514		/* Max. octets in frame sans FCS */
-#define ETH_FCS_LEN	4		/* Octets in the FCS		 */
+#define ETH_FCS_LEN		4		/* Octets in the FCS		 */
 
-#define ETH_MIN_MTU	68		/* Min IPv4 MTU per RFC791	*/
-#define ETH_MAX_MTU	0xFFFFU		/* 65535, same as IP_MAX_MTU	*/
+#define ETH_MIN_MTU		68		/* Min IPv4 MTU per RFC791	*/
+#define ETH_MAX_MTU		0xFFFFU		/* 65535, same as IP_MAX_MTU	*/
 
 //include/linux/mmzone.h
 #ifndef CONFIG_FORCE_MAX_ZONEORDER
-#define MAX_ORDER 11
+#define MAX_ORDER 		11
 #else
 #define MAX_ORDER CONFIG_FORCE_MAX_ZONEORDER
 #endif

@@ -603,7 +603,8 @@ HEADERS += \
     include/linux/refcount.h \
     include/linux/clk/clk-conf.h \
     mm/slab.h \
-    include/linux/start_kernel.h
+    include/linux/start_kernel.h \
+    include/test/dtb-test.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

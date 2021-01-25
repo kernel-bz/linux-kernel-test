@@ -377,7 +377,8 @@ void *__unflatten_device_tree(const void *blob,
 	int size;
 	void *mem;
 
-	pr_debug(" -> unflatten_device_tree()\n");
+    pr_fn_start_on(stack_depth);
+    //pr_debug(" -> unflatten_device_tree()\n");
 
 	if (!blob) {
 		pr_debug("No device tree pointer\n");
@@ -424,7 +425,8 @@ void *__unflatten_device_tree(const void *blob,
 		pr_debug("unflattened tree is detached\n");
 	}
 
-	pr_debug(" <- unflatten_device_tree()\n");
+    //pr_debug(" <- unflatten_device_tree()\n");
+    pr_fn_end_on(stack_depth);
 	return mem;
 }
 
@@ -1175,6 +1177,8 @@ static void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 
 bool __init early_init_dt_verify(void *params)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (!params)
 		return false;
 
@@ -1186,7 +1190,9 @@ bool __init early_init_dt_verify(void *params)
 	initial_boot_params = params;
 	of_fdt_crc32 = crc32_be(~0, initial_boot_params,
 				fdt_totalsize(initial_boot_params));
-	return true;
+
+    pr_fn_end_on(stack_depth);
+    return true;
 }
 
 
@@ -1208,6 +1214,8 @@ void __init early_init_dt_scan_nodes(void)
 
 bool __init early_init_dt_scan(void *params)
 {
+    pr_fn_start_on(stack_depth);
+
 	bool status;
 
 	status = early_init_dt_verify(params);
@@ -1215,7 +1223,9 @@ bool __init early_init_dt_scan(void *params)
 		return false;
 
 	early_init_dt_scan_nodes();
-	return true;
+
+    pr_fn_end_on(stack_depth);
+    return true;
 }
 
 /**
@@ -1228,6 +1238,8 @@ bool __init early_init_dt_scan(void *params)
  */
 void __init unflatten_device_tree(void)
 {
+    pr_fn_start_on(stack_depth);
+
 	__unflatten_device_tree(initial_boot_params, NULL, &of_root,
 				early_init_dt_alloc_memory_arch, false);
 
@@ -1235,6 +1247,8 @@ void __init unflatten_device_tree(void)
 	of_alias_scan(early_init_dt_alloc_memory_arch);
 
     //unittest_unflatten_overlay_base();
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**

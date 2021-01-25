@@ -37,8 +37,8 @@ unsigned long boot_cpu_hartid;
 
 void __init parse_dtb(void)
 {
-    //if (early_init_dt_scan(dtb_early_va))
-        //return;
+    if (early_init_dt_scan(dtb_early_va))
+        return;
 
     //pr_err("No DTB passed to the kernel\n");
 #ifdef CONFIG_CMDLINE_FORCE

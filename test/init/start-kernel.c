@@ -21,6 +21,8 @@
 
 void test_setup_arch(void)
 {
+    pr_fn_start_on(stack_depth);
+
     char *command_line;
 
     //init/main.c: start_kernel(): 597 lines
@@ -29,6 +31,8 @@ void test_setup_arch(void)
 
     pr_notice("Kernel command line: %s\n", boot_command_line);
     parse_early_param();
+
+    pr_fn_end_on(stack_depth);
 }
 
 void test_sched_init(void)

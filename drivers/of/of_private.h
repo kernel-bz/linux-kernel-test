@@ -94,14 +94,14 @@ void of_overlay_mutex_unlock(void);
 int of_free_phandle_cache(void);
 void of_populate_phandle_cache(void);
 #else
-static inline void of_overlay_mutex_lock(void) {};
-static inline void of_overlay_mutex_unlock(void) {};
+static inline void of_overlay_mutex_lock(void) { }
+static inline void of_overlay_mutex_unlock(void) { }
 #endif
 
 #if defined(CONFIG_OF_UNITTEST) && defined(CONFIG_OF_OVERLAY)
 extern void __init unittest_unflatten_overlay_base(void);
 #else
-static inline void unittest_unflatten_overlay_base(void) {};
+static inline void unittest_unflatten_overlay_base(void) { }
 #endif
 
 extern void *__unflatten_device_tree(const void *blob,

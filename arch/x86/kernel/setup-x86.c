@@ -30,6 +30,8 @@
 
 //#include "head.h"
 
+#include "test/dtb-test.h"
+
 
 /* The lucky hart to first increment this variable will boot the other cores */
 atomic_t hart_lottery;
@@ -39,10 +41,10 @@ void __init parse_dtb(void)
 {
     pr_fn_start_on(stack_depth);
 
-    //if (early_init_dt_scan(dtb_early_va))
-        //return;
+    if (early_init_dt_scan(dtb_early_va))
+        return;
 
-    //pr_err("No DTB passed to the kernel\n");
+    pr_err("No DTB passed to the kernel\n");
 #ifdef CONFIG_CMDLINE_FORCE
 	strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
 	pr_info("Forcing kernel command line to: %s\n", boot_command_line);
