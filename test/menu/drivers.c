@@ -36,9 +36,10 @@ static int _drivers_menu(int asize)
     printf("\n");
     printf("[#]--> Drivers Test Menu\n");
     printf("0: exit.\n");
-    printf("1: DTB Read From File.\n");
-    printf("2: DTB Hex Dump.\n");
-    printf("3: help.\n");
+    printf("1: DTB Set FileName.\n");
+    printf("2: DTB Read From File.\n");
+    printf("3: DTB Hex Dump.\n");
+    printf("4: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -49,6 +50,7 @@ static int _drivers_menu(int asize)
 void menu_drivers(void)
 {
     void (*fn[])(void) = { _drivers_menu_help
+        , dtb_set_file_name
         , dtb_test_read_file
         , dtb_test_hex_dump
         , _drivers_menu_help

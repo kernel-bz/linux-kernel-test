@@ -13,6 +13,7 @@
 #include "test/debug.h"
 #include "test/config.h"
 #include "test/test.h"
+#include "test/dtb-test.h"
 
 static void _config_setting_help(void)
 {
@@ -37,7 +38,8 @@ static int _config_setting_menu(int asize)
     printf("0: exit.\n");
     printf("1: Config View.\n");
     printf("2: Set Debug Level.\n");
-    printf("3: help.\n");
+    printf("3: Set DTB FileName.\n");
+    printf("4: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -50,6 +52,7 @@ void menu_config(void)
     void (*fn[])(void) = { _config_setting_help
         , config_view
         , config_set_debug_level
+        , dtb_set_file_name
         , _config_setting_help
     };
     int idx;

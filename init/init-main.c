@@ -29,6 +29,10 @@
 #include <asm/numa_.h>
 #include <linux/cpu.h>
 #include <linux/sched/clock.h>
+
+#include <asm-generic/vmlinux.lds.h>
+#include <linux/memblock.h>
+
 //16 lines
 
 
@@ -66,7 +70,8 @@ static int __init do_early_param(char *param, char *val,
 #if 0
     const struct obs_kernel_param *p;
 
-    for (p = __setup_start; p < __setup_end; p++) {
+    //p = &__setup_early_memblock;
+    //for (p = __setup_start; p < __setup_end; p++) {
         if ((p->early && parameq(param, p->str)) ||
             (strcmp(param, "console") == 0 &&
              strcmp(p->str, "earlycon") == 0)
@@ -74,8 +79,11 @@ static int __init do_early_param(char *param, char *val,
             if (p->setup_func(val) != 0)
                 pr_warn("Malformed early option '%s'\n", param);
         }
-    }
+    //}
 #endif
+
+    memblock_debug = 1;
+
     /* We accept everything at this stage. */
     return 0;
 }

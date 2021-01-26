@@ -1466,6 +1466,8 @@ static void * __init memblock_alloc_internal(
 				phys_addr_t min_addr, phys_addr_t max_addr,
 				int nid)
 {
+    pr_fn_start_on(stack_depth);
+
 	phys_addr_t alloc;
 
 	/*
@@ -1474,7 +1476,8 @@ static void * __init memblock_alloc_internal(
 	 * internal data may be destroyed (after execution of memblock_free_all)
 	 */
     //if (WARN_ON_ONCE(slab_is_available()))
-        //return kzalloc_node(size, GFP_NOWAIT, nid);
+    if (slab_is_available())
+        return kzalloc_node(size, GFP_NOWAIT, nid);
 
 	if (max_addr > memblock.current_limit)
 		max_addr = memblock.current_limit;
@@ -1485,8 +1488,12 @@ static void * __init memblock_alloc_internal(
 	if (!alloc && min_addr)
 		alloc = memblock_alloc_range_nid(size, align, 0, max_addr, nid);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", alloc);
+
 	if (!alloc)
 		return NULL;
+
+    pr_fn_end_on(stack_depth);
 
 	return phys_to_virt(alloc);
 }
@@ -1552,6 +1559,7 @@ void * __init memblock_alloc_try_nid(
 			int nid)
 {
 	void *ptr;
+    pr_fn_start_on(stack_depth);
 
 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
 		     __func__, (u64)size, (u64)align, nid, &min_addr,
@@ -1561,6 +1569,9 @@ void * __init memblock_alloc_try_nid(
 	if (ptr)
 		memset(ptr, 0, size);
 
+    pr_info_view_on(stack_depth, "%20s : %p\n", ptr);
+
+    pr_fn_end_on(stack_depth);
 	return ptr;
 }
 
@@ -1897,7 +1908,7 @@ static int __init early_memblock(char *p)
 		memblock_debug = 1;
 	return 0;
 }
-//early_param("memblock", early_memblock);
+early_param("memblock", early_memblock);
 
 static void __init __free_pages_memory(unsigned long start, unsigned long end)
 {

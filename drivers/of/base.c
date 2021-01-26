@@ -1999,6 +1999,8 @@ static void of_alias_add(struct alias_prop *ap, struct device_node *np,
  */
 void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align))
 {
+    pr_fn_start_on(stack_depth);
+
 	struct property *pp;
 
 	of_aliases = of_find_node_by_path("/aliases");
@@ -2056,6 +2058,8 @@ void of_alias_scan(void * (*dt_alloc)(u64 size, u64 align))
 		ap->alias = start;
 		of_alias_add(ap, np, id, start, len);
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**

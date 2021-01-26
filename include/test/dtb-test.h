@@ -17,7 +17,9 @@ extern "C" {
 //test/config/config-set.c
 extern char dtb_file_name[80];
 extern void *dtb_early_va;
+extern int dtb_size;
 
+void dtb_set_file_name(void);
 void dtb_test_read_file(void);
 void dtb_test_hex_dump(void);
 

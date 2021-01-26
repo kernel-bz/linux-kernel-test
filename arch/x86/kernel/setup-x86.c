@@ -8,7 +8,10 @@
 #include "test/config.h"
 #if CONFIG_RUN_ARCH == ARCH_X86 || CONFIG_RUN_ARCH == ARCH_X86_64
 
+#include <string.h>
+
 #include "test/debug.h"
+#include "test/dtb-test.h"
 
 #include <linux/init.h>
 #include <linux/mm.h>
@@ -28,10 +31,9 @@
 //#include <asm/tlbflush.h>
 #include <asm/thread_info.h>
 
+#include <asm-generic/vmlinux.lds.h>
+
 //#include "head.h"
-
-#include "test/dtb-test.h"
-
 
 /* The lucky hart to first increment this variable will boot the other cores */
 atomic_t hart_lottery;
@@ -40,6 +42,10 @@ unsigned long boot_cpu_hartid;
 void __init parse_dtb(void)
 {
     pr_fn_start_on(stack_depth);
+
+    if (!strlen(dtb_file_name))
+        strlcpy(dtb_file_name, CONFIG_USER_DTB_FILE, sizeof(dtb_file_name));
+    dtb_test_read_file();
 
     if (early_init_dt_scan(dtb_early_va))
         return;
@@ -58,7 +64,12 @@ void __init setup_arch(char **cmdline_p)
 {
     pr_fn_start_on(stack_depth);
 
+    //arch/arm64/kernel/vmlinux.lds.S:
+    //SECTIONS
+    //INIT_SETUP(16)
+
     parse_dtb();
+
 	*cmdline_p = boot_command_line;
 
 	parse_early_param();

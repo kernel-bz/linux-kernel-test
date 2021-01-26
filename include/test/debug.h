@@ -20,6 +20,13 @@
 extern "C" {
 #endif
 
+//include/linux/printk.h
+enum {
+    DUMP_PREFIX_NONE,
+    DUMP_PREFIX_ADDRESS,
+    DUMP_PREFIX_OFFSET
+};
+
 //main.c
 extern int DebugLevel;
 extern int DebugBase;

@@ -22,7 +22,7 @@ static int __init sched_debug_setup(char *str)
 
 	return 0;
 }
-//early_param("sched_debug", sched_debug_setup);
+early_param("sched_debug", sched_debug_setup);
 
 static inline bool sched_debug(void)
 {

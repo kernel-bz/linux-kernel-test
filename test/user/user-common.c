@@ -34,7 +34,8 @@ void *__kmalloc_track_caller(size_t size, gfp_t flags, unsigned long caller)
 EXPORT_SYMBOL(__kmalloc_track_caller);
 
 //mm/slab_common.c
-enum slab_state slab_state;
+//enum slab_state slab_state;
+enum slab_state slab_state = UP;
 
 bool slab_is_available(void)
 {

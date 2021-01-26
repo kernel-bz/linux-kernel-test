@@ -2437,7 +2437,7 @@ static int __init mitigations_parse_cmdline(char *arg)
 
 	return 0;
 }
-//early_param("mitigations", mitigations_parse_cmdline);
+early_param("mitigations", mitigations_parse_cmdline);
 
 /* mitigations=off */
 bool cpu_mitigations_off(void)

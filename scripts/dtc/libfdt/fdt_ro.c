@@ -3,6 +3,8 @@
  * libfdt - Flat Device Tree manipulation
  * Copyright (C) 2006 David Gibson, IBM Corporation.
  */
+#include "test/debug.h"
+
 #include "libfdt_env.h"
 
 #include "fdt.h"
@@ -284,6 +286,8 @@ int fdt_path_offset(const void *fdt, const char *path)
 
 const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
 {
+    pr_fn_start_on(stack_depth);
+
 	const struct fdt_node_header *nh = fdt_offset_ptr_(fdt, nodeoffset);
 	const char *nameptr;
 	int err;
@@ -312,6 +316,8 @@ const char *fdt_get_name(const void *fdt, int nodeoffset, int *len)
 	if (len)
 		*len = strlen(nameptr);
 
+    pr_info_view_on(stack_depth, "%20s : %s\n", nameptr);
+    pr_fn_end_on(stack_depth);
 	return nameptr;
 
  fail:

@@ -26,7 +26,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210123	//test date
+#define CONFIG_VERSION_3		20210126	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -44,7 +44,8 @@ extern "C" {
 #define CONFIG_XARRAY_MULTI		1
 
 #define CONFIG_CMDLINE_FORCE
-#define CONFIG_CMDLINE			"cmd=test1,test2 dtb=dts1 dts2"
+#define CONFIG_CMDLINE			"dtb=sifive-u54.dtb memblock=debug"
+#define CONFIG_USER_DTB_FILE	"sifive-u54.dtb"
 
 //CPU Configuration ----------------------------------------
 //#define CONFIG_NR_CPUS		4

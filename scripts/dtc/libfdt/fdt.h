@@ -49,19 +49,19 @@ struct fdt_property {
 
 #endif /* !__ASSEMBLY */
 
-#define FDT_MAGIC	0xd00dfeed	/* 4: version, 4: total size */
-#define FDT_TAGSIZE	sizeof(fdt32_t)
+#define FDT_MAGIC		0xd00dfeed	/* 4: version, 4: total size */
+#define FDT_TAGSIZE		sizeof(fdt32_t)
 
 #define FDT_BEGIN_NODE	0x1		/* Start node: full name */
 #define FDT_END_NODE	0x2		/* End node */
-#define FDT_PROP	0x3		/* Property: name off,
-					   size, content */
-#define FDT_NOP		0x4		/* nop */
-#define FDT_END		0x9
+#define FDT_PROP		0x3		/* Property: name off,
+                                    size, content */
+#define FDT_NOP			0x4		/* nop */
+#define FDT_END			0x9
 
-#define FDT_V1_SIZE	(7*sizeof(fdt32_t))
-#define FDT_V2_SIZE	(FDT_V1_SIZE + sizeof(fdt32_t))
-#define FDT_V3_SIZE	(FDT_V2_SIZE + sizeof(fdt32_t))
+#define FDT_V1_SIZE		(7*sizeof(fdt32_t))
+#define FDT_V2_SIZE		(FDT_V1_SIZE + sizeof(fdt32_t))
+#define FDT_V3_SIZE		(FDT_V2_SIZE + sizeof(fdt32_t))
 #define FDT_V16_SIZE	FDT_V3_SIZE
 #define FDT_V17_SIZE	(FDT_V16_SIZE + sizeof(fdt32_t))
 

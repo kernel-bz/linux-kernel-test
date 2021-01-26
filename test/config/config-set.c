@@ -36,7 +36,9 @@ void config_view(void)
     pr_info_view_on(stack_depth, "%30s : %lu\n", XA_CHUNK_SIZE);
     pr_info_view_on(stack_depth, "%30s : %d\n", CONFIG_NODES_SHIFT);
 
+    pr_info_view_on(stack_depth, "%30s : %s\n", CONFIG_USER_DTB_FILE);
     pr_info_view_on(stack_depth, "%30s : %s\n", dtb_file_name);
+    pr_info_view_on(stack_depth, "%30s : %d\n", dtb_size);
 
     pr_info_view_on(stack_depth, "%30s : %d\n", DebugBase);
     pr_info_view_on(stack_depth, "%30s : %d\n", DebugLevel);

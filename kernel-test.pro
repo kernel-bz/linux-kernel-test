@@ -606,7 +606,8 @@ HEADERS += \
     include/linux/clk/clk-conf.h \
     mm/slab.h \
     include/linux/start_kernel.h \
-    include/test/dtb-test.h
+    include/test/dtb-test.h \
+    include/asm-generic/vmlinux.lds.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

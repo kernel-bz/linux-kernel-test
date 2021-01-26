@@ -6,6 +6,7 @@
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 
+#include "test/config.h"
 #include "test/user-types.h"
 #include "test/dtb-test.h"
 #include "test/debug.h"
@@ -16,6 +17,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <linux/kern_levels.h>
 
 char dtb_file_name[80];
 
@@ -32,22 +35,23 @@ u8 dtb_test_blob[] = {
 void *dtb_early_va;
 int dtb_size;
 
-static void _dtb_set_file_name(void)
+void dtb_set_file_name(void)
 {
     __fpurge(stdin);
-    printf("Enter DTB File Name: ");
+    printf("Enter DTB File Name[%s]: ", dtb_file_name);
     scanf("%s", dtb_file_name);
 }
 
 void dtb_test_read_file(void)
 {
+    int fd, ret, size=0, size2;
+    u8 buf[1024];
+    u8 *blob, *blob2 = NULL;
+
     pr_fn_start_on(stack_depth);
 
-    int fd, ret, size=0, size2;
-    u8 buf[80];
-    u8 *blob, blob2;
-
-    _dtb_set_file_name();
+    if (!strlen(dtb_file_name))
+        strlcpy(dtb_file_name, CONFIG_USER_DTB_FILE, sizeof(dtb_file_name));
 
     fd = open(dtb_file_name, O_RDONLY);
     if (fd < 0) {
@@ -55,33 +59,41 @@ void dtb_test_read_file(void)
         return -1;
     }
 
+    pr_info_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
+
     do {
         ret = read(fd, buf, sizeof(buf));
         if (ret <= 0) break;
-        pr_info_view_on(stack_depth, "%20s : %d\n", ret);
+        //pr_info_view_on(stack_depth, "%20s : %d bytes\n", ret);
         size += ret;
         if (size > ret) {
             size2 = size - ret;
-            blob2 = realloc(blob, size);
-            //memcpy(blob2, blob, size2);
-            //memcpy(blob2+size2, buf, ret);
-            //blob = blob2;
+            blob = realloc(blob, size);
         } else {
+            size2 = 0;
             blob = malloc(size);
-            memcpy(blob, buf, ret);
+            blob2 = blob;
         }
+        if (!blob) {
+            pr_err("memory alloc error!\n");
+            if (blob2) free(blob2);
+            goto _exit;
+        }
+        memcpy(blob+size2, buf, ret);
     } while (blob);
 
     dtb_early_va = (void*)blob;
 
+_exit:
     close(fd);
     dtb_size = size;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", dtb_size);
+    pr_info_view_on(stack_depth, "%20s : %d bytes\n", dtb_size);
 
     pr_fn_end_on(stack_depth);
 }
 
+#if 0
 void dtb_test_hex_dump(void)
 {
     pr_fn_start_on(stack_depth);
@@ -95,9 +107,24 @@ void dtb_test_hex_dump(void)
             , buf, dtb_size*10, true);
 
     pr_info_view_on(stack_depth, "%20s : %d\n", ret);
+    pr_info_view_on(stack_depth, "%20s : %d\n", dtb_size);
 
-    for (i=0; i<ret; i++)
+    for (i=0; i<dtb_size; i++)
         printf("%c", buf[i]);
 
+    pr_fn_end_on(stack_depth);
+}
+#endif
+
+void dtb_test_hex_dump(void)
+{
+    pr_fn_start_on(stack_depth);
+
+    //lib/hex_dump.c
+    print_hex_dump(KERN_DEBUG, "raw data: ", DUMP_PREFIX_OFFSET,
+            16, 1, dtb_early_va, dtb_size, true);
+
+    pr_info_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
+    pr_info_view_on(stack_depth, "%20s : %d\n", dtb_size);
     pr_fn_end_on(stack_depth);
 }

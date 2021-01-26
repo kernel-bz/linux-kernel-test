@@ -4,6 +4,7 @@
  */
 
 #include "test/config.h"
+#include "test/debug.h"
 #include "test/user-drivers.h"
 
 #include <linux/types.h>
@@ -207,7 +208,7 @@ overflow1:
 }
 EXPORT_SYMBOL(hex_dump_to_buffer);
 
-#ifdef CONFIG_PRINTK
+//#ifdef CONFIG_PRINTK
 /**
  * print_hex_dump - print a text hex dump to syslog for a binary blob of data
  * @level: kernel log level (e.g. KERN_DEBUG)
@@ -273,4 +274,4 @@ void print_hex_dump(const char *level, const char *prefix_str, int prefix_type,
 }
 EXPORT_SYMBOL(print_hex_dump);
 
-#endif /* defined(CONFIG_PRINTK) */
+//#endif /* defined(CONFIG_PRINTK) */
