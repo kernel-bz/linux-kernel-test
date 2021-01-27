@@ -23,6 +23,8 @@ void dtb_set_file_name(void);
 void dtb_test_read_file(void);
 void dtb_test_hex_dump(void);
 
+void dtb_of_unittest(void);
+
 #ifdef __cplusplus
 }
 #endif

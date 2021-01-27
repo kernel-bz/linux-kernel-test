@@ -39,7 +39,8 @@ static int _drivers_menu(int asize)
     printf("1: DTB Set FileName.\n");
     printf("2: DTB Read From File.\n");
     printf("3: DTB Hex Dump.\n");
-    printf("4: help.\n");
+    printf("4: Device Tree Test -->\n");
+    printf("5: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -53,6 +54,7 @@ void menu_drivers(void)
         , dtb_set_file_name
         , dtb_test_read_file
         , dtb_test_hex_dump
+        , dtb_of_unittest
         , _drivers_menu_help
     };
     int idx;

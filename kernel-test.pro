@@ -166,7 +166,8 @@ SOURCES += \
     test/menu/sched.c \
     test/config/config-set.c \
     test/drivers/dtb-test.c \
-    test/menu/drivers.c
+    test/menu/drivers.c \
+    drivers/of/unittest_.c
 
 HEADERS += \
     include/test/test.h \
@@ -641,4 +642,6 @@ DISTFILES += \
     drivers/of/unittest-data/tests-phandle.dtsi \
     drivers/of/unittest-data/tests-platform.dtsi \
     docs/build/build_log_20201127.txt \
-    docs/study/cpu-topo-domain.txt
+    docs/study/cpu-topo-domain.txt \
+    drivers/of/unittest-data/testcases-all.dts \
+    drivers/of/unittest-data/testcases.dtb

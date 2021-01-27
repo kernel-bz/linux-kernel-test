@@ -219,16 +219,13 @@ static bool populate_node(const void *blob,
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", dryrun);
+    //pr_info_view_on(stack_depth, "%20s : %d\n", dryrun);
 
 	struct device_node *np;
 	const char *pathp;
 	unsigned int l, allocl;
 
     pathp = fdt_get_name(blob, offset, &l);
-
-    pr_info_view_on(stack_depth, "%20s : %p\n", pathp);
-
     if (!pathp) {
 		*pnp = NULL;
 		return false;
@@ -239,7 +236,7 @@ static bool populate_node(const void *blob,
 	np = unflatten_dt_alloc(mem, sizeof(struct device_node) + allocl,
 				__alignof__(struct device_node));
 
-    pr_info_view_on(stack_depth, "%20s : %p(device_node)\n", np);
+    //pr_info_view_on(stack_depth, "%20s : %p(device_node)\n", np);
     if (!np) return false;
 
     if (!dryrun) {
@@ -247,27 +244,25 @@ static bool populate_node(const void *blob,
 		of_node_init(np);
 		np->full_name = fn = ((char *)np) + sizeof(*np);
 
-        pr_info_view_on(stack_depth, "%20s : %p\n", np->full_name);
-        pr_info_view_on(stack_depth, "%20s : %p\n", fn);
+        //pr_info_view_on(stack_depth, "%20s : %p\n", np->full_name);
+        //pr_info_view_on(stack_depth, "%20s : %p\n", fn);
         if (!fn) return false;
 
 		memcpy(fn, pathp, l);
 
 		if (dad != NULL) {
-            pr_info_view_on(stack_depth, "%30s : %p\n", dad);
+            //pr_info_view_on(stack_depth, "%30s : %p\n", dad);
             //as bug-patch
-            pr_info_view_on(stack_depth, "%30s : %p\n", dad->child);
-            pr_info_view_on(stack_depth, "%30s : %p\n", np);
+            //pr_info_view_on(stack_depth, "%30s : %p\n", dad->child);
+            //pr_info_view_on(stack_depth, "%30s : %p\n", np);
             np->parent = dad;
             np->sibling = dad->child;
             dad->child = np;
-            pr_info_view_on(stack_depth, "%34s : %p\n", np->parent);
-            pr_info_view_on(stack_depth, "%34s : %p\n", np->sibling);
-            pr_info_view_on(stack_depth, "%34s : %p\n", dad->child);
+            //pr_info_view_on(stack_depth, "%34s : %p\n", np->parent);
+            //pr_info_view_on(stack_depth, "%34s : %p\n", np->sibling);
+            //pr_info_view_on(stack_depth, "%34s : %p\n", dad->child);
 		}
 	}
-
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
 
     populate_properties(blob, offset, mem, np, pathp, dryrun);
 	if (!dryrun) {
@@ -352,8 +347,9 @@ static int unflatten_dt_nodes(const void *blob,
 	     offset >= 0 && depth >= initial_depth;
 	     offset = fdt_next_node(blob, offset, &depth)) {
 
-        //pr_info_view_on(stack_depth, "%20s : %d\n", offset);
-        //pr_info_view_on(stack_depth, "%20s : %d\n", depth);
+        pr_info_view_on(stack_depth, "%20s : %d\n", offset);
+        pr_info_view_on(stack_depth, "%20s : %d\n", depth);
+        pr_info_view_on(stack_depth, "%20s : %d\n", dryrun);
 
 		if (WARN_ON_ONCE(depth >= FDT_MAX_DEPTH))
 			continue;
@@ -492,6 +488,8 @@ void *of_fdt_unflatten_tree(const unsigned long *blob,
 			    struct device_node *dad,
 			    struct device_node **mynodes)
 {
+    pr_fn_start_on(stack_depth);
+
 	void *mem;
 
 	mutex_lock(&of_fdt_unflatten_mutex);
@@ -499,6 +497,7 @@ void *of_fdt_unflatten_tree(const unsigned long *blob,
 				      true);
 	mutex_unlock(&of_fdt_unflatten_mutex);
 
+    pr_fn_end_on(stack_depth);
 	return mem;
 }
 EXPORT_SYMBOL_GPL(of_fdt_unflatten_tree);
@@ -1012,6 +1011,10 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 {
 	const __be32 *prop;
 
+    pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %s\n", uname);
+    pr_info_view_on(stack_depth, "%20s : %d\n", depth);
+
 	if (depth != 0)
 		return 0;
 
@@ -1027,6 +1030,8 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 	if (prop)
 		dt_root_addr_cells = be32_to_cpup(prop);
 	pr_debug("dt_root_addr_cells = %x\n", dt_root_addr_cells);
+
+    pr_fn_end_on(stack_depth);
 
 	/* break now */
 	return 1;
@@ -1056,16 +1061,18 @@ u64 __init dt_mem_next_cell(int s, const __be32 **cellp)
 int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 				     int depth, void *data)
 {
-	const char *type = of_get_flat_dt_prop(node, "device_type", NULL);
+    const char *type = of_get_flat_dt_prop(node, "device_type", NULL);
 	const __be32 *reg, *endp;
 	int l;
 	bool hotpluggable;
 
-	/* We are scanning "memory" nodes only */
+    /* We are scanning "memory" nodes only */
 	if (type == NULL || strcmp(type, "memory") != 0)
 		return 0;
 
     pr_fn_start_on(stack_depth);
+    pr_info_view_on(stack_depth, "%20s : %s\n", uname);
+    pr_info_view_on(stack_depth, "%20s : %d\n", depth);
     pr_info_view_on(stack_depth, "%20s : %s\n", type);
 
     reg = of_get_flat_dt_prop(node, "linux,usable-memory", &l);
@@ -1276,7 +1283,10 @@ bool __init early_init_dt_verify(void *params)
 	of_fdt_crc32 = crc32_be(~0, initial_boot_params,
 				fdt_totalsize(initial_boot_params));
 
-    pr_info_view_on(stack_depth, "%30s : %u\n", fdt_totalsize(initial_boot_params));
+    pr_info_view_on(stack_depth, "%40s : %p\n", params);
+    pr_info_view_on(stack_depth, "%40s : %p\n", initial_boot_params);
+    pr_info_view_on(stack_depth, "%40s : %u\n",
+                        fdt_totalsize(initial_boot_params));
 
     pr_fn_end_on(stack_depth);
     return true;
