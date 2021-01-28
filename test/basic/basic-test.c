@@ -27,7 +27,7 @@ static void _test_busy_loop(u64 iters)
 
 static void _run_time_test(u64 loop, u64 cnt)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
     u64 time1, time2, time3, cycles=0;
     u64 i;
@@ -38,14 +38,14 @@ static void _run_time_test(u64 loop, u64 cnt)
         time2 = get_cycles();
         time3 = time2-time1;
         cycles += time3;
-        pr_out_on(stack_depth, "rdtsc %d: run_cycles=%llu, one call:%llu cycles\n",
+        pr_out(stack_depth, "rdtsc %d: run_cycles=%llu, one call:%llu cycles\n",
             i+1, time3, div_u64(time3, loop));
     }
 
     time1 = div_u64(cycles, loop * cnt);
-    pr_out_on(stack_depth, "*Total Average: one call=%llu cycles\n", time1);
+    pr_out(stack_depth, "*Total Average: one call=%llu cycles\n", time1);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 void basic_run_time_test(void)

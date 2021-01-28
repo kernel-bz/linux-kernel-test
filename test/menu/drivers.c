@@ -30,7 +30,7 @@ static void _drivers_menu_help(void)
 
 static int _dtb_unittest_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -47,8 +47,8 @@ static int _dtb_unittest_menu(int asize)
     printf(" *9: property_string\n");
     printf("*10: property_copy\n");
     printf("*11: changeset\n");
-    printf(" 12: parse_interrupts\n");
-    printf(" 13: parse_interrupts_extended\n");
+    printf("*12: parse_interrupts\n");
+    printf("*13: parse_interrupts_extended\n");
     printf(" 14: match_node\n");
     printf("*15: platform_populate\n");
 
@@ -56,7 +56,9 @@ static int _dtb_unittest_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
@@ -92,7 +94,7 @@ static void _menu_of_unittest(void)
 
 static int _drivers_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -106,7 +108,9 @@ static int _drivers_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 

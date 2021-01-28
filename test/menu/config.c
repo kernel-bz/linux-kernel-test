@@ -30,8 +30,7 @@ static void _config_setting_help(void)
 
 static int _config_setting_menu(int asize)
 {
-    int idx;
-    __fpurge(stdin);
+    int idx, ret;
 
     printf("\n");
     printf("[#]--> Config Setting Menu\n");
@@ -43,7 +42,11 @@ static int _config_setting_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+
+    __fpurge(stdin);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 

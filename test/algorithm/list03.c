@@ -68,7 +68,7 @@ void list_test03(void)
 
     list_for_each(p, &fox_list) {
         f = list_entry(p, struct fox, list);
-        pr_out_on(stack_depth, "fox value: %12s, %d, %d, %d\n"
+        pr_out(stack_depth, "fox value: %12s, %d, %d, %d\n"
                   , f->name, f->tail_length, f->weight, f->is_fantastic);
     }
 }

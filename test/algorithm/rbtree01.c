@@ -92,8 +92,8 @@ void rbtree_test01(void)
 
     rbs = rb_test_search(&rb_test_root, 4);
     if (rbs) {
-        printf ("\t searched value=%d\n", rbs->value);
-        printf ("\t erasing value=%d\n", rbs->value);
+        printf("\t searched value=%d\n", rbs->value);
+        printf("\t erasing value=%d\n", rbs->value);
         rb_erase(&rbs->node, &rb_test_root);
         //free(rbs);
     }
@@ -113,4 +113,3 @@ void rbtree_test01(void)
 	//output from rbtree
     rb_test_output(&rb_test_root);
 }
-

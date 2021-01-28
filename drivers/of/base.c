@@ -909,6 +909,8 @@ struct device_node *__of_find_node_by_path(struct device_node *parent,
 struct device_node *__of_find_node_by_full_path(struct device_node *node,
 						const char *path)
 {
+    pr_fn_start_on(stack_depth);
+
 	const char *separator = strchr(path, ':');
 
 	while (node && *path == '/') {
@@ -920,7 +922,9 @@ struct device_node *__of_find_node_by_full_path(struct device_node *node,
 		path = strchrnul(path, '/');
 		if (separator && separator < path)
 			break;
-	}
+    }
+
+    pr_fn_end_on(stack_depth);
 	return node;
 }
 
@@ -944,6 +948,8 @@ struct device_node *__of_find_node_by_full_path(struct device_node *node,
  */
 struct device_node *of_find_node_opts_by_path(const char *path, const char **opts)
 {
+    pr_fn_start(stack_depth);
+
 	struct device_node *np = NULL;
 	struct property *pp;
 	unsigned long flags;
@@ -985,6 +991,8 @@ struct device_node *of_find_node_opts_by_path(const char *path, const char **opt
 		np = of_node_get(of_root);
 	np = __of_find_node_by_full_path(np, path);
 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
+
+    pr_fn_end_on(stack_depth);
 	return np;
 }
 EXPORT_SYMBOL(of_find_node_opts_by_path);

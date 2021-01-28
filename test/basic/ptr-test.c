@@ -35,34 +35,34 @@ struct sample {
 
 static void _ptr_offsetof_test(void)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", offsetof(struct sample, a));
-    pr_info_view_on(stack_depth, "%30s : %d\n", offsetof(struct sample, b));
-    pr_info_view_on(stack_depth, "%30s : %d\n", offsetof(struct sample, c));
-    pr_info_view_on(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
-    pr_info_view_on(stack_depth, "%30s : %d\n", offsetof(struct sample, e));
+    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, a));
+    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, b));
+    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, c));
+    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
+    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, e));
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 static void _ptr_container_of_test(void)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
     struct sample sample_st;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&sample_st);
-    pr_info_view_on(stack_depth, "%30s : %p\n"
+    pr_out_view(stack_depth, "%30s : %p\n", (void*)&sample_st);
+    pr_out_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.a, struct sample, a));
-    pr_info_view_on(stack_depth, "%30s : %p\n"
+    pr_out_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.b, struct sample, b));
-    pr_info_view_on(stack_depth, "%30s : %p\n"
+    pr_out_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.c, struct sample, c));
-    pr_info_view_on(stack_depth, "%30s : %p\n"
+    pr_out_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.d, struct sample, d));
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 void basic_ptr_test(void)

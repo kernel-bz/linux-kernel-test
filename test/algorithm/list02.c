@@ -40,7 +40,7 @@ static LIST_HEAD(fox_list);
 
 void list_test02(void)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
     struct list_head *p;
     struct fox *f, *fox3, *fox4;
@@ -70,10 +70,10 @@ void list_test02(void)
 
     list_for_each(p, &fox_list) {
 		f = list_entry(p, struct fox, list);
-        pr_out_on(stack_depth, "fox value: %12s, %lu, %lu, %d\n"
+        pr_out(stack_depth, "fox value: %12s, %lu, %lu, %d\n"
                   , f->name, f->tail_length, f->weight, f->is_fantastic);
 	}
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 

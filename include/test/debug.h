@@ -65,18 +65,26 @@ extern int stack_depth;
         fprintf(stderr, format, ## __VA_ARGS__); 	\
     } while (0)
 
-#define pr_info(...)						\
-    do {									\
-      if (DebugLevel > 0) {					\
-        printf("FUNC | %s : ", __func__); 	\
-        printf(__VA_ARGS__); 				\
-      }										\
+#define pr_out(level, ...)							\
+    do {											\
+        int depth = level - DebugBase;				\
+        while (depth-- > 0) { printf("    "); }		\
+        printf("<%d> | ", level); 					\
+        printf(__VA_ARGS__); 						\
+    } while (0)
+
+#define pr_out_view(level, format, args)			\
+    do {											\
+        int depth = level - DebugBase;				\
+        while (depth-- > 0) { printf("    "); }		\
+        printf("<%d> | ", level); 					\
+        printf(format, #args, args);				\
     } while (0)
 
 #define pr_out_on(level, ...)						\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0) {								\
+      if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | ", level); 					\
@@ -84,10 +92,24 @@ extern int stack_depth;
       }												\
     } while (0)
 
+#define pr_info(...)						\
+    do {									\
+        printf("FUNC | %s : ", __func__); 	\
+        printf(__VA_ARGS__); 				\
+    } while (0)
+
+#define pr_info_debug(...)					\
+    do {									\
+      if (DebugLevel > 0) {					\
+        printf("FUNC | %s : ", __func__); 	\
+        printf(__VA_ARGS__); 				\
+      }										\
+    } while (0)
+
 #define pr_info_on(level, ...)						\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0) {								\
+      if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | %s : ", level, __func__); 	\
@@ -98,7 +120,7 @@ extern int stack_depth;
 #define pr_info_enable(level, enable, ...)						\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0 || enable) {								\
+      if (depth >= 0 || enable) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | %s : ", level, __func__); 	\
@@ -109,7 +131,7 @@ extern int stack_depth;
 #define pr_info_view_on(level, format, args)		\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0) {								\
+      if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | ", level); 					\
@@ -120,7 +142,7 @@ extern int stack_depth;
 #define pr_info_view_enable(level, enable, format, args) \
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0 || enable) {					\
+      if (depth >= 0 || enable) {					\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("<%d> | %s : ", level, __func__); 	\
@@ -128,20 +150,34 @@ extern int stack_depth;
       }												\
     } while (0)
 
+#define pr_fn_start(level)							\
+    do {											\
+        int depth = level - DebugBase;				\
+        while (depth-- > 0) { printf("    "); }		\
+        printf("%d--> %s()...\n", level, __func__);	\
+    } while (0)
+
 #define pr_fn_start_on(level)						\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0) {								\
+      if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("%d--> %s()...\n", level, __func__);	\
       }												\
     } while (0)
 
+#define pr_fn_end(level)							\
+    do {											\
+        int depth = level - DebugBase;				\
+        while (depth-- > 0) { printf("    "); }		\
+        printf("%d<-- %s().\n\n", level, __func__);	\
+    } while (0)
+
 #define pr_fn_end_on(level)							\
     do {											\
       int depth = level - DebugBase;				\
-      if (depth > 0) {								\
+      if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf("    "); }			\
         printf("%d<-- %s().\n\n", level, __func__);	\

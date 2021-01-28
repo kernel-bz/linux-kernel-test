@@ -37,9 +37,19 @@ int dtb_size;
 
 void dtb_set_file_name(void)
 {
+    char temp[80];
+
+    if (!strlen(dtb_file_name))
+        strlcpy(dtb_file_name, CONFIG_USER_DTB_FILE, sizeof(dtb_file_name));
+
+    strcpy(temp, dtb_file_name);
+
     __fpurge(stdin);
     printf("Enter DTB File Name[%s]: ", dtb_file_name);
     scanf("%s", dtb_file_name);
+
+    if (strlen(dtb_file_name) < 2)
+        strcpy(dtb_file_name, temp);
 }
 
 void dtb_test_read_file(void)

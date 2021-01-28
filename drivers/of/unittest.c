@@ -247,13 +247,26 @@ static void __init of_unittest_check_tree_linkage(void)
     pr_fn_start_on(stack_depth);
 
         struct device_node *np;
+        struct property *pp;
         int allnode_count = 0, child_count;
 
         if (!of_root)
                 return;
 
-        for_each_of_allnodes(np)
-                allnode_count++;
+        for_each_of_allnodes(np) {
+            pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+            for_each_property_of_node(np, pp) {
+                if (strlen((char*)pp->value)+1 == pp->length)
+                    pr_out_on(stack_depth, "%30s = \"%s\", %d\n"
+                          , pp->name, (char*)pp->value, pp->length);
+                else
+                    pr_out_on(stack_depth, "%30s = <0x%llx>, %d\n"
+                          , pp->name
+                          , of_read_number((__be32*)pp->value, pp->length/4)
+                          , pp->length/4);
+            }
+            allnode_count++;
+        }
         child_count = of_unittest_check_node_linkage(of_root);
 
         pr_info_view_on(stack_depth, "%20s : %d\n", allnode_count);
@@ -1025,6 +1038,8 @@ static const struct platform_device_info test_bus_info = {
 };
 static void __init of_unittest_platform_populate(void)
 {
+    pr_fn_start_on(stack_depth);
+
 	int irq, rc;
 	struct device_node *np, *child, *grandchild;
 	struct platform_device *pdev, *test_bus;
@@ -1034,12 +1049,17 @@ static void __init of_unittest_platform_populate(void)
 	};
 
 	np = of_find_node_by_path("/testcase-data");
+    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+
 	of_platform_default_populate(np, NULL, NULL);
 
 	/* Test that a missing irq domain returns -EPROBE_DEFER */
 	np = of_find_node_by_path("/testcase-data/testcase-device1");
-	pdev = of_find_device_by_node(np);
-	unittest(pdev, "device 1 creation failed\n");
+    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+
+    pdev = of_find_device_by_node(np);
+    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->name);
+    unittest(pdev, "device 1 creation failed\n");
 
 	if (!(of_irq_workarounds & OF_IMAP_OLDWORLD_MAC)) {
 		irq = platform_get_irq(pdev, 0);
@@ -1056,7 +1076,9 @@ static void __init of_unittest_platform_populate(void)
 	}
 
 	np = of_find_node_by_path("/testcase-data/platform-tests");
-	unittest(np, "No testcase data in device tree\n");
+    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+
+    unittest(np, "No testcase data in device tree\n");
 	if (!np)
 		return;
 

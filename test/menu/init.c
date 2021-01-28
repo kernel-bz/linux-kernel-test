@@ -29,7 +29,7 @@ static void _init_menu_help(void)
 
 static int _init_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -43,7 +43,9 @@ static int _init_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 

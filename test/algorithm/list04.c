@@ -41,35 +41,35 @@ static struct fox* fox_alloc(char *name, unsigned long tail, unsigned long weigh
 
 static void list_free(struct list_head *head)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
     struct list_head *list_head;
     struct fox* fox;
 
     list_for_each(list_head, head) {
         fox = list_entry(list_head, struct fox, list);
-        pr_info_view_on(stack_depth, "%20s : %s\n", fox->name);
+        pr_out_view(stack_depth, "%20s : %s\n", fox->name);
         list_del(head);
         free(fox);
     }
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 static void list_output(struct list_head *head)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
 	struct list_head *list_head;
 	struct fox* fox;
 
     list_for_each(list_head, head) {
 		fox = list_entry(list_head, struct fox, list);
-        pr_out_on(stack_depth, "fox value: %12s, %d, %d, %d\n"
+        pr_out(stack_depth, "fox value: %12s, %d, %d, %d\n"
                   , fox->name, fox->tail_length, fox->weight, fox->is_fantastic);
 	}
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 static void fox_alloc_run(void)
@@ -113,18 +113,18 @@ void list_test04(void)
 
     //list_output(&ListHeadFox);	//infinite
     if (list_empty(&ListHeadFox)) {
-        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
+        pr_out_view(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
     }
     //list_output(&list_head_fox2);	//infinite
     if (list_empty(&list_head_fox2)) {
-        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
+        pr_out_view(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
     }
     list_output(&list_head_fox3);
 
 #if 0
     list_free(&list_head_fox3);	//fault
     if (list_empty(&list_head_fox3)) {
-        pr_info_view_on(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
+        pr_out_view(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
     }
 #endif
 }

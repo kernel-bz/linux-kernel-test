@@ -26,7 +26,7 @@ static void _sched_test_help(void)
 
 static int _sched_basic_pelt_test_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -39,7 +39,9 @@ static int _sched_basic_pelt_test_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
@@ -64,7 +66,7 @@ _retry:
 
 static int _sched_cfs_test_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -78,7 +80,9 @@ static int _sched_cfs_test_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
@@ -103,7 +107,7 @@ static void _menu_sched_cfs_test(void)
 
 static int _sched_rt_test_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -113,7 +117,9 @@ static int _sched_rt_test_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
@@ -134,7 +140,7 @@ static void _menu_sched_rt_test(void)
 
 static int _sched_dl_test_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -146,7 +152,9 @@ static int _sched_dl_test_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
@@ -169,7 +177,7 @@ static void _menu_sched_dl_test(void)
 
 static int _sched_test_menu(int asize)
 {
-    int idx;
+    int idx, ret;
     __fpurge(stdin);
 
     printf("\n");
@@ -194,7 +202,9 @@ static int _sched_test_menu(int asize)
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
-    scanf("%d", &idx);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
