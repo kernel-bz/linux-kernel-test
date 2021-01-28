@@ -46,7 +46,7 @@ static int _main_menu(int asize)
     printf("2: Basic Training -->\n");
     printf("3: Algorithm & Struct -->\n");
     printf("4: Start Kernel Test -->\n");
-    printf("5: Scheduler Source Test -->\n");
+    printf("5: Scheduler Test -->\n");
     printf("6: Drivers Test -->\n");
     printf("7: help.\n");
     printf("Kernel Version: v%d.%d-td%d\n",

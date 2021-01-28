@@ -62,6 +62,7 @@ typedef unsigned long 	u_long;
 #define __initdata_memblock
 #define __exit
 #define lockdep_assert_held(l)	do { (void)(l); } while (0)
+#define noinline_for_stack
 
 //include/linux/byteorder/generic.h
 //tools/include/linux/kernel.h

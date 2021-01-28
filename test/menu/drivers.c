@@ -28,6 +28,68 @@ static void _drivers_menu_help(void)
     return;
 }
 
+static int _dtb_unittest_menu(int asize)
+{
+    int idx;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Device Tree --> UnitTest Menu\n");
+    printf("  0: exit.\n");
+    printf("  1: unittest_data_add\n");
+    printf("  2: check_tree_linkage\n");
+    printf(" *3: check_phandles\n");
+    printf("  4: find_node_by_name\n");
+    printf("  5: dynamic\n");
+    printf(" *6: parse_phandle_with_args\n");
+    printf(" *7: parse_phandle_with_args_map\n");
+    printf(" *8: printf\n");
+    printf(" *9: property_string\n");
+    printf("*10: property_copy\n");
+    printf("*11: changeset\n");
+    printf(" 12: parse_interrupts\n");
+    printf(" 13: parse_interrupts_extended\n");
+    printf(" 14: match_node\n");
+    printf("*15: platform_populate\n");
+
+    printf(" 16: help.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    scanf("%d", &idx);
+    return (idx > 0 && idx < asize) ? idx : -1;
+}
+
+static void _menu_of_unittest(void)
+{
+    void (*fn[])(void) = { _drivers_menu_help
+        , dtb_unittest_data_add
+        , dtb_unittest_check_tree_linkage
+        , dtb_unittest_check_phandles
+        , dtb_unittest_find_node_by_name
+        , dtb_unittest_dynamic
+        , dtb_unittest_parse_phandle_with_args
+        , dtb_unittest_parse_phandle_with_args_map
+        , dtb_unittest_printf
+        , dtb_unittest_property_string
+        , dtb_unittest_property_copy
+        , dtb_unittest_changeset
+        , dtb_unittest_parse_interrupts
+        , dtb_unittest_parse_interrupts_extended
+        , dtb_unittest_match_node
+        , dtb_unittest_platform_populate
+        , _drivers_menu_help
+    };
+    int idx;
+    int asize = sizeof (fn) / sizeof (fn[0]);
+
+    while (1) {
+        idx = _dtb_unittest_menu(asize);
+        if (idx < 0) break;
+        fn[idx]();
+    }
+}
+
 static int _drivers_menu(int asize)
 {
     int idx;
@@ -54,7 +116,7 @@ void menu_drivers(void)
         , dtb_set_file_name
         , dtb_test_read_file
         , dtb_test_hex_dump
-        , dtb_of_unittest
+        , _menu_of_unittest
         , _drivers_menu_help
     };
     int idx;

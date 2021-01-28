@@ -167,7 +167,7 @@ SOURCES += \
     test/config/config-set.c \
     test/drivers/dtb-test.c \
     test/menu/drivers.c \
-    drivers/of/unittest_.c
+    drivers/of/unittest.c
 
 HEADERS += \
     include/test/test.h \

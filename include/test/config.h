@@ -26,7 +26,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210127	//test date
+#define CONFIG_VERSION_3		20210128	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -111,6 +111,7 @@ extern "C" {
 #define CONFIG_OF_DYNAMIC
 #define CONFIG_OF_KOBJ
 #define CONFIG_OF_OVERLAY
+//#define CONFIG_UNITTEST_OF_OVERLAY
 #define CONFIG_OF_IRQ
 #define CONFIG_OF_NET
 #define CONFIG_OF_MDIO	1

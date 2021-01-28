@@ -23,7 +23,23 @@ void dtb_set_file_name(void);
 void dtb_test_read_file(void);
 void dtb_test_hex_dump(void);
 
-void dtb_of_unittest(void);
+//drivers/of/unittest.c
+void dtb_unittest_data_add(void);
+void dtb_unittest_check_tree_linkage(void);
+void dtb_unittest_check_phandles(void);
+void dtb_unittest_find_node_by_name(void);
+void dtb_unittest_dynamic(void);
+void dtb_unittest_parse_phandle_with_args(void);
+void dtb_unittest_parse_phandle_with_args_map(void);
+void dtb_unittest_printf(void);
+void dtb_unittest_property_string(void);
+void dtb_unittest_property_copy(void);
+void dtb_unittest_changeset(void);
+void dtb_unittest_parse_interrupts(void);
+void dtb_unittest_parse_interrupts_extended(void);
+void dtb_unittest_match_node(void);
+void dtb_unittest_platform_populate(void);
+
 
 #ifdef __cplusplus
 }
