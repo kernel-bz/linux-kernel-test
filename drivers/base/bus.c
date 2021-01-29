@@ -328,18 +328,28 @@ struct device *bus_find_device(struct bus_type *bus,
 			       struct device *start, const void *data,
 			       int (*match)(struct device *dev, const void *data))
 {
+    pr_fn_start_on(stack_depth);
+
 	struct klist_iter i;
 	struct device *dev;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", bus);
+    pr_info_view_on(stack_depth, "%20s : %p\n", bus->p);
 
 	if (!bus || !bus->p)
 		return NULL;
 
-	klist_iter_init_node(&bus->p->klist_devices, &i,
+    klist_iter_init_node(&bus->p->klist_devices, &i,
 			     (start ? &start->p->knode_bus : NULL));
 	while ((dev = next_device(&i)))
 		if (match(dev, data) && get_device(dev))
 			break;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", dev);
+
 	klist_iter_exit(&i);
+
+    pr_fn_end_on(stack_depth);
 	return dev;
 }
 EXPORT_SYMBOL_GPL(bus_find_device);

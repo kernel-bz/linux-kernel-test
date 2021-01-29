@@ -2003,12 +2003,20 @@ static void device_remove_class_symlinks(struct device *dev)
  */
 int dev_set_name(struct device *dev, const char *fmt, ...)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", dev);
+    pr_info_view_on(stack_depth, "%20s : %s\n", dev->init_name);
+    pr_info_view_on(stack_depth, "%20s : %p\n", fmt);
+
 	va_list vargs;
 	int err;
 
 	va_start(vargs, fmt);
 	err = kobject_set_name_vargs(&dev->kobj, fmt, vargs);
-	va_end(vargs);
+    va_end(vargs);
+
+    pr_fn_end_on(stack_depth);
 	return err;
 }
 EXPORT_SYMBOL_GPL(dev_set_name);
@@ -2102,6 +2110,8 @@ static int device_private_init(struct device *dev)
  */
 int device_add(struct device *dev)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct device *parent;
 	struct kobject *kobj;
 	struct class_interface *class_intf;

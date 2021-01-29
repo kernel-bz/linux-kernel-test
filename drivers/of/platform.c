@@ -78,9 +78,13 @@ EXPORT_SYMBOL(of_find_device_by_node);
  */
 static void of_device_make_bus_id(struct device *dev)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct device_node *node = dev->of_node;
 	const __be32 *reg;
 	u64 addr;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", node);
 
 	/* Construct the name, using parent nodes if necessary to ensure uniqueness */
 	while (node->parent) {
@@ -89,17 +93,24 @@ static void of_device_make_bus_id(struct device *dev)
 		 * uniqueness as we need. Make it the first component and return
 		 */
 		reg = of_get_property(node, "reg", NULL);
+
+        pr_info_view_on(stack_depth, "%20s : <0x%x>\n", reg);
+
 		if (reg && (addr = of_translate_address(node, reg)) != OF_BAD_ADDR) {
 			dev_set_name(dev, dev_name(dev) ? "%llx.%pOFn:%s" : "%llx.%pOFn",
 				     addr, node, dev_name(dev));
 			return;
 		}
 
-		/* format arguments only used if dev_name() resolves to NULL */
+        pr_info_view_on(stack_depth, "%20s : %s\n", node->full_name);
+        pr_info_view_on(stack_depth, "%20s : %s\n", dev_name(dev));
+
+        /* format arguments only used if dev_name() resolves to NULL */
 		dev_set_name(dev, dev_name(dev) ? "%s:%s" : "%s",
 			     kbasename(node->full_name), dev_name(dev));
 		node = node->parent;
-	}
+    }
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -112,6 +123,8 @@ struct platform_device *of_device_alloc(struct device_node *np,
 				  const char *bus_id,
 				  struct device *parent)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct platform_device *dev;
 	int rc, i, num_reg = 0, num_irq;
 	struct resource *res, temp_res;
@@ -124,6 +137,9 @@ struct platform_device *of_device_alloc(struct device_node *np,
 	while (of_address_to_resource(np, num_reg, &temp_res) == 0)
 		num_reg++;
 	num_irq = of_irq_count(np);
+
+    pr_info_view_on(stack_depth, "%10s : %d\n", num_reg);
+    pr_info_view_on(stack_depth, "%10s : %d\n", num_irq);
 
 	/* Populate the resource table */
 	if (num_irq || num_reg) {
@@ -148,11 +164,14 @@ struct platform_device *of_device_alloc(struct device_node *np,
 	dev->dev.fwnode = &np->fwnode;
 	dev->dev.parent = parent ? : &platform_bus;
 
-	if (bus_id)
+    pr_info_view_on(stack_depth, "%10s : %s\n", bus_id);
+
+    if (bus_id)
 		dev_set_name(&dev->dev, "%s", bus_id);
 	else
 		of_device_make_bus_id(&dev->dev);
 
+    pr_fn_end_on(stack_depth);
 	return dev;
 }
 EXPORT_SYMBOL(of_device_alloc);
@@ -173,6 +192,8 @@ static struct platform_device *of_platform_device_create_pdata(
 					void *platform_data,
 					struct device *parent)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct platform_device *dev;
 
 	if (!of_device_is_available(np) ||
@@ -194,6 +215,8 @@ static struct platform_device *of_platform_device_create_pdata(
 		platform_device_put(dev);
 		goto err_clear_flag;
 	}
+
+    pr_fn_end_on(stack_depth);
 
 	return dev;
 
@@ -352,6 +375,8 @@ static int of_platform_bus_create(struct device_node *bus,
 				  const struct of_dev_auxdata *lookup,
 				  struct device *parent, bool strict)
 {
+    pr_fn_start_on(stack_depth);
+
 	const struct of_dev_auxdata *auxdata;
 	struct device_node *child;
 	struct platform_device *dev;
@@ -406,7 +431,9 @@ static int of_platform_bus_create(struct device_node *bus,
 		}
 	}
 	of_node_set_flag(bus, OF_POPULATED_BUS);
-	return rc;
+
+    pr_fn_end_on(stack_depth);
+    return rc;
 }
 
 /**
@@ -474,6 +501,8 @@ int of_platform_populate(struct device_node *root,
 			const struct of_dev_auxdata *lookup,
 			struct device *parent)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct device_node *child;
 	int rc = 0;
 
@@ -485,6 +514,8 @@ int of_platform_populate(struct device_node *root,
 	pr_debug(" starting at: %pOF\n", root);
 
 	for_each_child_of_node(root, child) {
+        pr_info_view_on(stack_depth, "%20s : %s\n", child->name);
+
 		rc = of_platform_bus_create(child, matches, lookup, parent, true);
 		if (rc) {
 			of_node_put(child);
@@ -494,6 +525,8 @@ int of_platform_populate(struct device_node *root,
 	of_node_set_flag(root, OF_POPULATED_BUS);
 
 	of_node_put(root);
+
+    pr_fn_end_on(stack_depth);
 	return rc;
 }
 EXPORT_SYMBOL_GPL(of_platform_populate);

@@ -26,7 +26,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210128	//test date
+#define CONFIG_VERSION_3		20210129	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -121,6 +121,7 @@ extern "C" {
 #define CONFIG_OF_UNITTEST
 #define CONFIG_OF_EARLY_FLATTREE
 
+//#define CONFIG_USER_ISA
 
 #ifdef __cplusplus
 }

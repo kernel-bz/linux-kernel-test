@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 #define pr_fmt(fmt)	"OF: " fmt
 
+#include "test/config.h"
 #include "test/debug.h"
 #include "test/user-define.h"
 
@@ -447,7 +448,8 @@ static struct of_bus of_busses[] = {
 		.get_flags = of_bus_pci_get_flags,
 	},
 #endif /* CONFIG_PCI */
-	/* ISA */
+#ifdef CONFIG_USER_ISA
+    /* ISA */
 	{
 		.name = "isa",
 		.addresses = "reg",
@@ -457,7 +459,8 @@ static struct of_bus of_busses[] = {
 		.translate = of_bus_isa_translate,
 		.get_flags = of_bus_isa_get_flags,
 	},
-	/* Default */
+#endif /* CONFIG_USER_ISA */
+    /* Default */
 	{
 		.name = "default",
 		.addresses = "reg",
@@ -722,6 +725,8 @@ EXPORT_SYMBOL(of_translate_dma_address);
 const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 		    unsigned int *flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	const __be32 *prop;
 	unsigned int psize;
 	struct device_node *parent;
@@ -732,19 +737,26 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 	parent = of_get_parent(dev);
 	if (parent == NULL)
 		return NULL;
-	bus = of_match_bus(parent);
+
+    bus = of_match_bus(parent);
 	bus->count_cells(dev, &na, &ns);
+
 	of_node_put(parent);
 	if (!OF_CHECK_ADDR_COUNT(na))
 		return NULL;
+
+    pr_info_view_on(stack_depth, "%10s : %d\n", na);
+    pr_info_view_on(stack_depth, "%10s : %d\n", ns);
 
 	/* Get "reg" or "assigned-addresses" property */
 	prop = of_get_property(dev, bus->addresses, &psize);
 	if (prop == NULL)
 		return NULL;
-	psize /= 4;
 
-	onesize = na + ns;
+	psize /= 4;
+    pr_info_view_on(stack_depth, "%10s : %u\n", psize);
+
+    onesize = na + ns;
 	for (i = 0; psize >= onesize; psize -= onesize, prop += onesize, i++)
 		if (i == index) {
 			if (size)
@@ -753,7 +765,9 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 				*flags = bus->get_flags(prop);
 			return prop;
 		}
-	return NULL;
+
+    pr_fn_end_on(stack_depth);
+    return NULL;
 }
 EXPORT_SYMBOL(of_get_address);
 
@@ -817,10 +831,12 @@ static int __of_address_to_resource(struct device_node *dev,
 int of_address_to_resource(struct device_node *dev, int index,
 			   struct resource *r)
 {
+    pr_fn_start_on(stack_depth);
+
 	const __be32	*addrp;
-	u64		size;
+    u64				size;
 	unsigned int	flags;
-	const char	*name = NULL;
+    const char		*name = NULL;
 
 	addrp = of_get_address(dev, index, &size, &flags);
 	if (addrp == NULL)
@@ -829,6 +845,7 @@ int of_address_to_resource(struct device_node *dev, int index,
 	/* Get optional "reg-names" property to add a name to a resource */
 	of_property_read_string_index(dev, "reg-names",	index, &name);
 
+    pr_fn_end_on(stack_depth);
 	return __of_address_to_resource(dev, addrp, size, flags, name, r);
 }
 EXPORT_SYMBOL_GPL(of_address_to_resource);

@@ -19,10 +19,10 @@ static void _drivers_menu_help(void)
 {
     //help messages...
     printf("\n");
-    printf("Tis is the Linux kernel source testing program\n");
-    printf("that can be run at the user level.\n");
+    printf("  This menu is to test Linux kernel device driver sources\n");
+    printf("at the user level as follows:\n");
     printf("written by www.kernel.bz\n");
-    printf("Kernel Version: v%d.%d-td%d\n",
+    printf("Tested Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
     return;
@@ -38,9 +38,9 @@ static int _dtb_unittest_menu(int asize)
     printf("  0: exit.\n");
     printf("  1: unittest_data_add\n");
     printf("  2: check_tree_linkage\n");
-    printf(" *3: check_phandles\n");
-    printf("  4: find_node_by_name\n");
-    printf("  5: dynamic\n");
+    printf("  3: find_node_by_name\n");
+    printf("  4: dynamic\n");
+    printf(" *5: check_phandles\n");
     printf(" *6: parse_phandle_with_args\n");
     printf(" *7: parse_phandle_with_args_map\n");
     printf(" *8: printf\n");
@@ -67,9 +67,9 @@ static void _menu_of_unittest(void)
     void (*fn[])(void) = { _drivers_menu_help
         , dtb_unittest_data_add
         , dtb_unittest_check_tree_linkage
-        , dtb_unittest_check_phandles
         , dtb_unittest_find_node_by_name
         , dtb_unittest_dynamic
+        , dtb_unittest_check_phandles
         , dtb_unittest_parse_phandle_with_args
         , dtb_unittest_parse_phandle_with_args_map
         , dtb_unittest_printf

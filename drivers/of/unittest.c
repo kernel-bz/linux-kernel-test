@@ -66,6 +66,7 @@ static void __init of_unittest_find_node_by_name(void)
 
         /* Test if trailing '/' works */
         np = of_find_node_by_path("/testcase-data/");
+        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "trailing '/' on /testcase-data/ should fail\n");
 
         np = of_find_node_by_path("/testcase-data/phandle-tests/consumer-a");
@@ -86,6 +87,7 @@ static void __init of_unittest_find_node_by_name(void)
 
         /* Test if trailing '/' works on aliases */
         np = of_find_node_by_path("testcase-alias/");
+        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "trailing '/' on testcase-alias/ should fail\n");
 
         np = of_find_node_by_path("testcase-alias/phandle-tests/consumer-a");
@@ -97,32 +99,40 @@ static void __init of_unittest_find_node_by_name(void)
         //kfree(name);
 
         np = of_find_node_by_path("/testcase-data/missing-path");
+        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "non-existent path returned node %pOF\n", np);
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:testoption", &options);
         pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n",options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("testoption", options),
                  "option path test failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:test/option", &options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("test/option", options),
                  "option path test, subcase #1 failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data/testcase-device1:test/option", &options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("test/option", options),
                  "option path test, subcase #2 failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:testoption", NULL);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np, "NULL option path test failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("testcase-alias:testaliasoption",
                                        &options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("testaliasoption", options),
                  "option alias path test failed\n");
         of_node_put(np);
@@ -136,16 +146,21 @@ static void __init of_unittest_find_node_by_name(void)
         of_node_put(np);
 
         np = of_find_node_opts_by_path("testcase-alias:testaliasoption", NULL);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np, "NULL option alias path test failed\n");
         of_node_put(np);
 
         options = "testoption";
         np = of_find_node_opts_by_path("testcase-alias", &options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n",options);
         unittest(np && !options, "option clearing test failed\n");
         of_node_put(np);
 
         options = "testoption";
         np = of_find_node_opts_by_path("/", &options);
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n",options);
         unittest(np && !options, "option clearing root node test failed\n");
         of_node_put(np);
 
@@ -999,6 +1014,8 @@ static struct {
 
 static void __init of_unittest_match_node(void)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct device_node *np;
 	const struct of_device_id *match;
 	int i;
@@ -1011,12 +1028,19 @@ static void __init of_unittest_match_node(void)
 			continue;
 		}
 
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+
 		match = of_match_node(match_node_table, np);
 		if (!match) {
 			unittest(0, "%s didn't match anything\n",
 				match_node_tests[i].path);
 			continue;
 		}
+
+        pr_info_view_on(stack_depth, "%20s : %s\n", match->name);
+        pr_info_view_on(stack_depth, "%20s : %s\n", match->type);
+        pr_info_view_on(stack_depth, "%20s : %s\n", match->compatible);
+        pr_info_view_on(stack_depth, "%20s : %s\n", match->data);
 
 		if (strcmp(match->data, match_node_tests[i].data) != 0) {
 			unittest(0, "%s got wrong match. expected %s, got %s\n",
@@ -1026,6 +1050,8 @@ static void __init of_unittest_match_node(void)
 		}
 		unittest(1, "passed");
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 static struct resource test_bus_res = {
@@ -1048,46 +1074,63 @@ static void __init of_unittest_platform_populate(void)
 		{}
 	};
 
+#if 0
 	np = of_find_node_by_path("/testcase-data");
+    pr_info_view_on(stack_depth, "%20s : %p\n", np);
     pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
 
-	of_platform_default_populate(np, NULL, NULL);
+    of_platform_default_populate(np, NULL, NULL);
 
+    of_node_put(np);
+#endif
+
+#if 1
 	/* Test that a missing irq domain returns -EPROBE_DEFER */
-	np = of_find_node_by_path("/testcase-data/testcase-device1");
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+    np = of_find_node_by_path("/testcase-data/testcase-device1");
+    pr_info_view_on(stack_depth, "%20s : %p\n", np);
 
-    pdev = of_find_device_by_node(np);
-    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->name);
-    unittest(pdev, "device 1 creation failed\n");
+    if (np) {
+        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
 
-	if (!(of_irq_workarounds & OF_IMAP_OLDWORLD_MAC)) {
-		irq = platform_get_irq(pdev, 0);
-		unittest(irq == -EPROBE_DEFER,
-			 "device deferred probe failed - %d\n", irq);
+        pdev = of_find_device_by_node(np);
+        unittest(pdev, "device 1 creation failed\n");
 
-		/* Test that a parsing failure does not return -EPROBE_DEFER */
-		np = of_find_node_by_path("/testcase-data/testcase-device2");
-		pdev = of_find_device_by_node(np);
-		unittest(pdev, "device 2 creation failed\n");
-		irq = platform_get_irq(pdev, 0);
-		unittest(irq < 0 && irq != -EPROBE_DEFER,
-			 "device parsing error failed - %d\n", irq);
-	}
+        if (pdev && !(of_irq_workarounds & OF_IMAP_OLDWORLD_MAC)) {
+            irq = platform_get_irq(pdev, 0);
+            unittest(irq == -EPROBE_DEFER,
+                 "device deferred probe failed - %d\n", irq);
 
-	np = of_find_node_by_path("/testcase-data/platform-tests");
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+            of_node_put(np);
+            /* Test that a parsing failure does not return -EPROBE_DEFER */
+            np = of_find_node_by_path("/testcase-data/testcase-device2");
+
+            pdev = of_find_device_by_node(np);
+            unittest(pdev, "device 2 creation failed\n");
+            irq = platform_get_irq(pdev, 0);
+            unittest(irq < 0 && irq != -EPROBE_DEFER,
+                 "device parsing error failed - %d\n", irq);
+        }
+    }
+
+    of_node_put(np);
+#endif
+
+    np = of_find_node_by_path("/testcase-data/platform-tests");
+    pr_info_view_on(stack_depth, "%20s : %p\n", np);
+    //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
 
     unittest(np, "No testcase data in device tree\n");
 	if (!np)
 		return;
 
-	test_bus = platform_device_register_full(&test_bus_info);
-	rc = PTR_ERR_OR_ZERO(test_bus);
+    test_bus = platform_device_register_full(&test_bus_info);
+    pr_info_view_on(stack_depth, "%20s : %p\n", test_bus);
+
+    rc = PTR_ERR_OR_ZERO(test_bus);
 	unittest(!rc, "testbus registration failed; rc=%i\n", rc);
 	if (rc) {
 		of_node_put(np);
-		return;
+        return;
 	}
 	test_bus->dev.of_node = np;
 

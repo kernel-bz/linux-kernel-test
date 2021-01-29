@@ -18,8 +18,11 @@ static void _sched_test_help(void)
 {
     //help messages...
     printf("\n");
-    printf("You can test the Linux kernel scheduler \n");
-    printf("  at the user level as follows:\n");
+    printf("  This menu is to test Linux kernel scheduler sources\n");
+    printf("at the user level as follows:\n");
+    printf("written by www.kernel.bz\n");
+    printf("Tested Kernel Version: v%d.%d-td%d\n",
+           CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
     return;
 }

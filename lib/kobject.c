@@ -288,7 +288,14 @@ static int kobject_add_internal(struct kobject *kobj)
 int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
 				  va_list vargs)
 {
+    pr_fn_start_on(stack_depth);
+
 	const char *s;
+
+    pr_info_view_on(stack_depth, "%20s : %s\n", kobj->name);
+    pr_info_view_on(stack_depth, "%20s : %p\n", fmt);
+
+    return 0;	//as test
 
 	if (kobj->name && !fmt)
 		return 0;
@@ -296,6 +303,8 @@ int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
 	s = kvasprintf_const(GFP_KERNEL, fmt, vargs);
 	if (!s)
 		return -ENOMEM;
+
+    pr_info_view_on(stack_depth, "%20s : %s\n", s);
 
 	/*
 	 * ewww... some of these buggers have '/' in the name ... If
@@ -316,6 +325,8 @@ int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
 	kfree_const(kobj->name);
 	kobj->name = s;
 
+    pr_info_view_on(stack_depth, "%20s : %s\n", kobj->name);
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 

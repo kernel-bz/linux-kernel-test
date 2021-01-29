@@ -548,6 +548,8 @@ EXPORT_SYMBOL_GPL(device_remove_properties);
 int device_add_properties(struct device *dev,
 			  const struct property_entry *properties)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct fwnode_handle *fwnode;
 
 	fwnode = fwnode_create_software_node(properties, NULL);
@@ -555,7 +557,9 @@ int device_add_properties(struct device *dev,
 		return PTR_ERR(fwnode);
 
 	set_secondary_fwnode(dev, fwnode);
-	return 0;
+
+    pr_fn_end_on(stack_depth);
+    return 0;
 }
 EXPORT_SYMBOL_GPL(device_add_properties);
 

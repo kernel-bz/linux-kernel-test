@@ -383,6 +383,8 @@ static void platform_device_release(struct device *dev)
  */
 struct platform_device *platform_device_alloc(const char *name, int id)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct platform_object *pa;
 
 	pa = kzalloc(sizeof(*pa) + strlen(name) + 1, GFP_KERNEL);
@@ -395,6 +397,7 @@ struct platform_device *platform_device_alloc(const char *name, int id)
 		setup_pdev_dma_masks(&pa->pdev);
 	}
 
+    pr_fn_end_on(stack_depth);
 	return pa ? &pa->pdev : NULL;
 }
 EXPORT_SYMBOL_GPL(platform_device_alloc);
@@ -412,6 +415,8 @@ EXPORT_SYMBOL_GPL(platform_device_alloc);
 int platform_device_add_resources(struct platform_device *pdev,
 				  const struct resource *res, unsigned int num)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct resource *r = NULL;
 
 	if (res) {
@@ -423,6 +428,11 @@ int platform_device_add_resources(struct platform_device *pdev,
 	kfree(pdev->resource);
 	pdev->resource = r;
 	pdev->num_resources = num;
+
+    pr_info_view_on(stack_depth, "%30s : %p\n", pdev->resource);
+    pr_info_view_on(stack_depth, "%30s : %u\n", pdev->num_resources);
+
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(platform_device_add_resources);
@@ -440,6 +450,8 @@ EXPORT_SYMBOL_GPL(platform_device_add_resources);
 int platform_device_add_data(struct platform_device *pdev, const void *data,
 			     size_t size)
 {
+    pr_fn_start_on(stack_depth);
+
 	void *d = NULL;
 
 	if (data) {
@@ -450,6 +462,8 @@ int platform_device_add_data(struct platform_device *pdev, const void *data,
 
 	kfree(pdev->dev.platform_data);
 	pdev->dev.platform_data = d;
+
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 EXPORT_SYMBOL_GPL(platform_device_add_data);
@@ -479,6 +493,8 @@ EXPORT_SYMBOL_GPL(platform_device_add_properties);
  */
 int platform_device_add(struct platform_device *pdev)
 {
+    pr_fn_start_on(stack_depth);
+
 	int i, ret;
 
 	if (!pdev)
@@ -538,6 +554,9 @@ int platform_device_add(struct platform_device *pdev)
 		 dev_name(&pdev->dev), dev_name(pdev->dev.parent));
 
 	ret = device_add(&pdev->dev);
+
+    pr_fn_end_on(stack_depth);
+
 	if (ret == 0)
 		return ret;
 
@@ -625,6 +644,8 @@ EXPORT_SYMBOL_GPL(platform_device_unregister);
 struct platform_device *platform_device_register_full(
 		const struct platform_device_info *pdevinfo)
 {
+    pr_fn_start_on(stack_depth);
+
 	int ret = -ENOMEM;
 	struct platform_device *pdev;
 
@@ -636,6 +657,11 @@ struct platform_device *platform_device_register_full(
 	pdev->dev.fwnode = pdevinfo->fwnode;
 	pdev->dev.of_node = of_node_get(to_of_node(pdev->dev.fwnode));
 	pdev->dev.of_node_reused = pdevinfo->of_node_reused;
+
+    pr_info_view_on(stack_depth, "%20s : %p\n", pdev);
+    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->name);
+    pr_info_view_on(stack_depth, "%20s : %d\n", pdev->id);
+    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->dev.init_name);
 
 	if (pdevinfo->dma_mask) {
 		/*
@@ -676,11 +702,12 @@ struct platform_device *platform_device_register_full(
 	if (ret) {
 err:
 		ACPI_COMPANION_SET(&pdev->dev, NULL);
-		kfree(pdev->dev.dma_mask);
+        //kfree(pdev->dev.dma_mask);	//as test
 		platform_device_put(pdev);
 		return ERR_PTR(ret);
 	}
 
+    pr_fn_end_on(stack_depth);
 	return pdev;
 }
 EXPORT_SYMBOL_GPL(platform_device_register_full);

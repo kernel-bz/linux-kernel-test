@@ -19,10 +19,11 @@ static void _config_setting_help(void)
 {
     //help messages...
     printf("\n");
-    printf("Tis is the Linux kernel source testing program\n");
+    printf("  This is the Linux kernel source testing program\n");
     printf("that can be run at the user level.\n");
+    printf("This menu is to set the kernel configuration.\n");
     printf("written by www.kernel.bz\n");
-    printf("Kernel Version: v%d.%d-td%d\n",
+    printf("Tested Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
     return;

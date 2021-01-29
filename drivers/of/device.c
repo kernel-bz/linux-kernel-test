@@ -60,6 +60,8 @@ EXPORT_SYMBOL(of_dev_put);
 
 int of_device_add(struct platform_device *ofdev)
 {
+    pr_fn_start_on(stack_depth);
+
 	BUG_ON(ofdev->dev.of_node == NULL);
 
 	/* name and id have to be set so that the platform bus doesn't get
@@ -74,6 +76,7 @@ int of_device_add(struct platform_device *ofdev)
 	 */
 	set_dev_node(&ofdev->dev, of_node_to_nid(ofdev->dev.of_node));
 
+    pr_fn_end_on(stack_depth);
 	return device_add(&ofdev->dev);
 }
 
