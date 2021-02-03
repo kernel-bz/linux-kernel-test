@@ -24,10 +24,6 @@ void menu_drivers(void);
 void config_view(void);
 void config_set_debug_level(void);
 
-//test/basic/
-void basic_struct_test(void);
-void basic_ptr_test(void);
-
 //test/algorithm
 void list_test01(void);
 void list_test02(void);

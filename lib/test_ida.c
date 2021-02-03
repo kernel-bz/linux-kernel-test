@@ -34,11 +34,13 @@ void ida_dump(struct ida *ida) { }
  */
 static void ida_check_alloc(struct ida *ida)
 {
-    pr_fn_start_on(stack_depth);
+    //pr_fn_start_on(stack_depth);
 	int i, id;
 
-    for (i = 0; i < 10000; i++)
+    for (i = 0; i < 10000; i++) {
         IDA_BUG_ON(ida, ida_alloc(ida, GFP_KERNEL) != i);
+        //printf("%d, ", i);
+    }
 
 	ida_free(ida, 20);
 	ida_free(ida, 21);
@@ -47,17 +49,17 @@ static void ida_check_alloc(struct ida *ida)
 		IDA_BUG_ON(ida, id < 0);
         if (i == 2)
             IDA_BUG_ON(ida, id != 10000);
-	}
+    }
 
     for (i = 0; i < 5000; i++)
         ida_free(ida, i);
 
     IDA_BUG_ON(ida, ida_alloc_min(ida, 5000, GFP_KERNEL) != 10001);
-	ida_destroy(ida);
+    ida_destroy(ida);
 
 	IDA_BUG_ON(ida, !ida_is_empty(ida));
 
-    pr_fn_end_on(stack_depth);
+    //pr_fn_end_on(stack_depth);
 }
 
 /* Destroy an IDA with a single entry at @base */
@@ -79,9 +81,9 @@ static void ida_check_destroy(struct ida *ida)
 
 	ida_check_destroy_1(ida, 0);
 	ida_check_destroy_1(ida, 1);
-	ida_check_destroy_1(ida, 1023);
-	ida_check_destroy_1(ida, 1024);
-	ida_check_destroy_1(ida, 12345678);
+    ida_check_destroy_1(ida, 1023);
+    ida_check_destroy_1(ida, 1024);
+    ida_check_destroy_1(ida, 12345678);
 }
 
 /*

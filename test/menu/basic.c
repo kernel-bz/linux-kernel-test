@@ -59,7 +59,7 @@ void menu_basic_train(void)
         , basic_types_test
         , basic_ptr_test
         , basic_struct_test
-        , _basic_training_help
+        , bitmap_test
         , cpus_mask_test
         , basic_run_time_test
         , lib_sort_test

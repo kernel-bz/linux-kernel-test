@@ -168,7 +168,8 @@ SOURCES += \
     test/drivers/dtb-test.c \
     test/menu/drivers.c \
     drivers/of/unittest.c \
-    test/sched/sched-pelt.c
+    test/sched/sched-pelt.c \
+    test/basic/bitmap-test.c
 
 HEADERS += \
     include/test/test.h \

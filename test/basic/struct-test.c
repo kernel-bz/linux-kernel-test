@@ -11,140 +11,127 @@
 #include <string.h>
 
 #include "test/debug.h"
+#include "test/basic.h"
 
-struct CONFIG
-{
-    uint8_t		Ver;
-    uint8_t		Ptype;
-    uint8_t		Dsize;
-    uint8_t		Fisze;
-    uint8_t		Pid[3];
-    uint8_t		Btn;
-    uint8_t		Did[3];
-    uint8_t		Dtn;
-    uint8_t		Dent;
-    uint8_t		User_Config[51];
-    uint8_t		Tail[16];
+struct test_head {
+    struct test_head *next, *prev;
 };
 
-struct CONFIG_TABLE
-{
-    uint8_t			Idx[4];
-    struct CONFIG	Main;
-    struct CONFIG	LorySerial;
-    struct CONFIG	Serial;
-    struct CONFIG	Rs485;
-    struct CONFIG	Do;
-    struct CONFIG	Di;
-    struct CONFIG	Ai;
-    struct CONFIG	Rtd;
-    struct CONFIG	Ro;
-    uint8_t			Tail[64];
+struct test_set {
+    int					id;
+    struct test_set		*next;
+    struct list_head	list;
 };
 
-struct NOTI_ENTRY
-{
-    uint8_t		Sid[3];
-    uint8_t		Stn;
-    uint8_t		Sent;
-    uint8_t		Dent;
-    uint8_t		Size;
-    uint8_t		Temp;
+typedef struct test_span { unsigned long value; } test_span_t;
+
+struct test_struct {
+    char				*name;
+    unsigned long		id;
+    struct test_set		**se;
+    struct test_struct	*parent;
+    struct test_struct	*child;
+    struct test_struct	*sibling;
+    test_span_t 		span[0];	//size 0
 };
 
-struct NOTI_COUNT
-{
-    uint8_t		Rx_ratio;
-    uint8_t		Tx_ratio;
-    uint8_t		Over_Cnt;
-    uint8_t		Tx_Cnt[2];
-    uint8_t		Rx_Cnt[2];
-    uint8_t		Init;
-    uint8_t		Temp3[7];
-    uint8_t		Ack;
-};
 
-struct LOKET
-{
-    uint8_t		Sid[3];
-    uint8_t		Stn;
-    uint8_t		Sent;
-    uint8_t		Did[3];
-    uint8_t		Dtn;
-    uint8_t		Dent;
-    uint8_t		Len;
-    uint8_t		Payload[117];
-};
-
-struct PORT_TABLE
-{
-    uint8_t				Stn;
-    struct CONFIG		*Config;
-    struct NOTI_ENTRY	Entry[4];
-    struct NOTI_COUNT	Count;
-    uint8_t				*Data;
-    uint8_t				Tail[24];
-};
-
-struct MAIN_CFG
-{
-    uint8_t	Sid[3];					// 13	디바이스 자신의 ID
-    uint8_t	LoraSerial_Ea;			// 16
-    uint8_t	Uart_Ea;				// 17
-    uint8_t	Rs485_Ea;				// 18
-    uint8_t	Do_Ea;					// 19
-    uint8_t	Di_Ea;					// 20
-    uint8_t	Ai_Ea;					// 21
-    uint8_t	Rtd_Ea;					// 22
-    uint8_t	Ro_Ea;					// 23
-};
-
-struct MAIN_DATA
-{
-    uint8_t	Save_Config;				// 128 포트 프로세서에서의 Config 정보 변경 시 메인에서 Flash 에 저장하도록 한다.
-    uint8_t	Reboot;						// 129
-    uint8_t FW_Update[8];				// 130
-    uint8_t SW_Date[4];					// 138
-    uint8_t Update_Data[68];			// 142  68 바이트  seq(3) + crc(1) + dummy(64)
-    uint8_t	RunTime[4];					// 210  동작 시간	(1=100 msec)
-    uint8_t	temp[10];					// 214  동작 시간	(1=100 msec)
-};
-
-struct CONFIG_TABLE		CFG;
-struct PORT_TABLE 		Port_Table[10];
-struct MAIN_DATA		Main_Data;
-struct MAIN_CFG 		*Main_Cfg;
-
-#define TBL					Port_Table[Table_No]
-#define Main_Stn			1
-#define MAIN_FW_VERSION		0x11
-#define DEVICE_TYPE			4
-#define MAIN_Rx_FIFO_SIZE 	128
-
-
-static void _struct_test(int8_t Table_No)
+static int _struct_alloc(const int level, struct test_struct **ts)
 {
     pr_fn_start_on(stack_depth);
 
-    memset ((uint8_t *)&Main_Data, 0x00, sizeof (struct MAIN_DATA));	// 0 으로 초기화
-    memset ((uint8_t *)&TBL.Entry, 0x00, 32);							// 0 으로 초기화
-    memset ((uint8_t *)&TBL.Count, 0x00, 16);							// 0 으로 초기화
+    int size = level * sizeof(**ts);
 
-    TBL.Data	 = (uint8_t *)&Main_Data;								// 데이타 영역 메모리 주소 매핑
-    TBL.Config	 = &CFG.Main;											// 메모리 주소 매핑
-    Main_Cfg 	 = (struct MAIN_CFG *)&CFG.Main.User_Config;			// USer Config 영역 포인터 매핑
+    *ts = malloc(size);
+    pr_info_view_on(stack_depth, "%30s : %d\n", level);
+    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(struct test_struct));
+    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(**ts));
+    pr_info_view_on(stack_depth, "%30s : %d\n", size);
+    pr_info_view_on(stack_depth, "%30s : %p\n", ts);
 
-    //---------------------------------------  Set Config Info
-    TBL.Stn	 	 		= Main_Stn;											// Stn 은 장치가 1번
-    TBL.Config->Ver 	= MAIN_FW_VERSION;
-    TBL.Config->Ptype 	= DEVICE_TYPE;
-    TBL.Config->Dsize 	= sizeof (struct MAIN_DATA) / 16;
-    //TBL.Config->Fsize 	= MAIN_Rx_FIFO_SIZE / 16;
+    pr_fn_end_on(stack_depth);
+    return (ts) ? size : -1;
+}
+
+static void _struct_init(const int level, struct test_struct *ts)
+{
+    int i=0, j;
+
+    ts[i++] = (struct test_struct){
+            .name = "test0",
+            .id = 0
+    };
+
+    for (j = 1; j < level; i++, j++) {
+        ts[i] = (struct test_struct){
+                .name = "test",
+                .id = j
+        };
+    }
+
+}
+
+static int _struct_alloc_test1(const int level, struct test_struct *ts)
+{
+    pr_fn_start_on(stack_depth);
+    int i, ret;
+
+    ret = _struct_alloc(level, &ts);
+    if (ret > 0) {
+        _struct_init(level, ts);
+        for (i=0; i<level; i++) {
+            pr_info_view_on(stack_depth, "%20s : %s\n", ts[i].name);
+            pr_info_view_on(stack_depth, "%20s : %lu\n", ts[i].id);
+        }
+    } else {
+       pr_err("_struct_alloc_test1() error!\n");
+    }
+
+    pr_fn_end_on(stack_depth);
+    return ret;
+}
+
+static void _struct_alloc_test2(const int level
+                               , struct test_struct *ts, test_span_t *span)
+{
+    pr_fn_start_on(stack_depth);
+    int i;
+
+    span = (test_span_t *)malloc(level * sizeof(&ts->span));
+
+    pr_info_view_on(stack_depth, "%20s : %d\n", level);
+    //pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(ts->span));	//0
+    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(&ts->span));
+    //pr_info_view_on(stack_depth, "%20s : %p\n", ts->span);	//0x30
+    //pr_info_view_on(stack_depth, "%20s : %p\n", &ts->span);	//0x30
+    pr_info_view_on(stack_depth, "%20s : %p\n", span);
+    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(*ts));
+    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(*span));
+    for (i=0; i<level; i++)
+        span[i].value = i;
+
+    for (i=0; i<level; i++)
+        pr_info_view_on(stack_depth, "%30s : %d\n", span[i].value);
 
     pr_fn_end_on(stack_depth);
 }
 
+static void _struct_span_value(const int level, test_span_t *span)
+{
+    int i;
+    for (i=0; i<level; i++)
+        pr_info_view_on(stack_depth, "%30s : %d\n", span[i].value);
+}
+
 void basic_struct_test(void)
 {
-    _struct_test(0);
+    struct test_struct *ts;
+    const int level = 5;
+    int ret;
+
+    ret = _struct_alloc_test1(level, ts);
+    if (ret > 0) {
+        _struct_alloc_test2(level, ts, &ts->span);
+        //_struct_span_value(level, &ts->span);
+    }
 }

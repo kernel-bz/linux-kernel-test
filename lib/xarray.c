@@ -784,6 +784,8 @@ static void update_node(struct xa_state *xas, struct xa_node *node,
  */
 void *xas_store(struct xa_state *xas, void *entry)
 {
+    //pr_fn_start_on(stack_depth);
+
 	struct xa_node *node;
 	void __rcu **slot = &xas->xa->xa_head;
 	unsigned int offset, max;
@@ -853,8 +855,10 @@ void *xas_store(struct xa_state *xas, void *entry)
 
 	update_node(xas, node, count, values);
 
-	///xa_debug_state_view(xas, entry);
-	///xa_debug_node_view(node, entry);
+    //xa_debug_state_view(xas, entry);
+    //xa_debug_node_view(node, entry);
+
+    //pr_fn_end_on(stack_depth);
 
 	return first;
 }
