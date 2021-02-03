@@ -67,6 +67,9 @@ void test_decay_load(void);
 //test/sched/update_load_avg.c
 void test_update_load_avg(void);
 
+//test/sched/sched-pelt.c
+void sched_pelt_constants(void);
+
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);
 

@@ -198,3 +198,32 @@ struct em_cap_state {
         u64	power;
         u64	cost;
 }
+
+sched-energy.rst
+
+//D20210130 EWS ===========================================
+
+/proc/sys/kernel/sched_domain/
+/sys/kernel/cgroup/
+/sys/fs/cgroup/cpuset
+
+sched_energy_aware_handler()
+
+build_perf_domain(cpu_mask)
+
+cpufreq_init()
+drivers/cpufreq/
+drivers/opp/
+
+arch/*/boot/dts/
+opp_tabledev_pm_opp_of_register_em()
+
+dev_pm_opp_of_register_em(cpus)
+
+struct opp_table
+struct dev_pm_opp
+
+_get_cpu_power()
+
+
+

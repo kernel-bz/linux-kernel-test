@@ -35,10 +35,11 @@ static int _sched_basic_pelt_test_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler --> Basic PELT Test Menu\n");
     printf("0: exit.\n");
-    printf("1: calc_global_load test.\n");
-    printf("2: decay_load() test.\n");
-    printf("3: update_load_avg() test.\n");
-    printf("4: help.\n");
+    printf("1: sched_pelt_constants() create.\n");
+    printf("2: calc_global_load test.\n");
+    printf("3: decay_load() test.\n");
+    printf("4: update_load_avg() test.\n");
+    printf("5: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -51,6 +52,7 @@ static int _sched_basic_pelt_test_menu(int asize)
 static void _menu_sched_basic_pelt_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
+        , sched_pelt_constants
         , test_calc_global_load
         , test_decay_load
         , test_update_load_avg

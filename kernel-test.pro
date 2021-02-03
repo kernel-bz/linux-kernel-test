@@ -167,7 +167,8 @@ SOURCES += \
     test/config/config-set.c \
     test/drivers/dtb-test.c \
     test/menu/drivers.c \
-    drivers/of/unittest.c
+    drivers/of/unittest.c \
+    test/sched/sched-pelt.c
 
 HEADERS += \
     include/test/test.h \
