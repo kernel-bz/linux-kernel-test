@@ -610,7 +610,8 @@ HEADERS += \
     mm/slab.h \
     include/linux/start_kernel.h \
     include/test/dtb-test.h \
-    include/asm-generic/vmlinux.lds.h
+    include/asm-generic/vmlinux.lds.h \
+    include/linux/xarray.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

@@ -1,32 +1,31 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 #ifndef _LINUX_XARRAY_H
 #define _LINUX_XARRAY_H
-
-#include "test/config.h"
-#include "test/debug.h"
-#include "test/user-types.h"
-
-#include <urcu.h>
-
 /*
  * eXtensible Arrays
  * Copyright (c) 2017 Microsoft Corporation
  * Author: Matthew Wilcox <willy@infradead.org>
  *
  * See Documentation/core-api/xarray.rst for how to use the XArray.
+ *
+ * Porting from v5.8
  */
 
+#include "test/config.h"
+#include "test/debug.h"
+//#include "test/user-types.h"
+//#include <urcu.h>
+
 #include <linux/bug.h>
-#include <linux/time.h>
 #include <linux/compiler.h>
 #include <linux/gfp.h>
-//#include <linux/kconfig.h>
+#include <linux/kconfig.h>
 #include <linux/kernel.h>
 #include <linux/rcupdate.h>
 #include <linux/spinlock.h>
+#include <linux/types.h>
 
 #include <linux/err.h>
-#include <asm/bug.h>
 
 /*
  * The bottom two bits of the entry determine how the XArray interprets
@@ -42,8 +41,8 @@
  * The following internal entries have a special meaning:
  *
  * 0-62: Sibling entries
- * 256: Zero entry
- * 257: Retry entry
+ * 256: Retry entry
+ * 257: Zero entry
  *
  * Errors are also represented as internal entries, but use the negative
  * space (-4094 to -2).  They're never stored in the slots array; only
@@ -427,6 +426,36 @@ static inline bool xa_marked(const struct xarray *xa, xa_mark_t mark)
 }
 
 /**
+ * xa_for_each_range() - Iterate over a portion of an XArray.
+ * @xa: XArray.
+ * @index: Index of @entry.
+ * @entry: Entry retrieved from array.
+ * @start: First index to retrieve from array.
+ * @last: Last index to retrieve from array.
+ *
+ * During the iteration, @entry will have the value of the entry stored
+ * in @xa at @index.  You may modify @index during the iteration if you
+ * want to skip or reprocess indices.  It is safe to modify the array
+ * during the iteration.  At the end of the iteration, @entry will be set
+ * to NULL and @index will have a value less than or equal to max.
+ *
+ * xa_for_each_range() is O(n.log(n)) while xas_for_each() is O(n).  You have
+ * to handle your own locking with xas_for_each(), and if you have to unlock
+ * after each iteration, it will also end up being O(n.log(n)).
+ * xa_for_each_range() will spin if it hits a retry entry; if you intend to
+ * see retry entries, you should use the xas_for_each() iterator instead.
+ * The xas_for_each() iterator will expand into more inline code than
+ * xa_for_each_range().
+ *
+ * Context: Any context.  Takes and releases the RCU lock.
+ */
+#define xa_for_each_range(xa, index, entry, start, last)		\
+	for (index = start,						\
+	     entry = xa_find(xa, &index, last, XA_PRESENT);		\
+	     entry;							\
+	     entry = xa_find_after(xa, &index, last, XA_PRESENT))
+
+/**
  * xa_for_each_start() - Iterate over a portion of an XArray.
  * @xa: XArray.
  * @index: Index of @entry.
@@ -449,11 +478,8 @@ static inline bool xa_marked(const struct xarray *xa, xa_mark_t mark)
  *
  * Context: Any context.  Takes and releases the RCU lock.
  */
-#define xa_for_each_start(xa, index, entry, start)			\
-	for (index = start,						\
-	     entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);	\
-	     entry;							\
-	     entry = xa_find_after(xa, &index, ULONG_MAX, XA_PRESENT))
+#define xa_for_each_start(xa, index, entry, start) \
+	xa_for_each_range(xa, index, entry, start, ULONG_MAX)
 
 /**
  * xa_for_each() - Iterate over present entries in an XArray.
@@ -518,6 +544,14 @@ static inline bool xa_marked(const struct xarray *xa, xa_mark_t mark)
 				spin_lock_irqsave(&(xa)->xa_lock, flags)
 #define xa_unlock_irqrestore(xa, flags) \
 				spin_unlock_irqrestore(&(xa)->xa_lock, flags)
+#define xa_lock_nested(xa, subclass) \
+				spin_lock_nested(&(xa)->xa_lock, subclass)
+#define xa_lock_bh_nested(xa, subclass) \
+				spin_lock_bh_nested(&(xa)->xa_lock, subclass)
+#define xa_lock_irq_nested(xa, subclass) \
+				spin_lock_irq_nested(&(xa)->xa_lock, subclass)
+#define xa_lock_irqsave_nested(xa, flags, subclass) \
+		spin_lock_irqsave_nested(&(xa)->xa_lock, flags, subclass)
 
 /*
  * Versions of the normal API which require the caller to hold the
@@ -551,7 +585,7 @@ void __xa_clear_mark(struct xarray *, unsigned long index, xa_mark_t);
  *
  * Context: Any context.  Takes and releases the xa_lock while
  * disabling softirqs.
- * Return: The entry which used to be at this index.
+ * Return: The old entry at this index or xa_err() if an error happened.
  */
 static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -577,7 +611,7 @@ static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
  *
  * Context: Process context.  Takes and releases the xa_lock while
  * disabling interrupts.
- * Return: The entry which used to be at this index.
+ * Return: The old entry at this index or xa_err() if an error happened.
  */
 static inline void *xa_store_irq(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -1087,8 +1121,6 @@ static inline void xa_release(struct xarray *xa, unsigned long index)
 #define XA_MAX_MARKS		3
 #define XA_MARK_LONGS		DIV_ROUND_UP(XA_CHUNK_SIZE, BITS_PER_LONG)
 
-#define rcu_head callback_head
-
 /*
  * @count is the count of every non-NULL element in the ->slots array
  * whether that is a value entry, a retry entry, a user pointer,
@@ -1105,7 +1137,7 @@ struct xa_node {
 	struct xarray	*array;		/* The array we belong to */
 	union {
 		struct list_head private_list;	/* For tree user */
-        struct rcu_head	rcu_head;	/* Used when freeing node */
+		struct rcu_head	rcu_head;	/* Used when freeing node */
 	};
 	void __rcu	*slots[XA_CHUNK_SIZE];
 	union {
@@ -1625,6 +1657,7 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 								xa_mark_t mark)
 {
 	struct xa_node *node = xas->xa_node;
+	void *entry;
 	unsigned int offset;
 
 	if (unlikely(xas_not_node(node) || node->shift))
@@ -1636,7 +1669,10 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 		return NULL;
 	if (offset == XA_CHUNK_SIZE)
 		return xas_find_marked(xas, max, mark);
-	return xa_entry(xas->xa, node, offset);
+	entry = xa_entry(xas->xa, node, offset);
+	if (!entry)
+		return xas_find_marked(xas, max, mark);
+	return entry;
 }
 
 /*
