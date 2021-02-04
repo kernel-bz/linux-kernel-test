@@ -5,17 +5,13 @@
  * Copyright (c) 2018-2020 Oracle
  * Author: Matthew Wilcox <willy@infradead.org>
  *
- * Porting from v5.8
+ * Add doubly linked list:
+ * 		JaeJoon Jung <rgbi3307@gmail.com> on the www.kernel.bz
  */
 
 #include "test/config.h"
 #include "test/debug.h"
-//#include "test/user-define.h"
-
-//#include <urcu.h>
-//#include <urcu-pointer.h>
-//#include <linux/rcupdate.h>
-///#include <linux/radix-tree-user.h>
+#include "test/user-define.h"
 
 #include <linux/bitmap.h>
 #include <linux/export.h>
@@ -272,6 +268,106 @@ static void xa_node_free(struct xa_node *node)
 }
 
 /*
+ * xas_node_find_prev() - find previous node in the parent.
+ * @xas: XArray operation state.
+ * @parent: parent node.
+ * @start: starting offset.
+ *
+ * This function call in the xas_alloc().
+ */
+static struct xa_node *xas_node_find_prev(struct xa_state *xas,
+                struct xa_node *parent, int offset)
+{
+        void *entry;
+        struct xa_node *prev;
+
+        while (parent) {
+                prev = NULL;
+                while (offset >= 0) {
+                        entry = xa_entry(xas->xa, parent, offset);
+                        if (xa_is_node(entry)) {
+                                prev = xa_to_node(entry);
+                                break;
+                        }
+                        offset--;
+                }
+
+                if (offset < 0) {
+                        offset = parent->offset - 1;
+                        parent = xa_parent_locked(xas->xa, parent);
+                } else if (prev) {
+                        if (prev->shift==0)
+                                return prev;
+                        offset = XA_CHUNK_MASK;
+                        parent = prev;
+                }
+        }
+        return NULL;
+}
+
+/*
+ * xas_node_find_next() - find next node in the parent.
+ * @xas: XArray operation state.
+ * @parent: parent node.
+ * @start: starting offset.
+ *
+ * This function call in the xas_alloc().
+ */
+static struct xa_node *xas_node_find_next(struct xa_state *xas,
+                struct xa_node *parent, int offset)
+{
+        void *entry;
+        struct xa_node *next;
+
+        while (parent) {
+                next = NULL;
+                while (offset < XA_CHUNK_SIZE) {
+                        entry = xa_entry(xas->xa, parent, offset);
+                        if (xa_is_node(entry)) {
+                                next = xa_to_node(entry);
+                                break;
+                        }
+                        offset++;
+                }
+                if (next) {
+                        if (next->shift==0)
+                                return next;
+                        offset = 0;
+                        parent = next;
+                } else {
+                        offset = parent->offset + 1;
+                        parent = xa_parent_locked(xas->xa, parent);
+                }
+        }
+        return NULL;
+}
+
+/*
+ * xas_node_delete_link() - link node pointer to previous and nexta.
+ * @xas: XArray operation state.
+ * @node: deleting node.
+ *
+ * This function call before xa_node_free().
+ * node->prev->next = node->nex
+ * node->next->prev = node->prev
+ */
+static void xas_node_delete_link(struct xa_state *xas, struct xa_node *node)
+{
+        struct xa_node *prev, *next;
+
+        if (node->shift == 0) {
+                prev = xa_prev_locked(xas->xa, node);
+                next = xa_next_locked(xas->xa, node);
+                if (!xas_not_node(prev))
+                        RCU_INIT_POINTER(prev->next, next);
+                if (!xas_not_node(next))
+                        RCU_INIT_POINTER(next->prev, prev);
+        }
+        node->prev = NULL;
+        node->next = NULL;
+}
+
+/*
  * xas_destroy() - Free any resources allocated during the XArray operation.
  * @xas: XArray operation state.
  *
@@ -402,6 +498,29 @@ static void *xas_alloc(struct xa_state *xas, unsigned int shift)
 	RCU_INIT_POINTER(node->parent, xas->xa_node);
 	node->array = xas->xa;
 
+        /*
+         * link node to previous and next after alloc
+         */
+         if (parent) {
+                struct xa_node *prev, *next;
+
+                prev = xas_node_find_prev(xas, parent, node->offset-1);
+                if (xas_not_node(prev)) {
+                        RCU_INIT_POINTER(parent->prev, node);
+                } else {
+                        RCU_INIT_POINTER(node->prev, prev);
+                        RCU_INIT_POINTER(prev->next, node);
+                }
+
+                next = xas_node_find_next(xas, parent, node->offset+1);
+                if (xas_not_node(next)) {
+                        RCU_INIT_POINTER(parent->next, node);
+                } else {
+                        RCU_INIT_POINTER(node->next, next);
+                        RCU_INIT_POINTER(next->prev, node);
+                }
+        }
+
 	return node;
 }
 
@@ -472,7 +591,10 @@ static void xas_shrink(struct xa_state *xas)
 		if (!xa_is_node(entry))
 			RCU_INIT_POINTER(node->slots[0], XA_RETRY_ENTRY);
 		xas_update(xas, node);
+
+                xas_node_delete_link(xas, node);
 		xa_node_free(node);
+
 		if (!xa_is_node(entry))
 			break;
 		node = xa_to_node(entry);
@@ -501,6 +623,8 @@ static void xas_delete_node(struct xa_state *xas)
 		parent = xa_parent_locked(xas->xa, node);
 		xas->xa_node = parent;
 		xas->xa_offset = node->offset;
+
+                xas_node_delete_link(xas, node);
 		xa_node_free(node);
 
 		if (!parent) {
@@ -553,7 +677,10 @@ static void xas_free_nodes(struct xa_state *xas, struct xa_node *top)
 			node->count = 0;
 			node->nr_values = 0;
 			xas_update(xas, node);
+
+                        xas_node_delete_link(xas, node);
 			xa_node_free(node);
+
 			if (node == top)
 				return;
 			node = parent;
@@ -620,6 +747,11 @@ static int xas_expand(struct xa_state *xas, void *head)
 		if (xa_is_node(head)) {
 			xa_to_node(head)->offset = 0;
 			rcu_assign_pointer(xa_to_node(head)->parent, node);
+                        /*
+                         * link node to previous and next after expand.
+                         */
+                        rcu_assign_pointer(node->prev, xa_to_node(head));
+                        rcu_assign_pointer(node->next, xa_to_node(head));
 		}
 		head = xa_mk_node(node);
 		rcu_assign_pointer(xa->xa_head, head);
@@ -983,7 +1115,7 @@ void xas_pause(struct xa_state *xas)
 
 	xas->xa_node = XAS_RESTART;
 	if (node) {
-		unsigned long offset = xas->xa_offset;
+		unsigned int offset = xas->xa_offset;
 		while (++offset < XA_CHUNK_SIZE) {
 			if (!xa_is_sibling(xa_entry(xas->xa, node, offset)))
 				break;
@@ -1221,8 +1353,6 @@ void *xas_find_marked(struct xa_state *xas, unsigned long max, xa_mark_t mark)
 		}
 
 		entry = xa_entry(xas->xa, xas->xa_node, xas->xa_offset);
-		if (!entry && !(xa_track_free(xas->xa) && mark == XA_FREE_MARK))
-			continue;
 		if (!xa_is_node(entry))
 			return entry;
 		xas->xa_node = xa_to_node(entry);
@@ -1851,11 +1981,10 @@ static bool xas_sibling(struct xa_state *xas)
 	struct xa_node *node = xas->xa_node;
 	unsigned long mask;
 
-	if (!IS_ENABLED(CONFIG_XARRAY_MULTI) || !node)
+	if (!node)
 		return false;
 	mask = (XA_CHUNK_SIZE << node->shift) - 1;
-	return (xas->xa_index & mask) >
-		((unsigned long)xas->xa_offset << node->shift);
+	return (xas->xa_index & mask) > (xas->xa_offset << node->shift);
 }
 
 /**

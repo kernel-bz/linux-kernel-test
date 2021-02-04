@@ -44,7 +44,9 @@ static int _algo_struct_menu(int asize)
     printf(" 8: Red-Black Tree Test03.\n");
     printf(" 9: IDA Test.\n");
     printf("10: Xarray Test.\n");
-    printf("11: help.\n");
+    printf("11: Xarray Main Test.\n");
+    printf("12: Xarray MultiOrder Test.\n");
+    printf("13: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -65,8 +67,14 @@ void menu_algorithm(void)
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
+
         , lib_ida_test
-        , lib_xarray_test
+        //, idr_ida_main_test	//error
+        //, lib_xarray_test
+        , xarray_test_run
+        , xa_main_test		//error
+        , xa_multiorder_test
+
         , _algo_struct_help
     };
     int idx;

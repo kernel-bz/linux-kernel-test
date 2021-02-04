@@ -8,13 +8,11 @@
  *
  * See Documentation/core-api/xarray.rst for how to use the XArray.
  *
- * Porting from v5.8
+ * Add doubly linked list:
+ * 		JaeJoon Jung <rgbi3307@gmail.com> on the www.kernel.bz
  */
 
 #include "test/config.h"
-#include "test/debug.h"
-//#include "test/user-types.h"
-//#include <urcu.h>
 
 #include <linux/bug.h>
 #include <linux/compiler.h>
@@ -41,8 +39,8 @@
  * The following internal entries have a special meaning:
  *
  * 0-62: Sibling entries
- * 256: Retry entry
- * 257: Zero entry
+ * 256: Zero entry
+ * 257: Retry entry
  *
  * Errors are also represented as internal entries, but use the negative
  * space (-4094 to -2).  They're never stored in the slots array; only
@@ -585,7 +583,7 @@ void __xa_clear_mark(struct xarray *, unsigned long index, xa_mark_t);
  *
  * Context: Any context.  Takes and releases the xa_lock while
  * disabling softirqs.
- * Return: The old entry at this index or xa_err() if an error happened.
+ * Return: The entry which used to be at this index.
  */
 static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -611,7 +609,7 @@ static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
  *
  * Context: Process context.  Takes and releases the xa_lock while
  * disabling interrupts.
- * Return: The old entry at this index or xa_err() if an error happened.
+ * Return: The entry which used to be at this index.
  */
 static inline void *xa_store_irq(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -1134,6 +1132,8 @@ struct xa_node {
 	unsigned char	count;		/* Total entry count */
 	unsigned char	nr_values;	/* Value entry count */
 	struct xa_node __rcu *parent;	/* NULL at top of tree */
+        struct xa_node __rcu *prev;     /* previous node pointer */
+        struct xa_node __rcu *next;     /* next node pointer */
 	struct xarray	*array;		/* The array we belong to */
 	union {
 		struct list_head private_list;	/* For tree user */
@@ -1213,6 +1213,38 @@ static inline struct xa_node *xa_parent_locked(const struct xarray *xa,
 {
 	return rcu_dereference_protected(node->parent,
 						lockdep_is_held(&xa->xa_lock));
+}
+
+/* Private */
+static inline struct xa_node *xa_prev(const struct xarray *xa,
+                                        const struct xa_node *node)
+{
+        return rcu_dereference_check(node->prev,
+                                                lockdep_is_held(&xa->xa_lock));
+}
+
+/* Private */
+static inline struct xa_node *xa_prev_locked(const struct xarray *xa,
+                                        const struct xa_node *node)
+{
+        return rcu_dereference_protected(node->prev,
+                                                lockdep_is_held(&xa->xa_lock));
+}
+
+/* Private */
+static inline struct xa_node *xa_next(const struct xarray *xa,
+                                        const struct xa_node *node)
+{
+        return rcu_dereference_check(node->next,
+                                                lockdep_is_held(&xa->xa_lock));
+}
+
+/* Private */
+static inline struct xa_node *xa_next_locked(const struct xarray *xa,
+                                        const struct xa_node *node)
+{
+        return rcu_dereference_protected(node->next,
+                                                lockdep_is_held(&xa->xa_lock));
 }
 
 /* Private */
@@ -1621,6 +1653,60 @@ static inline void *xas_next_entry(struct xa_state *xas, unsigned long max)
 }
 
 /* Private */
+static inline void *xas_next_fast(struct xa_state *xas, unsigned long max)
+{
+        struct xa_node *node = xas->xa_node;
+        int offset = xas->xa_offset;
+        void *entry;
+
+        do {
+                if (unlikely(xas->xa_index >= max))
+                        return xas_find(xas, max);
+                if (unlikely(xas->xa_offset == XA_CHUNK_MASK)) {
+                        node = node->next;
+                        xas->xa_node = node;
+                        offset = -1;
+                }
+                if (unlikely(xas_not_node(node)))
+                        return xas_find(xas, max);
+                entry = xa_entry(xas->xa, node, offset + 1);
+                if (unlikely(xa_is_internal(entry)))
+                        return xas_find(xas, max);
+                offset++;
+                xas->xa_offset = offset;
+                xas->xa_index = xa_to_value(entry);
+        } while (!entry);
+
+        return entry;
+}
+
+/* Private */
+static inline void *xas_prev_fast(struct xa_state *xas, unsigned long max)
+{
+	struct xa_node *node = xas->xa_node;
+	void *entry;
+
+	do {
+                if (unlikely(xas->xa_index > max))
+			return xas_find(xas, max);
+                if (unlikely(xas->xa_offset == 0)) {
+                        node = node->prev;
+                        xas->xa_node = node;
+                        xas->xa_offset = XA_CHUNK_SIZE;
+                }
+                if (unlikely(xas_not_node(node)))
+                        return xas_find(xas, max);
+		entry = xa_entry(xas->xa, node, xas->xa_offset - 1);
+		if (unlikely(xa_is_internal(entry)))
+                        return xas_find(xas, max);
+		xas->xa_offset--;
+		xas->xa_index = xa_to_value(entry);
+	} while (!entry);
+
+	return entry;
+}
+
+/* Private */
 static inline unsigned int xas_find_chunk(struct xa_state *xas, bool advance,
 		xa_mark_t mark)
 {
@@ -1657,7 +1743,6 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 								xa_mark_t mark)
 {
 	struct xa_node *node = xas->xa_node;
-	void *entry;
 	unsigned int offset;
 
 	if (unlikely(xas_not_node(node) || node->shift))
@@ -1669,10 +1754,7 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 		return NULL;
 	if (offset == XA_CHUNK_SIZE)
 		return xas_find_marked(xas, max, mark);
-	entry = xa_entry(xas->xa, node, offset);
-	if (!entry)
-		return xas_find_marked(xas, max, mark);
-	return entry;
+	return xa_entry(xas->xa, node, offset);
 }
 
 /*
@@ -1699,6 +1781,14 @@ enum {
 #define xas_for_each(xas, entry, max) \
 	for (entry = xas_find(xas, max); entry; \
 	     entry = xas_next_entry(xas, max))
+
+#define xas_for_each_next_fast(xas, entry, max) \
+        for (entry = xas_find(xas, max); entry; \
+             entry = xas_next_fast(xas, max))
+
+#define xas_for_each_prev_fast(xas, entry, min) \
+        for (entry = xas_find(xas, min); entry; \
+             entry = xas_prev_fast(xas, min))
 
 /**
  * xas_for_each_marked() - Iterate over a range of an XArray.

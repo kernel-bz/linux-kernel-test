@@ -25,8 +25,10 @@
 #define raw_spin_unlock(x)			pthread_mutex_unlock(x)
 #define raw_spin_lock_irq(x)		pthread_mutex_lock(x)
 #define raw_spin_unlock_irq(x)		pthread_mutex_unlock(x)
-#define raw_spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
-#define raw_spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
+//#define raw_spin_lock_irqsave(x, f)			(void)f, pthread_mutex_lock(x)
+#define raw_spin_lock_irqsave(x, f)
+//#define raw_spin_unlock_irqrestore(x, f)	(void)f, pthread_mutex_unlock(x)
+#define raw_spin_unlock_irqrestore(x, f)
 
 #define raw_spin_trylock(x)			raw_spin_lock(x)
 

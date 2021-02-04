@@ -475,7 +475,7 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
 	struct root_domain *old_rd = NULL;
 	unsigned long flags;
 
-	raw_spin_lock_irqsave(&rq->lock, flags);
+    raw_spin_lock_irqsave(&rq->lock, flags);
 
     pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rd);
 
@@ -511,7 +511,7 @@ void rq_attach_root(struct rq *rq, struct root_domain *rd)
     if (cpumask_test_cpu(rq->cpu, cpu_active_mask))
 		set_rq_online(rq);
 
-	raw_spin_unlock_irqrestore(&rq->lock, flags);
+    raw_spin_unlock_irqrestore(&rq->lock, flags);
 
 	if (old_rd)
 		call_rcu(&old_rd->rcu, free_rootdomain);
@@ -534,6 +534,8 @@ void sched_put_rd(struct root_domain *rd)
 
 static int init_rootdomain(struct root_domain *rd)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (!zalloc_cpumask_var(&rd->span, GFP_KERNEL))
 		goto out;
 	if (!zalloc_cpumask_var(&rd->online, GFP_KERNEL))
@@ -568,6 +570,8 @@ free_online:
 free_span:
 	free_cpumask_var(rd->span);
 out:
+
+    pr_fn_end_on(stack_depth);
 	return -ENOMEM;
 }
 
@@ -579,9 +583,13 @@ struct root_domain def_root_domain;
 
 void init_defrootdomain(void)
 {
+    pr_fn_start_on(stack_depth);
+
 	init_rootdomain(&def_root_domain);
 
 	atomic_set(&def_root_domain.refcount, 1);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static struct root_domain *alloc_rootdomain(void)

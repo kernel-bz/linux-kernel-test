@@ -79,7 +79,8 @@ struct radix_tree_preload {
 };
 static DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
 
-static inline struct radix_tree_node *entry_to_node(void *ptr)
+//static inline struct radix_tree_node *entry_to_node(void *ptr)
+struct radix_tree_node *entry_to_node(void *ptr)
 {
 	return (void *)((unsigned long)ptr & ~RADIX_TREE_INTERNAL_NODE);
 }
@@ -145,7 +146,8 @@ static inline void root_tag_clear_all(struct radix_tree_root *root)
 	root->xa_flags &= (__force gfp_t)((1 << ROOT_TAG_SHIFT) - 1);
 }
 
-static inline int root_tag_get(const struct radix_tree_root *root, unsigned tag)
+//static inline int root_tag_get(const struct radix_tree_root *root, unsigned tag)
+int root_tag_get(const struct radix_tree_root *root, unsigned tag)
 {
 	return (__force int)root->xa_flags & (1 << (tag + ROOT_TAG_SHIFT));
 }
@@ -223,12 +225,14 @@ static unsigned int iter_offset(const struct radix_tree_iter *iter)
 /*
  * The maximum index which can be stored in a radix tree
  */
-static inline unsigned long shift_maxindex(unsigned int shift)
+//static inline unsigned long shift_maxindex(unsigned int shift)
+unsigned long shift_maxindex(unsigned int shift)
 {
 	return (RADIX_TREE_MAP_SIZE << shift) - 1;
 }
 
-static inline unsigned long node_maxindex(const struct radix_tree_node *node)
+//static inline unsigned long node_maxindex(const struct radix_tree_node *node)
+unsigned long node_maxindex(const struct radix_tree_node *node)
 {
 	return shift_maxindex(node->shift);
 }

@@ -147,6 +147,7 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 { }
 
 //tools/testing/radix-tree/idr-test.c
+//test/algorithm/xarray/idr-test.c
 #define dump_stack()    assert(0)
 
 /* Is there a portable way to do this? */

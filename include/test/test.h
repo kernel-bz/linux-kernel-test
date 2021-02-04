@@ -34,8 +34,17 @@ void rbtree_test01(void);
 void rbtree_test02(void);
 void rbtree_test03(void);
 void lib_sort_test(void);
+
 void lib_ida_test(void);
 void lib_xarray_test(void);
+//test/algorithm/xarray/xa-text.c
+void xarray_test_run(void);
+//test/algorithm/xarray/xa-main.c
+void xa_main_test(void);
+//test/algorithm/xarray/idr-test.c
+void idr_ida_main_test(void);
+//test/algorithm/xarray/multiorder.c
+void xa_multiorder_test(void);
 
 //test/init
 void test_setup_arch(void);

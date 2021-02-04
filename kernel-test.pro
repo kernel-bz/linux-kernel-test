@@ -6,9 +6,10 @@ CONFIG -= qt
 #linux/time.h sys/time.h
 DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
         __timespec_defined _SYS_TIME_H __KERNEL__ \
-        HAS_CAA_GET_CYCLES UATOMIC_NO_LINK_ERROR
+        HAS_CAA_GET_CYCLES UATOMIC_NO_LINK_ERROR \
+        __USE_XOPEN2K _LGPL_SOURCE
 
-LIBS += -Lpthread
+LIBS += -lpthread -lurcu
 
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
         -Wvariadic-macros
@@ -169,7 +170,19 @@ SOURCES += \
     test/menu/drivers.c \
     drivers/of/unittest.c \
     test/sched/sched-pelt.c \
-    test/basic/bitmap-test.c
+    test/basic/bitmap-test.c \
+    test/algorithm/xarray/benchmark.c \
+    test/algorithm/xarray/idr-test.c \
+    test/algorithm/xarray/iteration_check.c \
+    test/algorithm/xarray/multiorder.c \
+    test/algorithm/xarray/regression1.c \
+    test/algorithm/xarray/regression2.c \
+    test/algorithm/xarray/regression3.c \
+    test/algorithm/xarray/regression4.c \
+    test/algorithm/xarray/tag_check.c \
+    test/algorithm/xarray/xa-main.c \
+    test/algorithm/xarray/xarray-test.c \
+    test/algorithm/xarray/xa-test.c
 
 HEADERS += \
     include/test/test.h \
@@ -611,7 +624,9 @@ HEADERS += \
     include/linux/start_kernel.h \
     include/test/dtb-test.h \
     include/asm-generic/vmlinux.lds.h \
-    include/linux/xarray.h
+    include/linux/xarray.h \
+    test/algorithm/xarray/regression.h \
+    test/algorithm/xarray/xa-test.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
