@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define NORETURN __attribute__((__noreturn__))
+//#ifndef NORETURN
+//#define NORETURN __attribute__((__noreturn__))
+//#endif
 
 static inline void report(const char *prefix, const char *err, va_list params)
 {
@@ -15,7 +17,8 @@ static inline void report(const char *prefix, const char *err, va_list params)
 	fprintf(stderr, " %s%s\n", prefix, msg);
 }
 
-static NORETURN inline void die(const char *err, ...)
+//static NORETURN inline void die(const char *err, ...)
+static void die(const char *err, ...)
 {
 	va_list params;
 

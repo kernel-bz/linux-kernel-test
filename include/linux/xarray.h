@@ -1132,8 +1132,8 @@ struct xa_node {
 	unsigned char	count;		/* Total entry count */
 	unsigned char	nr_values;	/* Value entry count */
 	struct xa_node __rcu *parent;	/* NULL at top of tree */
-        struct xa_node __rcu *prev;     /* previous node pointer */
-        struct xa_node __rcu *next;     /* next node pointer */
+    struct xa_node __rcu *prev;     /* previous node pointer */
+    struct xa_node __rcu *next;     /* next node pointer */
 	struct xarray	*array;		/* The array we belong to */
 	union {
 		struct list_head private_list;	/* For tree user */

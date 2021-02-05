@@ -21,7 +21,6 @@ extern "C" {
 #include <byteswap.h>
 
 #include <linux/compiler.h>
-#include <linux/compiler_attributes.h>
 #include <linux/bitmap.h>
 #include <linux/numa.h>
 #include <linux/signal.h>
@@ -46,23 +45,54 @@ typedef unsigned long 	u_long;
 
 //include/linux/compiler.h
 #define notrace
-#define __randomize_layout
-#define __initdata
-#define __cpuidle
-#define __ref
-#define __malloc
-#define __iomem
-#define __percpu
-#define __visible
-#define __ro_after_init
-#define __initconst
-#define __rmem_of_table_sentinel
-#define __user
-#define __refdata
-#define __initdata_memblock
+
+#ifndef __init
+#define __init
+#endif
+
+#ifndef __exit
 #define __exit
+#endif
+
+#ifndef __initdata
+#define __initdata
+#endif
+
+#ifndef __initconst
+#define __initconst
+#endif
+
+#ifndef __initdata_memblock
+#define __initdata_memblock
+#endif
+
+#ifndef __randomize_layout
+#define __randomize_layout
+#endif
+
+#ifndef __cpuidle
+#define __cpuidle
+#endif
+
+#ifndef __ref
+#define __ref
+#endif
+
+#ifndef __rmem_of_table_sentinel
+#define __rmem_of_table_sentinel
+#endif
+
+#ifndef __refdata
+#define __refdata
+#endif
+
+#ifndef lockdep_assert_held
 #define lockdep_assert_held(l)	do { (void)(l); } while (0)
+#endif
+
+#ifndef noinline_for_stack
 #define noinline_for_stack
+#endif
 
 //include/linux/byteorder/generic.h
 //tools/include/linux/kernel.h

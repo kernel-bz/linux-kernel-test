@@ -4,9 +4,10 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 #linux/time.h sys/time.h
-DEFINES += _POSIX_SOURCE HAVE_STRUCT_TIMESPEC __timeval_defined \
-        __timespec_defined _SYS_TIME_H __KERNEL__ \
+DEFINES += _POSIX_SOURCE \
+        HAVE_STRUCT_TIMESPEC __timeval_defined __timespec_defined _SYS_TIME_H \
         HAS_CAA_GET_CYCLES UATOMIC_NO_LINK_ERROR \
+        __KERNEL__ __CHECKER__ \
         __USE_XOPEN2K _LGPL_SOURCE
 
 LIBS += -lpthread -lurcu
@@ -631,7 +632,6 @@ HEADERS += \
 
 DISTFILES += \
     lib/bpf/libbpf.a \
-    docs/study/study-history.txt \
     drivers/of/unittest-data/overlay.dts \
     drivers/of/unittest-data/overlay_0.dts \
     drivers/of/unittest-data/overlay_1.dts \
@@ -659,7 +659,6 @@ DISTFILES += \
     drivers/of/unittest-data/tests-overlay.dtsi \
     drivers/of/unittest-data/tests-phandle.dtsi \
     drivers/of/unittest-data/tests-platform.dtsi \
-    docs/build/build_log_20201127.txt \
-    docs/study/cpu-topo-domain.txt \
     drivers/of/unittest-data/testcases-all.dts \
-    drivers/of/unittest-data/testcases.dtb
+    drivers/of/unittest-data/testcases.dtb \
+    docs/study-history.txt

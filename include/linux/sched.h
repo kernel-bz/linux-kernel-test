@@ -42,7 +42,7 @@
 #include <linux/rbtree.h>
 #include <linux/thread_info.h>
 #include <linux/llist.h>
-#include <linux/compiler_types.h>
+#include <linux/compiler.h>
 #include <linux/cpumask.h>
 
 #include <asm-generic/signal.h>
