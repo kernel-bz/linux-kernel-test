@@ -2,8 +2,9 @@
 #ifndef _PERF_BITOPS_H
 #define _PERF_BITOPS_H
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 #include <linux/bitops.h>
 #include <linux/kernel.h>
 
@@ -50,10 +51,12 @@ static inline void bitmap_zero(unsigned long *dst, int nbits)
 static inline void bitmap_fill(unsigned long *dst, unsigned int nbits)
 {
     unsigned int nlongs = BITS_TO_LONGS(nbits);
+
     if (!small_const_nbits(nbits)) {
         unsigned int len = (nlongs - 1) * sizeof(unsigned long);
         memset(dst, 0xff,  len);
     }
+    //printf("mask(nbits) = 0x%X\n", BITMAP_LAST_WORD_MASK(nbits));
     dst[nlongs - 1] = BITMAP_LAST_WORD_MASK(nbits);
 }
 

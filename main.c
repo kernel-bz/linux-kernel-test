@@ -17,9 +17,9 @@
 #include "test/basic.h"
 #include "test/test.h"
 
-//int DebugLevel = S32_MAX;
-int DebugLevel = 200;
+//(DebugBase <= depth <= DebugLevel) ? debug on
 int DebugBase = 0;
+int DebugLevel = 200;	//S32_MAX
 
 static void _main_menu_help(void)
 {

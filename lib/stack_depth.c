@@ -6,8 +6,10 @@
 int stack_depth = -2;
 // we add the `no_instrument_function'
 // so our instrument functions don't get instrumented
-void __attribute__((no_instrument_function)) __cyg_profile_func_enter(void *this_fn, void *call_site);
-void __attribute__((no_instrument_function)) __cyg_profile_func_exit(void *this_fn, void *call_site);
+void __attribute__((no_instrument_function))
+    __cyg_profile_func_enter(void *this_fn, void *call_site);
+void __attribute__((no_instrument_function))
+    __cyg_profile_func_exit(void *this_fn, void *call_site);
 
 void __cyg_profile_func_enter(void *this_fn, void *call_site)
 {

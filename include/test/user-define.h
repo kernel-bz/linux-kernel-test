@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+#include "test/user-types.h"
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <assert.h>
@@ -32,13 +34,6 @@ extern "C" {
 
 /* Disable: warning C4127: conditional expression is constant */
 #pragma warning(disable:4127)
-
-//include/linux/types.h
-/* bsd */
-typedef unsigned char 	u_char;
-typedef unsigned short 	u_short;
-typedef unsigned int 	u_int;
-typedef unsigned long 	u_long;
 
 //include/linux/sysfs.h
 #define loff_t	__loff_t
@@ -159,17 +154,6 @@ static inline int signal_pending_state(long state, struct task_struct *p) { }
 
 //include/linux/kmemleak.h
 static inline void kmemleak_update_trace(const void *ptr) { }
-
-//include/asm-generic/topology.h
-#if 0
-#ifndef cpumask_of_node
-  #ifdef CONFIG_NEED_MULTIPLE_NODES
-    #define cpumask_of_node(node)	((node) == 0 ? cpu_online_mask : cpu_none_mask)
-  #else
-    #define cpumask_of_node(node)	((void)(node), cpu_online_mask)
-  #endif
-#endif
-#endif
 
 //include/linux/sched/cputime.h
 static inline void account_group_exec_runtime(struct task_struct *tsk,

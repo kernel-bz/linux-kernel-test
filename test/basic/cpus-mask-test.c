@@ -33,6 +33,7 @@ static void _cpus_mask_info(void)
     //reset_cpu_possible_mask();
     pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
     pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_present_mask.bits[0]);
+    pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_online_mask.bits[0]);
     pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_active_mask.bits[0]);
     printf("\n");
 }

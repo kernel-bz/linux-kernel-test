@@ -10,8 +10,20 @@
 
 #include <asm/types.h>
 #include <asm/posix_types.h>
+//#include <linux/types.h>
+#include <linux/compiler.h>
+#include <asm-generic/int-ll64.h>
+#include <uapi/linux/limits.h>
+#include <linux/limits.h>
 
 #include <bits/types/__sigset_t.h>
+
+//include/linux/types.h
+/* bsd */
+typedef unsigned char 	u_char;
+typedef unsigned short 	u_short;
+typedef unsigned int 	u_int;
+typedef unsigned long 	u_long;
 
 typedef unsigned int __kernel_dev_t;
 
@@ -61,45 +73,6 @@ typedef enum {
 	__GFP_HIGH
 } gfp_t;
 
-/*
- * We define u64 as uint64_t for every architecture
- * so that we can print it with "%"PRIx64 without getting warnings.
- *
- * typedef __u64 u64;
- * typedef __s64 s64;
- */
-typedef uint64_t u64;
-typedef int64_t s64;
-
-typedef __u32 u32;
-typedef __s32 s32;
-
-typedef __u16 u16;
-typedef __s16 s16;
-
-typedef __u8  u8;
-typedef __s8  s8;
-
-#ifdef __CHECKER__
-#define __bitwise__ __attribute__((bitwise))
-#else
-#define __bitwise__
-#endif
-#define __bitwise __bitwise__
-
-#define __force
-#define __user
-#define __must_check
-#define __cold
-#define notrace
-
-typedef __u16 __bitwise __le16;
-typedef __u16 __bitwise __be16;
-typedef __u32 __bitwise __le32;
-typedef __u32 __bitwise __be32;
-typedef __u64 __bitwise __le64;
-typedef __u64 __bitwise __be64;
-
 //unistd.h
 //typedef unsigned long        size_t;
 //typedef   signed long       ssize_t;
@@ -120,6 +93,14 @@ typedef u64 dma_addr_t;
 #else
 typedef u32 dma_addr_t;
 #endif
+
+#ifdef __CHECKER__
+#define __bitwise__ __attribute__((bitwise))
+#else
+#define __bitwise__
+#endif
+
+#define __bitwise __bitwise__
 
 //typedef unsigned int __bitwise gfp_t;
 typedef unsigned int __bitwise slab_flags_t;

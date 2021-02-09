@@ -16,7 +16,7 @@ QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
         -Wvariadic-macros
 
 INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ \
-    arch/x86/include/ arch/arm64/include/
+    arch/x86/include/ arch/arm64/include/ arch/riscv/include/
 
 SOURCES += \
     main.c \
@@ -447,10 +447,6 @@ HEADERS += \
     include/linux/memblock.h \
     include/linux/profile.h \
     include/test/basic.h \
-    test/basic/type01.h \
-    test/basic/type02.h \
-    test/basic/type03.h \
-    test/basic/type-limits.h \
     include/linux/cgroup-defs.h \
     include/linux/cgroup.h \
     include/linux/cgroup_subsys.h \
@@ -627,7 +623,9 @@ HEADERS += \
     include/asm-generic/vmlinux.lds.h \
     include/linux/xarray.h \
     test/algorithm/xarray/regression.h \
-    test/algorithm/xarray/xa-test.h
+    test/algorithm/xarray/xa-test.h \
+    include/uapi/asm-generic/int-ll64.h \
+    include/asm-generic/int-ll64.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

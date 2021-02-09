@@ -28,12 +28,9 @@ enum {
 };
 
 //main.c
-extern int DebugLevel;
+//(DebugBase <= depth <= DebugLevel) ? debug on
 extern int DebugBase;
-//if (DebugLevel > 0) debug on
-//if (level > DebugBase && level <= DebugLevel) debug on
-//depth = level - DebugBase
-//if (depth > 0) debug on
+extern int DebugLevel;
 
 //lib/stack_depth.c
 extern int stack_depth;
@@ -52,6 +49,8 @@ extern int stack_depth;
 #define pr_crit					pr_err
 #define pr_notice				printf
 
+//#define SPACE	"\t"
+#define SPACE	"    "
 
 #define pr_err(format, ...)							\
     do { 											\
@@ -68,7 +67,7 @@ extern int stack_depth;
 #define pr_out(level, ...)							\
     do {											\
         int depth = level - DebugBase;				\
-        while (depth-- > 0) { printf("    "); }		\
+        while (depth-- > 0) { printf(SPACE); }		\
         printf("<%d> | ", level); 					\
         printf(__VA_ARGS__); 						\
     } while (0)
@@ -76,7 +75,7 @@ extern int stack_depth;
 #define pr_out_view(level, format, args)			\
     do {											\
         int depth = level - DebugBase;				\
-        while (depth-- > 0) { printf("    "); }		\
+        while (depth-- > 0) { printf(SPACE); }		\
         printf("<%d> | ", level); 					\
         printf(format, #args, args);				\
     } while (0)
@@ -86,7 +85,7 @@ extern int stack_depth;
       int depth = level - DebugBase;				\
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+        while (depth--) { printf(SPACE); }			\
         printf("<%d> | ", level); 					\
         printf(__VA_ARGS__); 						\
       }												\
@@ -111,18 +110,17 @@ extern int stack_depth;
       int depth = level - DebugBase;				\
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+        while (depth--) { printf(SPACE); }			\
         printf("<%d> | %s : ", level, __func__); 	\
         printf(__VA_ARGS__); 						\
       }												\
     } while (0)
 
-#define pr_info_enable(level, enable, ...)						\
+#define pr_info_enable(level, enable, ...)			\
     do {											\
-      int depth = level - DebugBase;				\
-      if (depth >= 0 || enable) {								\
-        if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+      int depth = (enable) ? level : level - DebugBase;		\
+      if (depth >= 0) {								\
+        while (depth--) { printf(SPACE); }			\
         printf("<%d> | %s : ", level, __func__); 	\
         printf(__VA_ARGS__); 						\
       }												\
@@ -133,18 +131,17 @@ extern int stack_depth;
       int depth = level - DebugBase;				\
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+        while (depth--) { printf(SPACE); }			\
         printf("<%d> | ", level); 					\
         printf(format, #args, args);				\
       }												\
     } while (0)
 
-#define pr_info_view_enable(level, enable, format, args) \
+#define pr_info_view_enable(level, enable, format, args) 	\
     do {											\
-      int depth = level - DebugBase;				\
-      if (depth >= 0 || enable) {					\
-        if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+      int depth = (enable) ? level : level - DebugBase;		\
+      if (depth >= 0) {								\
+        while (depth--) { printf(SPACE); }			\
         printf("<%d> | %s : ", level, __func__); 	\
         printf(format, #args, args);				\
       }												\
@@ -153,7 +150,7 @@ extern int stack_depth;
 #define pr_fn_start(level)							\
     do {											\
         int depth = level - DebugBase;				\
-        while (depth-- > 0) { printf("    "); }		\
+        while (depth-- > 0) { printf(SPACE); }		\
         printf("%d--> %s()...\n", level, __func__);	\
     } while (0)
 
@@ -162,7 +159,7 @@ extern int stack_depth;
       int depth = level - DebugBase;				\
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+        while (depth--) { printf(SPACE); }			\
         printf("%d--> %s()...\n", level, __func__);	\
       }												\
     } while (0)
@@ -170,7 +167,7 @@ extern int stack_depth;
 #define pr_fn_end(level)							\
     do {											\
         int depth = level - DebugBase;				\
-        while (depth-- > 0) { printf("    "); }		\
+        while (depth-- > 0) { printf(SPACE); }		\
         printf("%d<-- %s().\n\n", level, __func__);	\
     } while (0)
 
@@ -179,7 +176,7 @@ extern int stack_depth;
       int depth = level - DebugBase;				\
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
-        while (depth--) { printf("    "); }			\
+        while (depth--) { printf(SPACE); }			\
         printf("%d<-- %s().\n\n", level, __func__);	\
       }												\
     } while (0)

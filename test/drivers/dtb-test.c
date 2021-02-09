@@ -28,11 +28,9 @@ char dtb_file_name[80];
 //2Bytes Big-Edian
 u8 dtb_test_blob[] = {
     0xd0,0x0d,0xfe,0xed, 0x00,0x00,0x17,0xa7,
-    0x00, 0x00, 0x00, 0x08,
 };
 
-//void *dtb_early_va = (void*)dtb_test_blob;
-void *dtb_early_va;
+void *dtb_early_va = (void*)dtb_test_blob;
 int dtb_size;
 
 void dtb_set_file_name(void)
@@ -56,9 +54,9 @@ void dtb_test_read_file(void)
 {
     int fd, ret, size=0, size2;
     u8 buf[1024];
-    u8 *blob, *blob2 = NULL;
+    u8 *blob=NULL, *blob2;
 
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
     if (!strlen(dtb_file_name))
         strlcpy(dtb_file_name, CONFIG_USER_DTB_FILE, sizeof(dtb_file_name));
@@ -69,28 +67,32 @@ void dtb_test_read_file(void)
         return -1;
     }
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
+    if ((void*)dtb_early_va != (void*)dtb_test_blob)
+        if (dtb_size > 0 && dtb_early_va)
+            free(dtb_early_va);        //free old allocation
 
-    do {
+    pr_info_view_enable(stack_depth, 1, "%20s : %s\n", dtb_file_name);
+
+    while (1) {
         ret = read(fd, buf, sizeof(buf));
         if (ret <= 0) break;
         //pr_info_view_on(stack_depth, "%20s : %d bytes\n", ret);
         size += ret;
         if (size > ret) {
             size2 = size - ret;
-            blob = realloc(blob, size);
+            blob2 = realloc(blob, size);
         } else {
             size2 = 0;
-            blob = malloc(size);
-            blob2 = blob;
+            blob2 = malloc(size);
         }
-        if (!blob) {
+        if (!blob2) {
             pr_err("memory alloc error!\n");
-            if (blob2) free(blob2);
+            if (blob) free(blob);
             goto _exit;
         }
-        memcpy(blob+size2, buf, ret);
-    } while (blob);
+        memcpy(blob2+size2, buf, ret);
+        blob = blob2;
+    }
 
     dtb_early_va = (void*)blob;
 
@@ -98,9 +100,9 @@ _exit:
     close(fd);
     dtb_size = size;
 
-    pr_info_view_on(stack_depth, "%20s : %d bytes\n", dtb_size);
+    pr_info_view_enable(stack_depth, 1, "%20s : %d bytes\n", dtb_size);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 #if 0
