@@ -16,14 +16,15 @@
 #include <uapi/linux/limits.h>
 #include <linux/limits.h>
 
-//include/asm/barrier.h
+#include <bits/types/__sigset_t.h>
 
 //usr/include/x86_64-linux-gnu/asm/signal.h
-#include <asm/signal.h>
+//#include <asm/signal.h>
 
-#include <bits/types/__sigset_t.h>
+#if defined(__aarch64__)
 //usr/include/aarch64-linux-gnu/bits/types/sigset_t.h
 #include <bits/types/sigset_t.h>
+#endif
 
 //include/linux/types.h
 /* bsd */
