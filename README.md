@@ -3,7 +3,8 @@ Linux Kernel Source Test &amp; Analyzer
 
 Linux Kernel 소스를 주제별로 분리하여 실행 및 분석(디버깅)할 수 있습니다.
 자세한 내용은 docs 경로안에 PDF 문서 참조 바랍니다.
-매뉴얼: docs/kanalyzer-intro.pdf
+
+# 매뉴얼: docs/kanalyzer-intro.pdf
 
 qt5와 urcu 패키지 설치가 되어 있어야 합니다.
 
