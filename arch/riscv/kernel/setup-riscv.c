@@ -5,9 +5,7 @@
  *  Lennox Wu <lennox.wu@sunplusct.com>
  * Copyright (C) 2012 Regents of the University of California
  */
-#include "test/config.h"
-#if CONFIG_RUN_ARCH == ARCH_RISCV
-
+#if defined(__riscv__)
 #include <string.h>
 
 #include "test/debug.h"

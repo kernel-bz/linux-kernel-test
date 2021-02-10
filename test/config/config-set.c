@@ -15,12 +15,44 @@
 #include "test/dtb-test.h"
 #include <linux/xarray.h>
 
+#if defined(__i386__)
+#define ARCH_NAME	"x86(__i386__)"
+#elif defined(__x86_64__)
+#define ARCH_NAME	"x86(__x86_64__)"
+#elif defined(__arm__)
+#define ARCH_NAME	"arm(__arm__)"
+#elif defined(__aarch64__)
+#define ARCH_NAME	"arm64(__aarch64__)"
+#elif defined(__riscv__)
+#define ARCH_NAME	"riscv(__riscv__)"
+#elif defined(__powerpc__)
+#define ARCH_NAME	"(__powerpc__)"
+#elif defined(__s390__)
+#define ARCH_NAME	"(__s390__)"
+#elif defined(__sh__)
+#define ARCH_NAME	"(__sh__)"
+#elif defined(__sparc__)
+#define ARCH_NAME	"(__sparc__)"
+#elif defined(__tile__)
+#define ARCH_NAME	"(__tile__)"
+#elif defined(__alpha__)
+#define ARCH_NAME	"(__alpha__)"
+#elif defined(__mips__)
+#define ARCH_NAME	"mips(__mips__)"
+#elif defined(__ia64__)
+#define ARCH_NAME	"(__ia64__)"
+#elif defined(__xtensa__)
+#define ARCH_NAME	"(__xtensa__)"
+#elif defined(__nds32__)
+#define ARCH_NAME	"(__nds32__)"
+#else
+#define ARCH_NAME	"__unknown__"
+#endif
+
 void config_view(void)
 {
-    u8 *arch[] = { "ALL", "X86", "X86_64", "ARM", "ARM64", "RISCV" };
-
     printf("\n");
-    pr_out_view(stack_depth, "%30s : %s\n", arch[CONFIG_RUN_ARCH]);
+    pr_out_view(stack_depth, "%30s : %s\n",	ARCH_NAME);
     pr_out_view(stack_depth, "%30s : %d\n", CONFIG_HZ);
     pr_out_view(stack_depth, "%30s : %d\n", CONFIG_NR_CPUS);
 

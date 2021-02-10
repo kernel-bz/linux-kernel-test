@@ -5,9 +5,7 @@
  *  Lennox Wu <lennox.wu@sunplusct.com>
  * Copyright (C) 2012 Regents of the University of California
  */
-#include "test/config.h"
-#if CONFIG_RUN_ARCH == ARCH_X86 || CONFIG_RUN_ARCH == ARCH_X86_64
-
+#if defined(__i386__) || defined(__x86_64__)
 #include <string.h>
 
 #include "test/debug.h"

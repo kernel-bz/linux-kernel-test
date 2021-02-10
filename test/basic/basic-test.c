@@ -12,7 +12,7 @@
 #include "test/config.h"
 #include "test/debug.h"
 
-#if (CONFIG_RUN_ARCH == ARCH_X86 || CONFIG_RUN_ARCH == ARCH_X86_64)
+#if defined(__i386__) || defined(__x86_64__)
 //arch/x86/include/
 #include <asm/tsc.h>
 

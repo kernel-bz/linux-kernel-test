@@ -39,7 +39,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <urcu.h>
-#include <urcu/urcu-memb.h>
+//#include <urcu/urcu-memb.h>
 
 #include <linux/kernel.h>
 #include <linux/gfp.h>

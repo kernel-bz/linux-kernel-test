@@ -626,7 +626,6 @@ HEADERS += \
     test/algorithm/xarray/xa-test.h \
     include/uapi/asm-generic/int-ll64.h \
     include/asm-generic/int-ll64.h \
-    include/linux/percpu-rwsem.h
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \

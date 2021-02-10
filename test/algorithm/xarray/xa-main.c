@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <urcu.h>
-#include <urcu/urcu-memb.h>
+//#include <urcu/urcu-memb.h>
 
 #include <linux/slab.h>
 #include <linux/radix-tree.h>

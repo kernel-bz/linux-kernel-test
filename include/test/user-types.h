@@ -16,7 +16,14 @@
 #include <uapi/linux/limits.h>
 #include <linux/limits.h>
 
+//include/asm/barrier.h
+
+//usr/include/x86_64-linux-gnu/asm/signal.h
+#include <asm/signal.h>
+
 #include <bits/types/__sigset_t.h>
+//usr/include/aarch64-linux-gnu/bits/types/sigset_t.h
+#include <bits/types/sigset_t.h>
 
 //include/linux/types.h
 /* bsd */
@@ -57,11 +64,6 @@ typedef __kernel_gid16_t        gid16_t;
 typedef __kernel_old_uid_t	old_uid_t;
 typedef __kernel_old_gid_t	old_gid_t;
 #endif /* CONFIG_UID16 */
-
-#if defined(__GNUC__) && !defined(__x86_64__)
-//#ifndef loff_t
-typedef __kernel_loff_t		loff_t;
-#endif
 
 struct kmem_cache;
 struct page;

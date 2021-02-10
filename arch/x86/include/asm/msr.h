@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#include "test/config.h"
-#if CONFIG_RUN_ARCH == ARCH_X86 || CONFIG_RUN_ARCH == ARCH_X86_64
-
+#if defined(__i386__) || defined(__x86_64__)
 #ifndef _ASM_X86_MSR_H
 #define _ASM_X86_MSR_H
 

@@ -4,7 +4,7 @@
  * Author: Konstantin Khlebnikov <koct9i@gmail.com>
  */
 #include <urcu.h>
-#include <urcu/urcu-memb.h>
+//#include <urcu/urcu-memb.h>
 
 #include <linux/radix-tree.h>
 #include <linux/radix-tree-user.h>
