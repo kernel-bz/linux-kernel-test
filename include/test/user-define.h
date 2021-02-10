@@ -35,9 +35,6 @@ extern "C" {
 /* Disable: warning C4127: conditional expression is constant */
 #pragma warning(disable:4127)
 
-//include/linux/sysfs.h
-#define loff_t	__loff_t
-
 //include/linux/compiler.h
 #define notrace
 

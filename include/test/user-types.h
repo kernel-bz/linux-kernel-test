@@ -2,6 +2,10 @@
 #ifndef __TEST_USER_TYPES_H
 #define __TEST_USER_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -25,6 +29,9 @@
 //usr/include/aarch64-linux-gnu/bits/types/sigset_t.h
 #include <bits/types/sigset_t.h>
 #endif
+
+//include/linux/sysfs.h
+#define loff_t	__loff_t
 
 //include/linux/types.h
 /* bsd */
@@ -180,5 +187,9 @@ struct callback_head {
 
 typedef void (*rcu_callback_t)(struct rcu_head *head);
 typedef void (*call_rcu_func_t)(struct rcu_head *head, rcu_callback_t func);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __TEST_USER_TYPES_H */
