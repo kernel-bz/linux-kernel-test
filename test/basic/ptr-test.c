@@ -42,12 +42,21 @@ ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0          [vsyscall]
 #endif
 
 struct sample {
-    char 		a;
-    int 		b;
-    long 		c;
-    long long 	d;
-    char		e;
+    char 		a;		//4( 0)
+    int 		b;		//4( 4)
+    long 		c;		//8( 8)
+    long long 	d;		//8(16)
+    char		e;		//8(24)
 };
+
+struct sample2 {
+    char 		a;		//1( 0)
+    int 		b;		//4( 1)
+    long 		c;		//8( 5)
+    long long 	d;		//8(13)
+    char		e;		//1(21)
+} __packed;
+
 
 struct attr {
     char		*a;
@@ -72,11 +81,19 @@ static void _ptr_offsetof_test(void)
 {
     pr_fn_start(stack_depth);
 
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct sample));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, a));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, b));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, c));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
-    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, e));
+    pr_view(stack_depth, "%30s : %d\n\n", offsetof(struct sample, e));
+
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct sample2));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, a));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, b));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, c));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, d));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, e));
 
     pr_fn_end(stack_depth);
 }
@@ -112,13 +129,13 @@ static void _ptr_attribute_test(void)
     pr_view(stack_depth, "%30s : %p\n", &attr_struct.b);
     pr_view(stack_depth, "%30s : %p\n", &attr_struct.c);
     pr_view(stack_depth, "%30s : %p\n", &attr_struct.d);
-    pr_view(stack_depth, "%30s : %p\n", &attr_struct.e);
+    pr_view(stack_depth, "%30s : %p\n\n", &attr_struct.e);
 
     pr_view(stack_depth, "%30s : %p\n", &attr2_struct.a);
     pr_view(stack_depth, "%30s : %p\n", &attr2_struct.b);
     pr_view(stack_depth, "%30s : %p\n", &attr2_struct.c);
     pr_view(stack_depth, "%30s : %p\n", &attr2_struct.d);
-    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.e);
+    pr_view(stack_depth, "%30s : %p\n\n", &attr2_struct.e);
 
     attr_struct.b = &attr_struct.a;
     pr_view(stack_depth, "%30s : %p\n", attr_struct.b);

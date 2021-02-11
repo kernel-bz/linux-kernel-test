@@ -54,6 +54,7 @@ static void _bitmap_test_02(u32 nbits)
     pr_view_on(stack_depth, "%20s : %u nbits\n", nbits);
     pr_view_on(stack_depth, "%20s : %u array\n", v);
     pr_view_on(stack_depth, "%20s : %u bytes\n", len);
+    pr_view_on(stack_depth, "%20s : %u bytes\n", BITS_PER_BYTE);
     pr_view_on(stack_depth, "%20s : %u bits\n\n", len*BITS_PER_BYTE);
 
     DECLARE_BITMAP(bitv, nbits);
@@ -70,23 +71,23 @@ static void _bitmap_test_02(u32 nbits)
 
 static void _bitmap_test_01()
 {
-    s32 i;
+    u32 i;
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %lu bits\n", BITS_PER_TYPE(char));
-    pr_view_on(stack_depth, "%20s : %lu bits\n", BITS_PER_TYPE(int));
-    pr_view_on(stack_depth, "%20s : %lu bits\n", BITS_PER_TYPE(long));
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(char));
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(int));
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(long));
 
     for (i=0; i<=320; i+=32) {
-        pr_view_on(stack_depth, "%20s : %d\n", i);
-        pr_view_on(stack_depth, "%20s : %llu\n", BITS_TO_LONGS(i));
+        pr_view_on(stack_depth, "%20s : %u\n", i);
+        pr_view_on(stack_depth, "%20s : %u\n", BITS_TO_LONGS(i));
     }
 
     //include/linux/types.h
     //include/linux/bitmap.h
     DECLARE_BITMAP(bitv, 300);
-    pr_view_on(stack_depth, "%30s : %d\n",  sizeof(bitv));
-    pr_view_on(stack_depth, "%30s : %lu\n",  sizeof(bitv) * BITS_PER_BYTE);
+    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv));
+    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv) * BITS_PER_BYTE);
 
     pr_fn_end_on(stack_depth);
 }

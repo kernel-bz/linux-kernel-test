@@ -13,14 +13,14 @@
 #include "test/debug.h"
 #include "test/basic.h"
 
-struct test_head {
-    struct test_head *next, *prev;
+struct _list_head {
+    struct _list_head *next, *prev;
 };
 
 struct test_set {
     int					id;
     struct test_set		*next;
-    struct list_head	list;
+    struct _list_head	list;
 };
 
 typedef struct test_span { unsigned long value; } test_span_t;
