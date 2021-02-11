@@ -1568,28 +1568,28 @@ static inline void set_task_rq(struct task_struct *p, unsigned int cpu)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%30s: %d\n", cpu);
+    pr_view_on(stack_depth, "%30s: %d\n", cpu);
 
 #if defined(CONFIG_FAIR_GROUP_SCHED) || defined(CONFIG_RT_GROUP_SCHED)
     struct task_group *tg = task_group(p);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg);
 #endif
 
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)&p->se);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->se[cpu]);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)&p->se);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->se[cpu]);
 
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
     set_task_rq_fair(&p->se, p->se.cfs_rq, tg->cfs_rq[cpu]);
     p->se.cfs_rq = tg->cfs_rq[cpu];
     p->se.parent = tg->se[cpu];
 #endif
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq->curr);
-    pr_info_view_on(stack_depth, "%30s: %p\n", (void*)p->se.parent);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq->curr);
+    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.parent);
 
 #ifdef CONFIG_RT_GROUP_SCHED
 	p->rt.rt_rq  = tg->rt_rq[cpu];
@@ -1629,8 +1629,8 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 	p->wake_cpu = cpu;
 #endif
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", p->cpu);
-    pr_info_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
 
     pr_fn_end_on(stack_depth);
 }
@@ -2022,10 +2022,10 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 
 	rq->nr_running = prev_nr + count;
 
-    pr_info_view_on(stack_depth, "%20s : %u\n", prev_nr);
-    pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%20s : %p\n", rq->rd);
-    pr_info_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
+    pr_view_on(stack_depth, "%20s : %u\n", prev_nr);
+    pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->rd);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
 
 #ifdef CONFIG_SMP
 	if (prev_nr < 2 && rq->nr_running >= 2) {
@@ -2034,7 +2034,7 @@ static inline void add_nr_running(struct rq *rq, unsigned count)
 	}
 #endif
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->rd->overload);
 
     sched_update_tick_dependency(rq);
 

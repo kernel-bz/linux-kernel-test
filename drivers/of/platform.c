@@ -84,7 +84,7 @@ static void of_device_make_bus_id(struct device *dev)
 	const __be32 *reg;
 	u64 addr;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", node);
+    pr_view_on(stack_depth, "%20s : %p\n", node);
 
 	/* Construct the name, using parent nodes if necessary to ensure uniqueness */
 	while (node->parent) {
@@ -94,7 +94,7 @@ static void of_device_make_bus_id(struct device *dev)
 		 */
 		reg = of_get_property(node, "reg", NULL);
 
-        pr_info_view_on(stack_depth, "%20s : <0x%x>\n", reg);
+        pr_view_on(stack_depth, "%20s : <0x%x>\n", reg);
 
 		if (reg && (addr = of_translate_address(node, reg)) != OF_BAD_ADDR) {
 			dev_set_name(dev, dev_name(dev) ? "%llx.%pOFn:%s" : "%llx.%pOFn",
@@ -102,8 +102,8 @@ static void of_device_make_bus_id(struct device *dev)
 			return;
 		}
 
-        pr_info_view_on(stack_depth, "%20s : %s\n", node->full_name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", dev_name(dev));
+        pr_view_on(stack_depth, "%20s : %s\n", node->full_name);
+        pr_view_on(stack_depth, "%20s : %s\n", dev_name(dev));
 
         /* format arguments only used if dev_name() resolves to NULL */
 		dev_set_name(dev, dev_name(dev) ? "%s:%s" : "%s",
@@ -138,8 +138,8 @@ struct platform_device *of_device_alloc(struct device_node *np,
 		num_reg++;
 	num_irq = of_irq_count(np);
 
-    pr_info_view_on(stack_depth, "%10s : %d\n", num_reg);
-    pr_info_view_on(stack_depth, "%10s : %d\n", num_irq);
+    pr_view_on(stack_depth, "%10s : %d\n", num_reg);
+    pr_view_on(stack_depth, "%10s : %d\n", num_irq);
 
 	/* Populate the resource table */
 	if (num_irq || num_reg) {
@@ -164,7 +164,7 @@ struct platform_device *of_device_alloc(struct device_node *np,
 	dev->dev.fwnode = &np->fwnode;
 	dev->dev.parent = parent ? : &platform_bus;
 
-    pr_info_view_on(stack_depth, "%10s : %s\n", bus_id);
+    pr_view_on(stack_depth, "%10s : %s\n", bus_id);
 
     if (bus_id)
 		dev_set_name(&dev->dev, "%s", bus_id);
@@ -514,7 +514,7 @@ int of_platform_populate(struct device_node *root,
 	pr_debug(" starting at: %pOF\n", root);
 
 	for_each_child_of_node(root, child) {
-        pr_info_view_on(stack_depth, "%20s : %s\n", child->name);
+        pr_view_on(stack_depth, "%20s : %s\n", child->name);
 
 		rc = of_platform_bus_create(child, matches, lookup, parent, true);
 		if (rc) {

@@ -473,7 +473,7 @@ u64 sched_clock_cpu(int cpu)
     static u64 test_tick_clock = 0;
 
     test_tick_clock += (1000000000UL / HZ);	//++10ms --> ns
-    pr_info_view_on(stack_depth, "%20s : %llu\n", test_tick_clock);
+    pr_view_on(stack_depth, "%20s : %llu\n", test_tick_clock);
 
     return test_tick_clock;
     //return 0;

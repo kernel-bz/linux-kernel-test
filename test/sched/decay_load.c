@@ -29,8 +29,8 @@ static u64 decay_load(u64 val, u64 n)
         unsigned int local_n;
 
         pr_fn_start_on(stack_depth);
-        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
-        pr_info_view_on(stack_depth, "%10s : %llu\n", n);
+        pr_view_on(stack_depth, "%10s : %llu\n", val);
+        pr_view_on(stack_depth, "%10s : %llu\n", n);
 
         if (n > LOAD_AVG_PERIOD * 63)
                 return 0;
@@ -50,18 +50,18 @@ static u64 decay_load(u64 val, u64 n)
                 local_n %= LOAD_AVG_PERIOD;
         }
 
-        pr_info_view_on(stack_depth, "%10s : %u\n", local_n);
-        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
+        pr_view_on(stack_depth, "%10s : %u\n", local_n);
+        pr_view_on(stack_depth, "%10s : %llu\n", val);
 
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
 
         u64 shift = (u64)1 << LOAD_AVG_PERIOD;
         double decay_rate = (double)runnable_avg_yN_inv[local_n] / (double)shift;
 
-        pr_info_view_on(stack_depth, "%10s : %llu\n", val);
-        pr_info_view_on(stack_depth, "%30s : %u\n", runnable_avg_yN_inv[local_n]);
-        pr_info_view_on(stack_depth, "%30s : %llu\n", shift);
-        pr_info_view_on(stack_depth, "%30s : %lf\n", decay_rate);
+        pr_view_on(stack_depth, "%10s : %llu\n", val);
+        pr_view_on(stack_depth, "%30s : %u\n", runnable_avg_yN_inv[local_n]);
+        pr_view_on(stack_depth, "%30s : %llu\n", shift);
+        pr_view_on(stack_depth, "%30s : %lf\n", decay_rate);
 
         pr_fn_end_on(stack_depth);
 

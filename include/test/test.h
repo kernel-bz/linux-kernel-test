@@ -22,7 +22,7 @@ void menu_drivers(void);
 
 //test/config/
 void config_view(void);
-void config_set_debug_level(void);
+void config_set_debug(void);
 
 //test/algorithm
 void list_test01(void);

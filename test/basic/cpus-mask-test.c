@@ -23,18 +23,18 @@
 
 static void _cpus_mask_info(void)
 {
-    pr_out_view(stack_depth, "%20s : %3d\n", __CHAR_BIT__);
-    pr_out_view(stack_depth, "%20s : %3d\n", __SIZEOF_LONG__);
-    pr_out_view(stack_depth, "%20s : %3d\n", BITS_PER_LONG);
-    pr_out_view(stack_depth, "%20s : %3d\n", BITS_PER_LONG_LONG);
-    pr_out_view(stack_depth, "%20s : %3d\n", nr_cpu_ids);
-    pr_out_view(stack_depth, "%20s : %3d\n", nr_cpumask_bits);
+    pr_view(stack_depth, "%20s : %3d\n", __CHAR_BIT__);
+    pr_view(stack_depth, "%20s : %3d\n", __SIZEOF_LONG__);
+    pr_view(stack_depth, "%20s : %3d\n", BITS_PER_LONG);
+    pr_view(stack_depth, "%20s : %3d\n", BITS_PER_LONG_LONG);
+    pr_view(stack_depth, "%20s : %3d\n", nr_cpu_ids);
+    pr_view(stack_depth, "%20s : %3d\n", nr_cpumask_bits);
 
     //reset_cpu_possible_mask();
-    pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
-    pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_present_mask.bits[0]);
-    pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_online_mask.bits[0]);
-    pr_out_view(stack_depth, "%30s : 0x%X\n", __cpu_active_mask.bits[0]);
+    pr_view(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+    pr_view(stack_depth, "%30s : 0x%X\n", __cpu_present_mask.bits[0]);
+    pr_view(stack_depth, "%30s : 0x%X\n", __cpu_online_mask.bits[0]);
+    pr_view(stack_depth, "%30s : 0x%X\n", __cpu_active_mask.bits[0]);
     printf("\n");
 }
 

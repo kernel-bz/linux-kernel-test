@@ -1347,9 +1347,9 @@ static void inc_dl_deadline(struct dl_rq *dl_rq, u64 deadline)
 
 	struct rq *rq = rq_of_dl_rq(dl_rq);
 
-    pr_info_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", deadline);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", dl_rq->earliest_dl.curr);
+    pr_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
+    pr_view_on(stack_depth, "%30s : %llu\n", deadline);
+    pr_view_on(stack_depth, "%30s : %llu\n", dl_rq->earliest_dl.curr);
 
 	if (dl_rq->earliest_dl.curr == 0 ||
 	    dl_time_before(deadline, dl_rq->earliest_dl.curr)) {
@@ -1397,16 +1397,16 @@ void inc_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 	int prio = dl_task_of(dl_se)->prio;
 	u64 deadline = dl_se->deadline;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)dl_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)dl_se);
-    pr_info_view_on(stack_depth, "%30s : %d\n", prio);
-    pr_info_view_on(stack_depth, "%30s : %llu\n", deadline);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)dl_rq);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)dl_se);
+    pr_view_on(stack_depth, "%30s : %d\n", prio);
+    pr_view_on(stack_depth, "%30s : %llu\n", deadline);
 
     WARN_ON(!dl_prio(prio));
 	dl_rq->dl_nr_running++;
     add_nr_running(rq_of_dl_rq(dl_rq), 1);
 
-    pr_info_view_on(stack_depth, "%30s : %lu\n", dl_rq->dl_nr_running);
+    pr_view_on(stack_depth, "%30s : %lu\n", dl_rq->dl_nr_running);
 
 	inc_dl_deadline(dl_rq, deadline);
 	inc_dl_migration(dl_se, dl_rq);
@@ -1438,7 +1438,7 @@ static void __enqueue_dl_entity(struct sched_dl_entity *dl_se)
 	struct sched_dl_entity *entry;
 	int leftmost = 1;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)dl_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)dl_rq);
 
 	BUG_ON(!RB_EMPTY_NODE(&dl_se->rb_node));
 
@@ -1453,7 +1453,7 @@ static void __enqueue_dl_entity(struct sched_dl_entity *dl_se)
 		}
 	}
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", leftmost);
+    pr_view_on(stack_depth, "%20s : %d\n", leftmost);
 
 	rb_link_node(&dl_se->rb_node, parent, link);
 	rb_insert_color_cached(&dl_se->rb_node, &dl_rq->root, leftmost);
@@ -1481,7 +1481,7 @@ enqueue_dl_entity(struct sched_dl_entity *dl_se,
 		  struct sched_dl_entity *pi_se, int flags)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", flags);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", flags);
 
 	BUG_ON(on_dl_rq(dl_se));
 
@@ -1573,8 +1573,8 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 		return;
 	}
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&p->dl);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)pi_se);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)&p->dl);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)pi_se);
 
 	enqueue_dl_entity(&p->dl, pi_se, flags);
 

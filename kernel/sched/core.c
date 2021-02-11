@@ -191,7 +191,7 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 
     rq->clock_task += delta;
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
 
 #ifdef CONFIG_HAVE_SCHED_AVG_IRQ
     if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
@@ -219,20 +219,20 @@ void update_rq_clock(struct rq *rq)
     rq->clock_update_flags |= RQCF_UPDATED;
 #endif
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
 
     delta = sched_clock_cpu(cpu_of(rq)) - rq->clock;
 
-    pr_info_view_on(stack_depth, "%20s : %lld\n", delta);
+    pr_view_on(stack_depth, "%20s : %lld\n", delta);
 
     if (delta < 0)
         return;
     rq->clock += delta;
     update_rq_clock_task(rq, delta);
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock);
     pr_fn_end_on(stack_depth);
 }
 //220 lines
@@ -253,7 +253,7 @@ void resched_curr(struct rq *rq)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     struct task_struct *curr = rq->curr;
     int cpu;
@@ -265,7 +265,7 @@ void resched_curr(struct rq *rq)
 
     cpu = cpu_of(rq);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
 
     if (cpu == smp_processor_id()) {
         set_tsk_need_resched(curr);
@@ -375,11 +375,11 @@ static void set_load_weight(struct task_struct *p, bool update_load)
         p->se.runnable_weight = load->weight;
     }
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", prio);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&p->se.load);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", load->weight);
-    pr_info_view_on(stack_depth, "%30s : %u\n", load->inv_weight);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", p->se.runnable_weight);
+    pr_view_on(stack_depth, "%30s : %d\n", prio);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)&p->se.load);
+    pr_view_on(stack_depth, "%30s : %lu\n", load->weight);
+    pr_view_on(stack_depth, "%30s : %u\n", load->inv_weight);
+    pr_view_on(stack_depth, "%30s : %lu\n", p->se.runnable_weight);
 
     pr_fn_end_on(stack_depth);
 }
@@ -901,7 +901,7 @@ static inline void init_uclamp(void) { }
 static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%10s : 0x%X\n", flags);
+    pr_view_on(stack_depth, "%10s : 0x%X\n", flags);
 
     if (!(flags & ENQUEUE_NOCLOCK))
         update_rq_clock(rq);
@@ -920,9 +920,9 @@ static inline void enqueue_task(struct rq *rq, struct task_struct *p, int flags)
 static inline void dequeue_task(struct rq *rq, struct task_struct *p, int flags)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", flags);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", flags);
 
     if (!(flags & DEQUEUE_NOCLOCK))
         update_rq_clock(rq);
@@ -945,8 +945,8 @@ void activate_task(struct rq *rq, struct task_struct *p, int flags)
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible--;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
 
     enqueue_task(rq, p, flags);
 
@@ -959,12 +959,12 @@ void deactivate_task(struct rq *rq, struct task_struct *p, int flags)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", flags);
+    pr_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", flags);
 
     p->on_rq = (flags & DEQUEUE_SLEEP) ? 0 : TASK_ON_RQ_MIGRATING;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
+    pr_view_on(stack_depth, "%20s : %d\n",  p->on_rq);
 
     if (task_contributes_to_load(p))
         rq->nr_uninterruptible++;
@@ -1045,10 +1045,10 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
                        int oldprio)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev_class);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p->sched_class);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)prev_class);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)p->sched_class);
 
     if (prev_class != p->sched_class) {
         if (prev_class->switched_from)
@@ -1067,7 +1067,7 @@ void check_preempt_curr(struct rq *rq, struct task_struct *p, int flags)
 
     const struct sched_class *class;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
     if (!rq->curr) {
         pr_err("rq->curr is NULL.\n");
         return;
@@ -1545,7 +1545,7 @@ int select_task_rq(struct task_struct *p, int cpu, int sd_flags, int wake_flags)
     if (unlikely(!is_cpu_allowed(p, cpu)))
         cpu = select_fallback_rq(task_cpu(p), p);
 
-    pr_info_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
+    pr_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
 
     pr_fn_end_on(stack_depth);
     return cpu;
@@ -1878,8 +1878,8 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
     unsigned long flags;
     int cpu, success = 0;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", p);
-    pr_info_view_on(stack_depth, "%20s : %p\n", current);
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %p\n", current);
 
     preempt_disable();
     if (p == current) {
@@ -1914,11 +1914,11 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
     raw_spin_lock_irqsave(&p->pi_lock, flags);
     //smp_mb__after_spinlock();
 
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", p->state);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", p->state);
     p->state = TASK_INTERRUPTIBLE;		//as test
     //p->on_rq = TASK_ON_RQ_MIGRATING;	//as test
     p->on_rq = 0;	//as test
-    pr_info_view_on(stack_depth, "%20s : 0x%X\n", state);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", state);
 
     if (!(p->state & state))
         goto unlock;
@@ -1994,13 +1994,13 @@ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
         atomic_dec(&task_rq(p)->nr_iowait);
     }
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
 
     cpu = select_task_rq(p, p->wake_cpu, SD_BALANCE_WAKE, wake_flags);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%20s : %d(selected)\n", cpu);
 
     if (task_cpu(p) != cpu) {
         wake_flags |= WF_MIGRATED;
@@ -2232,9 +2232,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
         p->sched_reset_on_fork = 0;
     }
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->static_prio);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->rt_priority);
+    pr_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_view_on(stack_depth, "%30s : %d\n", p->static_prio);
+    pr_view_on(stack_depth, "%30s : %d\n", p->rt_priority);
 
     if (dl_prio(p->prio))
         return -EAGAIN;
@@ -2243,7 +2243,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     else
         p->sched_class = &fair_sched_class;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", &p->se);
+    pr_view_on(stack_depth, "%30s : %p\n", &p->se);
 
     init_entity_runnable_average(&p->se);
 
@@ -2262,9 +2262,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
     //__set_task_cpu(p, smp_processor_id());
     __set_task_cpu(p, p->cpu);	//task cpu for test
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_fork);
-    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq->curr);
+    pr_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_fork);
+    pr_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
+    pr_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq->curr);
 
     if (p->sched_class->task_fork)
         p->sched_class->task_fork(p);
@@ -2318,8 +2318,8 @@ void wake_up_new_task(struct task_struct *p)
 
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
-    pr_info_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%20s : %d\n", p->cpu);
 
     raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
     p->state = TASK_RUNNING;
@@ -2338,21 +2338,21 @@ void wake_up_new_task(struct task_struct *p)
     rq = __task_rq_lock(p, &rf);
     rq->cpu = p->cpu;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
     update_rq_clock(rq);
     post_init_entity_util_avg(p);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
 
     activate_task(rq, p, ENQUEUE_NOCLOCK);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     //trace_sched_wakeup_new(p);
     if (!rq->curr) {
@@ -2633,9 +2633,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
 
     prepare_task_switch(rq, prev, next);
 
@@ -2688,9 +2688,9 @@ context_switch(struct rq *rq, struct task_struct *prev,
     switch_to(prev, next, prev);
     barrier();
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
 
     pr_fn_end_on(stack_depth);
 
@@ -2842,9 +2842,9 @@ void scheduler_tick(void)
     struct task_struct *curr = rq->curr;
     struct rq_flags rf;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)cpu_rq(cpu));
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)cpu_rq(cpu));
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     sched_clock_tick();
 
@@ -2956,8 +2956,8 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
     const struct sched_class *class;
     struct task_struct *p;
 
-    pr_info_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
-    pr_info_view_on(stack_depth, "%20s : %u\n", rq->cfs.h_nr_running);
+    pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+    pr_view_on(stack_depth, "%20s : %u\n", rq->cfs.h_nr_running);
 
     /*
      * Optimization: we know that if all tasks are in the fair class we can
@@ -2977,7 +2977,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
         if (unlikely(!p))
             p = idle_sched_class.pick_next_task(rq, prev, rf);
 
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
         pr_fn_end_on(stack_depth);
         return p;
     }
@@ -3004,7 +3004,7 @@ restart:
     for_each_class(class) {
         p = class->pick_next_task(rq, NULL, NULL);
         if (p) {
-            pr_info_view_on(stack_depth, "%20s : %p\n", (void*)p);
+            pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
             return p;
         }
     }
@@ -3066,11 +3066,11 @@ static void __sched notrace __schedule(bool preempt)
     rq = cpu_rq(cpu);
     prev = rq->curr;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
-    pr_info_view_on(stack_depth, "%20s : %ld\n", prev->state);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_view_on(stack_depth, "%20s : %ld\n", prev->state);
 
     schedule_debug(prev, preempt);
 
@@ -3110,14 +3110,14 @@ static void __sched notrace __schedule(bool preempt)
         switch_count = &prev->nvcsw;
     }
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", *switch_count);
+    pr_view_on(stack_depth, "%20s : %lu\n", *switch_count);
 
     next = pick_next_task(rq, prev, &rf);
     clear_tsk_need_resched(prev);
     //clear_preempt_need_resched();
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)prev);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)next);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
 
     if (likely(prev != next)) {
         rq->nr_switches++;
@@ -3153,7 +3153,7 @@ static void __sched notrace __schedule(bool preempt)
 
     balance_callback(rq);
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", *switch_count);
+    pr_view_on(stack_depth, "%20s : %lu\n", *switch_count);
 
     pr_fn_end_on(stack_depth);
 }
@@ -3217,8 +3217,8 @@ asmlinkage __visible void __sched schedule(void)
     //struct task_struct *tsk = current;
     struct task_struct *tsk = current_task;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
 
     sched_submit_work(tsk);
     do {
@@ -3228,8 +3228,8 @@ asmlinkage __visible void __sched schedule(void)
     } while (need_resched());
     sched_update_worker(tsk);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
 
     pr_fn_end_on(stack_depth);
 }
@@ -3678,8 +3678,8 @@ static int __sched_setscheduler(struct task_struct *p,
     int queue_flags = DEQUEUE_SAVE | DEQUEUE_MOVE | DEQUEUE_NOCLOCK;
     struct rq *rq;
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", newprio);
-    pr_info_view_on(stack_depth, "%30s : %d\n", policy);
+    pr_view_on(stack_depth, "%30s : %d\n", newprio);
+    pr_view_on(stack_depth, "%30s : %d\n", policy);
 
     /* The pi code expects interrupts enabled */
     //BUG_ON(pi && in_interrupt());
@@ -3710,8 +3710,8 @@ recheck:
         (rt_policy(policy) != (attr->sched_priority != 0)))
         return -EINVAL;
 
-    pr_info_view_on(stack_depth, "%30s : %u\n", attr->sched_priority);
-    pr_info_view_on(stack_depth, "%30s : %d\n", attr->sched_nice);
+    pr_view_on(stack_depth, "%30s : %u\n", attr->sched_priority);
+    pr_view_on(stack_depth, "%30s : %d\n", attr->sched_nice);
 
     /*
      * Allow unprivileged RT tasks to decrease priority:
@@ -3728,7 +3728,7 @@ recheck:
             unsigned long rlim_rtprio =
                     task_rlimit(p, RLIMIT_RTPRIO);
 
-            pr_info_view_on(stack_depth, "%30s : %lu\n", rlim_rtprio);
+            pr_view_on(stack_depth, "%30s : %lu\n", rlim_rtprio);
 
             /* Can't set/change the rt policy: */
             if (policy != p->policy && !rlim_rtprio)
@@ -3795,7 +3795,7 @@ recheck:
      */
     rq = task_rq_lock(p, &rf);
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", rq);
+    pr_view_on(stack_depth, "%30s : %p\n", rq);
 
     update_rq_clock(rq);
 
@@ -3859,8 +3859,8 @@ change:
 #endif
     }
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", oldpolicy);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->policy);
+    pr_view_on(stack_depth, "%30s : %d\n", oldpolicy);
+    pr_view_on(stack_depth, "%30s : %d\n", p->policy);
 
     /* Re-check policy now with rq lock held: */
     if (unlikely(oldpolicy != -1 && oldpolicy != p->policy)) {
@@ -3900,8 +3900,8 @@ change:
     queued = task_on_rq_queued(p);
     running = task_current(rq, p);
 
-    pr_info_view_on(stack_depth, "%30s : %d\n", queued);
-    pr_info_view_on(stack_depth, "%30s : %d\n", running);
+    pr_view_on(stack_depth, "%30s : %d\n", queued);
+    pr_view_on(stack_depth, "%30s : %d\n", running);
 
     if (queued)
         dequeue_task(rq, p, queue_flags);
@@ -3971,11 +3971,11 @@ static int _sched_setscheduler(struct task_struct *p, int policy,
         attr.sched_policy = policy;
     }
 
-    pr_info_view_on(stack_depth, "%20s : %u\n", attr.sched_policy);
-    pr_info_view_on(stack_depth, "%20s : %u\n", attr.sched_priority);
-    pr_info_view_on(stack_depth, "%20s : %d\n", p->static_prio);
-    pr_info_view_on(stack_depth, "%20s : %d\n", attr.sched_nice);
-    pr_info_view_on(stack_depth, "%20s : 0x%llX\n", attr.sched_flags);
+    pr_view_on(stack_depth, "%20s : %u\n", attr.sched_policy);
+    pr_view_on(stack_depth, "%20s : %u\n", attr.sched_priority);
+    pr_view_on(stack_depth, "%20s : %d\n", p->static_prio);
+    pr_view_on(stack_depth, "%20s : %d\n", attr.sched_nice);
+    pr_view_on(stack_depth, "%20s : 0x%llX\n", attr.sched_flags);
 
     return __sched_setscheduler(p, &attr, check, true);
 
@@ -4135,7 +4135,7 @@ void set_rq_online(struct rq *rq)
         }
     }
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", rq->online);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->online);
 
     pr_fn_end_on(stack_depth);
 }
@@ -4403,30 +4403,30 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
-        pr_info_view_on(stack_depth, "%30s : %lu\n", ptr);
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
+        pr_view_on(stack_depth, "%30s : %lu\n", ptr);
+        pr_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
         if (ptr) {
                 ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)ptr);
+                pr_view_on(stack_depth, "%30s : %p\n", (void*)ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.se);
+                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.cfs_rq);
+                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_se);
+                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_se);
 
                 root_task_group.rt_rq = (struct rt_rq **)ptr;
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_info_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_rq);
+                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_rq);
 
 #endif /* CONFIG_RT_GROUP_SCHED */
         }
@@ -4460,19 +4460,19 @@ void __init sched_init(void)
         autogroup_init(&init_task);
 #endif /* CONFIG_CGROUP_SCHED */
 
-        pr_info_view_on(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
-        pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&runqueues);
+        pr_view_on(stack_depth, "%30s : 0x%X\n", __cpu_possible_mask.bits[0]);
+        pr_view_on(stack_depth, "%30s : %p\n", (void*)&runqueues);
 
         for_each_possible_cpu(i) {
             struct rq *rq;
             rq = cpu_rq(i);
 
-            pr_info_view_on(stack_depth, "%30s : %d\n", i);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-            pr_info_view_on(stack_depth, "%30s : %llu\n", rq->clock);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->rt);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->dl);
+            pr_view_on(stack_depth, "%30s : %d\n", i);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+            pr_view_on(stack_depth, "%30s : %llu\n", rq->clock);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->rt);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->dl);
             //pr_sched_avg_info(&rq->cfs.avg);
 
             raw_spin_lock_init(&rq->lock);
@@ -4486,8 +4486,8 @@ void __init sched_init(void)
             root_task_group.shares = ROOT_TASK_GROUP_LOAD;	//1024
             INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
             rq->tmp_alone_branch = &rq->leaf_cfs_rq_list;
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)&rq->leaf_cfs_rq_list);
-            pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->leaf_cfs_rq_list);
+            pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
             /*
              * How much CPU bandwidth does root_task_group get?
              *
@@ -4559,8 +4559,8 @@ void __init sched_init(void)
         //init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
-        pr_info_view_on(stack_depth, "%30s : %lu\n", jiffies);
-        pr_info_view_on(stack_depth, "%30s : %lu\n", calc_load_update);
+        pr_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_view_on(stack_depth, "%30s : %lu\n", calc_load_update);
 
     #ifdef CONFIG_SMP
         //idle_thread_set_boot_cpu();
@@ -4619,13 +4619,13 @@ struct task_group *sched_create_group(struct task_group *parent)
     struct task_group *tg;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
     tg = kmem_cache_alloc(task_group_cache, GFP_KERNEL | __GFP_ZERO);
     if (!tg)
         return ERR_PTR(-ENOMEM);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tg);
     if (!alloc_fair_sched_group(tg, parent))
         goto err;
 

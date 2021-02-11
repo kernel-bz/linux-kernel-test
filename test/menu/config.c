@@ -55,7 +55,7 @@ void menu_config(void)
 {
     void (*fn[])(void) = { _config_setting_help
         , config_view
-        , config_set_debug_level
+        , config_set_debug
         , dtb_set_file_name
         , _config_setting_help
     };

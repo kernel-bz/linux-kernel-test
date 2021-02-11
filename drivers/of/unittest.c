@@ -58,7 +58,7 @@ static void __init of_unittest_find_node_by_name(void)
 
         np = of_find_node_by_path("/testcase-data");
         //name = kasprintf(GFP_KERNEL, "%pOF", np);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np && !strcmp("testcase-data", np->name),
                 "find /testcase-data failed\n");
         of_node_put(np);
@@ -66,12 +66,12 @@ static void __init of_unittest_find_node_by_name(void)
 
         /* Test if trailing '/' works */
         np = of_find_node_by_path("/testcase-data/");
-        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        //pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "trailing '/' on /testcase-data/ should fail\n");
 
         np = of_find_node_by_path("/testcase-data/phandle-tests/consumer-a");
         //name = kasprintf(GFP_KERNEL, "%pOF", np);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np && !strcmp("consumer-a", np->name),
                 "find /testcase-data/phandle-tests/consumer-a failed\n");
         of_node_put(np);
@@ -79,7 +79,7 @@ static void __init of_unittest_find_node_by_name(void)
 
         np = of_find_node_by_path("testcase-alias");
         //name = kasprintf(GFP_KERNEL, "%pOF", np);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np && !strcmp("testcase-data", np->name),
                 "find testcase-alias failed\n");
         of_node_put(np);
@@ -87,80 +87,80 @@ static void __init of_unittest_find_node_by_name(void)
 
         /* Test if trailing '/' works on aliases */
         np = of_find_node_by_path("testcase-alias/");
-        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        //pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "trailing '/' on testcase-alias/ should fail\n");
 
         np = of_find_node_by_path("testcase-alias/phandle-tests/consumer-a");
         //name = kasprintf(GFP_KERNEL, "%pOF", np);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np && !strcmp("consumer-a", np->name),
                 "find testcase-alias/phandle-tests/consumer-a failed\n");
         of_node_put(np);
         //kfree(name);
 
         np = of_find_node_by_path("/testcase-data/missing-path");
-        //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        //pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(!np, "non-existent path returned node %pOF\n", np);
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:testoption", &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("testoption", options),
                  "option path test failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:test/option", &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("test/option", options),
                  "option path test, subcase #1 failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data/testcase-device1:test/option", &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("test/option", options),
                  "option path test, subcase #2 failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("/testcase-data:testoption", NULL);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np, "NULL option path test failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("testcase-alias:testaliasoption",
                                        &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", options);
         unittest(np && !strcmp("testaliasoption", options),
                  "option alias path test failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("testcase-alias:test/alias/option",
                                        &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n",options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n",options);
         unittest(np && !strcmp("test/alias/option", options),
                  "option alias path test, subcase #1 failed\n");
         of_node_put(np);
 
         np = of_find_node_opts_by_path("testcase-alias:testaliasoption", NULL);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
         unittest(np, "NULL option alias path test failed\n");
         of_node_put(np);
 
         options = "testoption";
         np = of_find_node_opts_by_path("testcase-alias", &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n",options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n",options);
         unittest(np && !options, "option clearing test failed\n");
         of_node_put(np);
 
         options = "testoption";
         np = of_find_node_opts_by_path("/", &options);
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n",options);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n",options);
         unittest(np && !options, "option clearing root node test failed\n");
         of_node_put(np);
 
@@ -269,7 +269,7 @@ static void __init of_unittest_check_tree_linkage(void)
                 return;
 
         for_each_of_allnodes(np) {
-            pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+            pr_view_on(stack_depth, "%20s : %s\n", np->name);
             for_each_property_of_node(np, pp) {
                 if (strlen((char*)pp->value)+1 == pp->length)
                     pr_out_on(stack_depth, "%30s = \"%s\", %d\n"
@@ -284,8 +284,8 @@ static void __init of_unittest_check_tree_linkage(void)
         }
         child_count = of_unittest_check_node_linkage(of_root);
 
-        pr_info_view_on(stack_depth, "%20s : %d\n", allnode_count);
-        pr_info_view_on(stack_depth, "%20s : %d\n", child_count);
+        pr_view_on(stack_depth, "%20s : %d\n", allnode_count);
+        pr_view_on(stack_depth, "%20s : %d\n", child_count);
 
         unittest(child_count > 0, "Device node data structure is corrupted\n");
         unittest(child_count == allnode_count,
@@ -1028,7 +1028,7 @@ static void __init of_unittest_match_node(void)
 			continue;
 		}
 
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
 
 		match = of_match_node(match_node_table, np);
 		if (!match) {
@@ -1037,10 +1037,10 @@ static void __init of_unittest_match_node(void)
 			continue;
 		}
 
-        pr_info_view_on(stack_depth, "%20s : %s\n", match->name);
-        pr_info_view_on(stack_depth, "%20s : %s\n", match->type);
-        pr_info_view_on(stack_depth, "%20s : %s\n", match->compatible);
-        pr_info_view_on(stack_depth, "%20s : %s\n", match->data);
+        pr_view_on(stack_depth, "%20s : %s\n", match->name);
+        pr_view_on(stack_depth, "%20s : %s\n", match->type);
+        pr_view_on(stack_depth, "%20s : %s\n", match->compatible);
+        pr_view_on(stack_depth, "%20s : %s\n", match->data);
 
 		if (strcmp(match->data, match_node_tests[i].data) != 0) {
 			unittest(0, "%s got wrong match. expected %s, got %s\n",
@@ -1076,8 +1076,8 @@ static void __init of_unittest_platform_populate(void)
 
 #if 0
 	np = of_find_node_by_path("/testcase-data");
-    pr_info_view_on(stack_depth, "%20s : %p\n", np);
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+    pr_view_on(stack_depth, "%20s : %p\n", np);
+    pr_view_on(stack_depth, "%20s : %s\n", np->name);
 
     of_platform_default_populate(np, NULL, NULL);
 
@@ -1087,10 +1087,10 @@ static void __init of_unittest_platform_populate(void)
 #if 1
 	/* Test that a missing irq domain returns -EPROBE_DEFER */
     np = of_find_node_by_path("/testcase-data/testcase-device1");
-    pr_info_view_on(stack_depth, "%20s : %p\n", np);
+    pr_view_on(stack_depth, "%20s : %p\n", np);
 
     if (np) {
-        pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+        pr_view_on(stack_depth, "%20s : %s\n", np->name);
 
         pdev = of_find_device_by_node(np);
         unittest(pdev, "device 1 creation failed\n");
@@ -1116,15 +1116,15 @@ static void __init of_unittest_platform_populate(void)
 #endif
 
     np = of_find_node_by_path("/testcase-data/platform-tests");
-    pr_info_view_on(stack_depth, "%20s : %p\n", np);
-    //pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+    pr_view_on(stack_depth, "%20s : %p\n", np);
+    //pr_view_on(stack_depth, "%20s : %s\n", np->name);
 
     unittest(np, "No testcase data in device tree\n");
 	if (!np)
 		return;
 
     test_bus = platform_device_register_full(&test_bus_info);
-    pr_info_view_on(stack_depth, "%20s : %p\n", test_bus);
+    pr_view_on(stack_depth, "%20s : %p\n", test_bus);
 
     rc = PTR_ERR_OR_ZERO(test_bus);
 	unittest(!rc, "testbus registration failed; rc=%i\n", rc);
@@ -1308,16 +1308,16 @@ static int __init unittest_data_add(void)
                 return -EINVAL;
         }
 
-        pr_info_view_on(stack_depth, "%20s : %p\n", of_root);
+        pr_view_on(stack_depth, "%20s : %p\n", of_root);
         if (!of_root) {
             of_root = unittest_data_node;
-            pr_info_view_on(stack_depth, "%20s : %p\n", of_root);
+            pr_view_on(stack_depth, "%20s : %p\n", of_root);
             for_each_of_allnodes(np)
                 __of_attach_node_sysfs(np);
             of_aliases = of_find_node_by_path("/aliases");
-            pr_info_view_on(stack_depth, "%20s : %p\n", of_aliases);
+            pr_view_on(stack_depth, "%20s : %p\n", of_aliases);
             of_chosen = of_find_node_by_path("/chosen");
-            pr_info_view_on(stack_depth, "%20s : %p\n", of_chosen);
+            pr_view_on(stack_depth, "%20s : %p\n", of_chosen);
             of_overlay_mutex_unlock();
             return 0;
         }
@@ -1327,7 +1327,7 @@ static int __init unittest_data_add(void)
         while (np) {
             struct device_node *next = np->sibling;
 
-            pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
+            pr_view_on(stack_depth, "%20s : %s\n", np->name);
 
             np->parent = of_root;
             attach_node_and_children(np);

@@ -69,8 +69,8 @@ static inline void update_rq_clock_pelt(struct rq *rq, s64 delta)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq_clock_task(rq));
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq_clock_task(rq));
 
     if (!rq->curr) {
         pr_err("rq->curr is NULL\n");
@@ -96,7 +96,7 @@ static inline void update_rq_clock_pelt(struct rq *rq, s64 delta)
 	 * rq_clock_task.
 	 */
 
-    pr_info_view_on(stack_depth, "%20s : %lld\n", delta);
+    pr_view_on(stack_depth, "%20s : %lld\n", delta);
     /*
 	 * Scale the elapsed time to reflect the real amount of
 	 * computation
@@ -104,11 +104,11 @@ static inline void update_rq_clock_pelt(struct rq *rq, s64 delta)
 	delta = cap_scale(delta, arch_scale_cpu_capacity(cpu_of(rq)));
 	delta = cap_scale(delta, arch_scale_freq_capacity(cpu_of(rq)));
 
-    pr_info_view_on(stack_depth, "%20s : %lld\n", delta);
+    pr_view_on(stack_depth, "%20s : %lld\n", delta);
 
     rq->clock_pelt += delta;
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
     pr_fn_end_on(stack_depth);
 }
 
@@ -157,17 +157,17 @@ static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
     u64 clock_pelt_throttled;
 #if 0
     if (unlikely(cfs_rq->throttle_count)) {
-        pr_info_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttle_count);
-        pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task);
-        pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
+        pr_view_on(stack_depth, "%40s : %d\n", cfs_rq->throttle_count);
+        pr_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task);
+        pr_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
 
         clock_pelt_throttled = cfs_rq->throttled_clock_task - cfs_rq->throttled_clock_task_time;
-        pr_info_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
+        pr_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
 
         return clock_pelt_throttled;
     }
 #endif
-    pr_info_view_on(stack_depth, "%40s : %p\n", rq_of(cfs_rq));
+    pr_view_on(stack_depth, "%40s : %p\n", rq_of(cfs_rq));
     if (rq_of(cfs_rq) < 0xFFFF) {
         pr_err("cfs_rq->rq pointer(%p) error\n", cfs_rq->rq);
         return 0;
@@ -176,9 +176,9 @@ static inline u64 cfs_rq_clock_pelt(struct cfs_rq *cfs_rq)
     //clock_pelt_throttled = rq_clock_pelt(rq_of(cfs_rq)) - cfs_rq->throttled_clock_task_time;
     clock_pelt_throttled = rq_clock_pelt(rq_of(cfs_rq));
 
-    pr_info_view_on(stack_depth, "%40s : %llu\n", rq_clock_pelt(rq_of(cfs_rq)));
-    //pr_info_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
-    pr_info_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
+    pr_view_on(stack_depth, "%40s : %llu\n", rq_clock_pelt(rq_of(cfs_rq)));
+    //pr_view_on(stack_depth, "%40s : %llu\n", cfs_rq->throttled_clock_task_time);
+    pr_view_on(stack_depth, "%40s : %llu\n", clock_pelt_throttled);
 
     pr_fn_end_on(stack_depth);
 

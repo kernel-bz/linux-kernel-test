@@ -54,7 +54,7 @@ void __init parse_dtb(void)
 	pr_info("Forcing kernel command line to: %s\n", boot_command_line);
 #endif
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", boot_command_line);
+    pr_view_on(stack_depth, "%20s : %s\n", boot_command_line);
     pr_fn_end_on(stack_depth);
 }
 

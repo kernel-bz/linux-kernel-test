@@ -333,8 +333,8 @@ struct device *bus_find_device(struct bus_type *bus,
 	struct klist_iter i;
 	struct device *dev;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", bus);
-    pr_info_view_on(stack_depth, "%20s : %p\n", bus->p);
+    pr_view_on(stack_depth, "%20s : %p\n", bus);
+    pr_view_on(stack_depth, "%20s : %p\n", bus->p);
 
 	if (!bus || !bus->p)
 		return NULL;
@@ -345,7 +345,7 @@ struct device *bus_find_device(struct bus_type *bus,
 		if (match(dev, data) && get_device(dev))
 			break;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", dev);
+    pr_view_on(stack_depth, "%20s : %p\n", dev);
 
 	klist_iter_exit(&i);
 

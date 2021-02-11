@@ -26,7 +26,7 @@ static inline int right_child(int i)
 static void cpudl_heapify_down(struct cpudl *cp, int idx)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_view_on(stack_depth, "%20s : %d\n", idx);
 
 	int l, r, largest;
 
@@ -62,21 +62,21 @@ static void cpudl_heapify_down(struct cpudl *cp, int idx)
 		cp->elements[idx].dl = cp->elements[largest].dl;
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = largest;
-        pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+        pr_view_on(stack_depth, "%20s : %d\n", idx);
     }
 	/* actual push down of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
 	cp->elements[cp->elements[idx].cpu].idx = idx;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_view_on(stack_depth, "%20s : %d\n", idx);
     pr_fn_end_on(stack_depth);
 }
 
 static void cpudl_heapify_up(struct cpudl *cp, int idx)
 {
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_view_on(stack_depth, "%20s : %d\n", idx);
 
     int p;
 
@@ -95,14 +95,14 @@ static void cpudl_heapify_up(struct cpudl *cp, int idx)
 		cp->elements[idx].dl = cp->elements[p].dl;
 		cp->elements[cp->elements[idx].cpu].idx = idx;
 		idx = p;
-        pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+        pr_view_on(stack_depth, "%20s : %d\n", idx);
     } while (idx != 0);
 	/* actual push up of saved original values orig_* */
 	cp->elements[idx].cpu = orig_cpu;
 	cp->elements[idx].dl = orig_dl;
 	cp->elements[cp->elements[idx].cpu].idx = idx;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_view_on(stack_depth, "%20s : %d\n", idx);
     pr_fn_end_on(stack_depth);
 }
 
@@ -210,16 +210,16 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 
     //WARN_ON(!cpu_present(cpu));
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", dl);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %llu\n", dl);
 
     raw_spin_lock_irqsave(&cp->lock, flags);
 
 	old_idx = cp->elements[cpu].idx;
-    pr_info_view_on(stack_depth, "%20s : %d\n", old_idx);
+    pr_view_on(stack_depth, "%20s : %d\n", old_idx);
     if (old_idx == IDX_INVALID) {
 		int new_idx = cp->size++;
-        pr_info_view_on(stack_depth, "%20s : %d\n", new_idx);
+        pr_view_on(stack_depth, "%20s : %d\n", new_idx);
 
         cp->elements[new_idx].dl = dl;
 		cp->elements[new_idx].cpu = cpu;
@@ -233,11 +233,11 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 
     int i;
     for (i=0; i < cp->size; i++) {
-        pr_info_view_on(stack_depth, "%30s : %d\n", i);
-        pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].idx);
-        pr_info_view_on(stack_depth, "%30s : %d\n", cp->elements[i].cpu);
-        pr_info_view_on(stack_depth, "%30s : %llu\n", cp->elements[i].dl);
-        //pr_info_view_on(stack_depth, "%30s : 0x%X\n", cp->free_cpus);
+        pr_view_on(stack_depth, "%30s : %d\n", i);
+        pr_view_on(stack_depth, "%30s : %d\n", cp->elements[i].idx);
+        pr_view_on(stack_depth, "%30s : %d\n", cp->elements[i].cpu);
+        pr_view_on(stack_depth, "%30s : %llu\n", cp->elements[i].dl);
+        //pr_view_on(stack_depth, "%30s : 0x%X\n", cp->free_cpus);
     }
 
     raw_spin_unlock_irqrestore(&cp->lock, flags);
@@ -291,7 +291,7 @@ int cpudl_init(struct cpudl *cp)
     for_each_possible_cpu(i)
 		cp->elements[i].idx = IDX_INVALID;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", i);
+    pr_view_on(stack_depth, "%20s : %d\n", i);
 
     pr_fn_end_on(stack_depth);
 

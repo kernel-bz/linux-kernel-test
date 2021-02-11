@@ -219,7 +219,7 @@ static bool populate_node(const void *blob,
 {
     pr_fn_start_on(stack_depth);
 
-    //pr_info_view_on(stack_depth, "%20s : %d\n", dryrun);
+    //pr_view_on(stack_depth, "%20s : %d\n", dryrun);
 
 	struct device_node *np;
 	const char *pathp;
@@ -236,7 +236,7 @@ static bool populate_node(const void *blob,
 	np = unflatten_dt_alloc(mem, sizeof(struct device_node) + allocl,
 				__alignof__(struct device_node));
 
-    //pr_info_view_on(stack_depth, "%20s : %p(device_node)\n", np);
+    //pr_view_on(stack_depth, "%20s : %p(device_node)\n", np);
     if (!np) return false;
 
     if (!dryrun) {
@@ -244,23 +244,23 @@ static bool populate_node(const void *blob,
 		of_node_init(np);
 		np->full_name = fn = ((char *)np) + sizeof(*np);
 
-        //pr_info_view_on(stack_depth, "%20s : %p\n", np->full_name);
-        //pr_info_view_on(stack_depth, "%20s : %p\n", fn);
+        //pr_view_on(stack_depth, "%20s : %p\n", np->full_name);
+        //pr_view_on(stack_depth, "%20s : %p\n", fn);
         if (!fn) return false;
 
 		memcpy(fn, pathp, l);
 
 		if (dad != NULL) {
-            //pr_info_view_on(stack_depth, "%30s : %p\n", dad);
+            //pr_view_on(stack_depth, "%30s : %p\n", dad);
             //as bug-patch
-            //pr_info_view_on(stack_depth, "%30s : %p\n", dad->child);
-            //pr_info_view_on(stack_depth, "%30s : %p\n", np);
+            //pr_view_on(stack_depth, "%30s : %p\n", dad->child);
+            //pr_view_on(stack_depth, "%30s : %p\n", np);
             np->parent = dad;
             np->sibling = dad->child;
             dad->child = np;
-            //pr_info_view_on(stack_depth, "%34s : %p\n", np->parent);
-            //pr_info_view_on(stack_depth, "%34s : %p\n", np->sibling);
-            //pr_info_view_on(stack_depth, "%34s : %p\n", dad->child);
+            //pr_view_on(stack_depth, "%34s : %p\n", np->parent);
+            //pr_view_on(stack_depth, "%34s : %p\n", np->sibling);
+            //pr_view_on(stack_depth, "%34s : %p\n", dad->child);
 		}
 	}
 
@@ -271,8 +271,8 @@ static bool populate_node(const void *blob,
 			np->name = "<NULL>";
 	}
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->name);
-    pr_info_view_on(stack_depth, "%20s : %s\n", np->properties->name);
+    pr_view_on(stack_depth, "%20s : %s\n", np->name);
+    pr_view_on(stack_depth, "%20s : %s\n", np->properties->name);
     *pnp = np;
 
     pr_fn_end_on(stack_depth);
@@ -347,9 +347,9 @@ static int unflatten_dt_nodes(const void *blob,
 	     offset >= 0 && depth >= initial_depth;
 	     offset = fdt_next_node(blob, offset, &depth)) {
 
-        pr_info_view_on(stack_depth, "%20s : %d\n", offset);
-        pr_info_view_on(stack_depth, "%20s : %d\n", depth);
-        pr_info_view_on(stack_depth, "%20s : %d\n", dryrun);
+        pr_view_on(stack_depth, "%20s : %d\n", offset);
+        pr_view_on(stack_depth, "%20s : %d\n", depth);
+        pr_view_on(stack_depth, "%20s : %d\n", dryrun);
 
 		if (WARN_ON_ONCE(depth >= FDT_MAX_DEPTH))
 			continue;
@@ -675,8 +675,8 @@ int __init of_scan_flat_dt(int (*it)(unsigned long node,
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", initial_boot_params);
-    pr_info_view_on(stack_depth, "%20s : %p\n", dtb_early_va);
+    pr_view_on(stack_depth, "%20s : %p\n", initial_boot_params);
+    pr_view_on(stack_depth, "%20s : %p\n", dtb_early_va);
 
 	const void *blob = initial_boot_params;
 	const char *pathp;
@@ -1012,8 +1012,8 @@ int __init early_init_dt_scan_root(unsigned long node, const char *uname,
 	const __be32 *prop;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %s\n", uname);
-    pr_info_view_on(stack_depth, "%20s : %d\n", depth);
+    pr_view_on(stack_depth, "%20s : %s\n", uname);
+    pr_view_on(stack_depth, "%20s : %d\n", depth);
 
 	if (depth != 0)
 		return 0;
@@ -1042,14 +1042,14 @@ u64 __init dt_mem_next_cell(int s, const __be32 **cellp)
     pr_fn_start_on(stack_depth);
     u64 rn;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", s);
+    pr_view_on(stack_depth, "%20s : %d\n", s);
 
     const __be32 *p = *cellp;
 
 	*cellp = p + s;
     rn = of_read_number(p, s);
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", rn);
+    pr_view_on(stack_depth, "%20s : %llu\n", rn);
     pr_fn_end_on(stack_depth);
 
     return rn;
@@ -1071,9 +1071,9 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 		return 0;
 
     pr_fn_start_on(stack_depth);
-    pr_info_view_on(stack_depth, "%20s : %s\n", uname);
-    pr_info_view_on(stack_depth, "%20s : %d\n", depth);
-    pr_info_view_on(stack_depth, "%20s : %s\n", type);
+    pr_view_on(stack_depth, "%20s : %s\n", uname);
+    pr_view_on(stack_depth, "%20s : %d\n", depth);
+    pr_view_on(stack_depth, "%20s : %s\n", type);
 
     reg = of_get_flat_dt_prop(node, "linux,usable-memory", &l);
 	if (reg == NULL)
@@ -1086,10 +1086,10 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 
 	pr_debug("memory scan node %s, reg size %d,\n", uname, l);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", endp);
-    pr_info_view_on(stack_depth, "%20s : %p\n", reg);
-    pr_info_view_on(stack_depth, "%20s : %d\n", dt_root_addr_cells);
-    pr_info_view_on(stack_depth, "%20s : %d\n", dt_root_size_cells);
+    pr_view_on(stack_depth, "%20s : %p\n", endp);
+    pr_view_on(stack_depth, "%20s : %p\n", reg);
+    pr_view_on(stack_depth, "%20s : %d\n", dt_root_addr_cells);
+    pr_view_on(stack_depth, "%20s : %d\n", dt_root_size_cells);
 
     //as bug-patch
     if (dt_root_addr_cells < 0 || dt_root_size_cells < 0)
@@ -1101,8 +1101,8 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 		base = dt_mem_next_cell(dt_root_addr_cells, &reg);
 		size = dt_mem_next_cell(dt_root_size_cells, &reg);
 
-        pr_info_view_on(stack_depth, "%20s : %llu\n", base);
-        pr_info_view_on(stack_depth, "%20s : %llu\n", size);
+        pr_view_on(stack_depth, "%20s : %llu\n", base);
+        pr_view_on(stack_depth, "%20s : %llu\n", size);
 
 		if (size == 0)
 			continue;
@@ -1193,9 +1193,9 @@ void __init __weak early_init_dt_add_memory_arch(u64 base, u64 size)
 
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", base);
-    pr_info_view_on(stack_depth, "%20s : 0x%x\n", base);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", size);
+    pr_view_on(stack_depth, "%20s : %llu\n", base);
+    pr_view_on(stack_depth, "%20s : 0x%x\n", base);
+    pr_view_on(stack_depth, "%20s : %llu\n", size);
 
 	if (size < PAGE_SIZE - (base & ~PAGE_MASK)) {
 		pr_warn("Ignoring memory block 0x%llx - 0x%llx\n",
@@ -1254,8 +1254,8 @@ static void * __init early_init_dt_alloc_memory_arch(u64 size, u64 align)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", size);
-    pr_info_view_on(stack_depth, "%20s : %llu\n", align);
+    pr_view_on(stack_depth, "%20s : %llu\n", size);
+    pr_view_on(stack_depth, "%20s : %llu\n", align);
 
 	void *ptr = memblock_alloc(size, align);
 
@@ -1283,9 +1283,9 @@ bool __init early_init_dt_verify(void *params)
 	of_fdt_crc32 = crc32_be(~0, initial_boot_params,
 				fdt_totalsize(initial_boot_params));
 
-    pr_info_view_on(stack_depth, "%40s : %p\n", params);
-    pr_info_view_on(stack_depth, "%40s : %p\n", initial_boot_params);
-    pr_info_view_on(stack_depth, "%40s : %u\n",
+    pr_view_on(stack_depth, "%40s : %p\n", params);
+    pr_view_on(stack_depth, "%40s : %p\n", initial_boot_params);
+    pr_view_on(stack_depth, "%40s : %u\n",
                         fdt_totalsize(initial_boot_params));
 
     pr_fn_end_on(stack_depth);
@@ -1298,7 +1298,7 @@ void __init early_init_dt_scan_nodes(void)
     pr_fn_start_on(stack_depth);
 	int rc = 0;
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", boot_command_line);
+    pr_view_on(stack_depth, "%20s : %s\n", boot_command_line);
 
 	/* Retrieve various information from the /chosen node */
 	rc = of_scan_flat_dt(early_init_dt_scan_chosen, boot_command_line);
@@ -1342,8 +1342,8 @@ void __init unflatten_device_tree(void)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", initial_boot_params);
-    pr_info_view_on(stack_depth, "%20s : %p\n", dtb_early_va);
+    pr_view_on(stack_depth, "%20s : %p\n", initial_boot_params);
+    pr_view_on(stack_depth, "%20s : %p\n", dtb_early_va);
 
 	__unflatten_device_tree(initial_boot_params, NULL, &of_root,
 				early_init_dt_alloc_memory_arch, false);

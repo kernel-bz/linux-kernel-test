@@ -20,6 +20,7 @@
 //(DebugBase <= depth <= DebugLevel) ? debug on
 int DebugBase = 0;
 int DebugLevel = 200;	//S32_MAX
+char DebugEnable = 1;
 
 static void _main_menu_help(void)
 {

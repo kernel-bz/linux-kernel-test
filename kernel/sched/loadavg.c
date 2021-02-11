@@ -346,8 +346,8 @@ void calc_global_load(unsigned long ticks)
 	if (time_before(jiffies, sample_window + 10))
 		return;
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update+10);
+    pr_view_on(stack_depth, "%20s : %lu\n", jiffies);
+    pr_view_on(stack_depth, "%20s : %lu\n", calc_load_update+10);
 
 	/*
 	 * Fold the 'old' NO_HZ-delta to include all NO_HZ CPUs.
@@ -356,29 +356,29 @@ void calc_global_load(unsigned long ticks)
 	if (delta)
 		atomic_long_add(delta, &calc_load_tasks);
 
-    pr_info_view_on(stack_depth, "%20s : %ld\n", delta);
+    pr_view_on(stack_depth, "%20s : %ld\n", delta);
 
     active = atomic_long_read(&calc_load_tasks);
-    pr_info_view_on(stack_depth, "%20s : %ld\n", active);
+    pr_view_on(stack_depth, "%20s : %ld\n", active);
 
     active = active > 0 ? active * FIXED_1 : 0;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", FIXED_1);
-    pr_info_view_on(stack_depth, "%20s : %ld\n", active);
+    pr_view_on(stack_depth, "%20s : %d\n", FIXED_1);
+    pr_view_on(stack_depth, "%20s : %ld\n", active);
 
     //a0 * e + a * (1 - e)
 	avenrun[0] = calc_load(avenrun[0], EXP_1, active);
 	avenrun[1] = calc_load(avenrun[1], EXP_5, active);
 	avenrun[2] = calc_load(avenrun[2], EXP_15, active);
 
-    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[0]);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[1]);
-    pr_info_view_on(stack_depth, "%20s : %lu\n", avenrun[2]);
+    pr_view_on(stack_depth, "%20s : %lu\n", avenrun[0]);
+    pr_view_on(stack_depth, "%20s : %lu\n", avenrun[1]);
+    pr_view_on(stack_depth, "%20s : %lu\n", avenrun[2]);
 
 	WRITE_ONCE(calc_load_update, sample_window + LOAD_FREQ);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", LOAD_FREQ);	//5s interval
-    pr_info_view_on(stack_depth, "%20s : %lu\n", calc_load_update);
+    pr_view_on(stack_depth, "%20s : %d\n", LOAD_FREQ);	//5s interval
+    pr_view_on(stack_depth, "%20s : %lu\n", calc_load_update);
 
     /*
 	 * In case we went to NO_HZ for multiple LOAD_FREQ intervals
@@ -408,9 +408,9 @@ void calc_global_load_tick(struct rq *this_rq)
 
 	this_rq->calc_load_update += LOAD_FREQ;
 
-    pr_info_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(stack_depth, "%40s : %ld\n", delta);
-    pr_info_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
+    pr_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_update);
+    pr_view_on(stack_depth, "%40s : %ld\n", delta);
+    pr_view_on(stack_depth, "%40s : %ld\n", atomic_long_read(&calc_load_tasks));
 
     pr_fn_end_on(stack_depth);
 }

@@ -168,11 +168,11 @@ void init_tg_rt_entry(struct task_group *tg, struct rt_rq *rt_rq,
 
 	struct rq *rq = cpu_rq(cpu);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rt_rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rt_se);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)parent);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rt_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rt_se);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)parent);
 
 	rt_rq->highest_prio.curr = MAX_RT_PRIO;
 	rt_rq->rt_nr_boosted = 0;
@@ -994,7 +994,7 @@ static void update_curr_rt(struct rq *rq)
 	if (unlikely((s64)delta_exec <= 0))
 		return;
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", now);
+    pr_view_on(stack_depth, "%20s : %llu\n", now);
 
 	schedstat_set(curr->se.statistics.exec_max,
 		      max(curr->se.statistics.exec_max, delta_exec));
@@ -1008,7 +1008,7 @@ static void update_curr_rt(struct rq *rq)
 	if (!rt_bandwidth_enabled())
 		return;
 
-    pr_info_view_on(stack_depth, "%20s : %llu\n", delta_exec);
+    pr_view_on(stack_depth, "%20s : %llu\n", delta_exec);
 
 	for_each_sched_rt_entity(rt_se) {
 		struct rt_rq *rt_rq = rt_rq_of_se(rt_se);

@@ -48,7 +48,7 @@ static void list_free(struct list_head *head)
 
     list_for_each(list_head, head) {
         fox = list_entry(list_head, struct fox, list);
-        pr_out_view(stack_depth, "%20s : %s\n", fox->name);
+        pr_view(stack_depth, "%20s : %s\n", fox->name);
         list_del(head);
         free(fox);
     }
@@ -113,18 +113,18 @@ void list_test04(void)
 
     //list_output(&ListHeadFox);	//infinite
     if (list_empty(&ListHeadFox)) {
-        pr_out_view(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
+        pr_view(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
     }
     //list_output(&list_head_fox2);	//infinite
     if (list_empty(&list_head_fox2)) {
-        pr_out_view(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
+        pr_view(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
     }
     list_output(&list_head_fox3);
 
 #if 0
     list_free(&list_head_fox3);	//fault
     if (list_empty(&list_head_fox3)) {
-        pr_out_view(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
+        pr_view(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
     }
 #endif
 }

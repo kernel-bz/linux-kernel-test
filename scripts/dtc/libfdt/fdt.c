@@ -78,8 +78,8 @@ int fdt_check_header(const void *fdt)
 		return -FDT_ERR_BADMAGIC;
 	hdrsize = fdt_header_size(fdt);
 
-    pr_info_view_on(stack_depth, "%20s : 0x%x\n", fdt_magic(fdt));
-    pr_info_view_on(stack_depth, "%20s : %u\n", hdrsize);
+    pr_view_on(stack_depth, "%20s : 0x%x\n", fdt_magic(fdt));
+    pr_view_on(stack_depth, "%20s : %u\n", hdrsize);
 
 	if ((fdt_version(fdt) < FDT_FIRST_SUPPORTED_VERSION)
 	    || (fdt_last_comp_version(fdt) > FDT_LAST_SUPPORTED_VERSION))
@@ -87,13 +87,13 @@ int fdt_check_header(const void *fdt)
 	if (fdt_version(fdt) < fdt_last_comp_version(fdt))
 		return -FDT_ERR_BADVERSION;
 
-    pr_info_view_on(stack_depth, "%20s : 0x%x\n", fdt_version(fdt));
+    pr_view_on(stack_depth, "%20s : 0x%x\n", fdt_version(fdt));
 
     if ((fdt_totalsize(fdt) < hdrsize)
 	    || (fdt_totalsize(fdt) > INT_MAX))
 		return -FDT_ERR_TRUNCATED;
 
-    pr_info_view_on(stack_depth, "%20s : %u\n", fdt_totalsize(fdt));
+    pr_view_on(stack_depth, "%20s : %u\n", fdt_totalsize(fdt));
 
 	/* Bounds check memrsv block */
 	if (!check_off_(hdrsize, fdt_totalsize(fdt), fdt_off_mem_rsvmap(fdt)))

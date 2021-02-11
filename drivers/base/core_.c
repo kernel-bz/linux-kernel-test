@@ -2005,9 +2005,9 @@ int dev_set_name(struct device *dev, const char *fmt, ...)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", dev);
-    pr_info_view_on(stack_depth, "%20s : %s\n", dev->init_name);
-    pr_info_view_on(stack_depth, "%20s : %p\n", fmt);
+    pr_view_on(stack_depth, "%20s : %p\n", dev);
+    pr_view_on(stack_depth, "%20s : %s\n", dev->init_name);
+    pr_view_on(stack_depth, "%20s : %p\n", fmt);
 
 	va_list vargs;
 	int err;

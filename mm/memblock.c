@@ -1488,7 +1488,7 @@ static void * __init memblock_alloc_internal(
 	if (!alloc && min_addr)
 		alloc = memblock_alloc_range_nid(size, align, 0, max_addr, nid);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", alloc);
+    pr_view_on(stack_depth, "%20s : %p\n", alloc);
 
 	if (!alloc)
 		return NULL;
@@ -1569,7 +1569,7 @@ void * __init memblock_alloc_try_nid(
 	if (ptr)
 		memset(ptr, 0, size);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", ptr);
+    pr_view_on(stack_depth, "%20s : %p\n", ptr);
 
     pr_fn_end_on(stack_depth);
 	return ptr;

@@ -102,9 +102,9 @@ static void numa_usr_set_cpumask_map(void)
     for (cpu=0; cpu<NR_CPUS; cpu++) {
         nid = cpu_to_node(cpu);
         cpumask = cpumask_of_node(nid);
-        pr_info_view_on(stack_depth, "%20s : %u\n", cpu);
-        pr_info_view_on(stack_depth, "%20s : %d\n", nid);
-        pr_info_view_on(stack_depth, "%20s : 0x%X\n", cpumask->bits[0]);
+        pr_view_on(stack_depth, "%20s : %u\n", cpu);
+        pr_view_on(stack_depth, "%20s : %d\n", nid);
+        pr_view_on(stack_depth, "%20s : 0x%X\n", cpumask->bits[0]);
     }
 
     pr_fn_end_on(stack_depth);
@@ -118,13 +118,13 @@ void numa_usr_set_node(int step)
     int i;
     int nid = 0;
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", step);
+    pr_view_on(stack_depth, "%20s : %d\n", step);
 
     for (i=0; i<NR_CPUS; i++) {
         nid = i / step;
         cpu_to_node_map[i] = nid;
-        pr_info_view_on(stack_depth, "%20s : %d\n", i);
-        pr_info_view_on(stack_depth, "%20s : %d\n", nid);
+        pr_view_on(stack_depth, "%20s : %d\n", i);
+        pr_view_on(stack_depth, "%20s : %d\n", nid);
     }
 
     pr_fn_end_on(stack_depth);

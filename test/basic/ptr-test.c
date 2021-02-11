@@ -72,11 +72,11 @@ static void _ptr_offsetof_test(void)
 {
     pr_fn_start(stack_depth);
 
-    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, a));
-    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, b));
-    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, c));
-    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
-    pr_out_view(stack_depth, "%30s : %d\n", offsetof(struct sample, e));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, a));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, b));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, c));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
+    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, e));
 
     pr_fn_end(stack_depth);
 }
@@ -87,15 +87,15 @@ static void _ptr_container_of_test(void)
 
     struct sample sample_st;
 
-    pr_out_view(stack_depth, "%30s : %d\n", sizeof(struct sample));
-    pr_out_view(stack_depth, "%30s : %p\n", (void*)&sample_st);
-    pr_out_view(stack_depth, "%30s : %p\n"
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct sample));
+    pr_view(stack_depth, "%30s : %p\n", (void*)&sample_st);
+    pr_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.a, struct sample, a));
-    pr_out_view(stack_depth, "%30s : %p\n"
+    pr_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.b, struct sample, b));
-    pr_out_view(stack_depth, "%30s : %p\n"
+    pr_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.c, struct sample, c));
-    pr_out_view(stack_depth, "%30s : %p\n"
+    pr_view(stack_depth, "%30s : %p\n"
                     , container_of(&sample_st.d, struct sample, d));
 
     pr_fn_end(stack_depth);
@@ -105,25 +105,25 @@ static void _ptr_attribute_test(void)
 {
     pr_fn_start(stack_depth);
 
-    pr_out_view(stack_depth, "%30s : %d\n", sizeof(struct attr));
-    pr_out_view(stack_depth, "%30s : %d\n", sizeof(struct attr2));
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct attr));
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct attr2));
 
-    pr_out_view(stack_depth, "%30s : %p\n", &attr_struct.a);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr_struct.b);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr_struct.c);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr_struct.d);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr_struct.e);
+    pr_view(stack_depth, "%30s : %p\n", &attr_struct.a);
+    pr_view(stack_depth, "%30s : %p\n", &attr_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", &attr_struct.c);
+    pr_view(stack_depth, "%30s : %p\n", &attr_struct.d);
+    pr_view(stack_depth, "%30s : %p\n", &attr_struct.e);
 
-    pr_out_view(stack_depth, "%30s : %p\n", &attr2_struct.a);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr2_struct.b);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr2_struct.c);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr2_struct.d);
-    pr_out_view(stack_depth, "%30s : %p\n", &attr2_struct.e);
+    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.a);
+    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.c);
+    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.d);
+    pr_view(stack_depth, "%30s : %p\n", &attr2_struct.e);
 
     attr_struct.b = &attr_struct.a;
-    pr_out_view(stack_depth, "%30s : %p\n", attr_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", attr_struct.b);
     attr_struct.b = &attr_struct.c;
-    pr_out_view(stack_depth, "%30s : %p\n", attr_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", attr_struct.b);
 
     /*
      *  //https://kldp.org/node/96789
@@ -131,9 +131,9 @@ static void _ptr_attribute_test(void)
      * 	warning: incorrect type in argument 1 (different address spaces)
      */
     attr2_struct.b = &attr2_struct.a;
-    pr_out_view(stack_depth, "%30s : %p\n", attr2_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", attr2_struct.b);
     attr2_struct.b = &attr2_struct.c;
-    pr_out_view(stack_depth, "%30s : %p\n", attr2_struct.b);
+    pr_view(stack_depth, "%30s : %p\n", attr2_struct.b);
 
     pr_fn_end(stack_depth);
 }

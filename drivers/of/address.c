@@ -745,8 +745,8 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 	if (!OF_CHECK_ADDR_COUNT(na))
 		return NULL;
 
-    pr_info_view_on(stack_depth, "%10s : %d\n", na);
-    pr_info_view_on(stack_depth, "%10s : %d\n", ns);
+    pr_view_on(stack_depth, "%10s : %d\n", na);
+    pr_view_on(stack_depth, "%10s : %d\n", ns);
 
 	/* Get "reg" or "assigned-addresses" property */
 	prop = of_get_property(dev, bus->addresses, &psize);
@@ -754,7 +754,7 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
 		return NULL;
 
 	psize /= 4;
-    pr_info_view_on(stack_depth, "%10s : %u\n", psize);
+    pr_view_on(stack_depth, "%10s : %u\n", psize);
 
     onesize = na + ns;
 	for (i = 0; psize >= onesize; psize -= onesize, prop += onesize, i++)

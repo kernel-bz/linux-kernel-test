@@ -43,11 +43,11 @@ static int _struct_alloc(const int level, struct test_struct **ts)
     int size = level * sizeof(**ts);
 
     *ts = malloc(size);
-    pr_info_view_on(stack_depth, "%30s : %d\n", level);
-    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(struct test_struct));
-    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(**ts));
-    pr_info_view_on(stack_depth, "%30s : %d\n", size);
-    pr_info_view_on(stack_depth, "%30s : %p\n", ts);
+    pr_view_on(stack_depth, "%30s : %d\n", level);
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(struct test_struct));
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(**ts));
+    pr_view_on(stack_depth, "%30s : %d\n", size);
+    pr_view_on(stack_depth, "%30s : %p\n", ts);
 
     pr_fn_end_on(stack_depth);
     return (ts) ? size : -1;
@@ -80,8 +80,8 @@ static int _struct_alloc_test1(const int level, struct test_struct *ts)
     if (ret > 0) {
         _struct_init(level, ts);
         for (i=0; i<level; i++) {
-            pr_info_view_on(stack_depth, "%20s : %s\n", ts[i].name);
-            pr_info_view_on(stack_depth, "%20s : %lu\n", ts[i].id);
+            pr_view_on(stack_depth, "%20s : %s\n", ts[i].name);
+            pr_view_on(stack_depth, "%20s : %lu\n", ts[i].id);
         }
     } else {
        pr_err("_struct_alloc_test1() error!\n");
@@ -99,19 +99,19 @@ static void _struct_alloc_test2(const int level
 
     span = (test_span_t *)malloc(level * sizeof(&ts->span));
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", level);
-    //pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(ts->span));	//0
-    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(&ts->span));
-    //pr_info_view_on(stack_depth, "%20s : %p\n", ts->span);	//0x30
-    //pr_info_view_on(stack_depth, "%20s : %p\n", &ts->span);	//0x30
-    pr_info_view_on(stack_depth, "%20s : %p\n", span);
-    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(*ts));
-    pr_info_view_on(stack_depth, "%20s : %d\n", sizeof(*span));
+    pr_view_on(stack_depth, "%20s : %d\n", level);
+    //pr_view_on(stack_depth, "%20s : %d\n", sizeof(ts->span));	//0
+    pr_view_on(stack_depth, "%20s : %d\n", sizeof(&ts->span));
+    //pr_view_on(stack_depth, "%20s : %p\n", ts->span);	//0x30
+    //pr_view_on(stack_depth, "%20s : %p\n", &ts->span);	//0x30
+    pr_view_on(stack_depth, "%20s : %p\n", span);
+    pr_view_on(stack_depth, "%20s : %d\n", sizeof(*ts));
+    pr_view_on(stack_depth, "%20s : %d\n", sizeof(*span));
     for (i=0; i<level; i++)
         span[i].value = i;
 
     for (i=0; i<level; i++)
-        pr_info_view_on(stack_depth, "%30s : %d\n", span[i].value);
+        pr_view_on(stack_depth, "%30s : %d\n", span[i].value);
 
     pr_fn_end_on(stack_depth);
 }
@@ -120,7 +120,7 @@ static void _struct_span_value(const int level, test_span_t *span)
 {
     int i;
     for (i=0; i<level; i++)
-        pr_info_view_on(stack_depth, "%30s : %d\n", span[i].value);
+        pr_view_on(stack_depth, "%30s : %d\n", span[i].value);
 }
 
 void basic_struct_test(void)

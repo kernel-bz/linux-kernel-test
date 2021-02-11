@@ -108,9 +108,9 @@ _retry:
 
     pr_fn_start_on(stack_depth);
     //1280 Bytes
-    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(struct task_struct));
-    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(*p));
-    pr_info_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(struct task_struct));
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(*p));
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
     p = (struct task_struct *)malloc(sizeof(*p));
 
     if (current_task) {
@@ -120,15 +120,15 @@ _retry:
         current_task = p;
     }
 
-    pr_info_view_on(stack_depth, "%30s : %u\n", cpu);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%30s : %u\n", cpu);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)p);
 
     p->sched_task_group = _sched_test_tg_select();
     p->cpu = cpu;
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-    pr_info_view_on(stack_depth, "%30s : %u\n", p->cpu);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
+    pr_view_on(stack_depth, "%30s : %u\n", p->cpu);
 
     //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
@@ -140,15 +140,15 @@ _retry:
     rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
     current_task = p;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_info_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
-    pr_info_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
-    pr_info_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->prio);
-    pr_info_view_on(stack_depth, "%30s : %d\n", p->on_rq);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
+    pr_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
+    pr_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_view_on(stack_depth, "%30s : %d\n", p->on_rq);
     pr_out_on(stack_depth, "\n");
 
     //pr_sched_pelt_info(&p->se);
@@ -170,11 +170,11 @@ _retry:
     pr_fn_start_on(stack_depth);
 
     rq = cpu_rq(cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     pr_sched_curr_task_info(rq->curr);
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)current);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)current);
     pr_sched_curr_task_info(current);	//current_task
 
     pr_fn_end_on(stack_depth);
@@ -205,8 +205,8 @@ _retry:
     pr_fn_start_on(stack_depth);
 
     rq = cpu_rq(cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     prev = rq->curr;
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
@@ -277,7 +277,7 @@ _retry:
         //_sched_setscheduler(p, policy, param, false);	//user nocheck
     }
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", ret);
+    pr_view_on(stack_depth, "%20s : %d\n", ret);
 
     pr_fn_end_on(stack_depth);
 }
@@ -375,19 +375,19 @@ void test_calc_global_load(void)
     pr_fn_start_on(stack_depth);
 
     struct rq *this_rq = this_rq();
-    pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", READ_ONCE(calc_load_update));
+    pr_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
+    pr_view_on(stack_depth, "%30s : %lu\n", READ_ONCE(calc_load_update));
     this_rq->calc_load_update = READ_ONCE(calc_load_update);
-    pr_info_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
+    pr_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
     jiffies = this_rq->calc_load_update;
-    pr_info_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
-    pr_info_view_on(stack_depth, "%30s : %d\n", HZ);
+    pr_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
+    pr_view_on(stack_depth, "%30s : %d\n", HZ);
 
     for (i=0; i<loop_cnt; i++) {
         pr_out_on(stack_depth, "\n");
-        pr_info_view_on(stack_depth, "%20s : %d\n", i);
-        pr_info_view_on(stack_depth, "%20s : %lu\n", jiffies);
-        pr_info_view_on(stack_depth, "%20s : %u\n", this_rq->nr_running);
+        pr_view_on(stack_depth, "%20s : %d\n", i);
+        pr_view_on(stack_depth, "%20s : %lu\n", jiffies);
+        pr_view_on(stack_depth, "%20s : %u\n", this_rq->nr_running);
 
         //kernel/sched/loadavg.c
         calc_global_load(0);	//void
@@ -424,8 +424,8 @@ _retry:
     pr_fn_start_on(stack_depth);
 
     tg = _sched_test_tg_select();
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)tg->se[cpu]);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tg);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)tg->se[cpu]);
     se = tg->se[cpu];
     if (!se) {
         rq = cpu_rq(cpu);
@@ -434,7 +434,7 @@ _retry:
             return;
         }
         se = &rq->curr->se;
-        pr_info_view_on(stack_depth, "%20s : %p\n", (void*)&rq->curr->se);
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->curr->se);
     }
     pr_sched_pelt_info(se);
 
@@ -459,8 +459,8 @@ _retry:
     pr_fn_start_on(stack_depth);
 
     rq = cpu_rq(cpu);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_info_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     set_user_nice(rq->curr, nice);
 

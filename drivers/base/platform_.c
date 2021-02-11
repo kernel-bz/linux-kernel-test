@@ -429,8 +429,8 @@ int platform_device_add_resources(struct platform_device *pdev,
 	pdev->resource = r;
 	pdev->num_resources = num;
 
-    pr_info_view_on(stack_depth, "%30s : %p\n", pdev->resource);
-    pr_info_view_on(stack_depth, "%30s : %u\n", pdev->num_resources);
+    pr_view_on(stack_depth, "%30s : %p\n", pdev->resource);
+    pr_view_on(stack_depth, "%30s : %u\n", pdev->num_resources);
 
     pr_fn_end_on(stack_depth);
 	return 0;
@@ -658,10 +658,10 @@ struct platform_device *platform_device_register_full(
 	pdev->dev.of_node = of_node_get(to_of_node(pdev->dev.fwnode));
 	pdev->dev.of_node_reused = pdevinfo->of_node_reused;
 
-    pr_info_view_on(stack_depth, "%20s : %p\n", pdev);
-    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->name);
-    pr_info_view_on(stack_depth, "%20s : %d\n", pdev->id);
-    pr_info_view_on(stack_depth, "%20s : %s\n", pdev->dev.init_name);
+    pr_view_on(stack_depth, "%20s : %p\n", pdev);
+    pr_view_on(stack_depth, "%20s : %s\n", pdev->name);
+    pr_view_on(stack_depth, "%20s : %d\n", pdev->id);
+    pr_view_on(stack_depth, "%20s : %s\n", pdev->dev.init_name);
 
 	if (pdevinfo->dma_mask) {
 		/*

@@ -71,12 +71,12 @@ void dtb_test_read_file(void)
         if (dtb_size > 0 && dtb_early_va)
             free(dtb_early_va);        //free old allocation
 
-    pr_info_view_enable(stack_depth, 1, "%20s : %s\n", dtb_file_name);
+    pr_view_enable(stack_depth, "%20s : %s\n", dtb_file_name);
 
     while (1) {
         ret = read(fd, buf, sizeof(buf));
         if (ret <= 0) break;
-        //pr_info_view_on(stack_depth, "%20s : %d bytes\n", ret);
+        //pr_view_on(stack_depth, "%20s : %d bytes\n", ret);
         size += ret;
         if (size > ret) {
             size2 = size - ret;
@@ -100,7 +100,7 @@ _exit:
     close(fd);
     dtb_size = size;
 
-    pr_info_view_enable(stack_depth, 1, "%20s : %d bytes\n", dtb_size);
+    pr_view_enable(stack_depth, "%20s : %d bytes\n", dtb_size);
 
     pr_fn_end(stack_depth);
 }
@@ -118,8 +118,8 @@ void dtb_test_hex_dump(void)
     ret = hex_dump_to_buffer(dtb_early_va, dtb_size, 16, 1
             , buf, dtb_size*10, true);
 
-    pr_info_view_on(stack_depth, "%20s : %d\n", ret);
-    pr_info_view_on(stack_depth, "%20s : %d\n", dtb_size);
+    pr_view_on(stack_depth, "%20s : %d\n", ret);
+    pr_view_on(stack_depth, "%20s : %d\n", dtb_size);
 
     for (i=0; i<dtb_size; i++)
         printf("%c", buf[i]);
@@ -136,7 +136,7 @@ void dtb_test_hex_dump(void)
     print_hex_dump(KERN_DEBUG, "raw data: ", DUMP_PREFIX_OFFSET,
             16, 1, dtb_early_va, dtb_size, true);
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
-    pr_info_view_on(stack_depth, "%20s : %d\n", dtb_size);
+    pr_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
+    pr_view_on(stack_depth, "%20s : %d\n", dtb_size);
     pr_fn_end_on(stack_depth);
 }

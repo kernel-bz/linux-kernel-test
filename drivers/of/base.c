@@ -893,8 +893,8 @@ struct device_node *__of_find_node_by_path(struct device_node *parent,
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", parent->name);
-    pr_info_view_on(stack_depth, "%20s : %s\n", path);
+    pr_view_on(stack_depth, "%20s : %s\n", parent->name);
+    pr_view_on(stack_depth, "%20s : %s\n", path);
 
 	struct device_node *child;
 	int len;
@@ -918,8 +918,8 @@ struct device_node *__of_find_node_by_full_path(struct device_node *node,
 {
     pr_fn_start_on(stack_depth);
 
-    pr_info_view_on(stack_depth, "%20s : %s\n", node->name);
-    pr_info_view_on(stack_depth, "%20s : %s\n", path);
+    pr_view_on(stack_depth, "%20s : %s\n", node->name);
+    pr_view_on(stack_depth, "%20s : %s\n", path);
 
 	const char *separator = strchr(path, ':');
 
