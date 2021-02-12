@@ -6,6 +6,7 @@
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
 #include <stdio.h>
+#include <linux/stddef.h>
 #include <linux/list.h>
 #include "test/debug.h"
 
@@ -35,7 +36,7 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 }
 #endif
 
-struct fox {
+static struct fox {
 	unsigned long tail_length;
 	unsigned long weight;
 	int			  is_fantastic;

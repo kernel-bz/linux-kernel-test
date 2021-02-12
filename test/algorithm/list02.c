@@ -12,7 +12,7 @@
 #include <linux/list.h>
 #include "test/debug.h"
 
-struct fox {
+static struct fox {
 	char				name[20];
 	unsigned long 		tail_length;
 	unsigned long 		weight;
@@ -73,6 +73,9 @@ void list_test02(void)
         pr_out(stack_depth, "fox value: %12s, %lu, %lu, %d\n"
                   , f->name, f->tail_length, f->weight, f->is_fantastic);
 	}
+
+    while (!list_empty(&fox_list))
+            list_del_init(&fox_list);
 
     pr_fn_end(stack_depth);
 }

@@ -12,7 +12,7 @@
 #include <linux/list.h>
 #include "test/debug.h"
 
-struct fox {
+static struct fox {
 	char				name[20];
 	unsigned long 		tail_length;
 	unsigned long 		weight;
@@ -121,10 +121,10 @@ void list_test04(void)
     }
     list_output(&list_head_fox3);
 
-#if 0
-    list_free(&list_head_fox3);	//fault
-    if (list_empty(&list_head_fox3)) {
-        pr_view(stack_depth, "%20s : empty: %p\n", &list_head_fox3);
-    }
-#endif
+    while (!list_empty(&ListHeadFox))
+            list_del_init(&ListHeadFox);
+    while (!list_empty(&list_head_fox2))
+            list_del_init(&list_head_fox2);
+    while (!list_empty(&list_head_fox3))
+            list_del_init(&list_head_fox3);
 }

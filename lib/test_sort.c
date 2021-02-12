@@ -26,6 +26,7 @@ static int __init test_sort_init(int cnt)
 	if (!a)
 		return err;
 
+    printf("Sorting DataType Size: %u bytes\n", sizeof(*a));
     printf("Random Source Data[%d] ---->\n", cnt);
     for (i = 0; i < cnt; i++) {
 		r = (r * 725861) % 6599;
@@ -36,6 +37,7 @@ static int __init test_sort_init(int cnt)
     sort(a, cnt, sizeof(*a), cmpint, NULL);
 
     printf("\n\n");
+    printf("Sorting DataType Size: %u bytes\n", sizeof(*a));
     printf("Sorting Data[%d] ---->\n", cnt);
 
     err = -EINVAL;
