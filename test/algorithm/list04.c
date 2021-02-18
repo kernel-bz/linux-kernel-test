@@ -49,9 +49,9 @@ static void list_free(struct list_head *head)
     list_for_each(list_head, head) {
         fox = list_entry(list_head, struct fox, list);
         pr_view(stack_depth, "%20s : %s\n", fox->name);
-        list_del(head);
         free(fox);
     }
+    list_del_init(head);
 
     pr_fn_end(stack_depth);
 }
@@ -99,11 +99,14 @@ void list_test04(void)
 	LIST_HEAD (list_head_fox3);
 
     fox_alloc_run();
+    pr_out(stack_depth, "%s:\n", "ListHeadFox");
 	list_output(&ListHeadFox);
 
     //cut to list_head_fox2 from ListHeadFox
     list_cut_position(&list_head_fox2, &ListHeadFox, (&ListHeadFox)->next->next);
-	list_output(&ListHeadFox);
+    pr_out(stack_depth, "%s:\n", "ListHeadFox");
+    list_output(&ListHeadFox);
+    pr_out(stack_depth, "%s:\n", "list_head_fox2");
     list_output(&list_head_fox2);
 
     //merge ListHeadFox to list_head_fox3
@@ -111,20 +114,16 @@ void list_test04(void)
     //merge list_head_fox2 to list_head_fox3
     list_splice(&list_head_fox2, &list_head_fox3);
 
-    //list_output(&ListHeadFox);	//infinite
     if (list_empty(&ListHeadFox)) {
         pr_view(stack_depth, "%20s : empty: %p\n", &ListHeadFox);
     }
-    //list_output(&list_head_fox2);	//infinite
     if (list_empty(&list_head_fox2)) {
         pr_view(stack_depth, "%20s : empty: %p\n", &list_head_fox2);
     }
+    pr_out(stack_depth, "%s:\n", "list_head_fox3");
     list_output(&list_head_fox3);
 
-    while (!list_empty(&ListHeadFox))
-            list_del_init(&ListHeadFox);
-    while (!list_empty(&list_head_fox2))
-            list_del_init(&list_head_fox2);
-    while (!list_empty(&list_head_fox3))
-            list_del_init(&list_head_fox3);
+    list_free(&list_head_fox3);
+    list_del_init(&ListHeadFox);
+    list_del_init(&list_head_fox2);
 }

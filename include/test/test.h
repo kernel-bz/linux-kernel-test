@@ -43,6 +43,8 @@ void xarray_test_run(void);
 void xa_main_test(void);
 //test/algorithm/xarray/idr-test.c
 void idr_ida_main_test(void);
+void idr_simple_test(void);
+void ida_simple_test(void);
 //test/algorithm/xarray/multiorder.c
 void xa_multiorder_test(void);
 

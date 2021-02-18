@@ -18,6 +18,7 @@
  * are hit in list_sort().
  */
 #define TEST_LIST_LEN (512+128+2) /* not including head */
+int test_list_len = TEST_LIST_LEN;
 
 #define TEST_POISON1 0xDEADBEEF
 #define TEST_POISON2 0xA324354C
@@ -35,11 +36,11 @@ static struct debug_el **elts __initdata;
 
 static int __init check(struct debug_el *ela, struct debug_el *elb)
 {
-	if (ela->serial >= TEST_LIST_LEN) {
+    if (ela->serial >= test_list_len) {
 		pr_err("error: incorrect serial %d\n", ela->serial);
 		return -EINVAL;
 	}
-	if (elb->serial >= TEST_LIST_LEN) {
+    if (elb->serial >= test_list_len) {
 		pr_err("error: incorrect serial %d\n", elb->serial);
 		return -EINVAL;
 	}
@@ -81,19 +82,19 @@ static int __init list_sort_test(void)
 
 	pr_debug("start testing list_sort()\n");
 
-	elts = kcalloc(TEST_LIST_LEN, sizeof(*elts), GFP_KERNEL);
+    elts = kcalloc(test_list_len, sizeof(*elts), GFP_KERNEL);
 	if (!elts)
 		return err;
 
-    printf("Random List Data[%d] ---->\n", TEST_LIST_LEN);
+    printf("Random List Data[%d] ---->\n", test_list_len);
 
-    for (i = 0; i < TEST_LIST_LEN; i++) {
+    for (i = 0; i < test_list_len; i++) {
 		el = kmalloc(sizeof(*el), GFP_KERNEL);
 		if (!el)
 			goto exit;
 
-		 /* force some equivalencies */
-        //el->value = prandom_u32() % (TEST_LIST_LEN / 3);
+        /* force some equivalencies */
+        //el->value = prandom_u32() % (test_list_len / 3);
         r = (r * 725861) % 6599;
         el->value = r;
 		el->serial = i;
@@ -142,20 +143,20 @@ static int __init list_sort_test(void)
 		}
 		count++;
 	}
+
 	if (head.prev != cur) {
 		pr_err("error: list is corrupted\n");
 		goto exit;
 	}
 
-
-	if (count != TEST_LIST_LEN) {
+    if (count != test_list_len) {
 		pr_err("error: bad list length %d", count);
 		goto exit;
 	}
 
 	err = 0;
 exit:
-	for (i = 0; i < TEST_LIST_LEN; i++)
+    for (i = 0; i < test_list_len; i++)
 		kfree(elts[i]);
 	kfree(elts);
 	return err;
@@ -164,7 +165,14 @@ exit:
 void lib_list_sort_test(void)
 {
     int err;
+
+    __fpurge(stdin);
+    printf("Enter Sorting Data Counter: ");
+    scanf("%d", &test_list_len);
+
     err = list_sort_test();
+
+    printf("\n");
     pr_info("err = %d\n", err);
 }
 EXPORT_SYMBOL(lib_list_sort_test);

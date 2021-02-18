@@ -562,3 +562,94 @@ void idr_ida_main_test(void)
 		printf("nr_allocated = %d\n", nr_allocated);
 	return 0;
 }
+
+//-------------- User Defined Functions ---------------------------------------
+static void _idr_simple_test(void)
+{
+    unsigned int i, id, order;
+    DEFINE_IDR(idr);
+    struct item *item;
+
+    printf("idr_alloc()..........................\n");
+    for (i = 0; i < 10; i++) {
+        order = i * 10;
+        struct item *item = item_create(i, order);
+        id = idr_alloc(&idr, item, 0, 0, GFP_KERNEL);
+        printf("i=%u, id=%u\n", i, id);
+    }
+
+    printf("idr_for_each_entry().................\n");
+    idr_for_each_entry(&idr, item, id) {
+        printf("id=%u, item->index=%lu, order=%u\n",
+                id, item->index, item->order);
+    }
+
+    printf("idr_find()...........................\n");
+    id = 5;
+    item = (struct item *)idr_find(&idr, id);
+    if (item)
+        printf("found id=%d, item->index=%lu, order=%u\n",
+                id, item->index, item->order);
+    else
+        printf("Not found(id=%u)\n", id);
+
+    printf("idr_remove().........................\n");
+    idr_remove(&idr, id);
+    item = (struct item *)idr_find(&idr, id);
+    if (item)
+        printf("found id=%d, item->index=%lu, order=%u\n",
+                id, item->index, item->order);
+    else
+        printf("Not found(id=%u)\n", id);
+
+    printf("idr_destroy()........................\n");
+    idr_for_each(&idr, item_idr_free, &idr);
+        idr_destroy(&idr);
+
+    if (idr_is_empty(&idr))
+        printf("idr is empty.\n");
+    else
+        printf("idr is not empty.\n");
+}
+
+static void _ida_simple_test(void)
+{
+    int i, id;
+    DEFINE_IDA(ida);
+
+    printf("ida_alloc()..........................\n");
+    for (i = 0; i < 10; i++) {
+        id = ida_alloc(&ida, GFP_KERNEL);
+        printf("id=%d\n", id);
+    }
+
+    printf("ida_free()...........................\n");
+    ida_free(&ida, 3);
+    ida_free(&ida, 5);
+
+    for (i = 0; i < 5; i++) {
+        id = ida_alloc(&ida, GFP_KERNEL);
+        printf("id=%d\n", id);
+    }
+
+    printf("ida_destroy()........................\n");
+    ida_destroy(&ida);
+
+    if (ida_is_empty(&ida))
+        printf("ida is empty.\n");
+    else
+        printf("ida is not empty.\n");
+}
+
+
+void idr_simple_test(void)
+{
+    radix_tree_init();
+    _idr_simple_test();
+}
+
+void ida_simple_test(void)
+{
+    radix_tree_init();
+    _ida_simple_test();
+}

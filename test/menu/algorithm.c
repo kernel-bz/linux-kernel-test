@@ -26,6 +26,54 @@ static void _algo_struct_help(void)
     return;
 }
 
+static int _algo_xarray_menu(int asize)
+{
+    int idx, ret;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Algorithm --> XArray Test Menu\n");
+    printf("0: exit.\n");
+    printf("1: XArray Check Test.\n");
+    printf("2: XArray MultiOrder Test.\n");
+    printf("3: IDR Simple Test.\n");
+    printf("4: IDA Simple Test.\n");
+    printf("5: IDR, IDA Check Test.\n");
+
+    printf("6: help.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
+    return (idx > 0 && idx < asize) ? idx : -1;
+}
+
+static void _algo_xarray_run(void)
+{
+    void (*fn[])(void) = { _algo_struct_help
+        , xarray_test_run
+        , xa_multiorder_test
+        //, xa_main_test		//error
+        , idr_simple_test
+        , ida_simple_test
+        //, idr_ida_main_test	//error
+        , lib_ida_test
+
+        , _algo_struct_help
+    };
+    int idx;
+    int asize = sizeof (fn) / sizeof (fn[0]);
+
+    while (1) {
+        idx = _algo_xarray_menu(asize);
+        if (idx < 0) break;
+        fn[idx]();
+    }
+}
+
+
 static int _algo_struct_menu(int asize)
 {
     int idx, ret;
@@ -42,11 +90,8 @@ static int _algo_struct_menu(int asize)
     printf(" 6: Red-Black Tree Test01.\n");
     printf(" 7: Red-Black Tree Test02.\n");
     printf(" 8: Red-Black Tree Test03.\n");
-    printf(" 9: IDA Test.\n");
-    printf("10: Xarray Test.\n");
-    printf("11: Xarray Main Test.\n");
-    printf("12: Xarray MultiOrder Test.\n");
-    printf("13: help.\n");
+    printf(" 9: XArray Test -->\n");
+    printf("10: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -67,14 +112,7 @@ void menu_algorithm(void)
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
-
-        , lib_ida_test
-        //, idr_ida_main_test	//error
-        //, lib_xarray_test
-        , xarray_test_run
-        , xa_main_test		//error
-        , xa_multiorder_test
-
+        , _algo_xarray_run
         , _algo_struct_help
     };
     int idx;

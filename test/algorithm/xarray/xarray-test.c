@@ -21,10 +21,8 @@
 
 void xarray_tests(void)
 {
-    //xarray_checks();
     //lib/test-xarray.c
-    lib_xarray_test();
-    //xarray_exit();
+    lib_xarray_test();	//xarray_checks()
 }
 
 //int __weak main(void)

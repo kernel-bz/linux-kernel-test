@@ -37,6 +37,8 @@ static int item_insert_order(struct xarray *xa, unsigned long index,
 
 void multiorder_iteration(struct xarray *xa)
 {
+    pr_fn_start(stack_depth);
+
 	XA_STATE(xas, xa, 0);
 	struct item *item;
 	int i, j, err;
@@ -45,7 +47,10 @@ void multiorder_iteration(struct xarray *xa)
 	int index[NUM_ENTRIES] = {0, 2, 4, 8, 16, 32, 34, 36, 64, 72, 128};
 	int order[NUM_ENTRIES] = {1, 1, 2, 3,  4,  1,  0,  1,  3,  0, 7};
 
-	printv(1, "Multiorder iteration test\n");
+    //printv("Multiorder iteration test\n");
+
+    pr_view(stack_depth, "%20s : %d\n", NUM_ENTRIES);
+    pr_view(stack_depth, "%20s : %d\n", XA_CHUNK_SHIFT);
 
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		err = item_insert_order(xa, index[i], order[i]);
@@ -56,6 +61,9 @@ void multiorder_iteration(struct xarray *xa)
 		for (i = 0; i < NUM_ENTRIES; i++)
 			if (j <= (index[i] | ((1 << order[i]) - 1)))
 				break;
+
+        //pr_view(stack_depth, "%20s : %d\n", j);
+        //pr_view(stack_depth, "%20s : %d\n", i);
 
 		xas_set(&xas, j);
 		xas_for_each(&xas, item, ULONG_MAX) {
@@ -73,10 +81,14 @@ void multiorder_iteration(struct xarray *xa)
 	}
 
 	item_kill_tree(xa);
+
+    pr_fn_end(stack_depth);
 }
 
 void multiorder_tagged_iteration(struct xarray *xa)
 {
+    pr_fn_start(stack_depth);
+
 	XA_STATE(xas, xa, 0);
 	struct item *item;
 	int i, j;
@@ -88,7 +100,7 @@ void multiorder_tagged_iteration(struct xarray *xa)
 #define TAG_ENTRIES 7
 	int tag_index[TAG_ENTRIES] = {0, 4, 16, 40, 64, 72, 128};
 
-	printv(1, "Multiorder tagged iteration test\n");
+    //printv(1, "Multiorder tagged iteration test\n");
 
 	for (i = 0; i < MT_NUM_ENTRIES; i++)
 		assert(!item_insert_order(xa, index[i], order[i]));
@@ -161,6 +173,8 @@ void multiorder_tagged_iteration(struct xarray *xa)
 	assert(i == TAG_ENTRIES);
 
 	item_kill_tree(xa);
+
+    pr_fn_end(stack_depth);
 }
 
 bool stop_iteration = false;
@@ -201,6 +215,8 @@ static void *iterator_func(void *ptr)
 
 static void multiorder_iteration_race(struct xarray *xa)
 {
+    pr_fn_start(stack_depth);
+
 	const int num_threads = sysconf(_SC_NPROCESSORS_ONLN);
 	pthread_t worker_thread[num_threads];
 	int i;
@@ -212,22 +228,24 @@ static void multiorder_iteration_race(struct xarray *xa)
 	for (i = 0; i < num_threads; i++)
 		pthread_join(worker_thread[i], NULL);
 
-	item_kill_tree(xa);
+    item_kill_tree(xa);
+
+    pr_fn_end(stack_depth);
 }
 
 static DEFINE_XARRAY(array);
 
 void multiorder_checks(void)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start(stack_depth);
 
 	multiorder_iteration(&array);
 	multiorder_tagged_iteration(&array);
-	multiorder_iteration_race(&array);
+    //multiorder_iteration_race(&array);
 
 	radix_tree_cpu_dead(0);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end(stack_depth);
 }
 
 //int __weak main(void)

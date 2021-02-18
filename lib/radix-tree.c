@@ -9,6 +9,7 @@
  * Copyright (C) 2016 Intel, Ross Zwisler
  */
 
+#include "test/debug.h"
 #include <urcu.h>
 #include <urcu-pointer.h>
 
@@ -1596,6 +1597,8 @@ radix_tree_node_ctor(void *arg)
 
 int radix_tree_cpu_dead(unsigned int cpu)
 {
+    pr_fn_start(stack_depth);
+
 	struct radix_tree_preload *rtp;
 	struct radix_tree_node *node;
 
@@ -1608,6 +1611,8 @@ int radix_tree_cpu_dead(unsigned int cpu)
 		kmem_cache_free(radix_tree_node_cachep, node);
 		rtp->nr--;
 	}
+
+    pr_fn_end(stack_depth);
 	return 0;
 }
 

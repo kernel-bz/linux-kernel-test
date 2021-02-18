@@ -74,8 +74,9 @@ void list_test02(void)
                   , f->name, f->tail_length, f->weight, f->is_fantastic);
 	}
 
-    while (!list_empty(&fox_list))
-            list_del_init(&fox_list);
+    list_del_init(&fox_list);
+    free(fox3);
+    free(fox4);
 
     pr_fn_end(stack_depth);
 }
