@@ -65,8 +65,9 @@ void __init setup_arch(char **cmdline_p)
     //arch/arm64/kernel/vmlinux.lds.S:
     //SECTIONS
     //INIT_SETUP(16)
-
     parse_dtb();
+    //arch/arm64/kernel/setup.c
+    //setup_machine_fdt(__fdt_pointer);
 
 	*cmdline_p = boot_command_line;
 

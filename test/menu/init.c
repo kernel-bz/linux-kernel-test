@@ -51,7 +51,7 @@ static int _init_menu(int asize)
 }
 
 //init/main.c: start_kernel()
-void menu_init(void)
+void menu_start_kernel(void)
 {
     void (*fn[])(void) = { _init_menu_help
         , test_setup_arch

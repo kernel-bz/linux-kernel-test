@@ -16,7 +16,7 @@ extern "C" {
 void menu_basic_train(void);
 void menu_algorithm(void);
 void menu_config(void);
-void menu_init(void);
+void menu_start_kernel(void);
 void menu_sched_test(void);
 void menu_drivers(void);
 

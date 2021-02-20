@@ -65,7 +65,7 @@ int main(void)
             , menu_config
             , menu_basic_train
             , menu_algorithm
-            , menu_init
+            , menu_start_kernel
             , menu_sched_test
             , menu_drivers
             , _main_menu_help
