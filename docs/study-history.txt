@@ -226,4 +226,17 @@ struct dev_pm_opp
 _get_cpu_power()
 
 
+//D20210220 Networks ==============================================
+
+drivers/InfiniBand(IB)
+DPDK
+RDMA(Remote Direct Memory Access)
+OpenFlow SDN
+ONOS SDN
+Open Network Foundation
+
+get_user_pages()
+put_user_pages()
+rmap: phy --> user virt
+
 

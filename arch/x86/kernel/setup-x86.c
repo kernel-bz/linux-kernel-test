@@ -62,7 +62,7 @@ void __init setup_arch(char **cmdline_p)
 {
     pr_fn_start_on(stack_depth);
 
-    //arch/arm64/kernel/vmlinux.lds.S:
+    //arch/*/kernel/vmlinux.lds.S:
     //SECTIONS
     //INIT_SETUP(16)
     parse_dtb();
