@@ -22,6 +22,7 @@ extern int dtb_size;
 void dtb_set_file_name(void);
 void dtb_test_read_file(void);
 void dtb_test_hex_dump(void);
+void dtb_test_print_allnodes(void);
 
 //drivers/of/unittest.c
 void dtb_unittest_data_add(void);

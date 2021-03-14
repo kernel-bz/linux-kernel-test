@@ -16,6 +16,7 @@ void basic_run_time_test(void);
 
 //test/basic/ptr-test.c
 void basic_ptr_test(void);
+void basic_ptr2_test(void);
 
 //test/basic/types-test.c
 void basic_types_test(void);

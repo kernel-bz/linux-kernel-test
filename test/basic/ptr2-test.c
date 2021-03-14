@@ -1,6 +1,14 @@
-﻿#include <stdio.h>
+﻿// SPDX-License-Identifier: GPL-2.0-only
+/*
+ *  test/basic/ptr2-test.c
+ *  Pointer2 Test
+ *
+ *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
+ */
+#include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
+
+#include "test/debug.h"
 
 #ifndef offsetof
 //include/linux/stddef.h
@@ -25,6 +33,7 @@ struct data *head2 = NULL;
 struct data *head3 = NULL;
 struct data **tails = &head0;
 
+//include/linux/rcu_segcblist.h
 struct dslist {
     struct data *head;
     struct data **tails[4];
@@ -51,7 +60,7 @@ static void data_add(struct dslist *ds, struct data *head, int idx, int a)
 
     *tails = dp;
     tails = &dp->next;
-    //printf("dp: %p, %p, %p\n", dp, &dp->next, &dp);
+    //pr_out(stack_depth, "dp: %p, %p, %p\n", dp, &dp->next, &dp);
 
     ds->head = head;
     *ds->tails[idx] = dp;
@@ -60,16 +69,16 @@ static void data_add(struct dslist *ds, struct data *head, int idx, int a)
 
 static void data_print(struct data *head)
 {
+    pr_fn_start(stack_depth);
     struct data *d;
 
-    printf("---------------------\n");
     for (d = head; d; d = d->next)
-        printf("%d\n", d->a);
+        pr_view(stack_depth, "%10s : %d\n", d->a);
 
-    printf("\n");
+    pr_fn_end(stack_depth);
 }
 
-int main()
+void basic_ptr2_test(void)
 {
     struct dslist *ds = &dslist;
 

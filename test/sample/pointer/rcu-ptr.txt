@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+typedef unsigned char u8;
+
+//include/linux/types.h
+struct callback_head {
+    struct callback_head *next;
+    void (*func)(struct callback_head *head);
+    int data;
+} __attribute__((aligned(sizeof(void *))));
+#define rcu_head callback_head
+
+//include/linux/rcu_segcblist.h
+#define RCU_DONE_TAIL		0	/* Also RCU_WAIT head. */
+#define RCU_WAIT_TAIL		1	/* Also RCU_NEXT_READY head. */
+#define RCU_NEXT_READY_TAIL	2	/* Also RCU_NEXT head. */
+#define RCU_NEXT_TAIL		3
+#define RCU_CBLIST_NSEGS	4
+
+struct rcu_segcblist {
+    struct rcu_head *head;
+    struct rcu_head **tails[RCU_CBLIST_NSEGS];
+    unsigned long gp_seq[RCU_CBLIST_NSEGS];
+    long len;
+    u8 enabled;
+    u8 offloaded;
+};
+
+#define RCU_SEGCBLIST_INITIALIZER(n) \
+{ \
+    .head = NULL, \
+    .tails[RCU_DONE_TAIL] = &n.head, \
+    .tails[RCU_WAIT_TAIL] = &n.head, \
+    .tails[RCU_NEXT_READY_TAIL] = &n.head, \
+    .tails[RCU_NEXT_TAIL] = &n.head, \
+}
+
+//kernel/rcu/rcu_segcblist.c
+void rcu_segcblist_enqueue(struct rcu_segcblist *rsclp,
+                           struct rcu_head *rhp, bool lazy)
+{
+    rhp->next = NULL;
+    printf("rhp = %p\n", rhp);
+    printf("rhp->next = %p\n", &rhp->next);
+
+    *rsclp->tails[RCU_NEXT_TAIL] = rhp;
+    //rsclp->tails[RCU_NEXT_TAIL] = &rhp->next;
+}
+
+int main()
+{
+    struct rcu_head *h1, *h2, *h3, *h;
+    struct rcu_segcblist *rsclp;
+
+    h1 = malloc(sizeof(struct rcu_head));
+    h1->data = 10;
+    h2 = malloc(sizeof(struct rcu_head));
+    h2->data = 20;
+    h3 = malloc(sizeof(struct rcu_head));
+    h3->data = 30;
+
+    h1->next = h2;
+    h2->next = h3;
+    h3->next = NULL;
+
+    rsclp = malloc(sizeof(*rsclp));
+    rsclp->tails[RCU_NEXT_TAIL] = &h1;
+
+    printf("test\n");
+    rcu_segcblist_enqueue(rsclp, h1, 0);
+    h = *rsclp->tails[RCU_NEXT_TAIL];
+    printf("%d\n", h->data);
+
+    return 0;
+}
+
+/*
+int main()
+{
+    int **a;
+    int *b;
+    int c=10;
+
+    b = &c;
+    a = &b;
+    *a = b;
+
+    printf("%p, %p\n", b, &b);
+    printf("%p, %p\n", *a, a);
+    printf("%d, %d\n", **a, c);
+}
+*/

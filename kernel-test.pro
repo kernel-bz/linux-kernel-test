@@ -183,7 +183,8 @@ SOURCES += \
     test/algorithm/xarray/tag_check.c \
     test/algorithm/xarray/xa-main.c \
     test/algorithm/xarray/xarray-test.c \
-    test/algorithm/xarray/xa-test.c
+    test/algorithm/xarray/xa-test.c \
+    test/basic/ptr2-test.c
 
 HEADERS += \
     include/test/test.h \

@@ -19,4 +19,5 @@ HEADERS +=
 
 DISTFILES += \
     ../pointer/struct-s-data.txt \
-    ../pointer/pcpu-test.txt
+    ../pointer/pcpu-test.txt \
+    ../pointer/rcu-ptr.txt

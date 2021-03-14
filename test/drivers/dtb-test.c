@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <linux/kern_levels.h>
+#include <linux/of.h>
 
 char dtb_file_name[80];
 
@@ -139,4 +140,20 @@ void dtb_test_hex_dump(void)
     pr_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
     pr_view_on(stack_depth, "%20s : %d\n", dtb_size);
     pr_fn_end_on(stack_depth);
+}
+
+void dtb_test_print_allnodes(void)
+{
+    struct device_node *np;
+
+    of_fdt_unflatten_tree(dtb_early_va, NULL, &np);
+    pr_view_on(stack_depth, "%20s : %p\n", np);
+
+    if (np) {
+        of_root = np;
+        for_each_of_allnodes(np)
+                pr_view_on(stack_depth, "%20s : %s\n", np->name);
+    } else {
+        pr_warn("%s: No device tree to attach\n", __func__);
+    }
 }
