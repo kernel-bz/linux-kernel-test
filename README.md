@@ -1,7 +1,7 @@
 # linux-kernel-test (kanalyzer)
 Linux Kernel Source Test &amp; Analyzer
 
-Linux Kernel 소스를 주제별로 분리하여 실행 및 분석(디버깅)할 수 있습니다.
+Linux Kernel 소스를 user application(qt project)에서 실행 및 분석(디버깅)할 수 있습니다.
 
 자세한 내용은 docs 경로안에 PDF 문서 참조 바랍니다.
 
