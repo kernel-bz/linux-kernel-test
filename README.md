@@ -31,6 +31,20 @@ qt5와 urcu 패키지가 설치 되어 있어야 합니다.
     kernel-test.pro
 
 
+5. 출판 서적(소스 설명)
+
+    소스에 대한 자세한 설명은 아래의 출판 서적을 참고 하시기 바랍니다.
+    
+    책제목: "리눅스 커널 소스 해설2 [소스 실행 분석기]"
+    
+    알라딘: https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=266746032
+    
+    교보문고: http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9788997750153&orderClick=LET&Kc=
+    
+    예스24: http://www.yes24.com/Product/Goods/97963286
+    
+    커널연구회: https://www.kernel.bz/product/Books-15
+        
 기타 궁금한 사항은 커널연구회로 메일(rgbi3307@nate.com) 주시기 바랍니다.
 
 감사합니다.
