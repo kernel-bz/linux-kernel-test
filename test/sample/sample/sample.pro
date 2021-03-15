@@ -20,4 +20,10 @@ HEADERS +=
 DISTFILES += \
     ../pointer/struct-s-data.txt \
     ../pointer/pcpu-test.txt \
-    ../pointer/rcu-ptr.txt
+    ../pointer/rcu-ptr.txt \
+    ../study/pointer/pcpu-test.txt \
+    ../study/pointer/rcu-ptr.txt \
+    ../study/pointer/struct-s-data.txt \
+    ../study/study-history.txt \
+    ../study/subjects/completion-wait.txt \
+    ../study/subjects/rcu-struct.txt

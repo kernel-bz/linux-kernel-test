@@ -630,6 +630,8 @@ HEADERS += \
     include/linux/percpu-rwsem.h \
 
 DISTFILES += \
+    docs/study/completion-wait.txt \
+    docs/study/rcu-struct.txt \
     lib/bpf/libbpf.a \
     drivers/of/unittest-data/overlay.dts \
     drivers/of/unittest-data/overlay_0.dts \
