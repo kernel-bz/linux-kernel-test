@@ -1,0 +1,23 @@
+//include/linux/swait.h
+struct swait_queue_head {
+	raw_spinlock_t	lock;
+	struct list_head	task_list;
+};
+
+struct swait_queue {
+	struct task_struct	*task;
+	struct list_head	task_list;
+};
+
+//include/linux/completion.h
+struct completion {
+	unsigned int done;
+	struct swait_queue_head wait;
+};
+
+//kernel/sched/completion.c
+void __sched wait_for_completion(struct completion *x)
+{
+	wait_for_common(x, MAX_SCHEDULE_TIMEOUT, TASK_UNINTERRUPTIBLE);
+}
+EXPORT_SYMBOL(wait_for_completion);

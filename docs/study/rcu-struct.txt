@@ -1,0 +1,61 @@
+
+//include/linux/types.h
+struct callback_head {
+	struct callback_head *next;
+	void (*func)(struct callback_head *head);
+} __attribute__((aligned(sizeof(void *))));
+#define rcu_head callback_head
+
+//include/linux/rcu_segcblist.h
+/* Simple unsegmented callback lists. */
+struct rcu_cblist {
+	struct rcu_head *head;
+	struct rcu_head **tail;
+	long len;
+};
+
+#define RCU_DONE_TAIL		0	/* Also RCU_WAIT head. */
+#define RCU_WAIT_TAIL		1	/* Also RCU_NEXT_READY head. */
+#define RCU_NEXT_READY_TAIL	2	/* Also RCU_NEXT head. */
+#define RCU_NEXT_TAIL		3
+#define RCU_CBLIST_NSEGS	4
+
+struct rcu_segcblist {
+	struct rcu_head *head;
+	struct rcu_head **tails[RCU_CBLIST_NSEGS];
+	unsigned long gp_seq[RCU_CBLIST_NSEGS];
+#ifdef CONFIG_RCU_NOCB_CPU
+	atomic_long_t len;
+#else
+	long len;
+#endif
+	long seglen[RCU_CBLIST_NSEGS];
+	u8 flags;
+};
+
+//include/linux/rcupdate_wait.h
+struct rcu_synchronize {
+	struct rcu_head head;
+	struct completion completion;
+};
+
+//kernel/rcu/tree.h
+/*
+ * Definition for node within the RCU grace-period-detection hierarchy.
+ */
+struct rcu_node {
+///...
+}
+
+/* Per-CPU data for read-copy update. */
+struct rcu_data {
+///...
+}
+
+struct rcu_state {
+///...
+}
+
+
+
+
