@@ -42,6 +42,10 @@ bool slab_is_available(void)
     return slab_state >= UP;
 }
 
+void slab_state_set(enum slab_state state)
+{
+    slab_state = state;
+}
 
 
 //lib/vsprintf.c

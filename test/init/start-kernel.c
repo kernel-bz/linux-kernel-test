@@ -18,12 +18,15 @@
 #include <linux/init.h>
 #include <linux/sched/init.h>
 #include <asm/numa_.h>
+#include <mm/slab.h>
 
 void test_setup_arch(void)
 {
     pr_fn_start_on(stack_depth);
 
     char *command_line;
+
+    slab_state_set(UP);
 
     //init/main.c: start_kernel(): 597 lines
     setup_arch(&command_line);

@@ -14,4 +14,8 @@ enum slab_state {
 };
 
 
+//user_common.c
+bool slab_is_available(void);
+void slab_state_set(enum slab_state state);
+
 #endif

@@ -48,8 +48,9 @@ static int _main_menu(int asize)
     printf("3: Algorithm & Struct -->\n");
     printf("4: Start Kernel Test -->\n");
     printf("5: Scheduler Test -->\n");
-    printf("6: Drivers Test -->\n");
-    printf("7: help.\n");
+    printf("6: Memory Test -->\n");
+    printf("7: Drivers Test -->\n");
+    printf("8: help.\n");
     printf("Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
@@ -67,6 +68,7 @@ int main(void)
             , menu_algorithm
             , menu_start_kernel
             , menu_sched_test
+            , menu_mm_test
             , menu_drivers
             , _main_menu_help
     };

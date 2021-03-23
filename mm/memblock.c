@@ -198,6 +198,8 @@ __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
 				phys_addr_t size, phys_addr_t align, int nid,
 				enum memblock_flags flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	phys_addr_t this_start, this_end, cand;
 	u64 i;
 
@@ -210,6 +212,7 @@ __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
 			return cand;
 	}
 
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 
@@ -233,7 +236,12 @@ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
 			       phys_addr_t size, phys_addr_t align, int nid,
 			       enum memblock_flags flags)
 {
-	phys_addr_t this_start, this_end, cand;
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %u\n", start);
+    pr_view_on(stack_depth, "%20s : %u\n", end);
+    pr_view_on(stack_depth, "%20s : %u\n", size);
+
+    phys_addr_t this_start, this_end, cand;
 	u64 i;
 
 	for_each_free_mem_range_reverse(i, nid, flags, &this_start, &this_end,
@@ -241,14 +249,20 @@ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
 		this_start = clamp(this_start, start, end);
 		this_end = clamp(this_end, start, end);
 
+        pr_view_on(stack_depth, "%30s : %u\n", this_start);
+        pr_view_on(stack_depth, "%30s : %u\n", this_end);
+
 		if (this_end < size)
 			continue;
 
 		cand = round_down(this_end - size, align);
-		if (cand >= this_start)
+
+        pr_view_on(stack_depth, "%30s : %u\n", cand);
+        if (cand >= this_start)
 			return cand;
 	}
 
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 
@@ -280,6 +294,8 @@ static phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t size,
 					phys_addr_t end, int nid,
 					enum memblock_flags flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	phys_addr_t kernel_end, ret;
 
 	/* pump up @end */
@@ -520,6 +536,8 @@ static int __init_memblock memblock_double_array(struct memblock_type *type,
  */
 static void __init_memblock memblock_merge_regions(struct memblock_type *type)
 {
+    pr_fn_start_on(stack_depth);
+
 	int i = 0;
 
 	/* cnt never goes below 1 */
@@ -540,7 +558,15 @@ static void __init_memblock memblock_merge_regions(struct memblock_type *type)
 		/* move forward from next + 1, index of which is i + 2 */
 		memmove(next, next + 1, (type->cnt - (i + 2)) * sizeof(*next));
 		type->cnt--;
-	}
+
+        pr_view_on(stack_depth, "%20s : %u\n", this->base);
+        pr_view_on(stack_depth, "%20s : %u\n", this->size);
+        pr_view_on(stack_depth, "%20s : %u\n", next->base);
+        pr_view_on(stack_depth, "%20s : %u\n", next->size);
+        pr_view_on(stack_depth, "%20s : %u\n", type->cnt);
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -561,6 +587,8 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
 						   int nid,
 						   enum memblock_flags flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct memblock_region *rgn = &type->regions[idx];
 
 	BUG_ON(type->cnt >= type->max);
@@ -571,6 +599,13 @@ static void __init_memblock memblock_insert_region(struct memblock_type *type,
 	memblock_set_region_node(rgn, nid);
 	type->cnt++;
 	type->total_size += size;
+
+    pr_view_on(stack_depth, "%20s : %u\n", rgn->base);
+    pr_view_on(stack_depth, "%20s : %u\n", rgn->size);
+    pr_view_on(stack_depth, "%20s : %u\n", type->cnt);
+    pr_view_on(stack_depth, "%20s : %u\n", type->total_size);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -593,6 +628,8 @@ int __init_memblock memblock_add_range(struct memblock_type *type,
 				phys_addr_t base, phys_addr_t size,
 				int nid, enum memblock_flags flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	bool insert = false;
 	phys_addr_t obase = base;
 	phys_addr_t end = base + memblock_cap_size(base, &size);
@@ -613,6 +650,7 @@ int __init_memblock memblock_add_range(struct memblock_type *type,
 		return 0;
 	}
 repeat:
+    pr_out_on(stack_depth, "repeat:\n");
 	/*
 	 * The following is executed twice.  Once with %false @insert and
 	 * then with %true.  The first counts the number of regions needed
@@ -706,6 +744,8 @@ int __init_memblock memblock_add_node(phys_addr_t base, phys_addr_t size,
  */
 int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
 {
+    pr_fn_start_on(stack_depth);
+
 	phys_addr_t end = base + size - 1;
 
 	memblock_dbg("memblock_add: [%pa-%pa] %pS\n",
@@ -1125,6 +1165,8 @@ void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
 					  phys_addr_t *out_start,
 					  phys_addr_t *out_end, int *out_nid)
 {
+    pr_fn_start_on(stack_depth);
+
 	int idx_a = *idx & 0xffffffff;
 	int idx_b = *idx >> 32;
 
@@ -1145,6 +1187,10 @@ void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
 		phys_addr_t m_start = m->base;
 		phys_addr_t m_end = m->base + m->size;
 		int m_nid = memblock_get_region_node(m);
+
+        pr_view_on(stack_depth, "%20s : %d\n", idx_a);
+        pr_view_on(stack_depth, "%20s : %u\n", m_start);
+        pr_view_on(stack_depth, "%20s : %u\n", m_end);
 
 		if (should_skip_region(m, nid, flags))
 			continue;
@@ -1176,6 +1222,10 @@ void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
 			 * break out to advance idx_a
 			 */
 
+            pr_view_on(stack_depth, "%30s : %d\n", idx_b);
+            pr_view_on(stack_depth, "%30s : %u\n", r_start);
+            pr_view_on(stack_depth, "%30s : %u\n", r_end);
+
 			if (r_end <= m_start)
 				break;
 			/* if the two regions intersect, we're done */
@@ -1197,6 +1247,8 @@ void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
 	}
 	/* signal end of iteration */
 	*idx = ULLONG_MAX;
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
@@ -1354,6 +1406,8 @@ static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
 					phys_addr_t align, phys_addr_t start,
 					phys_addr_t end, int nid)
 {
+    pr_fn_start_on(stack_depth);
+
 	enum memblock_flags flags = choose_memblock_flags();
 	phys_addr_t found;
 
@@ -1367,6 +1421,8 @@ static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
 	}
 
 again:
+    pr_out_on(stack_depth, "again: \n");
+
 	found = memblock_find_in_range_node(size, align, start, end, nid,
 					    flags);
 	if (found && !memblock_reserve(found, size))
@@ -1390,7 +1446,9 @@ again:
 	return 0;
 
 done:
-	/* Skip kmemleak for kasan_init() due to high volume. */
+    pr_out_on(stack_depth, "done: \n");
+
+    /* Skip kmemleak for kasan_init() due to high volume. */
 	if (end != MEMBLOCK_ALLOC_KASAN)
 		/*
 		 * The min_count is set to 0 so that memblock allocated
@@ -1400,6 +1458,7 @@ done:
 		 */
         //kmemleak_alloc_phys(found, size, 0, 0);
 
+    pr_fn_end_on(stack_depth);
 	return found;
 }
 
@@ -1488,7 +1547,9 @@ static void * __init memblock_alloc_internal(
 	if (!alloc && min_addr)
 		alloc = memblock_alloc_range_nid(size, align, 0, max_addr, nid);
 
-    pr_view_on(stack_depth, "%20s : %p\n", alloc);
+    pr_view_on(stack_depth, "%20s : %u\n", alloc);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", alloc);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", phys_to_virt(alloc));
 
 	if (!alloc)
 		return NULL;
@@ -1564,10 +1625,17 @@ void * __init memblock_alloc_try_nid(
 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
 		     __func__, (u64)size, (u64)align, nid, &min_addr,
 		     &max_addr, (void *)_RET_IP_);
+
+    pr_view_on(stack_depth, "%20s : %u\n", size);
+    pr_view_on(stack_depth, "%20s : %u\n", align);
+    pr_view_on(stack_depth, "%20s : %u\n", min_addr);
+    pr_view_on(stack_depth, "%20s : %u\n", max_addr);
+    pr_view_on(stack_depth, "%20s : %d\n", nid);
+
 	ptr = memblock_alloc_internal(size, align,
 					   min_addr, max_addr, nid);
-	if (ptr)
-		memset(ptr, 0, size);
+    //if (ptr)
+    //	memset(ptr, 0, size);
 
     pr_view_on(stack_depth, "%20s : %p\n", ptr);
 
@@ -1859,12 +1927,15 @@ phys_addr_t __init_memblock memblock_get_current_limit(void)
 
 static void __init_memblock memblock_dump(struct memblock_type *type)
 {
+    pr_fn_start_on(stack_depth);
+
 	phys_addr_t base, end, size;
 	enum memblock_flags flags;
 	int idx;
 	struct memblock_region *rgn;
 
-	pr_info(" %s.cnt  = 0x%lx\n", type->name, type->cnt);
+    pr_view_on(stack_depth, "%20s : %s\n", type->name);
+    pr_view_on(stack_depth, "%20s : %u\n", type->cnt);
 
 	for_each_memblock_type(idx, type, rgn) {
 		char nid_buf[32] = "";
@@ -1878,23 +1949,37 @@ static void __init_memblock memblock_dump(struct memblock_type *type)
 			snprintf(nid_buf, sizeof(nid_buf), " on node %d",
 				 memblock_get_region_node(rgn));
 #endif
-		pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#x\n",
-			type->name, idx, &base, &end, &size, nid_buf, flags);
-	}
+        //pr_info(" %s[%#x]\t[%pa-%pa], %pa bytes%s flags: %#x\n",
+        //	type->name, idx, &base, &end, &size, nid_buf, flags);
+        pr_out_on(stack_depth, "idx, base, end, size : %d, %u, %u, %u\n"
+                                , idx, base, end, size);
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 void __init_memblock __memblock_dump_all(void)
 {
+    pr_fn_start_on(stack_depth);
+    /*
 	pr_info("MEMBLOCK configuration:\n");
 	pr_info(" memory size = %pa reserved size = %pa\n",
 		&memblock.memory.total_size,
 		&memblock.reserved.total_size);
+    */
+    pr_view_on(stack_depth, "%20s : %u\n", memblock.memory.total_size);
+    pr_view_on(stack_depth, "%20s : %u\n", memblock.reserved.total_size);
+#ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
+    pr_view_on(stack_depth, "%20s : %u\n", memblock.physmem.total_size);
+#endif
 
-	memblock_dump(&memblock.memory);
+    memblock_dump(&memblock.memory);
 	memblock_dump(&memblock.reserved);
 #ifdef CONFIG_HAVE_MEMBLOCK_PHYS_MAP
 	memblock_dump(&memblock.physmem);
 #endif
+
+    pr_fn_end_on(stack_depth);
 }
 
 void __init memblock_allow_resize(void)

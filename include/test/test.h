@@ -19,6 +19,7 @@ void menu_config(void);
 void menu_start_kernel(void);
 void menu_sched_test(void);
 void menu_drivers(void);
+void menu_mm_test(void);
 
 //test/config/
 void config_view(void);
@@ -76,6 +77,10 @@ void test_update_load_avg(void);
 
 //test/sched/sched-pelt.c
 void sched_pelt_constants(void);
+
+//test/memory/mm-test.c
+int mm_memblock_add(unsigned int size);
+void mm_memblock_test(void);
 
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);
