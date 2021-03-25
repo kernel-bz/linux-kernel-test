@@ -41,11 +41,14 @@ void mm_memblock_test(void)
     memblock_dump_all();
 
 #ifdef MM_MEMBLOCK_DEBUG
-    memblock_add(2000, 200);
+    memblock_add(2000, 800);
     memblock_add(4000, 400);
-    memblock_add(8000, 800);
-    memblock_add(6000, 600);
+    memblock_add(8000, 700);
+    memblock_add(6000, 400);
+    //memblock_add(5000, 600);
     memblock_add(5000, 1000);
+    //memblock_add(5000, 3000);
+    memblock_add(9000, 600);
     /*
     memblock_reserve(2200, 220);
     memblock_reserve(4400, 440);
@@ -61,6 +64,10 @@ void mm_memblock_test(void)
     mm_memblock_add(1000);
 #endif
 
+    memblock_alloc(600, SMP_CACHE_BYTES);
+    memblock_alloc(600, SMP_CACHE_BYTES);
+    memblock_alloc(600, SMP_CACHE_BYTES);
+    memblock_alloc(600, SMP_CACHE_BYTES);
     memblock_alloc(600, SMP_CACHE_BYTES);
 
     memblock_dump_all();
