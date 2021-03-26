@@ -84,3 +84,16 @@ void test_sched_init_smp(void)
     //kernel/sched/core.c
     sched_init_smp();
 }
+
+/*
+ * init/main.c
+ * 	start_kernel()
+ * 		rcu_init()
+ *			include/linux/rcupdate.h
+ * 			kernel/rcu/tiny.c
+ * 			kernel/rcu/tree.c
+ */
+void test_rcu_init(void)
+{
+
+}
