@@ -83,10 +83,9 @@ static void _menu_of_unittest(void)
         , _drivers_menu_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while (1) {
-        idx = _dtb_unittest_menu(asize);
+        idx = _dtb_unittest_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -126,10 +125,9 @@ void menu_drivers(void)
         , _drivers_menu_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _drivers_menu(asize);
+        idx = _drivers_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

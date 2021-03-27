@@ -2,102 +2,84 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#ifndef offsetof
-//include/linux/stddef.h
-//typedef unsigned long size_t
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#if 0
+typedef unsigned long           uintptr_t;
+
+#ifdef __CHECKER__
+#define rcu_check_sparse(p, space) \
+        ((void)(((typeof(*p) space *)p) == p))
+#else /* #ifdef __CHECKER__ */
+#define rcu_check_sparse(p, space)
+#endif /* #else #ifdef __CHECKER__ */
+
+
+static __always_inline void __write_once_size(volatile void *p, void *res, int size)
+{
+        switch (size) {
+        case 1: *(volatile __u8 *)p = *(__u8 *)res; break;
+        case 2: *(volatile __u16 *)p = *(__u16 *)res; break;
+        case 4: *(volatile __u32 *)p = *(__u32 *)res; break;
+        case 8: *(volatile __u64 *)p = *(__u64 *)res; break;
+        default:
+                barrier();
+                __builtin_memcpy((void *)p, (const void *)res, size);
+                barrier();
+        }
+}
+
+#define WRITE_ONCE(x, val) \
+({                                                      \
+        union { typeof(x) __val; char __c[1]; } __u =   \
+                { .__val = (__force typeof(x)) (val) }; \
+        __write_once_size(&(x), __u.__c, sizeof(x));    \
+        __u.__val;                                      \
+})
+
+#ifndef smp_store_release
+#define smp_store_release(p, v) __smp_store_release(p, v)
 #endif
 
-#ifndef container_of
-//include/linux/kernel.h
-#define container_of(ptr, type, member) ({			\
-    const typeof(((type *)0)->member) * __mptr = (ptr);	\
-    (type *)((char *)__mptr - offsetof(type, member)); })
+#ifndef __smp_store_release
+#define __smp_store_release(p, v)                                       \
+do {                                                                    \
+        compiletime_assert_atomic_type(*p);                             \
+        __smp_mb();                                                     \
+        WRITE_ONCE(*p, v);                                              \
+} while (0)
 #endif
 
-struct data {
-    struct data *next;
-    int a;
-};
-struct data *head0 = NULL;
-struct data *head1 = NULL;
-struct data *head2 = NULL;
-struct data *head3 = NULL;
-struct data **tails = &head0;
+#define rcu_assign_pointer(p, v)                                              \
+do {                                                                          \
+        uintptr_t _r_a_p__v = (uintptr_t)(v);                                 \
+        rcu_check_sparse(p, __rcu);                                           \
+                                                                              \
+        if (__builtin_constant_p(v) && (_r_a_p__v) == (uintptr_t)NULL)        \
+                WRITE_ONCE((p), (typeof(p))(_r_a_p__v));                      \
+        else                                                                  \
+                smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
+} while (0)
+#endif
 
-struct dslist {
-    struct data *head;
-    struct data **tails[4];
-    int len;
-};
-
-#define DSLIST_INIT(n) \
-{ \
-    .head = NULL, \
-    .tails[0] = &n.head, \
-    .tails[1] = &n.head, \
-    .tails[2] = &n.head, \
-    .tails[3] = &n.head, \
-}
-struct dslist dslist = DSLIST_INIT(dslist);
-
-static void data_add(struct dslist *ds, struct data *head, int idx, int a)
-{
-    struct data *dp;
-
-    dp = malloc(sizeof(struct data));
-    dp->next = NULL;
-    dp->a = a;
-
-    *tails = dp;
-    tails = &dp->next;
-    //printf("dp: %p, %p, %p\n", dp, &dp->next, &dp);
-
-    ds->head = head;
-    *ds->tails[idx] = dp;
-    ds->tails[idx] = &dp->next;
-}
-
-static void data_print(struct data *head)
-{
-    struct data *d;
-
-    printf("---------------------\n");
-    for (d = head; d; d = d->next)
-        printf("%d\n", d->a);
-
-    printf("\n");
-}
 
 int main()
 {
-    struct dslist *ds = &dslist;
+    int i, len=0;
 
-    ds->tails[0] = &head0;
-    data_add(ds, head0, 0, 0);
-    data_add(ds, head0, 0, 1);
-    data_add(ds, head0, 0, 2);
+    for (i=0; i<300; i++) {
+        len++;
+        if (len & 31) continue;
+        printf("i=%d, len=%d\n", i, len);
+    }
+    printf("i=%d, len=%d\n", i, len);
 
-    ds->tails[1] = &head1;
-    data_add(ds, head1, 1, 10);
-    data_add(ds, head1, 1, 20);
-    data_add(ds, head1, 1, 30);
+    printf("---------------\n");
+    len = 0;
+    for (i=0; i<300; i++) {
+        len--;
+        if (-len & 31) continue;
+        printf("i=%d, len=%d\n", i, -len);
+    }
 
-    ds->tails[2] = &head2;
-    data_add(ds, head2, 2, 100);
-    data_add(ds, head2, 2, 200);
-    data_add(ds, head2, 2, 300);
-
-    ds->tails[3] = &head3;
-    data_add(ds, head3, 3, 1000);
-    data_add(ds, head3, 3, 2000);
-    data_add(ds, head3, 3, 3000);
-
-    data_print(head0);
-    data_print(head1);
-    data_print(head2);
-    data_print(head3);
-
-    ds = container_of(ds->tails[1], struct dslist, head);
-    data_print(ds->head);
+    printf("i=%d, len=%d\n", i, len);
+    return 0;
 }

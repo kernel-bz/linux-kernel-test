@@ -13,6 +13,7 @@
 #include "test/config.h"
 #include "test/basic.h"
 #include "test/test.h"
+#include <linux/kernel.h>
 
 static void _basic_training_help(void)
 {
@@ -68,10 +69,9 @@ void menu_basic_train(void)
         , _basic_training_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _basic_training_menu(asize);
+        idx = _basic_training_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

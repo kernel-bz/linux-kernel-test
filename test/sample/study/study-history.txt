@@ -240,3 +240,17 @@ put_user_pages()
 rmap: phy --> user virt
 
 
+//D20210327 RCU ====================================================
+
+call_rcu()
+synchronize_rcu()
+
+//kernel/rcu/tree.c
+rcu_core_si(struct softirq_action *h)
+        rcu_core()
+
+rcu_cpu_kthread(cpu)
+        rcu_core()
+
+rcu_qs()
+rcu_gp_kthread()

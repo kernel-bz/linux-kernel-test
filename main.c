@@ -16,6 +16,7 @@
 #include "test/debug.h"
 #include "test/basic.h"
 #include "test/test.h"
+#include <linux/kernel.h>
 
 //(DebugBase <= depth <= DebugLevel) ? debug on
 int DebugBase = 0;
@@ -73,15 +74,14 @@ int main(void)
             , _main_menu_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _main_menu(asize);
+        idx = _main_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
 
     printf("\n");
-    printf("The end of test. Thanks.\n\n");
+    printf("The end of test. See you again... Thanks.\n\n");
     return 0;
 }

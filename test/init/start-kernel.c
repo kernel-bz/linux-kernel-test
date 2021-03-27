@@ -95,5 +95,5 @@ void test_sched_init_smp(void)
  */
 void test_rcu_init(void)
 {
-
+    //rcu_init();
 }

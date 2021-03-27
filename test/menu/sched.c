@@ -13,6 +13,7 @@
 
 #include "test/test.h"
 #include "test/debug.h"
+#include <linux/kernel.h>
 
 static void _sched_test_help(void)
 {
@@ -59,11 +60,10 @@ static void _menu_sched_basic_pelt_test(void)
         , _sched_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
 _retry:
     while (1) {
-        idx = _sched_basic_pelt_test_menu(asize);
+        idx = _sched_basic_pelt_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -101,10 +101,9 @@ static void _menu_sched_cfs_test(void)
         , _sched_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while (1) {
-        idx = _sched_cfs_test_menu(asize);
+        idx = _sched_cfs_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -134,10 +133,9 @@ static void _menu_sched_rt_test(void)
            , _sched_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while (1) {
-        idx = _sched_rt_test_menu(asize);
+        idx = _sched_rt_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -171,10 +169,9 @@ static void _menu_sched_dl_test(void)
         , _sched_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while (1) {
-        idx = _sched_dl_test_menu(asize);
+        idx = _sched_dl_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -232,10 +229,9 @@ void menu_sched_test(void)
         , _sched_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _sched_test_menu(asize);
+        idx = _sched_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

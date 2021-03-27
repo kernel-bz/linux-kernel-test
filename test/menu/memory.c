@@ -13,6 +13,7 @@
 #include "test/config.h"
 #include "test/basic.h"
 #include "test/test.h"
+#include <linux/kernel.h>
 
 static void _mm_test_help(void)
 {
@@ -54,10 +55,9 @@ void menu_mm_test(void)
         , _mm_test_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _mm_test_menu(asize);
+        idx = _mm_test_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

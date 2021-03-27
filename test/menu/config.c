@@ -60,10 +60,9 @@ void menu_config(void)
         , _config_setting_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _config_setting_menu(asize);
+        idx = _config_setting_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

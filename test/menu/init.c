@@ -13,6 +13,7 @@
 #include "test/config.h"
 #include "test/debug.h"
 #include "test/test.h"
+#include <linux/kernel.h>
 
 static void _init_menu_help(void)
 {
@@ -40,8 +41,8 @@ static int _init_menu(int asize)
     printf("2: sched_init test.\n");
     printf("3: numa_init test.\n");
     printf("4: sched_init_smp test.\n");
-    printf("5: rcu_init test.\n");
-    printf("6: help.\n");
+    //printf("5: rcu_init test.\n");
+    printf("5: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -59,14 +60,13 @@ void menu_start_kernel(void)
         , test_sched_init
         , test_numa_init
         , test_sched_init_smp
-        , test_rcu_init
+        //, test_rcu_init
         , _init_menu_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _init_menu(asize);
+        idx = _init_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }

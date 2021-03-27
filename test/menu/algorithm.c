@@ -11,6 +11,7 @@
 
 #include "test/debug.h"
 #include "test/test.h"
+#include <linux/kernel.h>
 
 static void _algo_struct_help(void)
 {
@@ -64,10 +65,9 @@ static void _algo_xarray_run(void)
         , _algo_struct_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while (1) {
-        idx = _algo_xarray_menu(asize);
+        idx = _algo_xarray_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
@@ -116,10 +116,9 @@ void menu_algorithm(void)
         , _algo_struct_help
     };
     int idx;
-    int asize = sizeof (fn) / sizeof (fn[0]);
 
     while(1) {
-        idx = _algo_struct_menu(asize);
+        idx = _algo_struct_menu(ARRAY_SIZE(fn));
         if (idx < 0) break;
         fn[idx]();
     }
