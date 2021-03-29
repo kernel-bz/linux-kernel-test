@@ -26,6 +26,8 @@ void cpus_mask_test(void);
 void bits_printf(unsigned long* v, u32 nbits);
 void bitmap_test(void);
 
+//test/basic/macro-test.c
+void basic_macro_test(void);
 
 #ifdef __cplusplus
 }

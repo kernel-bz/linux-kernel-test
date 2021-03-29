@@ -13,6 +13,7 @@ DEFINES += _POSIX_SOURCE \
 LIBS += -lpthread -lurcu
 
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
+        -save-temps=obj \
         -Wvariadic-macros
 
 INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ \
@@ -186,7 +187,8 @@ SOURCES += \
     test/algorithm/xarray/xa-test.c \
     test/basic/ptr2-test.c \
     test/menu/memory.c \
-    test/memory/mm-test.c
+    test/memory/mm-test.c \
+    test/basic/macro-test.c
 
 HEADERS += \
     include/test/test.h \

@@ -26,4 +26,5 @@ DISTFILES += \
     ../study/pointer/struct-s-data.txt \
     ../study/study-history.txt \
     ../study/subjects/completion-wait.txt \
-    ../study/subjects/rcu-struct.txt
+    ../study/subjects/rcu-struct.txt \
+    ../study/subjects/rcu-test.c.txt

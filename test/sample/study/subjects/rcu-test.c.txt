@@ -198,15 +198,16 @@ do {                                                                          \
 
 int main()
 {
-    int ap = 10;
+    int a = 10;
+    int b = 20;
     int __rcu *arp;
-    int *bp;
-    *bp = 20;
+    int *ap;
+    int *bp = &b;
 
     printf("GCC Version = %d\n", GCC_VERSION);
 
-    rcu_assign_pointer(arp, &ap);
-    ap = 100;
+    rcu_assign_pointer(arp, &a);
+    a = 100;
 
     printf("*bp = %d\n", *bp);
     bp = rcu_dereference(arp);

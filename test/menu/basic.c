@@ -41,11 +41,12 @@ static int _basic_training_menu(int asize)
     printf("2: Basic Pointer Test.\n");
     printf("3: Basic Pointer2 Test.\n");
     printf("4: Basic Struct Test.\n");
-    printf("5: Bits Operation Test.\n");
-    printf("6: CPU Mask Test.\n");
-    printf("7: Run Time(CPU cycles) Test.\n");
-    printf("8: Sort Test.\n");
-    printf("9: help.\n");
+    printf("5: Basic Macro Test.\n");
+    printf("6: Bits Operation Test.\n");
+    printf("7: CPU Mask Test.\n");
+    printf("8: Run Time(CPU cycles) Test.\n");
+    printf("9: Sort Test.\n");
+    printf("10: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -62,6 +63,7 @@ void menu_basic_train(void)
         , basic_ptr_test
         , basic_ptr2_test
         , basic_struct_test
+        , basic_macro_test
         , bitmap_test
         , cpus_mask_test
         , basic_run_time_test

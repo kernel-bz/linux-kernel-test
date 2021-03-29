@@ -14,6 +14,7 @@
 #include "test/config.h"
 #include "test/dtb-test.h"
 #include <linux/xarray.h>
+#include <linux/compiler-gcc.h>
 
 #if defined(__i386__)
 #define ARCH_NAME	"x86(__i386__)"
@@ -75,6 +76,11 @@ void config_view(void)
     pr_view(stack_depth, "%30s : %d\n", DebugBase);
     pr_view(stack_depth, "%30s : %d\n", DebugLevel);
     pr_view(stack_depth, "%30s : %d\n", DebugEnable);
+
+    pr_view(stack_depth, "%20s : %d\n", GCC_VERSION);
+    pr_view(stack_depth, "%20s : %d\n", __GNUC__);
+    pr_view(stack_depth, "%20s : %d\n", __GNUC_MINOR__);
+    pr_view(stack_depth, "%20s : %d\n", __GNUC_PATCHLEVEL__);
 
     pr_view(stack_depth, "%20s : %d\n", CONFIG_VERSION_1);
     pr_view(stack_depth, "%20s : %d\n", CONFIG_VERSION_2);
