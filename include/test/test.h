@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include <linux/xarray.h>
+
 //test/menu/
 void menu_basic_train(void);
 void menu_algorithm(void);
@@ -39,6 +41,12 @@ void lib_sort_test(void);
 void lib_ida_test(void);
 void lib_xarray_test(void);
 //test/algorithm/xarray/xa-text.c
+void xa_debug_xarray_view(struct xarray *xa, u64 index, void *entry);
+void xa_debug_state_view(struct xa_state *xas, void *entry);
+void xa_debug_node_view(struct xa_node *node, void *entry);
+void xa_debug_node_print(struct xarray *xa);
+void xa_constants_view(void);
+void xarray_simple_test(void);
 void xarray_test_run(void);
 //test/algorithm/xarray/xa-main.c
 void xa_main_test(void);

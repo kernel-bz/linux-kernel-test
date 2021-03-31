@@ -69,7 +69,6 @@ extern int stack_depth;
     do {											\
         int depth = level - DebugBase;				\
         while (depth-- > 0) { printf(SPACE); }		\
-        printf("<%d> | ", level); 					\
         printf(__VA_ARGS__); 						\
     } while (0)
 
@@ -85,7 +84,6 @@ extern int stack_depth;
       if (depth >= 0) {								\
         if (level > DebugLevel) break;				\
         while (depth--) { printf(SPACE); }			\
-        printf("<%d> | ", level); 					\
         printf(__VA_ARGS__); 						\
       }												\
     } while (0)

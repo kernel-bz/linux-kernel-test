@@ -1629,5 +1629,5 @@ void __init radix_tree_init(void)
 			radix_tree_node_ctor);
 	ret = cpuhp_setup_state_nocalls(CPUHP_RADIX_DEAD, "lib/radix:dead",
 					NULL, radix_tree_cpu_dead);
-	WARN_ON(ret < 0);
+    //WARN_ON(ret < 0);
 }
