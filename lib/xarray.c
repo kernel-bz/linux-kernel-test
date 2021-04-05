@@ -240,7 +240,7 @@ static void *xas_descend(struct xa_state *xas, struct xa_node *node)
  */
 void *xas_load(struct xa_state *xas)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
 	void *entry = xas_start(xas);
 
@@ -254,7 +254,7 @@ void *xas_load(struct xa_state *xas)
 			break;
     }
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 	return entry;
 }
 EXPORT_SYMBOL_GPL(xas_load);
@@ -468,7 +468,7 @@ static void xas_update(struct xa_state *xas, struct xa_node *node)
 
 static void *xas_alloc(struct xa_state *xas, unsigned int shift)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
 	struct xa_node *parent = xas->xa_node;
 	struct xa_node *node = xas->xa_alloc;
@@ -505,8 +505,8 @@ static void *xas_alloc(struct xa_state *xas, unsigned int shift)
 	RCU_INIT_POINTER(node->parent, xas->xa_node);
 	node->array = xas->xa;
 
-    pr_view_on(stack_depth, "%10s : %p\n", node);
-    pr_view_on(stack_depth, "%10s : %p\n", parent);
+    pr_view_enable(stack_depth, "%10s : %p\n", node);
+    pr_view_enable(stack_depth, "%10s : %p\n", parent);
 
     /*
      * link node to previous and next after alloc
@@ -529,11 +529,11 @@ static void *xas_alloc(struct xa_state *xas, unsigned int shift)
             RCU_INIT_POINTER(node->next, next);
             RCU_INIT_POINTER(next->prev, node);
         }
-        pr_view_on(stack_depth, "%10s : %p\n", prev);
-        pr_view_on(stack_depth, "%10s : %p\n", next);
+        pr_view_enable(stack_depth, "%10s : %p\n", prev);
+        pr_view_enable(stack_depth, "%10s : %p\n", next);
     }
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 	return node;
 }
 
@@ -792,7 +792,7 @@ static int xas_expand(struct xa_state *xas, void *head)
  */
 static void *xas_create(struct xa_state *xas, bool allow_root)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
 	struct xarray *xa = xas->xa;
 	void *entry;
@@ -827,13 +827,14 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 		slot = &xa->xa_head;
     }
 
-    pr_view_on(stack_depth, "%20s : %p\n", xa);
-    pr_view_on(stack_depth, "%20s : %p\n", xa->xa_head);
-    pr_view_on(stack_depth, "%20s : %p\n", node);
-    pr_view_on(stack_depth, "%20s : %p\n", entry);
-    pr_view_on(stack_depth, "%20s : %p\n", slot);
-    pr_view_on(stack_depth, "%20s : %d\n", order);
-    pr_view_on(stack_depth, "%20s : %d\n", shift);
+    pr_view_enable(stack_depth, "%20s : %p\n", xa);
+    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_head);
+    pr_view_enable(stack_depth, "%20s : %p\n", &xa->xa_head);
+    pr_view_enable(stack_depth, "%20s : %p\n", node);
+    pr_view_enable(stack_depth, "%20s : %p\n", entry);
+    pr_view_enable(stack_depth, "%20s : %p\n", slot);
+    pr_view_enable(stack_depth, "%20s : %d\n", order);
+    pr_view_enable(stack_depth, "%20s : %d\n", shift);
 
 	while (shift > order) {
 		shift -= XA_CHUNK_SHIFT;
@@ -853,11 +854,11 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 		slot = &node->slots[xas->xa_offset];
 	}
 
-    pr_view_on(stack_depth, "%25s : %p\n", node);
-    pr_view_on(stack_depth, "%25s : %p\n", entry);
-    pr_view_on(stack_depth, "%25s : %p\n", slot);
+    pr_view_enable(stack_depth, "%25s : %p\n", node);
+    pr_view_enable(stack_depth, "%25s : %p\n", entry);
+    pr_view_enable(stack_depth, "%25s : %p\n", slot);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 	return entry;
 }
 
@@ -941,7 +942,7 @@ static void update_node(struct xa_state *xas, struct xa_node *node,
  */
 void *xas_store(struct xa_state *xas, void *entry)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
     struct xa_node *node;
 	void __rcu **slot = &xas->xa->xa_head;
@@ -1012,10 +1013,10 @@ void *xas_store(struct xa_state *xas, void *entry)
 
 	update_node(xas, node, count, values);
 
-    xa_debug_state_view(xas, entry);
-    xa_debug_node_view(node, entry);
+    //xa_debug_state_view(xas, entry);
+    //xa_debug_node_view(node, entry);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 
 	return first;
 }
@@ -1560,7 +1561,7 @@ EXPORT_SYMBOL(xa_erase);
  */
 void *__xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
 	XA_STATE(xas, xa, index);
 	void *curr;
@@ -1571,12 +1572,19 @@ void *__xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
 		entry = XA_ZERO_ENTRY;
 
 	do {
-		curr = xas_store(&xas, entry);
+        xa_debug_state_view(&xas, entry);
+
+        curr = xas_store(&xas, entry);
+
+        xa_debug_state_view(&xas, entry);
+        xa_debug_node_view(xas.xa_node, entry);
+
 		if (xa_track_free(xa))
 			xas_clear_mark(&xas, XA_FREE_MARK);
+
 	} while (__xas_nomem(&xas, gfp));
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 	return xas_result(&xas, curr);
 }
 EXPORT_SYMBOL(__xa_store);
@@ -1600,17 +1608,17 @@ EXPORT_SYMBOL(__xa_store);
  */
 void *xa_store(struct xarray *xa, unsigned long index, void *entry, gfp_t gfp)
 {
-    pr_fn_start_on(stack_depth);
+    pr_fn_start_enable(stack_depth);
 	void *curr;
 
-    pr_view_on(stack_depth, "%10s: %llu\n", index);
-    pr_view_on(stack_depth, "%10s: %p\n", entry);
+    pr_view_enable(stack_depth, "%10s: %llu\n", index);
+    pr_view_enable(stack_depth, "%10s: %p\n", entry);
 
     xa_lock(xa);
 	curr = __xa_store(xa, index, entry, gfp);
 	xa_unlock(xa);
 
-    pr_fn_end_on(stack_depth);
+    pr_fn_end_enable(stack_depth);
 	return curr;
 }
 EXPORT_SYMBOL(xa_store);
@@ -2255,6 +2263,7 @@ void xa_dump_entry(const void *entry, unsigned long index, unsigned long shift)
 		pr_cont("UNKNOWN ENTRY (%px)\n", entry);
 }
 
+#if 1
 void xa_dump(const struct xarray *xa)
 {
 	void *entry = xa->xa_head;
@@ -2267,4 +2276,6 @@ void xa_dump(const struct xarray *xa)
 		shift = xa_to_node(entry)->shift + XA_CHUNK_SHIFT;
 	xa_dump_entry(entry, 0, shift);
 }
+#endif
+
 #endif
