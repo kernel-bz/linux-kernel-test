@@ -17,6 +17,7 @@
 
 #include <linux/init.h>
 #include <linux/sched/init.h>
+#include <linux/rcupdate.h>
 #include <asm/numa_.h>
 #include <mm/slab.h>
 
@@ -95,5 +96,5 @@ void test_sched_init_smp(void)
  */
 void test_rcu_init(void)
 {
-    //rcu_init();
+    kernel_rcu_init();
 }

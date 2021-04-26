@@ -173,13 +173,11 @@ void xa_constants_view(void)
 
 static DEFINE_XARRAY(xa1);
 
-static void _xa_store_erase_find_test(struct xarray *xa, int cnt)
+static void _xa_store_find_erase_test(struct xarray *xa, int cnt)
 {
     pr_fn_start_enable(stack_depth);
 
     //XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_value(0), GFP_NOWAIT)) != 0);
-    //XA_BUG_ON(xa, xa_err(xa_store(xa, 1, xa_mk_value(1), GFP_NOWAIT)) != 0);
-
     unsigned long index = 0;
     for (index=0; index<cnt; index++) {
         //xa_store(xa, index, xa_mk_value(index), GFP_NOWAIT);	//error
@@ -187,18 +185,14 @@ static void _xa_store_erase_find_test(struct xarray *xa, int cnt)
             return;
     }
 
-#if 0
+#if 1
     index = 7;
-    XA_STATE(xas, xa, index);
-    //void *entry;
-
-    //XA_BUG_ON(xa, xa_err(xa_erase(xa, index)) != index);	//bug
-
-    XA_BUG_ON(xa, xas_find(&xas, ULONG_MAX) != xa_mk_value(index));
-
+    void *entry;
     entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);
     pr_view_enable(stack_depth, "%s : %p\n", entry);
     pr_view_enable(stack_depth, "%s : 0x%lX\n", xa_to_value(entry));
+    if (entry)
+        XA_BUG_ON(xa, xa_err(xa_erase(xa, index)) != index);
 #endif
 
     xa_debug_node_print(xa);
@@ -216,7 +210,7 @@ void xarray_simple_test(void)
 
     radix_tree_init();
 
-    _xa_store_erase_find_test(&xa1, cnt);
+    _xa_store_find_erase_test(&xa1, cnt);
 }
 
 void xarray_tests(void)

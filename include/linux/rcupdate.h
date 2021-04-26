@@ -6,6 +6,12 @@
 #include <urcu-pointer.h>
 #include <linux/preempt.h>
 
+//73 lines
+/* Internal to kernel */
+void kernel_rcu_init(void);
+//76
+
+
 #if 0
 static inline int rcu_read_lock_held(void)
 {
@@ -54,7 +60,7 @@ static inline int rcu_read_lock_any_held(void)
 
 #define urcu_memb_read_lock(a)		do { } while (0)
 #define urcu_memb_read_unlock(a)	do { } while (0)
-#define urcu_memb_call_rcu(a, b)	{ }
+//#define urcu_memb_call_rcu(a, b)	{ }
 
 #define rcu_set_pointer_sym(a, b)
 #define rcu_assign_pointer(p, v)	do { (p) = (v); } while (0)

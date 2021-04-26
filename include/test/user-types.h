@@ -40,6 +40,13 @@ typedef unsigned short 	u_short;
 typedef unsigned int 	u_int;
 typedef unsigned long 	u_long;
 
+/* sysv */
+typedef unsigned char		unchar;
+typedef unsigned short		ushort;
+typedef unsigned int		uint;
+typedef unsigned long		ulong;
+
+
 typedef unsigned int __kernel_dev_t;
 
 //typedef __kernel_fd_set		fd_set;

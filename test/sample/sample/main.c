@@ -3,214 +3,155 @@
 #include <stdbool.h>
 #include <string.h>
 
-#ifndef GCC_VERSION
-#define GCC_VERSION (__GNUC__ * 10000		\
-             + __GNUC_MINOR__ * 100	\
-             + __GNUC_PATCHLEVEL__)
-#endif
+//#define CONFIG_64BIT
 
-#if GCC_VERSION >= 70000 && !defined(__CHECKER__)
-# define __fallthrough __attribute__ ((fallthrough))
-#endif
+//#define nr_cpu_ids	16
+//#define nr_cpu_ids	1024
+//#define nr_cpu_ids	65536
+//#define nr_cpu_ids	4194304
+#define nr_cpu_ids	524288
+#define NR_CPUS		nr_cpu_ids
 
-#if GCC_VERSION >= 40300
-# define __compiletime_error(message) __attribute__((error(message)))
-#endif /* GCC_VERSION >= 40300 */
+# ifdef CONFIG_64BIT
+# define RCU_FANOUT 64
+# else
+# define RCU_FANOUT 32
+# endif
 
-#define __CHECKER__
-# define __force	__attribute__((force))
-# define __kernel	__attribute__((address_space(0)))
-# define __rcu		__attribute__((noderef, address_space(4)))
+#define RCU_FANOUT_LEAF 16
 
-//uapi/asm-generic/int-ll64.h
-typedef __signed__ char __s8;
-typedef unsigned char __u8;
+//32: 16,  512, 16384,  524288
+//64: 16, 1024, 65536, 4194304
+#define RCU_FANOUT_1	      	(RCU_FANOUT_LEAF)
+#define RCU_FANOUT_2	      	(RCU_FANOUT_1 * RCU_FANOUT)
+#define RCU_FANOUT_3	      	(RCU_FANOUT_2 * RCU_FANOUT)
+#define RCU_FANOUT_4	      	(RCU_FANOUT_3 * RCU_FANOUT)
 
-typedef __signed__ short __s16;
-typedef unsigned short __u16;
+#define DIV_ROUND_UP(n, d)		(((n) + (d) - 1) / (d))
 
-typedef __signed__ int __s32;
-typedef unsigned int __u32;
-
-#ifdef __GNUC__
-__extension__ typedef __signed__ long long __s64;
-__extension__ typedef unsigned long long __u64;
+#if NR_CPUS <= RCU_FANOUT_1
+#  define RCU_NUM_LVLS	      1
+#  define NUM_RCU_LVL_0	      1
+#  define NUM_RCU_NODES	      NUM_RCU_LVL_0
+#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0 }
+#  define RCU_NODE_NAME_INIT  { "rcu_node_0" }
+#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0" }
+#elif NR_CPUS <= RCU_FANOUT_2
+#  define RCU_NUM_LVLS	      2
+#  define NUM_RCU_LVL_0	      1
+#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
+#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1)
+#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1 }
+#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1" }
+#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1" }
+#elif NR_CPUS <= RCU_FANOUT_3
+#  define RCU_NUM_LVLS	      3
+#  define NUM_RCU_LVL_0	      1
+#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_2)
+#  define NUM_RCU_LVL_2	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
+#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1 + NUM_RCU_LVL_2)
+#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1, NUM_RCU_LVL_2 }
+#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1", "rcu_node_2" }
+#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1", "rcu_node_fqs_2" }
+#elif NR_CPUS <= RCU_FANOUT_4
+#  define RCU_NUM_LVLS	      4
+#  define NUM_RCU_LVL_0	      1
+#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_3)
+#  define NUM_RCU_LVL_2	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_2)
+#  define NUM_RCU_LVL_3	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
+#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1 + NUM_RCU_LVL_2 + NUM_RCU_LVL_3)
+#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1, NUM_RCU_LVL_2, NUM_RCU_LVL_3 }
+#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1", "rcu_node_2", "rcu_node_3" }
+#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1", "rcu_node_fqs_2", "rcu_node_fqs_3" }
 #else
-typedef __signed__ long long __s64;
-typedef unsigned long long __u64;
-#endif
+# error "CONFIG_RCU_FANOUT insufficient for NR_CPUS"
+#endif /* #if (NR_CPUS) <= RCU_FANOUT_1 */
 
-typedef unsigned long           uintptr_t;
+bool rcu_fanout_exact;
+int rcu_fanout_leaf = RCU_FANOUT_LEAF;
+int rcu_num_lvls = RCU_NUM_LVLS;
+int num_rcu_lvl[] = NUM_RCU_LVL_INIT;
+int rcu_num_nodes = NUM_RCU_NODES;
 
-#define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
 
-#define __native_word(t) \
-    (sizeof(t) == sizeof(char) || sizeof(t) == sizeof(short) || \
-     sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
-
-static inline void pr_warn(const char *s)
+//kernel/rcu/rcu.h
+static inline void rcu_init_levelspread(int *levelspread, const int *levelcnt)
 {
-    printf("%s: %d, %s\n", __FILE__, __LINE__, s);
-}
+    int i;
 
-//include/linux/rcupdate.h
-#define RCU_LOCKDEP_WARN(c, s)			\
-    do {								\
-        if ((c))						\
-            pr_warn(s);					\
-    } while (0)
+    if (rcu_fanout_exact) {
+        levelspread[rcu_num_lvls - 1] = rcu_fanout_leaf;
+        for (i = rcu_num_lvls - 2; i >= 0; i--)
+            levelspread[i] = RCU_FANOUT;
+    } else {
+        int ccur;
+        int cprv;
 
-#ifdef __CHECKER__
-#define rcu_check_sparse(p, space) \
-        ((void)(((typeof(*p) space *)p) == p))
-#else /* #ifdef __CHECKER__ */
-#define rcu_check_sparse(p, space)
-#endif /* #else #ifdef __CHECKER__ */
-
-#define __rcu_access_pointer(p, space) \
-({ \
-    typeof(*p) *_________p1 = (typeof(*p) *__force)READ_ONCE(p); \
-    rcu_check_sparse(p, space); \
-    ((typeof(*p) __force __kernel *)(_________p1)); \
-})
-#define __rcu_dereference_check(p, c, space) \
-({ \
-    /* Dependency order vs. p above. */ \
-    typeof(*p) *________p1 = (typeof(*p) *__force)READ_ONCE(p); \
-    RCU_LOCKDEP_WARN(!(c), "suspicious rcu_dereference_check() usage"); \
-    rcu_check_sparse(p, space); \
-    ((typeof(*p) __force __kernel *)(________p1)); \
-})
-#define __rcu_dereference_protected(p, c, space) \
-({ \
-    RCU_LOCKDEP_WARN(!(c), "suspicious rcu_dereference_protected() usage"); \
-    rcu_check_sparse(p, space); \
-    ((typeof(*p) __force __kernel *)(p)); \
-})
-#define rcu_dereference_raw(p) \
-({ \
-    /* Dependency order vs. p above. */ \
-    typeof(p) ________p1 = READ_ONCE(p); \
-    ((typeof(*p) __force __kernel *)(________p1)); \
-})
-
-#ifdef __OPTIMIZE__
-# define __compiletime_assert(condition, msg, prefix, suffix)		\
-    do {								\
-        extern void prefix ## suffix(void) __compiletime_error(msg); \
-        if (!(condition))					\
-            prefix ## suffix();				\
-    } while (0)
-#else
-# define __compiletime_assert(condition, msg, prefix, suffix) do { } while (0)
-#endif
-
-#define _compiletime_assert(condition, msg, prefix, suffix) \
-    __compiletime_assert(condition, msg, prefix, suffix)
-
-#define compiletime_assert(condition, msg) \
-    _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
-
-#define compiletime_assert_atomic_type(t)				\
-    compiletime_assert(__native_word(t),				\
-        "Need native word sized stores/loads for atomicity.")
-
-typedef __u8  __attribute__((__may_alias__))  __u8_alias_t;
-typedef __u16 __attribute__((__may_alias__)) __u16_alias_t;
-typedef __u32 __attribute__((__may_alias__)) __u32_alias_t;
-typedef __u64 __attribute__((__may_alias__)) __u64_alias_t;
-
-static __always_inline void __read_once_size(const volatile void *p, void *res, int size)
-{
-    switch (size) {
-    case 1: *(__u8_alias_t  *) res = *(volatile __u8_alias_t  *) p; break;
-    case 2: *(__u16_alias_t *) res = *(volatile __u16_alias_t *) p; break;
-    case 4: *(__u32_alias_t *) res = *(volatile __u32_alias_t *) p; break;
-    case 8: *(__u64_alias_t *) res = *(volatile __u64_alias_t *) p; break;
-    default:
-        memcpy((void *)res, (const void *)p, size);
+        cprv = nr_cpu_ids;
+        for (i = rcu_num_lvls - 1; i >= 0; i--) {
+            ccur = levelcnt[i];
+            levelspread[i] = (cprv + ccur - 1) / ccur;
+            cprv = ccur;
+        }
     }
 }
 
-static __always_inline void __write_once_size(volatile void *p, void *res, int size)
-{
-        switch (size) {
-        case 1: *(volatile __u8 *)p = *(__u8 *)res; break;
-        case 2: *(volatile __u16 *)p = *(__u16 *)res; break;
-        case 4: *(volatile __u32 *)p = *(__u32 *)res; break;
-        case 8: *(volatile __u64 *)p = *(__u64 *)res; break;
-        default:
-                //barrier();
-                //__builtin_memcpy((void *)p, (const void *)res, size);
-                memcpy((void *)p, (const void *)res, size);
-                //barrier();
-        }
-}
-
-#define READ_ONCE(x)					\
-({							\
-    union { typeof(x) __val; char __c[1]; } __u =	\
-        { .__c = { 0 } };			\
-    __read_once_size(&(x), __u.__c, sizeof(x));	\
-    __u.__val;					\
-})
-
-#define WRITE_ONCE(x, val)				\
-({							\
-    union { typeof(x) __val; char __c[1]; } __u =	\
-        { .__val = (val) }; 			\
-    __write_once_size(&(x), __u.__c, sizeof(x));	\
-    __u.__val;					\
-})
-
-#ifndef smp_store_release
-#define smp_store_release(p, v) __smp_store_release(p, v)
-#endif
-
-#ifndef __smp_store_release
-#define __smp_store_release(p, v)                                       \
-do {                                                                    \
-        compiletime_assert_atomic_type(*p);                             \
-        WRITE_ONCE(*p, v);                                              \
-} while (0)
-#endif
-
-#define RCU_INITIALIZER(v) (typeof(*(v)) __force __rcu *)(v)
-#define rcu_assign_pointer(p, v)                                              \
-do {                                                                          \
-        uintptr_t _r_a_p__v = (uintptr_t)(v);                                 \
-        rcu_check_sparse(p, __rcu);                                           \
-                                                                              \
-        if (__builtin_constant_p(v) && (_r_a_p__v) == (uintptr_t)NULL)        \
-                WRITE_ONCE((p), (typeof(p))(_r_a_p__v));                      \
-        else                                                                  \
-                smp_store_release(&p, RCU_INITIALIZER((typeof(p))_r_a_p__v)); \
-} while (0)
-
-#define rcu_read_lock_held()	1
-
-//include/linux/rcupdate.h
-#define rcu_dereference_check(p, c) \
-    __rcu_dereference_check((p), (c) || rcu_read_lock_held(), __rcu)
-
-#define rcu_dereference(p) rcu_dereference_check(p, 0)
-
-
 int main()
 {
-    int ap = 10;
-    int __rcu *arp;
-    int *bp;
-    *bp = 20;
+    int i, j;
+    int levelspread[RCU_NUM_LVLS];
+    int cpustride = 1;
 
-    printf("GCC Version = %d\n", GCC_VERSION);
+    printf("RCU_FANOUT_LEAF : %d\n", RCU_FANOUT_LEAF);
+    printf("RCU_FANOUT      : %d\n", RCU_FANOUT);
+    printf("RCU_NUM_LVLS    : %d\n", RCU_NUM_LVLS);
+    printf("NUM_RCU_NODES   : %d\n", NUM_RCU_NODES);
 
-    rcu_assign_pointer(arp, &ap);
-    ap = 100;
+    printf("RCU_FANOUT_# : %d, %d, %d, %d\n"
+           , RCU_FANOUT_1, RCU_FANOUT_2, RCU_FANOUT_3, RCU_FANOUT_4);
 
-    printf("*bp = %d\n", *bp);
-    bp = rcu_dereference(arp);
-    printf("*bp = %d\n", *bp);
+    printf("rcu_num_lvl : ");
+    for (i = 0; i < RCU_NUM_LVLS; i++)
+        printf("%d, ", num_rcu_lvl[i]);
+    printf("\n");
+
+    rcu_fanout_exact = false;
+    rcu_init_levelspread(levelspread, num_rcu_lvl);
+
+    printf("levelspread : ");
+    for (i = 0; i < RCU_NUM_LVLS; i++)
+        printf("%d, ", levelspread[i]);
+    printf("\n");
+
+#if 0
+    rcu_fanout_exact = true;
+    rcu_init_levelspread(levelspread, num_rcu_lvl);
+
+    printf("levelspread : ");
+    for (i = 0; i < RCU_NUM_LVLS; i++)
+        printf("%d, ", levelspread[i]);
+    printf("\n");
+#endif
+
+    int cnt = 0;
+    int grpnum, parent, old = -1;
+
+    for (i = rcu_num_lvls - 1; i >= 0; i--) {
+        cpustride *= levelspread[i];
+        printf("cpustride=%d\n", cpustride);
+
+        for (j = 0; j < num_rcu_lvl[i]; j++) {
+            grpnum = j % levelspread[i - 1];
+            parent = j / levelspread[i - 1];
+            if (parent != old) {
+                //printf("[%d, %d] : %d, %d\n", i, j, grpnum, parent);
+            }
+            old = parent;
+            cnt++;
+        }
+
+    }
+    printf("cnt=%d\n", cnt);	//nodes
 
     return 0;
 }

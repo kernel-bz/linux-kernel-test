@@ -624,6 +624,8 @@ static void xas_shrink(struct xa_state *xas)
  */
 static void xas_delete_node(struct xa_state *xas)
 {
+    pr_fn_start_enable(stack_depth);
+
 	struct xa_node *node = xas->xa_node;
 
 	for (;;) {
@@ -637,7 +639,7 @@ static void xas_delete_node(struct xa_state *xas)
 		xas->xa_node = parent;
 		xas->xa_offset = node->offset;
 
-                xas_node_delete_link(xas, node);
+        xas_node_delete_link(xas, node);
 		xa_node_free(node);
 
 		if (!parent) {
@@ -654,7 +656,9 @@ static void xas_delete_node(struct xa_state *xas)
 	}
 
 	if (!node->parent)
-		xas_shrink(xas);
+        xas_shrink(xas);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 /**
@@ -707,6 +711,8 @@ static void xas_free_nodes(struct xa_state *xas, struct xa_node *top)
  */
 static int xas_expand(struct xa_state *xas, void *head)
 {
+    pr_fn_start_enable(stack_depth);
+
 	struct xarray *xa = xas->xa;
 	struct xa_node *node = NULL;
 	unsigned int shift = 0;
@@ -737,6 +743,9 @@ static int xas_expand(struct xa_state *xas, void *head)
 			node->nr_values = 1;
 		RCU_INIT_POINTER(node->slots[0], head);
 
+        pr_view_enable(stack_depth, "%20s : %p\n", node->slots[0]);
+        pr_view_enable(stack_depth, "%20s : %p\n", head);
+
 		/* Propagate the aggregated mark info to the new child */
 		for (;;) {
 			if (xa_track_free(xa) && mark == XA_FREE_MARK) {
@@ -760,11 +769,11 @@ static int xas_expand(struct xa_state *xas, void *head)
 		if (xa_is_node(head)) {
 			xa_to_node(head)->offset = 0;
 			rcu_assign_pointer(xa_to_node(head)->parent, node);
-                        /*
-                         * link node to previous and next after expand.
-                         */
-                        rcu_assign_pointer(node->prev, xa_to_node(head));
-                        rcu_assign_pointer(node->next, xa_to_node(head));
+            /*
+             * link node to previous and next after expand.
+             */
+            rcu_assign_pointer(node->prev, xa_to_node(head));
+            rcu_assign_pointer(node->next, xa_to_node(head));
 		}
 		head = xa_mk_node(node);
 		rcu_assign_pointer(xa->xa_head, head);
@@ -774,6 +783,11 @@ static int xas_expand(struct xa_state *xas, void *head)
 	}
 
 	xas->xa_node = node;
+
+    pr_view_enable(stack_depth, "%20s : %p\n", node);
+    pr_view_enable(stack_depth, "%20s : %u\n", shift);
+
+    pr_fn_end_enable(stack_depth);
 	return shift;
 }
 
@@ -801,7 +815,13 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 	int shift;
 	unsigned int order = xas->xa_shift;
 
-	if (xas_top(node)) {
+    pr_view_enable(stack_depth, "%20s : %p\n", xa);
+    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_head);
+    pr_view_enable(stack_depth, "%20s : %p\n", &xa->xa_head);
+    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa_node);
+    pr_view_enable(stack_depth, "%20s : %lu\n", xas->xa_shift);
+
+    if (xas_top(node)) {
 		entry = xa_head_locked(xa);
 		xas->xa_node = NULL;
 		if (!entry && xa_zero_busy(xa))
@@ -827,9 +847,6 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 		slot = &xa->xa_head;
     }
 
-    pr_view_enable(stack_depth, "%20s : %p\n", xa);
-    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_head);
-    pr_view_enable(stack_depth, "%20s : %p\n", &xa->xa_head);
     pr_view_enable(stack_depth, "%20s : %p\n", node);
     pr_view_enable(stack_depth, "%20s : %p\n", entry);
     pr_view_enable(stack_depth, "%20s : %p\n", slot);
@@ -852,7 +869,9 @@ static void *xas_create(struct xa_state *xas, bool allow_root)
 		}
 		entry = xas_descend(xas, node);
 		slot = &node->slots[xas->xa_offset];
-	}
+        pr_view_enable(stack_depth, "%25s : %d\n", shift);
+        pr_view_enable(stack_depth, "%25s : %d\n", xas->xa_offset);
+    }
 
     pr_view_enable(stack_depth, "%25s : %p\n", node);
     pr_view_enable(stack_depth, "%25s : %p\n", entry);
@@ -986,14 +1005,23 @@ void *xas_store(struct xa_state *xas, void *entry)
 		 * so the mark clearing will appear to happen before the
 		 * entry is set to NULL.
 		 */
-		rcu_assign_pointer(*slot, entry);
+
+        rcu_assign_pointer(*slot, entry);
+
+        pr_view_enable(stack_depth, "%20s : %p\n", slot);
+        pr_view_enable(stack_depth, "%20s : %p\n", *slot);
+        pr_view_enable(stack_depth, "%20s : 0x%X\n", entry);
+
 		if (xa_is_node(next) && (!node || node->shift))
 			xas_free_nodes(xas, xa_to_node(next));
 		if (!node)
 			break;
 		count += !next - !entry;
 		values += !xa_is_value(first) - !value;
-		if (entry) {
+        pr_view_enable(stack_depth, "%20s : %d\n", count);
+        pr_view_enable(stack_depth, "%20s : %d\n", values);
+
+        if (entry) {
 			if (offset == max)
 				break;
 			if (!xa_is_sibling(entry))
@@ -1012,9 +1040,6 @@ void *xas_store(struct xa_state *xas, void *entry)
 	}
 
 	update_node(xas, node, count, values);
-
-    //xa_debug_state_view(xas, entry);
-    //xa_debug_node_view(node, entry);
 
     pr_fn_end_enable(stack_depth);
 
@@ -1262,6 +1287,8 @@ EXPORT_SYMBOL_GPL(__xas_next);
  */
 void *xas_find(struct xa_state *xas, unsigned long max)
 {
+    pr_fn_start_enable(stack_depth);
+
 	void *entry;
 
 	if (xas_error(xas) || xas->xa_node == XAS_BOUNDS)
@@ -1304,7 +1331,9 @@ void *xas_find(struct xa_state *xas, unsigned long max)
 
 	if (!xas->xa_node)
 		xas->xa_node = XAS_BOUNDS;
-	return NULL;
+
+    pr_fn_end_enable(stack_depth);
+    return NULL;
 }
 EXPORT_SYMBOL_GPL(xas_find);
 
@@ -1534,12 +1563,16 @@ EXPORT_SYMBOL(__xa_erase);
  */
 void *xa_erase(struct xarray *xa, unsigned long index)
 {
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%10s : %lu\n", index);
+
 	void *entry;
 
     xa_lock(xa)
 	entry = __xa_erase(xa, index);
 	xa_unlock(xa);
 
+    pr_fn_end_enable(stack_depth);
 	return entry;
 }
 EXPORT_SYMBOL(xa_erase);
@@ -2010,6 +2043,8 @@ EXPORT_SYMBOL(xa_clear_mark);
 void *xa_find(struct xarray *xa, unsigned long *indexp,
 			unsigned long max, xa_mark_t filter)
 {
+    pr_fn_start_enable(stack_depth);
+
 	XA_STATE(xas, xa, *indexp);
 	void *entry;
 
@@ -2024,7 +2059,9 @@ void *xa_find(struct xarray *xa, unsigned long *indexp,
 
 	if (entry)
 		*indexp = xas.xa_index;
-	return entry;
+
+    pr_fn_end_enable(stack_depth);
+    return entry;
 }
 EXPORT_SYMBOL(xa_find);
 

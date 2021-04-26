@@ -188,7 +188,8 @@ SOURCES += \
     test/basic/ptr2-test.c \
     test/menu/memory.c \
     test/memory/mm-test.c \
-    test/basic/macro-test.c
+    test/basic/macro-test.c \
+    kernel/rcu/tree.c
 
 HEADERS += \
     include/test/test.h \
@@ -632,6 +633,16 @@ HEADERS += \
     include/uapi/asm-generic/int-ll64.h \
     include/asm-generic/int-ll64.h \
     include/linux/percpu-rwsem.h \
+    include/linux/rcu_node_tree.h \
+    kernel/rcu/rcu.h \
+    kernel/rcu/rcu_segcblist.h \
+    kernel/rcu/tree.h \
+    kernel/rcu/tree_exp.h \
+    kernel/rcu/tree_plugin.h \
+    kernel/rcu/tree_stall.h \
+    include/linux/rcu_segcblist.h \
+    include/linux/rtmutex.h \
+    include/linux/irq_work.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \
