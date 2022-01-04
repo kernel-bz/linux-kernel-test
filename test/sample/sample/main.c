@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+typedef unsigned char  u8;
+
 //#define CONFIG_64BIT
 
 //#define nr_cpu_ids	16
@@ -73,6 +75,30 @@ int rcu_num_lvls = RCU_NUM_LVLS;
 int num_rcu_lvl[] = NUM_RCU_LVL_INIT;
 int rcu_num_nodes = NUM_RCU_NODES;
 
+struct rcu_node {
+    unsigned long gp_seq;
+    unsigned long qsmask;
+    unsigned long grpmask;
+    int grplo;
+    int grphi;
+    u8 grpnum;
+    u8 level;
+    struct rcu_node *parent;
+};
+
+struct rcu_state {
+    struct rcu_node node[NUM_RCU_NODES];	/* Hierarchy. */
+    struct rcu_node *level[RCU_NUM_LVLS + 1];
+    unsigned long gp_seq;
+};
+
+#define RCU_SEQ_CTR_SHIFT	2
+
+struct rcu_state rcu_state = {
+    .level = { &rcu_state.node[0] },
+    .gp_seq = (0UL - 300UL) << RCU_SEQ_CTR_SHIFT,
+};
+
 
 //kernel/rcu/rcu.h
 static inline void rcu_init_levelspread(int *levelspread, const int *levelcnt)
@@ -101,6 +127,7 @@ int main()
     int i, j;
     int levelspread[RCU_NUM_LVLS];
     int cpustride = 1;
+    struct rcu_node *rnp;
 
     printf("RCU_FANOUT_LEAF : %d\n", RCU_FANOUT_LEAF);
     printf("RCU_FANOUT      : %d\n", RCU_FANOUT);
@@ -114,6 +141,10 @@ int main()
     for (i = 0; i < RCU_NUM_LVLS; i++)
         printf("%d, ", num_rcu_lvl[i]);
     printf("\n");
+
+    for (i = 1; i < rcu_num_lvls; i++)
+        rcu_state.level[i] =
+            rcu_state.level[i - 1] + num_rcu_lvl[i - 1];
 
     rcu_fanout_exact = false;
     rcu_init_levelspread(levelspread, num_rcu_lvl);
@@ -133,25 +164,31 @@ int main()
     printf("\n");
 #endif
 
-    int cnt = 0;
-    int grpnum, parent, old = -1;
-
     for (i = rcu_num_lvls - 1; i >= 0; i--) {
         cpustride *= levelspread[i];
+        rnp = rcu_state.level[i];
         printf("cpustride=%d\n", cpustride);
 
-        for (j = 0; j < num_rcu_lvl[i]; j++) {
-            grpnum = j % levelspread[i - 1];
-            parent = j / levelspread[i - 1];
-            if (parent != old) {
-                //printf("[%d, %d] : %d, %d\n", i, j, grpnum, parent);
+        for (j = 0; j < num_rcu_lvl[i]; j++, rnp++) {
+            rnp->gp_seq = rcu_state.gp_seq;
+            rnp->qsmask = 0;
+            rnp->grplo = j * cpustride;
+            rnp->grphi = (j + 1) * cpustride - 1;
+            if (rnp->grphi >= nr_cpu_ids)
+                rnp->grphi = nr_cpu_ids - 1;
+            if (i == 0) {
+                rnp->grpnum = 0;
+                rnp->grpmask = 0;
+                rnp->parent = NULL;
+            } else {
+                rnp->grpnum = j % levelspread[i - 1];
+                //rnp->grpmask = BIT(rnp->grpnum);
+                rnp->parent = rcu_state.level[i - 1] +
+                          j / levelspread[i - 1];
             }
-            old = parent;
-            cnt++;
+            rnp->level = i;
         }
-
     }
-    printf("cnt=%d\n", cnt);	//nodes
 
     return 0;
 }

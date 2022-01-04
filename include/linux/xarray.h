@@ -39,8 +39,8 @@
  * The following internal entries have a special meaning:
  *
  * 0-62: Sibling entries
- * 256: Zero entry
- * 257: Retry entry
+ * 256: Retry entry
+ * 257: Zero entry
  *
  * Errors are also represented as internal entries, but use the negative
  * space (-4094 to -2).  They're never stored in the slots array; only
@@ -236,9 +236,10 @@ static inline int xa_err(void *entry)
  *
  * This structure is used either directly or via the XA_LIMIT() macro
  * to communicate the range of IDs that are valid for allocation.
- * Two common ranges are predefined for you:
+ * Three common ranges are predefined for you:
  * * xa_limit_32b	- [0 - UINT_MAX]
  * * xa_limit_31b	- [0 - INT_MAX]
+ * * xa_limit_16b   - [0 - USHRT_MAX]
  */
 struct xa_limit {
 	u32 max;
@@ -249,6 +250,7 @@ struct xa_limit {
 
 #define xa_limit_32b	XA_LIMIT(0, UINT_MAX)
 #define xa_limit_31b	XA_LIMIT(0, INT_MAX)
+#define xa_limit_16b   	XA_LIMIT(0, USHRT_MAX)
 
 typedef unsigned __bitwise xa_mark_t;
 #define XA_MARK_0		((__force xa_mark_t)0U)
@@ -256,7 +258,7 @@ typedef unsigned __bitwise xa_mark_t;
 #define XA_MARK_2		((__force xa_mark_t)2U)
 #define XA_PRESENT		((__force xa_mark_t)8U)
 #define XA_MARK_MAX		XA_MARK_2
-#define XA_FREE_MARK		XA_MARK_0
+#define XA_FREE_MARK	XA_MARK_0
 
 enum xa_lock_type {
 	XA_LOCK_IRQ = 1,
@@ -583,7 +585,7 @@ void __xa_clear_mark(struct xarray *, unsigned long index, xa_mark_t);
  *
  * Context: Any context.  Takes and releases the xa_lock while
  * disabling softirqs.
- * Return: The entry which used to be at this index.
+ * Return: The old entry at this index or xa_err() if an error happened.
  */
 static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -609,7 +611,7 @@ static inline void *xa_store_bh(struct xarray *xa, unsigned long index,
  *
  * Context: Process context.  Takes and releases the xa_lock while
  * disabling interrupts.
- * Return: The entry which used to be at this index.
+ * Return: The old entry at this index or xa_err() if an error happened.
  */
 static inline void *xa_store_irq(struct xarray *xa, unsigned long index,
 		void *entry, gfp_t gfp)
@@ -1149,6 +1151,8 @@ struct xa_node {
 
 void xa_dump(const struct xarray *);
 void xa_dump_node(const struct xa_node *);
+void xa_dump_index(unsigned long index, unsigned int shift);
+void xa_dump_entry(const void *entry, unsigned long index, unsigned long shift);
 
 #ifdef XA_DEBUG
 #define XA_BUG_ON(xa, x) do {					\
@@ -1327,6 +1331,8 @@ static inline bool xa_is_advanced(const void *entry)
  *	    interrupts.
  */
 typedef void (*xa_update_node_t)(struct xa_node *node);
+
+void xa_delete_node(struct xa_node *, xa_update_node_t);
 
 /*
  * The xa_state is opaque to its users.  It contains various different pieces
@@ -1547,6 +1553,31 @@ void xas_pause(struct xa_state *);
 
 void xas_create_range(struct xa_state *);
 
+//start of v5.16
+#ifdef CONFIG_XARRAY_MULTI
+int xa_get_order(struct xarray *, unsigned long index);
+void xas_split(struct xa_state *, void *entry, unsigned int order);
+void xas_split_alloc(struct xa_state *, void *entry, unsigned int order, gfp_t);
+#else
+static inline int xa_get_order(struct xarray *xa, unsigned long index)
+{
+       return 0;
+}
+
+static inline void xas_split(struct xa_state *xas, void *entry,
+               unsigned int order)
+{
+       xas_store(xas, entry);
+}
+
+static inline void xas_split_alloc(struct xa_state *xas, void *entry,
+               unsigned int order, gfp_t gfp)
+{
+}
+#endif
+//end of v5.16
+
+
 /**
  * xas_reload() - Refetch an entry from the xarray.
  * @xas: XArray operation state.
@@ -1564,10 +1595,21 @@ void xas_create_range(struct xa_state *);
 static inline void *xas_reload(struct xa_state *xas)
 {
 	struct xa_node *node = xas->xa_node;
+    void *entry;
+    char offset;
 
-	if (node)
-		return xa_entry(xas->xa, node, xas->xa_offset);
-	return xa_head(xas->xa);
+    if (!node)
+            return xa_head(xas->xa);
+    if (IS_ENABLED(CONFIG_XARRAY_MULTI)) {
+            offset = (xas->xa_index >> node->shift) & XA_CHUNK_MASK;
+            entry = xa_entry(xas->xa, node, offset);
+            if (!xa_is_sibling(entry))
+                    return entry;
+            offset = xa_to_sibling(entry);
+    } else {
+            offset = xas->xa_offset;
+    }
+    return xa_entry(xas->xa, node, offset);
 }
 
 /**
@@ -1744,6 +1786,7 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 								xa_mark_t mark)
 {
 	struct xa_node *node = xas->xa_node;
+    void *entry;
 	unsigned int offset;
 
 	if (unlikely(xas_not_node(node) || node->shift))
@@ -1755,7 +1798,11 @@ static inline void *xas_next_marked(struct xa_state *xas, unsigned long max,
 		return NULL;
 	if (offset == XA_CHUNK_SIZE)
 		return xas_find_marked(xas, max, mark);
-	return xa_entry(xas->xa, node, offset);
+    //return xa_entry(xas->xa, node, offset);
+    entry = xa_entry(xas->xa, node, offset);
+    if (!entry)
+            return xas_find_marked(xas, max, mark);
+    return entry;
 }
 
 /*
@@ -1814,13 +1861,12 @@ enum {
  * @xas: XArray operation state.
  * @entry: Entry retrieved from the array.
  *
- * The loop body will be executed for each entry in the XArray that lies
- * within the range specified by @xas.  If the loop completes successfully,
- * any entries that lie in this range will be replaced by @entry.  The caller
- * may break out of the loop; if they do so, the contents of the XArray will
- * be unchanged.  The operation may fail due to an out of memory condition.
- * The caller may also call xa_set_err() to exit the loop while setting an
- * error to record the reason.
+ * The loop body will be executed for each entry in the XArray that
+ * lies within the range specified by @xas.  If the loop terminates
+ * normally, @entry will be %NULL.  The user may break out of the loop,
+ * which will leave @entry set to the conflicting entry.  The caller
+ * may also call xa_set_err() to exit the loop while setting an error
+ * to record the reason.
  */
 #define xas_for_each_conflict(xas, entry) \
 	while ((entry = xas_find_conflict(xas)))

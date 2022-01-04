@@ -26,8 +26,8 @@ static unsigned int tests_passed;
 	tests_run++;						\
 	if (x) {						\
 		printk("BUG at %s:%d\n", __func__, __LINE__);	\
-		xa_dump(xa);					\
-	} else {						\
+        xa_dump(xa);					\
+    } else {						\
 		tests_passed++;					\
 	}							\
 } while (0)

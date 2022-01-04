@@ -16,7 +16,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20210426	//test date
+#define CONFIG_VERSION_3		20211227	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -28,10 +28,9 @@ extern "C" {
 #endif
 
 //xarray.h
-#define CONFIG_BASE_SMALL		0
-//#define CONFIG_BASE_SMALL		1
-//#define CONFIG_XARRAY_MULTI	0
-#define CONFIG_XARRAY_MULTI		1
+//#define CONFIG_BASE_SMALL		0
+#define CONFIG_BASE_SMALL		1
+#define CONFIG_XARRAY_MULTI
 
 #define CONFIG_CMDLINE_FORCE
 #define CONFIG_CMDLINE			"memblock=debug"

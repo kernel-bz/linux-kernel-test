@@ -104,6 +104,7 @@ void xa_debug_node_print(struct xarray *xa)
     XA_STATE(xas, xa, 0);
 
     xa_lock(xa);
+    printf("\n\n**xa_node information...\n");
     xas_for_each(&xas, entry, ULONG_MAX) {
         if (onode != xas.xa_node) {
             printf("\t]\n\t");
@@ -115,7 +116,7 @@ void xa_debug_node_print(struct xarray *xa)
                    );
             printf("\t[ ");
         }
-        printf("%lu:%p, ", xas.xa_index, entry);
+        printf("%d:%lu:%p, ", xas.xa_offset, xas.xa_index, entry);
         onode = xas.xa_node;
     }
     printf("]\n\n");
@@ -173,27 +174,33 @@ void xa_constants_view(void)
 
 static DEFINE_XARRAY(xa1);
 
-static void _xa_store_find_erase_test(struct xarray *xa, int cnt)
+static void _xa_store_find_erase_test(struct xarray *xa, int count, int step)
 {
     pr_fn_start_enable(stack_depth);
 
     //XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_value(0), GFP_NOWAIT)) != 0);
-    unsigned long index = 0;
-    for (index=0; index<cnt; index++) {
+    unsigned long index, cnt = 0;
+    for (index = 0; cnt < count; index += step) {
         //xa_store(xa, index, xa_mk_value(index), GFP_NOWAIT);	//error
+        //return node
         if (xa_err(xa_store(xa, index, xa_mk_value(index), GFP_KERNEL)))
             return;
+        cnt++;
     }
 
-#if 1
-    index = 7;
+    xa_debug_node_print(xa);
+
     void *entry;
-    entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);
-    pr_view_enable(stack_depth, "%s : %p\n", entry);
-    pr_view_enable(stack_depth, "%s : 0x%lX\n", xa_to_value(entry));
-    if (entry)
-        XA_BUG_ON(xa, xa_err(xa_erase(xa, index)) != index);
-#endif
+    cnt = 0;
+    for (index = 0; cnt < count; index += step) {
+        entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);
+        pr_view_enable(stack_depth, "%s : %p\n", entry);
+        pr_view_enable(stack_depth, "%s : 0x%lX\n", xa_to_value(entry));
+        //BUG!!
+        //if (entry)
+        //    XA_BUG_ON(xa, xa_err(xa_erase(xa, index)) != index);
+        cnt++;
+    }
 
     xa_debug_node_print(xa);
 
@@ -202,15 +209,24 @@ static void _xa_store_find_erase_test(struct xarray *xa, int cnt)
 
 void xarray_simple_test(void)
 {
-    int cnt;
+    int cnt, step;
+
+    pr_fn_start_enable(stack_depth);
 
     __fpurge(stdin);
     printf("Enter XArray Testing Counter: ");
     scanf("%d", &cnt);
+    printf("Enter XArray Testing Step: ");
+    scanf("%d", &step);
+
+    pr_view_enable(stack_depth, "%s : %p\n", xa1);
+    pr_view_enable(stack_depth, "%s : %p\n", &xa1);
 
     radix_tree_init();
 
-    _xa_store_find_erase_test(&xa1, cnt);
+    _xa_store_find_erase_test(&xa1, cnt, step);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 void xarray_tests(void)
