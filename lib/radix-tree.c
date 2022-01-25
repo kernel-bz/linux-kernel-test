@@ -1050,7 +1050,8 @@ void *radix_tree_tag_clear(struct radix_tree_root *root,
 {
 	struct radix_tree_node *node, *parent;
 	unsigned long maxindex;
-	int uninitialized_var(offset);
+    int offset = -1;
+    int cnt = 0;
 
 	radix_tree_load_root(root, &node, &maxindex);
 	if (index > maxindex)
@@ -1061,9 +1062,14 @@ void *radix_tree_tag_clear(struct radix_tree_root *root,
 	while (radix_tree_is_internal_node(node)) {
 		parent = entry_to_node(node);
 		offset = radix_tree_descend(parent, &node, index);
+        cnt++;
 	}
 
-	if (node)
+    if (cnt == 0) {
+        printf("node = %p\n", node);
+        printf("offset = %d\n", offset);
+    }
+    if (node)
 		node_tag_clear(root, parent, tag, offset);
 
 	return node;

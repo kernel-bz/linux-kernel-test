@@ -37,13 +37,15 @@ static int _algo_xarray_menu(int asize)
     printf("0: exit.\n");
     printf("1: XArray Constants Test.\n");
     printf("2: XArray Simple Test.\n");
-    printf("3: XArray Check Test.\n");
-    printf("4: XArray MultiOrder Test.\n");
-    printf("5: IDR Simple Test.\n");
-    printf("6: IDA Simple Test.\n");
-    printf("7: IDR, IDA Check Test.\n");
+    printf("3: XArray Store Range Test.\n");
+    printf("4: XArray Marks Test.\n");
+    printf("5: XArray Check Test.\n");
+    printf("6: XArray MultiOrder Test.\n");
+    printf("7: IDR Simple Test.\n");
+    printf("8: IDA Simple Test.\n");
+    printf("9: IDR, IDA Check Test.\n");
 
-    printf("8: help.\n");
+    printf("10: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -57,7 +59,9 @@ static void _algo_xarray_run(void)
 {
     void (*fn[])(void) = { _algo_struct_help
         , xa_constants_view
-        , xarray_simple_test
+        , xarray_test_simple
+        , xarray_test_store_range
+        , xarray_test_marks
         , xarray_test_run
         , xa_multiorder_test
         //, xa_main_test		//error

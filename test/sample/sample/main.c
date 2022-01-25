@@ -3,192 +3,179 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef unsigned char  u8;
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
 
-//#define CONFIG_64BIT
-
-//#define nr_cpu_ids	16
-//#define nr_cpu_ids	1024
-//#define nr_cpu_ids	65536
-//#define nr_cpu_ids	4194304
-#define nr_cpu_ids	524288
-#define NR_CPUS		nr_cpu_ids
-
-# ifdef CONFIG_64BIT
-# define RCU_FANOUT 64
-# else
-# define RCU_FANOUT 32
-# endif
-
-#define RCU_FANOUT_LEAF 16
-
-//32: 16,  512, 16384,  524288
-//64: 16, 1024, 65536, 4194304
-#define RCU_FANOUT_1	      	(RCU_FANOUT_LEAF)
-#define RCU_FANOUT_2	      	(RCU_FANOUT_1 * RCU_FANOUT)
-#define RCU_FANOUT_3	      	(RCU_FANOUT_2 * RCU_FANOUT)
-#define RCU_FANOUT_4	      	(RCU_FANOUT_3 * RCU_FANOUT)
-
-#define DIV_ROUND_UP(n, d)		(((n) + (d) - 1) / (d))
-
-#if NR_CPUS <= RCU_FANOUT_1
-#  define RCU_NUM_LVLS	      1
-#  define NUM_RCU_LVL_0	      1
-#  define NUM_RCU_NODES	      NUM_RCU_LVL_0
-#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0 }
-#  define RCU_NODE_NAME_INIT  { "rcu_node_0" }
-#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0" }
-#elif NR_CPUS <= RCU_FANOUT_2
-#  define RCU_NUM_LVLS	      2
-#  define NUM_RCU_LVL_0	      1
-#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
-#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1)
-#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1 }
-#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1" }
-#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1" }
-#elif NR_CPUS <= RCU_FANOUT_3
-#  define RCU_NUM_LVLS	      3
-#  define NUM_RCU_LVL_0	      1
-#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_2)
-#  define NUM_RCU_LVL_2	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
-#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1 + NUM_RCU_LVL_2)
-#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1, NUM_RCU_LVL_2 }
-#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1", "rcu_node_2" }
-#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1", "rcu_node_fqs_2" }
-#elif NR_CPUS <= RCU_FANOUT_4
-#  define RCU_NUM_LVLS	      4
-#  define NUM_RCU_LVL_0	      1
-#  define NUM_RCU_LVL_1	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_3)
-#  define NUM_RCU_LVL_2	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_2)
-#  define NUM_RCU_LVL_3	      DIV_ROUND_UP(NR_CPUS, RCU_FANOUT_1)
-#  define NUM_RCU_NODES	      (NUM_RCU_LVL_0 + NUM_RCU_LVL_1 + NUM_RCU_LVL_2 + NUM_RCU_LVL_3)
-#  define NUM_RCU_LVL_INIT    { NUM_RCU_LVL_0, NUM_RCU_LVL_1, NUM_RCU_LVL_2, NUM_RCU_LVL_3 }
-#  define RCU_NODE_NAME_INIT  { "rcu_node_0", "rcu_node_1", "rcu_node_2", "rcu_node_3" }
-#  define RCU_FQS_NAME_INIT   { "rcu_node_fqs_0", "rcu_node_fqs_1", "rcu_node_fqs_2", "rcu_node_fqs_3" }
+#define CONFIG_64BIT
+#ifdef CONFIG_64BIT
+#define BITS_PER_LONG 64
 #else
-# error "CONFIG_RCU_FANOUT insufficient for NR_CPUS"
-#endif /* #if (NR_CPUS) <= RCU_FANOUT_1 */
+#define BITS_PER_LONG 32
+#endif /* CONFIG_64BIT */
 
-bool rcu_fanout_exact;
-int rcu_fanout_leaf = RCU_FANOUT_LEAF;
-int rcu_num_lvls = RCU_NUM_LVLS;
-int num_rcu_lvl[] = NUM_RCU_LVL_INIT;
-int rcu_num_nodes = NUM_RCU_NODES;
+#define BIT_ULL(nr)             (ULL(1) << (nr))
+#define BIT_MASK(nr)            (UL(1) << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)            ((nr) / BITS_PER_LONG)
+#define BIT_ULL_MASK(nr)        (ULL(1) << ((nr) % BITS_PER_LONG_LONG))
+#define BIT_ULL_WORD(nr)        ((nr) / BITS_PER_LONG_LONG)
+#define BITS_PER_BYTE           8
 
-struct rcu_node {
-    unsigned long gp_seq;
-    unsigned long qsmask;
-    unsigned long grpmask;
-    int grplo;
-    int grphi;
-    u8 grpnum;
-    u8 level;
-    struct rcu_node *parent;
+#define CONFIG_BASE_SMALL		1
+
+#define XA_CHUNK_SHIFT			2
+#ifndef XA_CHUNK_SHIFT
+#define XA_CHUNK_SHIFT          (CONFIG_BASE_SMALL ? 4 : 6)
+#endif
+#define XA_CHUNK_SIZE           (1UL << XA_CHUNK_SHIFT)
+#define XA_CHUNK_MASK           (XA_CHUNK_SIZE - 1)
+#define XA_MAX_MARKS            3
+#define XA_MARK_LONGS           DIV_ROUND_UP(XA_CHUNK_SIZE, BITS_PER_LONG)
+
+typedef unsigned int gfp_t;
+typedef unsigned xa_mark_t;
+//#define __GFP_BITS_SHIFT (25 + IS_ENABLED(CONFIG_LOCKDEP))
+#define __GFP_BITS_SHIFT 		25
+#define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+
+#define XA_MARK_0               ((xa_mark_t)0U)
+#define XA_MARK_1               ((xa_mark_t)1U)
+#define XA_MARK_2               ((xa_mark_t)2U)
+#define XA_PRESENT              ((xa_mark_t)8U)
+#define XA_MARK_MAX             XA_MARK_2
+#define XA_FREE_MARK            XA_MARK_0
+
+#define XA_FLAGS_TRACK_FREE     ((gfp_t)4U)
+#define XA_FLAGS_ZERO_BUSY      ((gfp_t)8U)
+#define XA_FLAGS_ALLOC_WRAPPED  ((gfp_t)16U)
+#define XA_FLAGS_ACCOUNT        ((gfp_t)32U)
+#define XA_FLAGS_MARK(mark)     ((gfp_t)((1U << __GFP_BITS_SHIFT) << \
+                                                (unsigned)(mark)))
+
+struct xa_node {
+    union {
+        unsigned long tags[XA_MAX_MARKS][XA_MARK_LONGS];
+        unsigned long marks[XA_MAX_MARKS][XA_MARK_LONGS];
+    };
 };
 
-struct rcu_state {
-    struct rcu_node node[NUM_RCU_NODES];	/* Hierarchy. */
-    struct rcu_node *level[RCU_NUM_LVLS + 1];
-    unsigned long gp_seq;
+struct xarray {
+    gfp_t		xa_flags;
+    void 		*xa_head;
 };
 
-#define RCU_SEQ_CTR_SHIFT	2
-
-struct rcu_state rcu_state = {
-    .level = { &rcu_state.node[0] },
-    .gp_seq = (0UL - 300UL) << RCU_SEQ_CTR_SHIFT,
-};
-
-
-//kernel/rcu/rcu.h
-static inline void rcu_init_levelspread(int *levelspread, const int *levelcnt)
-{
-    int i;
-
-    if (rcu_fanout_exact) {
-        levelspread[rcu_num_lvls - 1] = rcu_fanout_leaf;
-        for (i = rcu_num_lvls - 2; i >= 0; i--)
-            levelspread[i] = RCU_FANOUT;
-    } else {
-        int ccur;
-        int cprv;
-
-        cprv = nr_cpu_ids;
-        for (i = rcu_num_lvls - 1; i >= 0; i--) {
-            ccur = levelcnt[i];
-            levelspread[i] = (cprv + ccur - 1) / ccur;
-            cprv = ccur;
-        }
-    }
+#define XARRAY_INIT(name, flags) {		\
+    .xa_flags = flags,					\
+    .xa_head = NULL,					\
 }
 
-int main()
+//Find first bit from LSB
+static unsigned long __ffs(unsigned long word)
 {
-    int i, j;
-    int levelspread[RCU_NUM_LVLS];
-    int cpustride = 1;
-    struct rcu_node *rnp;
+    int num = 0;
 
-    printf("RCU_FANOUT_LEAF : %d\n", RCU_FANOUT_LEAF);
-    printf("RCU_FANOUT      : %d\n", RCU_FANOUT);
-    printf("RCU_NUM_LVLS    : %d\n", RCU_NUM_LVLS);
-    printf("NUM_RCU_NODES   : %d\n", NUM_RCU_NODES);
-
-    printf("RCU_FANOUT_# : %d, %d, %d, %d\n"
-           , RCU_FANOUT_1, RCU_FANOUT_2, RCU_FANOUT_3, RCU_FANOUT_4);
-
-    printf("rcu_num_lvl : ");
-    for (i = 0; i < RCU_NUM_LVLS; i++)
-        printf("%d, ", num_rcu_lvl[i]);
-    printf("\n");
-
-    for (i = 1; i < rcu_num_lvls; i++)
-        rcu_state.level[i] =
-            rcu_state.level[i - 1] + num_rcu_lvl[i - 1];
-
-    rcu_fanout_exact = false;
-    rcu_init_levelspread(levelspread, num_rcu_lvl);
-
-    printf("levelspread : ");
-    for (i = 0; i < RCU_NUM_LVLS; i++)
-        printf("%d, ", levelspread[i]);
-    printf("\n");
-
-#if 0
-    rcu_fanout_exact = true;
-    rcu_init_levelspread(levelspread, num_rcu_lvl);
-
-    printf("levelspread : ");
-    for (i = 0; i < RCU_NUM_LVLS; i++)
-        printf("%d, ", levelspread[i]);
-    printf("\n");
-#endif
-
-    for (i = rcu_num_lvls - 1; i >= 0; i--) {
-        cpustride *= levelspread[i];
-        rnp = rcu_state.level[i];
-        printf("cpustride=%d\n", cpustride);
-
-        for (j = 0; j < num_rcu_lvl[i]; j++, rnp++) {
-            rnp->gp_seq = rcu_state.gp_seq;
-            rnp->qsmask = 0;
-            rnp->grplo = j * cpustride;
-            rnp->grphi = (j + 1) * cpustride - 1;
-            if (rnp->grphi >= nr_cpu_ids)
-                rnp->grphi = nr_cpu_ids - 1;
-            if (i == 0) {
-                rnp->grpnum = 0;
-                rnp->grpmask = 0;
-                rnp->parent = NULL;
-            } else {
-                rnp->grpnum = j % levelspread[i - 1];
-                //rnp->grpmask = BIT(rnp->grpnum);
-                rnp->parent = rcu_state.level[i - 1] +
-                          j / levelspread[i - 1];
-            }
-            rnp->level = i;
-        }
+#if BITS_PER_LONG == 64
+    if ((word & 0xffffffff) == 0) {
+        num += 32;
+        word >>= 32;
     }
+#endif
+    if ((word & 0xffff) == 0) {
+        num += 16;
+        word >>= 16;
+    }
+    if ((word & 0xff) == 0) {
+        num += 8;
+        word >>= 8;
+    }
+    if ((word & 0xf) == 0) {
+        num += 4;
+        word >>= 4;
+    }
+    if ((word & 0x3) == 0) {
+        num += 2;
+        word >>= 2;
+    }
+    if ((word & 0x1) == 0)
+        num += 1;
+    return num;
+}
+
+/**
+ * test_bit - Determine whether a bit is set
+ * @nr: bit number to test
+ * @addr: Address to start counting from
+ */
+static inline int test_bit(int nr, const volatile unsigned long *addr)
+{
+    return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+}
+
+static inline bool xa_marked(const struct xarray *xa, xa_mark_t mark)
+{
+    return xa->xa_flags & XA_FLAGS_MARK(mark);
+}
+
+#define BITMAP_LAST_WORD_MASK(nbits)					\
+(									\
+    ((nbits) % BITS_PER_LONG) ?					\
+        (1UL<<((nbits) % BITS_PER_LONG))-1 : ~0UL		\
+)
+
+//CONFIG_XARRAY_MULTI
+static int _main_set_order(int index, int order)
+{
+    int shift, sibs, index2;
+    printf("index=%d, order=%d\n", index, order);
+    index2 = order < BITS_PER_LONG ? (index >> order) << order : 0;
+    shift = order - (order % XA_CHUNK_SHIFT);
+    sibs = (1U << (order % XA_CHUNK_SHIFT)) - 1;
+    printf("index=%d, shift=%d, sibs=%d\n\n", index2, shift, sibs);
+    //return (index - index2);
+    return 0;
+}
+
+struct test_s {
+        char a;
+        int b;
+};
+static struct test_s ts = {
+        .a = 10,
+        .b = 20,
+};
+
+int main(void)
+{
+    printf("XA_CHUNK_SHIFT:		%d\n", XA_CHUNK_SHIFT);
+    printf("XA_CHUNK_SIZE:		%lu\n", XA_CHUNK_SIZE);
+    printf("XA_CHUNK_MASK:		0x%lX\n", XA_CHUNK_MASK);
+    printf("XA_MAX_MARKS:		%d\n", XA_MAX_MARKS);
+    printf("XA_MARK_LONGS:		%lu\n", XA_MARK_LONGS);
+    printf("BITS_PER_LONG-1:	0x%X\n", BITS_PER_LONG-1);
+
+    int offset;
+
+    for (offset = 1; offset < 128; offset += 16)
+        printf("%d: BIT_WORD: %d\n", offset, BIT_WORD(offset));
+
+    for (offset = 1; offset < 128; offset += 16) {
+        printf("mod: %d\n", offset % BITS_PER_LONG);
+        printf("%d: BITMAP_LAST_WORD_MASK: 0x%lX\n", offset, BITMAP_LAST_WORD_MASK(offset));
+    }
+
+    unsigned long order;
+    for (offset = 0; offset < 20; offset++) {
+        order = __ffs(offset+1);
+        printf("word:0x%X, order: 0x%lX\n", offset, order);
+    }
+
+    for (offset = 0; offset < BITS_PER_LONG; offset++) {
+        order = __ffs(offset+1);
+        if (_main_set_order(offset, order)) break;
+    }
+
+    printf("ts=%p\n", ts);
+    printf("ts=%p\n", ts.a);
+    printf("ts=%d\n", ts.a);
+    printf("&ts=%p\n", &ts);
 
     return 0;
 }

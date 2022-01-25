@@ -75,17 +75,24 @@ static void *xa_store_order(struct xarray *xa, unsigned long index,
 	XA_STATE_ORDER(xas, xa, index, order);
 	void *curr;
 
+    pr_fn_start_enable(stack_depth);
+
+    xa_debug_state_view(&xas, entry);
+
 	do {
 		xas_lock(&xas);
 		curr = xas_store(&xas, entry);
 		xas_unlock(&xas);
 	} while (xas_nomem(&xas, gfp));
 
+    pr_fn_end_enable(stack_depth);
 	return curr;
 }
 
 static noinline void check_xa_err(struct xarray *xa)
 {
+    pr_fn_start_enable(stack_depth);
+
 	XA_BUG_ON(xa, xa_err(xa_store_index(xa, 0, GFP_NOWAIT)) != 0);
 	XA_BUG_ON(xa, xa_err(xa_erase(xa, 0)) != 0);
 #ifndef __KERNEL__
@@ -98,6 +105,8 @@ static noinline void check_xa_err(struct xarray *xa)
 	XA_BUG_ON(xa, xa_err(xa_erase(xa, 1)) != 0);
 // kills the test-suite :-(
 //	XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_internal(0), 0)) != -EINVAL);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 static noinline void check_xas_retry(struct xarray *xa)
@@ -105,12 +114,18 @@ static noinline void check_xas_retry(struct xarray *xa)
 	XA_STATE(xas, xa, 0);
 	void *entry;
 
-	xa_store_index(xa, 0, GFP_KERNEL);
+    pr_fn_start_enable(stack_depth);
+
+    xa_store_index(xa, 0, GFP_KERNEL);
 	xa_store_index(xa, 1, GFP_KERNEL);
 
 	rcu_read_lock();
 	XA_BUG_ON(xa, xas_find(&xas, ULONG_MAX) != xa_mk_value(0));
-	xa_erase_index(xa, 1);
+    xa_erase_index(xa, 1);
+
+    entry = xas_reload(&xas);
+    xa_debug_state_view(&xas, entry);
+
 	XA_BUG_ON(xa, !xa_is_retry(xas_reload(&xas)));
 	XA_BUG_ON(xa, xas_retry(&xas, NULL));
 	XA_BUG_ON(xa, xas_retry(&xas, xa_mk_value(0)));
@@ -143,14 +158,19 @@ static noinline void check_xas_retry(struct xarray *xa)
 
 	xa_erase_index(xa, 0);
 	xa_erase_index(xa, 1);
+
+    pr_fn_end_enable(stack_depth);
 }
 
-static noinline void check_xa_load(struct xarray *xa)
+//count=1024
+static noinline void check_xa_load(struct xarray *xa, unsigned long count)
 {
 	unsigned long i, j;
 
-	for (i = 0; i < 1024; i++) {
-		for (j = 0; j < 1024; j++) {
+    pr_fn_start_enable(stack_depth);
+
+    for (i = 0; i < count; i++) {
+        for (j = 0; j < count; j++) {
 			void *entry = xa_load(xa, j);
 			if (j < i)
 				XA_BUG_ON(xa, xa_to_value(entry) != j);
@@ -160,8 +180,8 @@ static noinline void check_xa_load(struct xarray *xa)
 		XA_BUG_ON(xa, xa_store_index(xa, i, GFP_KERNEL) != NULL);
 	}
 
-	for (i = 0; i < 1024; i++) {
-		for (j = 0; j < 1024; j++) {
+    for (i = 0; i < count; i++) {
+        for (j = 0; j < count; j++) {
 			void *entry = xa_load(xa, j);
 			if (j >= i)
 				XA_BUG_ON(xa, xa_to_value(entry) != j);
@@ -171,6 +191,8 @@ static noinline void check_xa_load(struct xarray *xa)
 		xa_erase_index(xa, i);
 	}
 	XA_BUG_ON(xa, !xa_empty(xa));
+
+    pr_fn_end_enable(stack_depth);
 }
 
 static noinline void check_xa_mark_1(struct xarray *xa, unsigned long index)
@@ -290,11 +312,12 @@ static noinline void check_xa_mark_2(struct xarray *xa)
 	xa_destroy(xa);
 }
 
-static noinline void check_xa_mark(struct xarray *xa)
+//count=16384
+static noinline void check_xa_mark(struct xarray *xa, unsigned long count)
 {
 	unsigned long index;
 
-	for (index = 0; index < 16384; index += 4)
+    for (index = 0; index < count; index += 4)
 		check_xa_mark_1(xa, index);
 
 	check_xa_mark_2(xa);
@@ -349,11 +372,12 @@ static noinline void check_xa_shrink(struct xarray *xa)
 	}
 }
 
-static noinline void check_insert(struct xarray *xa)
+//count = 1024
+static noinline void check_insert(struct xarray *xa, unsigned long count)
 {
 	unsigned long i;
 
-	for (i = 0; i < 1024; i++) {
+    for (i = 0; i < count; i++) {
 		xa_insert_index(xa, i);
 		XA_BUG_ON(xa, xa_load(xa, i - 1) != NULL);
 		XA_BUG_ON(xa, xa_load(xa, i + 1) != NULL);
@@ -465,13 +489,14 @@ static noinline void check_reserve(struct xarray *xa)
 	xa_destroy(xa);
 }
 
-static noinline void check_xas_erase(struct xarray *xa)
+//count = 200
+static noinline void check_xas_erase(struct xarray *xa, unsigned long count)
 {
 	XA_STATE(xas, xa, 0);
 	void *entry;
 	unsigned long i, j;
 
-	for (i = 0; i < 200; i++) {
+    for (i = 0; i < count; i++) {
 		for (j = i; j < 2 * i + 17; j++) {
 			xas_set(&xas, j);
 			do {
@@ -1437,12 +1462,13 @@ static noinline void __check_store_range(struct xarray *xa, unsigned long first,
 	XA_BUG_ON(xa, !xa_empty(xa));
 }
 
-static noinline void check_store_range(struct xarray *xa)
+//count = 128
+static noinline void check_store_range(struct xarray *xa, unsigned long count)
 {
 	unsigned long i, j;
 
-	for (i = 0; i < 128; i++) {
-		for (j = i; j < 128; j++) {
+    for (i = 0; i < count; i++) {
+        for (j = i; j < count; j++) {
 			__check_store_range(xa, i, j);
 			__check_store_range(xa, 128 + i, 128 + j);
 			__check_store_range(xa, 4095 + i, 4095 + j);
@@ -1599,7 +1625,8 @@ static noinline void check_account(struct xarray *xa)
 #endif
 }
 
-static noinline void check_destroy(struct xarray *xa)
+//count = 1000
+static noinline void check_destroy(struct xarray *xa, unsigned long count)
 {
 	unsigned long index;
 
@@ -1610,7 +1637,7 @@ static noinline void check_destroy(struct xarray *xa)
 	XA_BUG_ON(xa, !xa_empty(xa));
 
 	/* Destroying an array with a single entry */
-	for (index = 0; index < 1000; index++) {
+    for (index = 0; index < count; index++) {
 		xa_store_index(xa, index, GFP_KERNEL);
 		XA_BUG_ON(xa, xa_empty(xa));
 		xa_destroy(xa);
@@ -1634,57 +1661,120 @@ static noinline void check_destroy(struct xarray *xa)
 
 static DEFINE_XARRAY(array);
 
+static void _test_xa_wait_next(char *s1, char *s2)
+{
+    int key;
+    printk("\n%s result is passed[%u] of run[%u], diff[%u].\n",
+           s1, tests_passed, tests_run, tests_run - tests_passed);
+    printk("Press any key to test the %s...", s2);
+    tests_passed = 0;
+    tests_run = 0;
+
+     __fpurge(stdin);
+    key = getchar();
+}
+
+static unsigned long _test_xa_wait_count(char *s1, char *s2)
+{
+    unsigned long count;
+    printk("\n%s result is passed[%u] of run[%u], diff[%u].\n",
+           s1, tests_passed, tests_run, tests_run - tests_passed);
+    printk("Input count to test the %s:", s2);
+    tests_passed = 0;
+    tests_run = 0;
+
+     __fpurge(stdin);
+    scanf("%u", &count);
+    return count;
+}
+
 static int xarray_checks(void)
 {
-    printk("check_xa_err()...\n");
+    unsigned long count;
+    pr_fn_start_enable(stack_depth);
+
+#if 0
+    _test_xa_wait_next("check_xa_err()", "check_xa_err()");
     check_xa_err(&array);
-    printk("check_xas_retry()...\n");
+
+    _test_xa_wait_next("check_xa_err()", "check_xas_retry()");
     check_xas_retry(&array);
-    printk("check_xa_load()...\n");
-    check_xa_load(&array);
-    printk("check_xa_mark()...\n");
-    check_xa_mark(&array);
-    printk("check_xa_shrink()...\n");
+
+    //count = 1024
+    count = _test_xa_wait_count("check_xas_retry()", "check_xa_load(count=1024)");
+    check_xa_load(&array, count);
+
+    //index = 16384
+    count = _test_xa_wait_count("check_xa_load(count)", "check_xa_mark(index=16384)");
+    check_xa_mark(&array, count);
+
+    _test_xa_wait_next("check_xa_mark(index)", "check_xa_shrink()");
     check_xa_shrink(&array);
-    printk("check_xas_erase()...\n");
-    check_xas_erase(&array);
-    printk("check_insert()...\n");
-    check_insert(&array);
-    printk("check_cmpxchg()...\n");
+
+    //count = 200
+    count = _test_xa_wait_count("check_xa_shrink()", "check_xas_erase(count=200)");
+    check_xas_erase(&array, count);
+
+    //count = 1024
+    _test_xa_wait_next("check_xas_erase()", "check_insert(count=1024)");
+    check_insert(&array, count);
+
+    _test_xa_wait_next("check_insert()", "check_cmpxchg()");
     check_cmpxchg(&array);
-    printk("check_reserve()...\n");
+
+    _test_xa_wait_next("check_cmpxchg()", "check_reserve(array)");
     check_reserve(&array);
-    printk("check_reserve()...\n");
+
+    _test_xa_wait_next("check_reserve(array)", "check_reserve(xa0)");
     check_reserve(&xa0);
-    printk("check_multi_store()...\n");
-    check_multi_store(&array);
-    printk("check_xa_alloc()...\n");
+#endif
+
+    _test_xa_wait_next("check_reserve(xa0)", "check_multi_store()");
+    check_multi_store(&array);	//warnings[2]
+
+#if 0
+    _test_xa_wait_next("check_multi_store()", "check_xa_alloc()");
     check_xa_alloc();
-    printk("check_find()...\n");
-    check_find(&array);
-    printk("check_find_entry()...\n");
-    check_find_entry(&array);
-    printk("check_account()...\n");
-    check_account(&array);
-    printk("check_destroy()...\n");
-    check_destroy(&array);
-    printk("check_move()...\n");
+
+    _test_xa_wait_next("check_xa_alloc()", "check_find()");
+    check_find(&array);			//warnings[56]
+
+    _test_xa_wait_next("check_find()", "check_find_entry()");
+    check_find_entry(&array);	//warnings[3]
+
+    _test_xa_wait_next("check_find_entry()", "check_account()");
+    check_account(&array);		//warnings[12]
+
+    //count = 1000
+    count = _test_xa_wait_count("check_account()", "check_destroy(count=1000)");
+    check_destroy(&array, count);		//warnings[1]
+
+    _test_xa_wait_next("check_destroy()", "check_move()");
     check_move(&array);
-    printk("check_create_range()...\n");
+
+    _test_xa_wait_next("check_move()", "check_create_range()");
     check_create_range(&array);
-    printk("check_store_range()...\n");
-    check_store_range(&array);
-    printk("check_store_iter()...\n");
+
+    //count = 128
+    count = _test_xa_wait_count("check_create_range()", "check_store_range(count=128)");
+    check_store_range(&array, count);
+
+    _test_xa_wait_next("check_store_range()", "check_store_iter()");
     check_store_iter(&array);
-    printk("check_align()...\n");
+
+    _test_xa_wait_next("check_store_iter()", "check_align()");
     check_align(&xa0);
 
-    printk("check_workingset()...\n");
-	check_workingset(&array, 0);
+    _test_xa_wait_next("check_align()", "check_workingset()");
+    check_workingset(&array, 0);
 	check_workingset(&array, 64);
 	check_workingset(&array, 4096);
 
-	printk("XArray: %u of %u tests passed\n", tests_passed, tests_run);
+    _test_xa_wait_next("check_workingset()", "");
+
+#endif
+
+    pr_fn_end_enable(stack_depth);
 	return (tests_run == tests_passed) ? 0 : -EINVAL;
 }
 

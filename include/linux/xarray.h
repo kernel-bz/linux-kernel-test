@@ -1540,6 +1540,8 @@ static inline bool xas_retry(struct xa_state *xas, const void *entry)
 void *xas_load(struct xa_state *);
 void *xas_store(struct xa_state *, void *entry);
 void *xas_find(struct xa_state *, unsigned long max);
+void *xas_find_range(struct xa_state *, unsigned long max);
+void *xas_next_range_debug(struct xa_state *xas, unsigned long max);
 void *xas_find_conflict(struct xa_state *);
 
 bool xas_get_mark(const struct xa_state *, xa_mark_t);
@@ -1676,8 +1678,8 @@ static inline void *xas_next_entry(struct xa_state *xas, unsigned long max)
 	struct xa_node *node = xas->xa_node;
 	void *entry;
 
-	if (unlikely(xas_not_node(node) || node->shift ||
-			xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)))
+    if (unlikely(xas_not_node(node) || node->shift ||
+            xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)))
 		return xas_find(xas, max);
 
 	do {
@@ -1685,14 +1687,44 @@ static inline void *xas_next_entry(struct xa_state *xas, unsigned long max)
 			return xas_find(xas, max);
 		if (unlikely(xas->xa_offset == XA_CHUNK_MASK))
 			return xas_find(xas, max);
-		entry = xa_entry(xas->xa, node, xas->xa_offset + 1);
-		if (unlikely(xa_is_internal(entry)))
-			return xas_find(xas, max);
-		xas->xa_offset++;
-		xas->xa_index++;
+        entry = xa_entry(xas->xa, node, xas->xa_offset + 1);
+        if (unlikely(xa_is_internal(entry)))
+            return xas_find(xas, max);
+        xas->xa_index++;
+        xas->xa_offset++;
 	} while (!entry);
 
 	return entry;
+}
+
+static inline void *xas_next_range(struct xa_state *xas, unsigned long max)
+{
+    struct xa_node *node = xas->xa_node;
+    void *entry;
+    unsigned int offset;
+
+    do {
+        if (unlikely(xas->xa_index >= max))
+            return xas_find_range(xas, max);
+        if (unlikely(xas->xa_offset == XA_CHUNK_MASK))
+            return xas_find_range(xas, max);
+
+        offset = ((xas->xa_index + 1) >> node->shift) & XA_CHUNK_MASK;
+        entry = xa_entry(xas->xa, node, offset);
+
+        if (unlikely(xa_is_node(entry)))
+            return xas_find_range(xas, max);
+
+        xas->xa_index++;
+        xas->xa_offset++;
+
+        if (xa_is_sibling(entry)) {
+            offset = xa_to_sibling(entry);
+            entry = xa_entry(xas->xa, xas->xa_node, offset);
+        }
+    } while (!entry);
+
+    return entry;
 }
 
 /* Private */
@@ -1829,6 +1861,10 @@ enum {
 #define xas_for_each(xas, entry, max) \
 	for (entry = xas_find(xas, max); entry; \
 	     entry = xas_next_entry(xas, max))
+
+#define xas_for_range(xas, entry, max) \
+    for (entry = xas_find_range(xas, max); entry; \
+         entry = xas_next_range(xas, max))
 
 #define xas_for_each_next_fast(xas, entry, max) \
         for (entry = xas_find(xas, max); entry; \

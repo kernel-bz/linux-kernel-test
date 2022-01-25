@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  *  main.c
- *  Linux Kernel Source(v5.4) Test Main
+ *  Linux Kernel Source Test Main
  *
  *  Copyright(C) Jung-JaeJoon <rgbi3307@naver.com> on the www.kernel.bz
  */
@@ -82,6 +82,6 @@ int main(void)
     }
 
     printf("\n");
-    printf("The end of test. See you again... Thanks.\n\n");
+    printf("The end of kernel test. See you again... Thanks.\n\n");
     return 0;
 }

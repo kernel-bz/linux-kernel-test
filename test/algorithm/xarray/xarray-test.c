@@ -23,7 +23,7 @@
 
 #define XA_BUG_ON(xa, x) do {							\
     if (x) {											\
-        pr_out("BUG at %s:%d\n", __func__, __LINE__);	\
+        _pr_warn("BUG at xa=%p:%s:%d\n", xa, __func__, __LINE__);	\
     }													\
 } while (0)
 
@@ -36,7 +36,7 @@ void xa_debug_xarray_view(struct xarray *xa, u64 index, void *entry)
     pr_view_enable(stack_depth, "%10s : %p\n", xa);
 
     pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_lock);
-    pr_view_enable(stack_depth, "%20s : %d\n", xa->xa_flags);
+    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_flags);
     pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_head);
 
     pr_fn_end_enable(stack_depth);
@@ -52,6 +52,7 @@ void xa_debug_state_view(struct xa_state *xas, void *entry)
     if(!xas) return;
 
     pr_view_enable(stack_depth, "%20s : %p\n", xas->xa);
+    pr_view_enable(stack_depth, "%20s : %p\n", &xas->xa->xa_head);
     pr_view_enable(stack_depth, "%20s : %p\n", xas->xa->xa_head);
     pr_view_enable(stack_depth, "%20s : %lu\n", xas->xa_index);
     pr_view_enable(stack_depth, "%20s : %d\n", xas->xa_shift);
@@ -103,24 +104,54 @@ void xa_debug_node_print(struct xarray *xa)
     void *entry, *onode = NULL;
     XA_STATE(xas, xa, 0);
 
+    pr_fn_start_enable(stack_depth);
+
     xa_lock(xa);
-    printf("\n\n**xa_node information...\n");
+    pr_out_on(stack_depth, ">>> %s\n", "xa_node total outputs...");
     xas_for_each(&xas, entry, ULONG_MAX) {
         if (onode != xas.xa_node) {
-            printf("\t]\n\t");
-            printf("parent=%p, prev=%p, node=%p, next=%p\n"
+            printf("\n\t[ parent=%p, prev=%p, node=%p, next=%p ]\n"
                    , xas.xa_node->parent
                    , xas.xa_node->prev
                    , xas.xa_node
                    , xas.xa_node->next
                    );
-            printf("\t[ ");
+            printf("\t");
         }
-        printf("%d:%lu:%p, ", xas.xa_offset, xas.xa_index, entry);
+        printf("[ %d:%lu:%p ] ", xas.xa_offset, xas.xa_index, entry);
         onode = xas.xa_node;
     }
-    printf("]\n\n");
     xa_unlock(xa);
+
+    pr_fn_end_enable(stack_depth);
+}
+
+void xa_debug_node_print_range(struct xarray *xa)
+{
+    void *entry, *onode = NULL;
+    XA_STATE_ORDER(xas, xa, 0, 0);
+
+    pr_fn_start_enable(stack_depth);
+
+    xa_lock(xa);
+    pr_out_on(stack_depth, ">>> %s\n", "xa_node total outputs over range...");
+    //xas_for_each_conflict(&xas, entry) {
+    xas_for_range(&xas, entry, ULONG_MAX) {
+        if (onode != xas.xa_node) {
+            printf("\n\t[ parent=%p, prev=%p, node=%p, next=%p ]\n"
+                   , xas.xa_node->parent
+                   , xas.xa_node->prev
+                   , xas.xa_node
+                   , xas.xa_node->next
+                   );
+            printf("\t");
+        }
+        printf("[ %d:%lu:%p ] ", xas.xa_offset, xas.xa_index, entry);
+        onode = xas.xa_node;
+    }
+    xa_unlock(xa);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 void xa_constants_view(void)
@@ -145,6 +176,7 @@ void xa_constants_view(void)
     pr_view(stack_depth, "%30s : 0x%llX\n", (unsigned long)p);
     printf("\n");
 
+    pr_view(stack_depth, "%30s : 0x%X\n", XA_RETRY_ENTRY);	//xa_mk_internal(256)
     pr_view(stack_depth, "%30s : 0x%X\n", XA_ZERO_ENTRY);	//xa_mk_internal(257)
     pr_view(stack_depth, "%30s : 0x%X\n", XA_FLAGS_MARK(XA_MARK_0));
     pr_view(stack_depth, "%30s : 0x%X\n", XA_FLAGS_MARK(XA_MARK_1));
@@ -153,9 +185,12 @@ void xa_constants_view(void)
     pr_view(stack_depth, "%30s : 0x%X\n", XA_FLAGS_ALLOC1);
     printf("\n");
 
+    pr_view(stack_depth, "%30s : %d\n", sizeof(struct xa_node));
+
     pr_view(stack_depth, "%30s : %d\n", XA_CHUNK_SHIFT);
     pr_view(stack_depth, "%30s : %d\n", XA_CHUNK_SIZE);
     pr_view(stack_depth, "%30s : 0x%X\n", XA_CHUNK_MASK);
+    pr_view(stack_depth, "%30s : 0x%X\n", ~XA_CHUNK_MASK);
     pr_view(stack_depth, "%30s : %d\n", XA_MAX_MARKS);
     pr_view(stack_depth, "%30s : %d\n", XA_MARK_LONGS);
     printf("\n");
@@ -174,57 +209,136 @@ void xa_constants_view(void)
 
 static DEFINE_XARRAY(xa1);
 
-static void _xa_store_find_erase_test(struct xarray *xa, int count, int step)
+static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, int step)
 {
     pr_fn_start_enable(stack_depth);
 
     //XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_value(0), GFP_NOWAIT)) != 0);
-    unsigned long index, cnt = 0;
-    for (index = 0; cnt < count; index += step) {
-        //xa_store(xa, index, xa_mk_value(index), GFP_NOWAIT);	//error
-        //return node
+    unsigned long index;
+    for (index = first; index <= last; index += step) {
+        pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_store() testing...");
         if (xa_err(xa_store(xa, index, xa_mk_value(index), GFP_KERNEL)))
+        //if (xa_err(xa_store(xa, index, xa_mk_value(index), GFP_NOWAIT)))
             return;
-        cnt++;
     }
 
     xa_debug_node_print(xa);
 
     void *entry;
-    cnt = 0;
-    for (index = 0; cnt < count; index += step) {
+    index = first;
+    //for (index = first; index <= last; index += step) {
+        pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_find() testing...");
+        pr_view_enable(stack_depth, "%10s : %u\n", index);
         entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);
-        pr_view_enable(stack_depth, "%s : %p\n", entry);
-        pr_view_enable(stack_depth, "%s : 0x%lX\n", xa_to_value(entry));
-        //BUG!!
-        //if (entry)
-        //    XA_BUG_ON(xa, xa_err(xa_erase(xa, index)) != index);
-        cnt++;
-    }
+        pr_view_enable(stack_depth, "%20s : %p\n", entry);
+        pr_view_enable(stack_depth, "%20s : %d\n\n", xa_to_value(entry));
+    //}
 
-    xa_debug_node_print(xa);
+    //for (index = 16; index <= last; index += step) {
+        pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_erase() testing...");
+        entry = xa_erase(xa, index);
+        //if (xa_err(entry)) break;
+        XA_BUG_ON(xa, xa_to_value(entry) != index);
+    //}
+
+    //xa_debug_node_print(xa);
 
     pr_fn_end_enable(stack_depth);
 }
 
-void xarray_simple_test(void)
+void xarray_test_simple(void)
 {
-    int cnt, step;
+    int first, last, step;
 
     pr_fn_start_enable(stack_depth);
 
     __fpurge(stdin);
-    printf("Enter XArray Testing Counter: ");
-    scanf("%d", &cnt);
-    printf("Enter XArray Testing Step: ");
+    printf("Input first index for testing: ");
+    scanf("%d", &first);
+    printf("Input last index for testing: ");
+    scanf("%d", &last);
+    printf("Input step size for testing: ");
     scanf("%d", &step);
 
-    pr_view_enable(stack_depth, "%s : %p\n", xa1);
     pr_view_enable(stack_depth, "%s : %p\n", &xa1);
 
     radix_tree_init();
 
-    _xa_store_find_erase_test(&xa1, cnt, step);
+    _xa_store_find_erase_test(&xa1, first, last, step);
+
+    pr_fn_end_enable(stack_depth);
+}
+
+void xarray_test_store_range(void)
+{
+    unsigned long first, last, index;
+
+    pr_fn_start_enable(stack_depth);
+
+    __fpurge(stdin);
+    printf("Enter range first index: ");
+    scanf("%lu", &first);
+    printf("Enter range last index: ");
+    scanf("%lu", &last);
+    printf("Enter index to find: ");
+    scanf("%lu", &index);
+
+    pr_view_enable(stack_depth, "%10s : %p\n", &xa1);
+
+    radix_tree_init();
+
+    xa_store_range(&xa1, first, last, xa_mk_value(first & LONG_MAX), GFP_KERNEL);
+
+    xa_debug_node_print_range(&xa1);
+
+    void *entry;
+    XA_STATE(xas, &xa1, index);
+    entry = xa_find(&xa1, &index, ULONG_MAX, XA_PRESENT);
+    pr_view_enable(stack_depth, "%10s : %p\n", entry);
+
+    entry = xas_find_conflict(&xas);
+    pr_view_enable(stack_depth, "%10s : %p\n", entry);
+
+    pr_fn_end_enable(stack_depth);
+}
+
+void xarray_test_marks(void)
+{
+    int index;
+    void *entry;
+
+    pr_fn_start_enable(stack_depth);
+
+    radix_tree_init();
+
+    index = 0;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+
+    index = 1;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+    //xa_set_mark(&xa1, index, XA_MARK_0);
+    //xa_set_mark(&xa1, index, XA_MARK_1);
+    xa_set_mark(&xa1, index, XA_MARK_2);
+
+    index = 2;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+
+    index = 3;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+
+    index = 4;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+
+    index = 5;
+    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+
+    index = 1;
+    if (xa_get_mark(&xa1, index, XA_MARK_2)) {
+        pr_view_enable(stack_depth, "%10s : %d\n", index);
+        xa_clear_mark(&xa1, index, XA_MARK_2);
+    }
+    if (xa_get_mark(&xa1, index, XA_MARK_2))
+        pr_err("%s", "xa_clear_mark() error!\n");
 
     pr_fn_end_enable(stack_depth);
 }
