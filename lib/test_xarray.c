@@ -121,7 +121,7 @@ static noinline void check_xas_retry(struct xarray *xa)
 
 	rcu_read_lock();
 	XA_BUG_ON(xa, xas_find(&xas, ULONG_MAX) != xa_mk_value(0));
-    xa_erase_index(xa, 1);
+    xa_erase_index(xa, 1);	//shrink, XA_RETRY_ENTRY, 0x402, 1026
 
     entry = xas_reload(&xas);
     xa_debug_state_view(&xas, entry);
@@ -129,7 +129,7 @@ static noinline void check_xas_retry(struct xarray *xa)
 	XA_BUG_ON(xa, !xa_is_retry(xas_reload(&xas)));
 	XA_BUG_ON(xa, xas_retry(&xas, NULL));
 	XA_BUG_ON(xa, xas_retry(&xas, xa_mk_value(0)));
-	xas_reset(&xas);
+    xas_reset(&xas);	//XAS_RESTART
 	XA_BUG_ON(xa, xas.xa_node != XAS_RESTART);
 	XA_BUG_ON(xa, xas_next_entry(&xas, ULONG_MAX) != xa_mk_value(0));
 	XA_BUG_ON(xa, xas.xa_node != NULL);
@@ -440,8 +440,8 @@ static noinline void check_reserve(struct xarray *xa)
 	/* Releasing a used entry does nothing */
 	XA_BUG_ON(xa, xa_reserve(xa, 12345678, GFP_KERNEL) != 0);
 	XA_BUG_ON(xa, xa_store_index(xa, 12345678, GFP_NOWAIT) != NULL);
-	xa_release(xa, 12345678);
-	xa_erase_index(xa, 12345678);
+    xa_release(xa, 12345678);
+    xa_erase_index(xa, 12345678);
 	XA_BUG_ON(xa, !xa_empty(xa));
 
 	/* cmpxchg sees a reserved entry as ZERO */
@@ -629,8 +629,8 @@ static noinline void check_multi_store(struct xarray *xa)
 	XA_BUG_ON(xa, xa_load(xa, 3) != xa_mk_value(1));
 	XA_BUG_ON(xa, xa_load(xa, 4) != NULL);
 	rcu_read_lock();
-	XA_BUG_ON(xa, xa_to_node(xa_head(xa))->count != 4);
-	XA_BUG_ON(xa, xa_to_node(xa_head(xa))->nr_values != 4);
+    XA_BUG_ON(xa, xa_to_node(xa_head(xa))->count != 4);		//count==1
+    XA_BUG_ON(xa, xa_to_node(xa_head(xa))->nr_values != 4);	//nr_values==1
 	rcu_read_unlock();
 
 	/* We can erase multiple values with a single store */
@@ -1604,9 +1604,18 @@ static noinline void check_account(struct xarray *xa)
 	for (order = 1; order < 12; order++) {
 		XA_STATE(xas, xa, 1 << order);
 
+        pr_view_enable(stack_depth, "%20s : %d\n", order);
+        pr_view_enable(stack_depth, "%20s : %d\n", 1 << order);
+        xa_debug_state_view(&xas, xa);
+
 		xa_store_order(xa, 0, order, xa, GFP_KERNEL);
 		rcu_read_lock();
 		xas_load(&xas);
+
+        xa_debug_state_view(&xas, xa);
+        pr_view_enable(stack_depth, "%30s : %d\n", xas.xa_node->count);
+        pr_view_enable(stack_depth, "%30s : %d\n", xas.xa_node->nr_values);
+
 		XA_BUG_ON(xa, xas.xa_node->count == 0);
 		XA_BUG_ON(xa, xas.xa_node->count > (1 << order));
 		XA_BUG_ON(xa, xas.xa_node->nr_values != 0);
@@ -1614,6 +1623,10 @@ static noinline void check_account(struct xarray *xa)
 
 		xa_store_order(xa, 1 << order, order, xa_mk_index(1UL << order),
 				GFP_KERNEL);
+
+        pr_view_enable(stack_depth, "%40s : %d\n", xas.xa_node->count);
+        pr_view_enable(stack_depth, "%40s : %d\n", xas.xa_node->nr_values);
+
 		XA_BUG_ON(xa, xas.xa_node->count != xas.xa_node->nr_values * 2);
 
 		xa_erase(xa, 1 << order);
@@ -1684,7 +1697,7 @@ static unsigned long _test_xa_wait_count(char *s1, char *s2)
     tests_run = 0;
 
      __fpurge(stdin);
-    scanf("%u", &count);
+    scanf("%lu", &count);
     return count;
 }
 
@@ -1727,20 +1740,19 @@ static int xarray_checks(void)
 
     _test_xa_wait_next("check_reserve(array)", "check_reserve(xa0)");
     check_reserve(&xa0);
-#endif
 
     _test_xa_wait_next("check_reserve(xa0)", "check_multi_store()");
-    check_multi_store(&array);	//warnings[2]
+    check_multi_store(&array);	//warnings[2], count, nr_values
 
-#if 0
     _test_xa_wait_next("check_multi_store()", "check_xa_alloc()");
     check_xa_alloc();
 
     _test_xa_wait_next("check_xa_alloc()", "check_find()");
-    check_find(&array);			//warnings[56]
+    check_find(&array);			//warnings[56], error, stop
 
     _test_xa_wait_next("check_find()", "check_find_entry()");
     check_find_entry(&array);	//warnings[3]
+#endif
 
     _test_xa_wait_next("check_find_entry()", "check_account()");
     check_account(&array);		//warnings[12]
@@ -1771,8 +1783,6 @@ static int xarray_checks(void)
 	check_workingset(&array, 4096);
 
     _test_xa_wait_next("check_workingset()", "");
-
-#endif
 
     pr_fn_end_enable(stack_depth);
 	return (tests_run == tests_passed) ? 0 : -EINVAL;

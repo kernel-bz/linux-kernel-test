@@ -28,11 +28,14 @@ extern "C" {
 #endif
 
 //xarray.h
-//#define CONFIG_BASE_SMALL		0
-#define CONFIG_BASE_SMALL		1
+//#define CONFIG_BASE_SMALL			0
+#define CONFIG_BASE_SMALL			1
 
 //TRANSPARENT_HUGEPAGE [=y] && HAVE_ARCH_TRANSPARENT_HUGEPAGE [=y]
-#define CONFIG_XARRAY_MULTI		1
+#define CONFIG_XARRAY_MULTI			1
+#define CONFIG_DEBUG_MAPLE_TREE		1
+
+#include <asm-generic/atomic-gcc.h>
 
 #define CONFIG_CMDLINE_FORCE
 #define CONFIG_CMDLINE			"memblock=debug"

@@ -189,7 +189,10 @@ SOURCES += \
     test/menu/memory.c \
     test/memory/mm-test.c \
     test/basic/macro-test.c \
-    kernel/rcu/tree.c
+    kernel/rcu/tree.c \
+    lib/maple_tree.c \
+    test/algorithm/mtree/maple.c \
+    lib/test_maple_tree.c
 
 HEADERS += \
     include/test/test.h \
@@ -642,7 +645,11 @@ HEADERS += \
     kernel/rcu/tree_stall.h \
     include/linux/rcu_segcblist.h \
     include/linux/rtmutex.h \
-    include/linux/irq_work.h
+    include/linux/irq_work.h \
+    include/linux/maple_tree.h \
+    test/algorithm/mtree/maple_tree.h \
+    test/algorithm/mtree/trace_maple_tree.h \
+    test/algorithm/mtree/test.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

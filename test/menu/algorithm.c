@@ -44,8 +44,9 @@ static int _algo_xarray_menu(int asize)
     printf("7: IDR Simple Test.\n");
     printf("8: IDA Simple Test.\n");
     printf("9: IDR, IDA Check Test.\n");
+    printf("10: Maple Tree Test.\n");
 
-    printf("10: help.\n");
+    printf("11: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -69,6 +70,8 @@ static void _algo_xarray_run(void)
         , ida_simple_test
         //, idr_ida_main_test	//error
         , lib_ida_test
+
+        , maple_tree_test_main
 
         , _algo_struct_help
     };

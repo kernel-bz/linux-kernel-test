@@ -82,16 +82,16 @@ void xa_debug_node_view(struct xa_node *node, void *entry)
     pr_view_enable(stack_depth, "%20s : %d\n", node->shift);
     pr_view_enable(stack_depth, "%20s : %d\n", node->offset);
     pr_view_enable(stack_depth, "%20s : %d\n", node->count);
-    pr_view_enable(stack_depth, "%20s : %d\n", node->nr_values);
-    pr_out_enable(stack_depth, "\t[ ");
+    pr_view_enable(stack_depth, "%20s : %d\n\t", node->nr_values);
+    pr_out_enable(stack_depth, "slots[ ");
     int i, j;
     for(i=0; i<XA_CHUNK_SIZE; i++)
         printf("0x%lX, ", node->slots[i]);
-    printf("]\n");
-    pr_out_enable(stack_depth, "\t[ ");
+    printf("]\n\t");
+    pr_out_enable(stack_depth, "marks[ ");
     for(i=0; i<XA_MAX_MARKS; i++) {
         for(j=0; j<XA_MARK_LONGS; j++) {
-            printf("0x%lX:", node->tags[i][j]);
+            //printf("0x%lX:", node->tags[i][j]);
             printf("0x%lX, ", node->marks[i][j]);
         }
     }
@@ -116,12 +116,21 @@ void xa_debug_node_print(struct xarray *xa)
                    , xas.xa_node
                    , xas.xa_node->next
                    );
-            printf("\t");
+            printf("\t[ tags.u.marks: 0x%lX, 0x%lX, 0x%lX ]\t\n\t",
+                    xas.xa_node->marks[XA_MARK_0][0],
+                    xas.xa_node->marks[XA_MARK_1][0],
+                    xas.xa_node->marks[XA_MARK_2][0]
+                   );
         }
         printf("[ %d:%lu:%p ] ", xas.xa_offset, xas.xa_index, entry);
         onode = xas.xa_node;
     }
     xa_unlock(xa);
+
+    pr_view_enable(stack_depth, "%40s : %u\n",
+                        xa_to_node(xa_head(xa))->count);
+    pr_view_enable(stack_depth, "%40s : %u\n",
+                        xa_to_node(xa_head(xa))->nr_values);
 
     pr_fn_end_enable(stack_depth);
 }
@@ -144,12 +153,21 @@ void xa_debug_node_print_range(struct xarray *xa)
                    , xas.xa_node
                    , xas.xa_node->next
                    );
-            printf("\t");
+            printf("\t[ tags.u.marks: 0x%lX, 0x%lX, 0x%lX ]\t\n\t",
+                    xas.xa_node->marks[XA_MARK_0][0],
+                    xas.xa_node->marks[XA_MARK_1][0],
+                    xas.xa_node->marks[XA_MARK_2][0]
+                   );
         }
         printf("[ %d:%lu:%p ] ", xas.xa_offset, xas.xa_index, entry);
         onode = xas.xa_node;
     }
     xa_unlock(xa);
+
+    pr_view_enable(stack_depth, "%40s : %u\n",
+                        xa_to_node(xa_head(xa))->count);
+    pr_view_enable(stack_depth, "%40s : %u\n",
+                        xa_to_node(xa_head(xa))->nr_values);
 
     pr_fn_end_enable(stack_depth);
 }
@@ -292,10 +310,10 @@ void xarray_test_store_range(void)
     xa_debug_node_print_range(&xa1);
 
     void *entry;
-    XA_STATE(xas, &xa1, index);
     entry = xa_find(&xa1, &index, ULONG_MAX, XA_PRESENT);
     pr_view_enable(stack_depth, "%10s : %p\n", entry);
 
+    XA_STATE(xas, &xa1, index);
     entry = xas_find_conflict(&xas);
     pr_view_enable(stack_depth, "%10s : %p\n", entry);
 
@@ -304,41 +322,52 @@ void xarray_test_store_range(void)
 
 void xarray_test_marks(void)
 {
-    int index;
+    unsigned long index, count;
     void *entry;
 
     pr_fn_start_enable(stack_depth);
 
+    __fpurge(stdin);
+    printf("Enter index count: ");
+    scanf("%lu", &count);
+
     radix_tree_init();
 
-    index = 0;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
+    for (index = 0; index < count; index++)
+        entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
 
-    index = 1;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
-    //xa_set_mark(&xa1, index, XA_MARK_0);
-    //xa_set_mark(&xa1, index, XA_MARK_1);
-    xa_set_mark(&xa1, index, XA_MARK_2);
-
-    index = 2;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
-
-    index = 3;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
-
-    index = 4;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
-
-    index = 5;
-    entry = xa_store(&xa1, index, xa_mk_value(index), GFP_KERNEL);
-
-    index = 1;
-    if (xa_get_mark(&xa1, index, XA_MARK_2)) {
-        pr_view_enable(stack_depth, "%10s : %d\n", index);
-        xa_clear_mark(&xa1, index, XA_MARK_2);
+    for (index = 0; index < count; index += 2) {
+        xa_set_mark(&xa1, index, XA_MARK_0);
+        xa_set_mark(&xa1, index, XA_MARK_1);
+        xa_set_mark(&xa1, index, XA_MARK_2);
     }
-    if (xa_get_mark(&xa1, index, XA_MARK_2))
-        pr_err("%s", "xa_clear_mark() error!\n");
+    xa_debug_node_print(&xa1);
+
+    for (index = 0; index < count; index += 2)
+        if (xa_get_mark(&xa1, index, XA_MARK_0))
+            xa_clear_mark(&xa1, index, XA_MARK_0);
+
+    for (index = 0; index < count; index += 4)
+        if (xa_get_mark(&xa1, index, XA_MARK_1))
+            xa_clear_mark(&xa1, index, XA_MARK_1);
+
+    for (index = 0; index < count; index += 8)
+        if (xa_get_mark(&xa1, index, XA_MARK_2))
+            xa_clear_mark(&xa1, index, XA_MARK_2);
+
+    xa_debug_node_print(&xa1);
+    //xa_debug_node_print_range(&xa1);
+
+    XA_STATE(xas, &xa1, 0);
+
+    rcu_read_lock();
+    xas_for_each_marked(&xas, entry, ULONG_MAX, XA_MARK_2) {
+        if (xas_retry(&xas, entry))
+            continue;
+        pr_view_enable(stack_depth, "%20s : %d\n", xas.xa_index);
+        pr_view_enable(stack_depth, "%20s : %p\n", entry);
+    }
+    rcu_read_unlock();
 
     pr_fn_end_enable(stack_depth);
 }

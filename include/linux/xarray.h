@@ -1762,20 +1762,20 @@ static inline void *xas_prev_fast(struct xa_state *xas, unsigned long max)
 	void *entry;
 
 	do {
-                if (unlikely(xas->xa_index > max))
+            if (unlikely(xas->xa_index > max))
 			return xas_find(xas, max);
-                if (unlikely(xas->xa_offset == 0)) {
-                        node = node->prev;
-                        xas->xa_node = node;
-                        xas->xa_offset = XA_CHUNK_SIZE;
-                }
-                if (unlikely(xas_not_node(node)))
+            if (unlikely(xas->xa_offset == 0)) {
+                    node = node->prev;
+                    xas->xa_node = node;
+                    xas->xa_offset = XA_CHUNK_SIZE;
+            }
+            if (unlikely(xas_not_node(node)))
+                    return xas_find(xas, max);
+            entry = xa_entry(xas->xa, node, xas->xa_offset - 1);
+            if (unlikely(xa_is_internal(entry)))
                         return xas_find(xas, max);
-		entry = xa_entry(xas->xa, node, xas->xa_offset - 1);
-		if (unlikely(xa_is_internal(entry)))
-                        return xas_find(xas, max);
-		xas->xa_offset--;
-		xas->xa_index = xa_to_value(entry);
+            xas->xa_offset--;
+            xas->xa_index = xa_to_value(entry);
 	} while (!entry);
 
 	return entry;

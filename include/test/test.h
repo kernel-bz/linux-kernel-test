@@ -60,6 +60,9 @@ void ida_simple_test(void);
 //test/algorithm/xarray/multiorder.c
 void xa_multiorder_test(void);
 
+//test/algorithm/mtree/maple.c
+int maple_tree_test_main(void);
+
 //test/init
 void test_setup_arch(void);
 void test_sched_init(void);
