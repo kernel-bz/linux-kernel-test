@@ -900,7 +900,7 @@ static noinline void check_find(struct maple_tree *mt)
 	MT_BUG_ON(mt, entry != entry2);
 
 	mas_set(&mas, 0);
-	MT_BUG_ON(mt, !!mas_prev(&mas, 0));
+	MT_BUG_ON(mt, mas_prev(&mas, 0) != NULL);
 
 	mas_unlock(&mas);
 	mtree_destroy(mt);
@@ -34348,6 +34348,27 @@ SNULL, 3798999040, 3799101439,
  */
 	};
 
+	unsigned long set43[] = {
+STORE, 140737488347136, 140737488351231, // ffff8c33d17490a0
+STORE, 140734187720704, 140737488351231, // ffff8c33d17490a0
+SNULL, 140734187724800, 140737488351231, // 0000000000000000
+STORE, 140734187589632, 140734187724799, // ffff8c33d17490a0
+STORE, 4194304, 6443007, // ffff8c33d1748980
+STORE, 4337664, 6443007, // ffff8c33d1748980
+STORE, 4194304, 4337663, // ffff8c33d1749690
+SNULL, 4337664, 6443007, // 0000000000000000
+STORE, 6430720, 6443007, // ffff8c3385968be0
+STORE, 206158430208, 206160674815, // ffff8c3385968e40
+STORE, 206158569472, 206160674815, // ffff8c3385968e40
+STORE, 206158430208, 206158569471, // ffff8c3385968098
+SNULL, 206158569472, 206160674815, // 0000000000000000
+STORE, 206160662528, 206160670719, // ffff8c3385968e40
+STORE, 206160670720, 206160674815, // ffff8c3385968850
+STORE, 140734188756992, 140734188765183, // ffff8c3385969d18
+STORE, 140734188740608, 140734188756991, // ffff8c3385969430
+STORE, 140501948112896, 140501948116991, // ffff8c3385968c78
+	};
+
 	int count = 0;
 	void *ptr = NULL;
 
@@ -34755,6 +34776,16 @@ SNULL, 3798999040, 3799101439,
 	rcu_barrier();
 	mas_empty_area_rev(&mas, 4096, 4052029440, 28672);
 	MT_BUG_ON(mt, mas.last != 4041211903);
+	mt_set_non_kernel(0);
+	mt_validate(mt);
+	mtree_destroy(mt);
+
+	/* gap calc off by one */
+	mt_set_non_kernel(99);
+	mas_reset(&mas);
+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
+	check_erase2_testset(mt, set43, ARRAY_SIZE(set43));
+	rcu_barrier();
 	mt_set_non_kernel(0);
 	mt_validate(mt);
 	mtree_destroy(mt);
@@ -35375,6 +35406,7 @@ static noinline void check_prev_entry(struct maple_tree *mt)
 {
 	unsigned long index = 16;
 	void *value;
+	int i;
 
 	MA_STATE(mas, mt, index, index);
 
@@ -35389,6 +35421,112 @@ static noinline void check_prev_entry(struct maple_tree *mt)
 	rcu_read_unlock();
 	mtree_destroy(mt);
 
+	/* Check limits on prev */
+	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
+	mas_lock(&mas);
+	for (i = 0; i <= index; i++) {
+		mas_set_range(&mas, i*10, i*10+5);
+		mas_store_gfp(&mas, xa_mk_value(i), GFP_KERNEL);
+	}
+
+	mas_set(&mas, 20);
+	value = mas_walk(&mas);
+	MT_BUG_ON(mt, value != xa_mk_value(2));
+
+	value = mas_prev(&mas, 19);
+	MT_BUG_ON(mt, value != NULL);
+
+	mas_set(&mas, 80);
+	value = mas_walk(&mas);
+	MT_BUG_ON(mt, value != xa_mk_value(8));
+
+	value = mas_prev(&mas, 76);
+	MT_BUG_ON(mt, value != NULL);
+
+	mas_unlock(&mas);
+}
+
+static noinline void check_root_expand(struct maple_tree *mt)
+{
+	MA_STATE(mas, mt, 0, 0);
+	void *ptr;
+
+	ptr = &check_prev_entry;
+
+	mas_lock(&mas);
+	mas_set(&mas, 1);
+	mas_store_gfp(&mas, ptr, GFP_KERNEL);
+
+	mas_set(&mas, 0);
+	ptr = mas_walk(&mas);
+	MT_BUG_ON(mt, ptr != NULL);
+
+	mas_set(&mas, 1);
+	ptr = mas_walk(&mas);
+	MT_BUG_ON(mt, ptr != &check_prev_entry);
+
+	mas_set(&mas, 2);
+	ptr = mas_walk(&mas);
+	MT_BUG_ON(mt, ptr != NULL);
+	mas_unlock(&mas);
+	mtree_destroy(mt);
+
+
+	mt_init_flags(mt, 0);
+	mas_lock(&mas);
+
+	mas_set(&mas, 0);
+	ptr = &check_prev_entry;
+	mas_store_gfp(&mas, ptr, GFP_KERNEL);
+
+	mas_set(&mas, 5);
+	ptr = mas_walk(&mas);
+	MT_BUG_ON(mt, ptr != NULL);
+	MT_BUG_ON(mt, mas.index != 1);
+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
+
+	mas_set_range(&mas, 0, 100);
+	ptr = mas_walk(&mas);
+	MT_BUG_ON(mt, ptr != &check_prev_entry);
+	MT_BUG_ON(mt, mas.last != 0);
+	mas_unlock(&mas);
+	mtree_destroy(mt);
+
+	mt_init_flags(mt, 0);
+	mas_lock(&mas);
+
+	mas_set(&mas, 0);
+	ptr = (void*)((unsigned long) check_prev_entry | 1UL);
+	mas_store_gfp(&mas, ptr, GFP_KERNEL);
+	ptr = mas_next(&mas, ULONG_MAX);
+	MT_BUG_ON(mt, ptr != NULL);
+	MT_BUG_ON(mt, (mas.index != 1) && (mas.last != ULONG_MAX));
+
+	mas_set(&mas, 1);
+	ptr = mas_prev(&mas, 0);
+	MT_BUG_ON(mt, (mas.index != 0) && (mas.last != 0));
+	MT_BUG_ON(mt, ptr != (void*)((unsigned long) check_prev_entry | 1UL));
+
+	mas_unlock(&mas);
+
+	mtree_destroy(mt);
+
+	mt_init_flags(mt, 0);
+	mas_lock(&mas);
+	mas_set(&mas, 0);
+	ptr = (void*)((unsigned long) check_prev_entry | 2UL);
+	mas_store_gfp(&mas, ptr, GFP_KERNEL);
+	ptr = mas_next(&mas, ULONG_MAX);
+	MT_BUG_ON(mt, ptr != NULL);
+	MT_BUG_ON(mt, (mas.index != 1) && (mas.last != ULONG_MAX));
+
+	mas_set(&mas, 1);
+	ptr = mas_prev(&mas, 0);
+	MT_BUG_ON(mt, (mas.index != 0) && (mas.last != 0));
+	MT_BUG_ON(mt, ptr != (void*)((unsigned long) check_prev_entry | 2UL));
+
+
+	mas_unlock(&mas);
 }
 
 static noinline void check_gap_combining(struct maple_tree *mt)
@@ -35640,14 +35778,8 @@ static noinline void bench_slot_store(struct maple_tree *mt)
 {
 	int i, brk = 105, max = 1040, brk_start = 100, count = 20000000;
 
-    max = 50;
 	for (i = 0; i < max; i += 10)
 		mtree_store_range(mt, i, i + 5, xa_mk_value(i), GFP_KERNEL);
-
-    for (i = 0; i < 320; i++)
-        mtree_store(mt, i, xa_mk_value(i), GFP_KERNEL);
-    mt_validate(mt);
-    return;
 
 	for (i = 0; i < count; i++) {
 		mtree_store_range(mt, brk, brk, NULL, GFP_KERNEL);
@@ -35988,6 +36120,15 @@ static noinline void next_prev_test(struct maple_tree *mt)
 	MT_BUG_ON(mt, val != NULL);
 	MT_BUG_ON(mt, mas.index != 0);
 	MT_BUG_ON(mt, mas.last != 0);
+
+	mtree_destroy(mt);
+
+	mt_init(mt);
+	mtree_store_range(mt, 0, 0, xa_mk_value(0), GFP_KERNEL);
+	mtree_store_range(mt, 5, 5, xa_mk_value(5), GFP_KERNEL);
+	mas_set(&mas, 5);
+	val = mas_prev(&mas, 4);
+	MT_BUG_ON(mt, val != NULL);
 }
 
 #define RCU_RANGE_COUNT 1000
@@ -36983,9 +37124,11 @@ static int maple_tree_seed(void)
 			       5003, 5002};
 	void *ptr = &set;
 
-    pr_fn_start_enable(stack_depth);
-
 	pr_info("\nTEST STARTING\n\n");
+
+	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
+	check_root_expand(&tree);
+	mtree_destroy(&tree);
 
 #if defined(BENCH_SLOT_STORE)
 #define BENCH
@@ -37030,7 +37173,7 @@ static int maple_tree_seed(void)
 	goto skip;
 #endif
 
-    test_kmem_cache_bulk();
+	test_kmem_cache_bulk();
 
 	mt_init_flags(&tree, 0);
 	check_new_node(&tree);
@@ -37199,6 +37342,7 @@ static int maple_tree_seed(void)
 
 	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
 	check_prev_entry(&tree);
+	mtree_destroy(&tree);
 
 	mt_init_flags(&tree, 0);
 	check_erase2_sets(&tree);
@@ -37236,9 +37380,6 @@ static int maple_tree_seed(void)
 #if defined(BENCH)
 skip:
 #endif
-
-    pr_fn_end_enable(stack_depth);
-
 	rcu_barrier();
 	pr_info("maple_tree: %u of %u tests passed\n",
 			atomic_read(&maple_tree_tests_passed),
