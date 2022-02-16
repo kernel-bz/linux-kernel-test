@@ -4,6 +4,9 @@
  * Copyright (c) 2018 Liam R. Howlett <Liam.Howlett@Oracle.com>
  */
 
+#include "test/debug.h"
+#include "./mt-debug.h"
+
 #define CONFIG_DEBUG_MAPLE_TREE
 #define CONFIG_MAPLE_SEARCH
 #include "./test.h"
@@ -23,29 +26,36 @@ void farmer_tests(void)
 	struct maple_node *node;
 	DEFINE_MTREE(tree);
 
+    pr_fn_start_enable(stack_depth);
+
 	mt_dump(&tree);
 
 	tree.ma_root = xa_mk_value(0);
 	mt_dump(&tree);
 
 	node = mt_alloc_one(GFP_KERNEL);
-	node->parent = (void *)((unsigned long)(&tree) | 1);
-	node->slot[0] = xa_mk_value(0);
-	node->slot[1] = xa_mk_value(1);
-	node->mr64.pivot[0] = 0;
-	node->mr64.pivot[1] = 1;
-	node->mr64.pivot[2] = 0;
-	tree.ma_root = mt_mk_node(node, maple_leaf_64);
-	mt_dump(&tree);
 
-	ma_free_rcu(node);
+	node->parent = (void *)((unsigned long)(&tree) | 1);
+    node->slot[0] = xa_mk_value(1);
+    node->slot[1] = xa_mk_value(2);
+    node->mr64.pivot[0] = 3;
+    node->mr64.pivot[1] = 4;
+    node->mr64.pivot[2] = 5;
+	tree.ma_root = mt_mk_node(node, maple_leaf_64);
+    mt_dump(&tree);
+
+    mt_debug_node_print(&tree, node);
+
+    ma_free_rcu(node);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 void maple_tree_tests(void)
 {
 	farmer_tests();
-	maple_tree_seed();
-	maple_tree_harvest();
+    maple_tree_seed();
+    //maple_tree_harvest();
 }
 
 //int __weak main(void)

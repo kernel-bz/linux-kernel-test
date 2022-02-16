@@ -5,6 +5,8 @@
  * Author: Liam R. Howlett <Liam.Howlett@Oracle.com>
  */
 
+#include "test/debug.h"
+
 #include <linux/maple_tree.h>
 #include <linux/module.h>
 #include <stdlib.h>
@@ -13,12 +15,14 @@
 #define MTREE_ALLOC_MAX 0x2000000000000Ul
 #define CONFIG_DEBUG_MAPLE_TREE
 #define CONFIG_MAPLE_SEARCH
-/* #define BENCH_SLOT_STORE */
-/* #define BENCH_NODE_STORE */
-/* #define BENCH_AWALK */
-/* #define BENCH_WALK */
-/* #define BENCH_MT_FOR_EACH */
-/* #define BENCH_FORK */
+
+#define BENCH_SLOT_STORE
+#define BENCH_NODE_STORE
+//#define BENCH_AWALK
+//#define BENCH_WALK
+//#define BENCH_MT_FOR_EACH
+//#define BENCH_FORK
+
 static
 int mtree_insert_index(struct maple_tree *mt, unsigned long index, gfp_t gfp)
 {
@@ -35636,8 +35640,14 @@ static noinline void bench_slot_store(struct maple_tree *mt)
 {
 	int i, brk = 105, max = 1040, brk_start = 100, count = 20000000;
 
+    max = 50;
 	for (i = 0; i < max; i += 10)
 		mtree_store_range(mt, i, i + 5, xa_mk_value(i), GFP_KERNEL);
+
+    for (i = 0; i < 320; i++)
+        mtree_store(mt, i, xa_mk_value(i), GFP_KERNEL);
+    mt_validate(mt);
+    return;
 
 	for (i = 0; i < count; i++) {
 		mtree_store_range(mt, brk, brk, NULL, GFP_KERNEL);
@@ -36973,6 +36983,8 @@ static int maple_tree_seed(void)
 			       5003, 5002};
 	void *ptr = &set;
 
+    pr_fn_start_enable(stack_depth);
+
 	pr_info("\nTEST STARTING\n\n");
 
 #if defined(BENCH_SLOT_STORE)
@@ -37018,7 +37030,7 @@ static int maple_tree_seed(void)
 	goto skip;
 #endif
 
-    //test_kmem_cache_bulk();
+    test_kmem_cache_bulk();
 
 	mt_init_flags(&tree, 0);
 	check_new_node(&tree);
@@ -37224,6 +37236,9 @@ static int maple_tree_seed(void)
 #if defined(BENCH)
 skip:
 #endif
+
+    pr_fn_end_enable(stack_depth);
+
 	rcu_barrier();
 	pr_info("maple_tree: %u of %u tests passed\n",
 			atomic_read(&maple_tree_tests_passed),

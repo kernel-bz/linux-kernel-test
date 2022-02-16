@@ -28,10 +28,12 @@ static inline void *kcalloc(int nr, size_t size, gfp_t gfp)
 void *kmem_cache_alloc(struct kmem_cache *cachep, int flags);
 void kmem_cache_free(struct kmem_cache *cachep, void *objp);
 
-struct kmem_cache *
-kmem_cache_create(const char *name, size_t size, size_t offset,
-	unsigned long flags, void (*ctor)(void *));
+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p);
+int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size, void **p);
 
+struct kmem_cache *
+kmem_cache_create(const char *name, unsigned int size, unsigned int align,
+        unsigned int flags, void (*ctor)(void *));
 
 /*
  * Please use this macro to create slab caches. Simply specify the

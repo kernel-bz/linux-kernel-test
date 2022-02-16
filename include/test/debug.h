@@ -43,7 +43,7 @@ extern int stack_depth;
 //#define printk(...) 	dprintf(STDOUT_FILENO, __VA_ARGS__)
 #define pr_warn 				_pr_warn
 #define pr_warn_once			_pr_warn
-#define pr_cont 				pr_err
+#define pr_cont 				printf
 #define panic 					pr_err
 #define print_tainted() 		""
 #define printk_deferred_once	_pr_warn

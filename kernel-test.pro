@@ -192,7 +192,8 @@ SOURCES += \
     kernel/rcu/tree.c \
     lib/maple_tree.c \
     test/algorithm/mtree/maple.c \
-    lib/test_maple_tree.c
+    lib/test_maple_tree.c \
+    test/algorithm/mtree/mt-debug.c
 
 HEADERS += \
     include/test/test.h \
@@ -649,7 +650,8 @@ HEADERS += \
     include/linux/maple_tree.h \
     test/algorithm/mtree/maple_tree.h \
     test/algorithm/mtree/trace_maple_tree.h \
-    test/algorithm/mtree/test.h
+    test/algorithm/mtree/test.h \
+    test/algorithm/mtree/mt-debug.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

@@ -160,6 +160,7 @@ enum maple_type {
     maple_leaf_64,
     maple_range_64,
     maple_arange_64,
+    maple_type_count,
 };
 
 
@@ -178,15 +179,15 @@ enum maple_type {
  * MAPLE_HEIGHT_MAX	The largest height that can be stored
  */
 #define MT_FLAGS_ALLOC_RANGE	0x01
-#define MT_FLAGS_USE_RCU	0x02
+#define MT_FLAGS_USE_RCU		0x02
 #define MT_FLAGS_HEIGHT_OFFSET	0x02
 #define MT_FLAGS_HEIGHT_MASK	0x7C
-#define MT_FLAGS_LOCK_MASK	0x300
-#define MT_FLAGS_LOCK_IRQ	0x100
-#define MT_FLAGS_LOCK_BH	0x200
+#define MT_FLAGS_LOCK_MASK		0x300
+#define MT_FLAGS_LOCK_IRQ		0x100
+#define MT_FLAGS_LOCK_BH		0x200
 #define MT_FLAGS_LOCK_EXTERN	0x300
 
-#define MAPLE_HEIGHT_MAX	31
+#define MAPLE_HEIGHT_MAX		31
 
 
 #define MAPLE_NODE_TYPE_MASK	0x0F
