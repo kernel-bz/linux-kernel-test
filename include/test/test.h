@@ -61,7 +61,10 @@ void ida_simple_test(void);
 void xa_multiorder_test(void);
 
 //test/algorithm/mtree/maple.c
-int maple_tree_test_main(void);
+int maple_main_test(void);
+//test/algorithm/mtree/mt-test.c
+void mtree_basic_store_test(void);
+void mtree_basic_walk_test(void);
 
 //test/init
 void test_setup_arch(void);

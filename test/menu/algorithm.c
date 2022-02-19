@@ -18,7 +18,7 @@ static void _algo_struct_help(void)
     //help messages...
     printf("\n");
     printf("  This is the Linux kernel source testing program\n");
-    printf("that can be run at the user level.\n");
+    printf("that can be run at the user space.\n");
     printf("This menu is to study kernel algorithms.\n");
     printf("written by www.kernel.bz\n");
     printf("Tested Kernel Version: v%d.%d-td%d\n",
@@ -34,29 +34,27 @@ static int _algo_xarray_menu(int asize)
 
     printf("\n");
     printf("[#]--> Algorithm --> XArray Test Menu\n");
-    printf("0: exit.\n");
-    printf("1: XArray Constants Test.\n");
-    printf("2: XArray Simple Test.\n");
-    printf("3: XArray Store Range Test.\n");
-    printf("4: XArray Marks Test.\n");
-    printf("5: XArray Check Test.\n");
-    printf("6: XArray MultiOrder Test.\n");
-    printf("7: IDR Simple Test.\n");
-    printf("8: IDA Simple Test.\n");
-    printf("9: IDR, IDA Check Test.\n");
-    printf("10: Maple Tree Test.\n");
-
-    printf("11: help.\n");
+    printf(" 0: exit.\n");
+    printf(" 1: XArray Constants Test.\n");
+    printf(" 2: XArray Simple Test.\n");
+    printf(" 3: XArray Store Range Test.\n");
+    printf(" 4: XArray Marks Test.\n");
+    printf(" 5: XArray Check Test.\n");
+    printf(" 6: XArray MultiOrder Test.\n");
+    printf(" 7: IDR Simple Test.\n");
+    printf(" 8: IDA Simple Test.\n");
+    printf(" 9: IDR, IDA Check Test.\n");
+    printf("10: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
     return (idx > 0 && idx < asize) ? idx : -1;
 }
 
-static void _algo_xarray_run(void)
+static void _algo_xarray_test(void)
 {
     void (*fn[])(void) = { _algo_struct_help
         , xa_constants_view
@@ -70,9 +68,6 @@ static void _algo_xarray_run(void)
         , ida_simple_test
         //, idr_ida_main_test	//error
         , lib_ida_test
-
-        , maple_tree_test_main
-
         , _algo_struct_help
     };
     int idx;
@@ -84,6 +79,45 @@ static void _algo_xarray_run(void)
     }
 }
 
+static int _algo_maple_menu(int asize)
+{
+    int idx, ret;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Algorithm --> Maple Tree Test Menu\n");
+    printf("0: exit.\n");
+    printf("1: Basic Store Test.\n");
+    printf("2: Basic Walk Test.\n");
+    printf("3: Maple Tree Main Test.\n");
+
+    printf("4: help.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
+    return (idx > 0 && idx < asize) ? idx : -1;
+}
+
+static void _algo_maple_tree_test(void)
+{
+    void (*fn[])(void) = { _algo_struct_help
+        , mtree_basic_store_test
+        , mtree_basic_walk_test
+        , maple_main_test
+
+        , _algo_struct_help
+    };
+    int idx;
+
+    while (1) {
+        idx = _algo_maple_menu(ARRAY_SIZE(fn));
+        if (idx < 0) break;
+        fn[idx]();
+    }
+}
 
 static int _algo_struct_menu(int asize)
 {
@@ -102,10 +136,11 @@ static int _algo_struct_menu(int asize)
     printf(" 7: Red-Black Tree Test02.\n");
     printf(" 8: Red-Black Tree Test03.\n");
     printf(" 9: XArray Test -->\n");
-    printf("10: help.\n");
+    printf("10: Maple Tree Test -->\n");
+    printf("11: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -123,7 +158,8 @@ void menu_algorithm(void)
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
-        , _algo_xarray_run
+        , _algo_xarray_test
+        , _algo_maple_tree_test
         , _algo_struct_help
     };
     int idx;

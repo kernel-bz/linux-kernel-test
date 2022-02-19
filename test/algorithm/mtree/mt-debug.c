@@ -7,25 +7,39 @@
 #include "test/debug.h"
 
 #include <linux/maple_tree.h>
+#include <linux/xarray.h>
 
-void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
+static const unsigned char mt_slots[] = {
+    [maple_dense]		= MAPLE_NODE_SLOTS,
+    [maple_leaf_64]		= MAPLE_RANGE64_SLOTS,
+    [maple_range_64]	= MAPLE_RANGE64_SLOTS,
+    [maple_arange_64]	= MAPLE_ARANGE64_SLOTS,
+};
+
+static const unsigned char mt_pivots[] = {
+    [maple_dense]		= 0,
+    [maple_leaf_64]		= MAPLE_RANGE64_SLOTS - 1,
+    [maple_range_64]	= MAPLE_RANGE64_SLOTS - 1,
+    [maple_arange_64]	= MAPLE_ARANGE64_SLOTS - 1,
+};
+
+//struct maple_big_node;
+#define MAPLE_BIG_NODE_SLOTS	(MAPLE_RANGE64_SLOTS * 2 + 2)
+
+struct maple_big_node {
+    struct maple_pnode *parent;
+    struct maple_enode *slot[MAPLE_BIG_NODE_SLOTS];
+    unsigned long pivot[MAPLE_BIG_NODE_SLOTS - 1];
+    unsigned long gap[MAPLE_BIG_NODE_SLOTS];
+    unsigned long min;
+    unsigned char b_end;
+    enum maple_type type;
+};
+
+static void _mt_debug_node_print_all(struct maple_node *node)
 {
-    pr_fn_start_enable(stack_depth);
     unsigned int i;
-
-    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(*node));
-    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->mr64));
-    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->ma64));
-    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->alloc));
-
-    pr_view_enable(stack_depth, "%20s : %p\n", mt);
-    pr_view_enable(stack_depth, "%20s : %p\n", mt->ma_flags);
-    pr_view_enable(stack_depth, "%20s : %p\n", node);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->parent);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->mr64.parent);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->ma64.parent);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->pad);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->alloc.total);
+    pr_fn_start_enable(stack_depth);
 
     printf("\n\t==> ");
     printf("node->slot[%d]: ", MAPLE_NODE_SLOTS);
@@ -35,7 +49,7 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
     printf("\n\t==> ");
     printf("node->mr64.pivot[%d]: ", MAPLE_RANGE64_SLOTS - 1);
     for (i = 0; i < MAPLE_RANGE64_SLOTS - 1; i++)
-        printf("%p, ", node->mr64.pivot[i]);
+        printf("%lu, ", node->mr64.pivot[i]);
 
     printf("\n\t--> ");
     printf("node->mr64.slot[%d]: ", MAPLE_RANGE64_SLOTS);
@@ -50,7 +64,7 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
     printf("\n\t==> ");
     printf("node->ma64.pivot[%d]: ", MAPLE_ARANGE64_SLOTS - 1);
     for (i = 0; i < MAPLE_ARANGE64_SLOTS - 1; i++)
-        printf("%p, ", node->ma64.pivot[i]);
+        printf("%lu, ", node->ma64.pivot[i]);
 
     printf("\n\t--> ");
     printf("node->ma64.slot[%d]: ", MAPLE_ARANGE64_SLOTS);
@@ -60,13 +74,119 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
     printf("\n\t--> ");
     printf("node->ma64.gap[%d]: ", MAPLE_ARANGE64_SLOTS);
     for (i = 0; i < MAPLE_ARANGE64_SLOTS; i++)
-        printf("%p, ", node->ma64.gap[i]);
+        printf("%lu, ", node->ma64.gap[i]);
 
     printf("\n\t==> ");
     printf("node->alloc.slot[%d]: ", MAPLE_ALLOC_SLOTS);
     for (i = 0; i < MAPLE_ALLOC_SLOTS; i++)
         printf("%p, ", node->alloc.slot[i]);
 
+    printf("\n\n");
+    pr_fn_end_enable(stack_depth);
+}
+
+void mt_debug_big_node_print(struct maple_big_node *bnode)
+{
+    unsigned int i;
+
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%10s: %p\n", bnode->parent);
+    pr_view_enable(stack_depth, "%10s: %lu\n", bnode->min);
+    pr_view_enable(stack_depth, "%10s: %u\n", bnode->b_end);
+    pr_view_enable(stack_depth, "%10s: %d\n", bnode->type);
+
+    printf("\n\t==> ");
+    printf("bnode->slot[%d]: ", MAPLE_BIG_NODE_SLOTS);
+    for (i = 0; i < MAPLE_BIG_NODE_SLOTS; i++)
+        printf("%p, ", bnode->slot[i]);
+
+    printf("\n\t--> ");
+    printf("bnode->pivot[%d]: ", MAPLE_BIG_NODE_SLOTS - 1);
+    for (i = 0; i < MAPLE_BIG_NODE_SLOTS - 1; i++)
+        printf("%lu, ", bnode->pivot[i]);
+
+    printf("\n\t--> ");
+    printf("bnode->gap[%d]: ", MAPLE_BIG_NODE_SLOTS);
+    for (i = 0; i < MAPLE_BIG_NODE_SLOTS; i++)
+        printf("%lu, ", bnode->gap[i]);
+
+    printf("\n\n");
+}
+
+//mas->node
+void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
+{
+    enum maple_type type = maple_leaf_64;
+    void __rcu **slots;
+    unsigned long *pivots;
+    unsigned char i, cnt, height;
+
+    pr_fn_start_enable(stack_depth);
+
+    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(*node));
+    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->mr64));
+    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->ma64));
+    //pr_view_enable(stack_depth, "%20s : %ld\n", sizeof(node->alloc));
+
+    pr_view_enable(stack_depth, "%20s : %p\n", mt);
+    pr_view_enable(stack_depth, "%20s : %p\n", mt->ma_flags);
+    pr_view_enable(stack_depth, "%20s : %p\n", mt->ma_root);
+    pr_view_enable(stack_depth, "%20s : %p\n", node);
+    if ((unsigned long)node < 4096 || xa_is_err(node)) return;
+
+    //mte_node_type
+    type = ((unsigned long)node >> MAPLE_NODE_TYPE_SHIFT) &
+        MAPLE_NODE_TYPE_MASK;
+
+    //mte_to_node
+    node = (struct maple_node *)((unsigned long)node & ~MAPLE_NODE_MASK);
+
+    //pivots = ma_pivots(node, type);
+    //slots = ma_slots(node, type);
+    switch (type) {
+    case maple_arange_64:
+        pivots = node->ma64.pivot;
+        slots = node->ma64.slot;
+        break;
+    case maple_range_64:
+    case maple_leaf_64:
+        pivots = node->mr64.pivot;
+        slots = node->mr64.slot;
+        break;
+    case maple_dense:
+        pivots = NULL;
+        slots = node->slot;
+        break;
+    default:
+        pivots = NULL;
+        slots = NULL;
+    }
+
+    //mt_height
+    height = (mt->ma_flags & MT_FLAGS_HEIGHT_MASK) >> MT_FLAGS_HEIGHT_OFFSET;
+
+    pr_view_enable(stack_depth, "%20s : %p\n", node->parent);
+    pr_view_enable(stack_depth, "%20s : %d\n", height);
+    pr_view_enable(stack_depth, "%20s : %d\n", type);
+
+    if (pivots || slots) {
+        if (pivots) {
+            cnt = mt_pivots[type];
+            printf("\n\t==> node->pivot[%d]: ", cnt);
+            for (i = 0; i < cnt; i++)
+                //printf("%p, ", pivots[i]);
+                printf("%lu, ", pivots[i]);
+        }
+        if (slots) {
+            cnt = mt_slots[type];
+            printf("\n\t==> node->slot[%d]: ", cnt);
+            for (i = 0; i < cnt; i++)
+                printf("%p, ", slots[i]);
+        }
+
+    } else {
+        _mt_debug_node_print_all(node);
+    }
     printf("\n\n");
     pr_fn_end_enable(stack_depth);
 }

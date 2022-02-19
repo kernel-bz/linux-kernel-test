@@ -35471,7 +35471,6 @@ static noinline void check_root_expand(struct maple_tree *mt)
 	mas_unlock(&mas);
 	mtree_destroy(mt);
 
-
 	mt_init_flags(mt, 0);
 	mas_lock(&mas);
 
@@ -35524,7 +35523,6 @@ static noinline void check_root_expand(struct maple_tree *mt)
 	ptr = mas_prev(&mas, 0);
 	MT_BUG_ON(mt, (mas.index != 0) && (mas.last != 0));
 	MT_BUG_ON(mt, ptr != (void*)((unsigned long) check_prev_entry | 2UL));
-
 
 	mas_unlock(&mas);
 }
@@ -35778,7 +35776,7 @@ static noinline void bench_slot_store(struct maple_tree *mt)
 {
 	int i, brk = 105, max = 1040, brk_start = 100, count = 20000000;
 
-	for (i = 0; i < max; i += 10)
+    for (i = 0; i < max; i += 10)
 		mtree_store_range(mt, i, i + 5, xa_mk_value(i), GFP_KERNEL);
 
 	for (i = 0; i < count; i++) {

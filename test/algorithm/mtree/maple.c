@@ -5,7 +5,7 @@
  */
 
 #include "test/debug.h"
-#include "./mt-debug.h"
+#include "test/mt-debug.h"
 
 #define CONFIG_DEBUG_MAPLE_TREE
 #define CONFIG_MAPLE_SEARCH
@@ -55,11 +55,11 @@ void maple_tree_tests(void)
 {
 	farmer_tests();
     maple_tree_seed();
-    //maple_tree_harvest();
+    maple_tree_harvest();
 }
 
 //int __weak main(void)
-int maple_tree_test_main(void)
+int maple_main_test(void)
 {
 	maple_tree_init();
 	maple_tree_tests();

@@ -554,7 +554,6 @@ void mas_set_range(struct ma_state *mas, unsigned long start, unsigned long last
  */
 static inline void mas_set(struct ma_state *mas, unsigned long index)
 {
-
     mas_set_range(mas, index, index);
 }
 

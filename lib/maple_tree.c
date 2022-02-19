@@ -52,6 +52,7 @@
 
 #include "test/config.h"
 #include "test/debug.h"
+#include "test/mt-debug.h"
 
 #include <linux/maple_tree.h>
 #include <linux/xarray.h>
@@ -231,6 +232,7 @@ static inline void mas_set_err(struct ma_state *mas, long err)
 	mas->node = MA_ERROR(err);
 }
 
+//static inline bool mas_is_root(struct ma_state *mas)
 static inline bool mas_is_ptr(struct ma_state *mas)
 {
 	return mas->node == MAS_ROOT;
@@ -756,11 +758,13 @@ static inline void mte_set_pivot(struct maple_enode *mn, unsigned char piv,
 	default:
 	case maple_range_64:
 	case maple_leaf_64:
-		(&node->mr64)->pivot[piv] = val;
-		break;
+        //(&node->mr64)->pivot[piv] = val;
+        node->mr64.pivot[piv] = val;
+        break;
 	case maple_arange_64:
-		(&node->ma64)->pivot[piv] = val;
-	case maple_dense:
+        //(&node->ma64)->pivot[piv] = val;
+        node->ma64.pivot[piv] = val;
+    case maple_dense:
 		break;
 	}
 
@@ -1216,13 +1220,18 @@ static inline void mas_alloc_nodes(struct ma_state *mas, gfp_t gfp)
 	unsigned int requested = mas_alloc_req(mas);
 	unsigned int count;
 
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%15s: %u\n", requested);
+    pr_view_enable(stack_depth, "%15s: %lu\n", allocated);
+
 	if (!requested)
 		return;
 
 	mas_set_alloc_req(mas, 0);
 	if (!allocated || mas->alloc->node_count == MAPLE_ALLOC_SLOTS - 1) {
 		node = (struct maple_alloc *)mt_alloc_one(gfp);
-		if (!node)
+        pr_view_enable(stack_depth, "%20s: %p\n", node);
+        if (!node)
 			goto nomem;
 
 		if (allocated)
@@ -1233,7 +1242,9 @@ static inline void mas_alloc_nodes(struct ma_state *mas, gfp_t gfp)
 		requested--;
 	}
 
-	node = mas->alloc;
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->alloc);
+
+    node = mas->alloc;
 	while (requested) {
 		void **slots = (void **)&node->slot;
 		unsigned int max_req = MAPLE_NODE_SLOTS - 1;
@@ -1247,7 +1258,8 @@ static inline void mas_alloc_nodes(struct ma_state *mas, gfp_t gfp)
 
 		count = mt_alloc_bulk(gfp, min(requested, max_req),
 				      slots);
-		if (!count)
+        pr_view_enable(stack_depth, "%20s: %u\n", count);
+        if (!count)
 			goto nomem;
 
 		node->node_count += count;
@@ -1261,14 +1273,21 @@ static inline void mas_alloc_nodes(struct ma_state *mas, gfp_t gfp)
 		requested -= count;
 	}
 	mas->alloc->total = success;
+
+    pr_view_enable(stack_depth, "%20s: %lu\n", success);
+    pr_view_enable(stack_depth, "%20s: %lu\n", mas->alloc->total);
+    pr_fn_end_enable(stack_depth);
 	return;
+
 nomem:
 	mas_set_alloc_req(mas, requested);
 	if (mas->alloc && !(((unsigned long)mas->alloc & 0x1)))
 		mas->alloc->total = success;
 	mas_set_err(mas, -ENOMEM);
-	return;
 
+    pr_view_enable(stack_depth, "%20s: %d\n", -ENOMEM);
+    pr_fn_end_enable(stack_depth);
+    return;
 }
 
 /*
@@ -1318,6 +1337,8 @@ static void mas_node_count(struct ma_state *mas, int count)
  */
 static inline struct maple_enode *mas_start(struct ma_state *mas)
 {
+    pr_fn_start_enable(stack_depth);
+
 	if (likely(mas_is_start(mas))) {
 		struct maple_enode *root;
 
@@ -1328,6 +1349,9 @@ static inline struct maple_enode *mas_start(struct ma_state *mas)
 		mas->offset = 0;
 
 		root = mas_root(mas);
+        pr_view_enable(stack_depth, "%15s: %p\n", root);
+        pr_view_enable(stack_depth, "%15s: %lu\n", mas->index);
+
 		/* Tree with nodes */
 		if (likely(xa_is_node(root))) {
 			mas->node = mte_safe_root(root);
@@ -1345,12 +1369,15 @@ static inline struct maple_enode *mas_start(struct ma_state *mas)
 		mas->offset = MAPLE_NODE_SLOTS;
 
 		/* Single entry tree. */
-		if (mas->index > 0)
-			return NULL;
+        if (mas->index > 0) {
+            mt_debug_mas_print(mas);
+            return NULL;
+        }
 
 		return root;
 	}
 
+    pr_fn_end_enable(stack_depth);
 	return NULL;
 }
 
@@ -1889,6 +1916,11 @@ static inline void mas_mab_cp(struct ma_state *mas, unsigned char mas_start,
 	int i = mas_start, j = mab_start;
 	unsigned char piv_end;
 
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%15s: %u\n", mas_start);
+    pr_view_enable(stack_depth, "%15s: %u\n", mas_end);
+    pr_view_enable(stack_depth, "%15s: %u\n", mab_start);
+
 	node = mas_mn(mas);
 	mt = mte_node_type(mas->node);
 	pivots = ma_pivots(node, mt);
@@ -1900,6 +1932,9 @@ static inline void mas_mab_cp(struct ma_state *mas, unsigned char mas_start,
 	}
 
 	piv_end = min(mas_end, mt_pivots[mt]);
+
+    pr_view_enable(stack_depth, "%15s: %u\n", piv_end);
+
 	for (; i < piv_end; i++, j++) {
 		b_node->pivot[j] = pivots[i];
 		if (unlikely(!b_node->pivot[j]))
@@ -1922,6 +1957,8 @@ complete:
 		memcpy(b_node->gap + mab_start, gaps + mas_start,
 		       sizeof(unsigned long) * j);
 	}
+
+    pr_fn_end_enable(stack_depth);
 }
 
 /*
@@ -1942,6 +1979,11 @@ static inline void mab_mas_cp(struct maple_big_node *b_node,
 	unsigned long *pivots = ma_pivots(node, mt);
 	unsigned long *gaps = NULL;
 	unsigned char end;
+
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->node);
+    pr_view_enable(stack_depth, "%20s: %u\n", mab_start);
+    pr_view_enable(stack_depth, "%20s: %u\n", mab_end);
 
 	if (mab_end - mab_start > mt_pivots[mt])
 		mab_end--;
@@ -1982,6 +2024,8 @@ static inline void mab_mas_cp(struct maple_big_node *b_node,
 
 		ma_set_meta(node, mt, 0, end);
 	}
+
+    pr_fn_end_enable(stack_depth);
 }
 
 /*
@@ -2074,6 +2118,8 @@ static inline unsigned char mas_store_b_node(struct ma_wr_state *wr_mas,
 	unsigned long piv;
 	struct ma_state *mas = wr_mas->mas;
 
+    pr_fn_start_enable(stack_depth);
+
 	b_node->type = wr_mas->type;
 	b_end = 0;
 	slot = mas->offset;
@@ -2125,6 +2171,8 @@ static inline unsigned char mas_store_b_node(struct ma_wr_state *wr_mas,
 	/* Copy end data to the end of the node. */
 	mas_mab_cp(mas, slot, wr_mas->node_end + 1, b_node, ++b_end);
 	b_end = b_node->b_end - 1;
+
+    pr_fn_end_enable(stack_depth);
 	return b_end;
 }
 
@@ -2787,9 +2835,18 @@ static inline void *mtree_range_walk(struct ma_state *mas)
 	unsigned long max, min;
 	unsigned long prev_max, prev_min;
 
+    pr_fn_start_enable(stack_depth);
+
 	last = next = mas->node;
 	prev_min = min = mas->min;
 	max = mas->max;
+
+    pr_view_enable(stack_depth, "%10s: %p\n", mas->node);
+    pr_view_enable(stack_depth, "%10s: %lu\n", mas->index);
+    pr_view_enable(stack_depth, "%10s: %lu\n", mas->min);
+    pr_view_enable(stack_depth, "%10s: %lu\n", mas->max);
+
+    unsigned int loop_cnt = 0;
 	do {
 		offset = 0;
 		last = next;
@@ -2797,6 +2854,14 @@ static inline void *mtree_range_walk(struct ma_state *mas)
 		type = mte_node_type(next);
 		pivots = ma_pivots(node, type);
 		end = ma_data_end(node, type, pivots, max);
+
+        pr_view_enable(stack_depth, "%20s: %u\n", ++loop_cnt);
+        pr_view_enable(stack_depth, "%20s: %p\n", next);
+        pr_view_enable(stack_depth, "%20s: %p\n", node);
+        pr_view_enable(stack_depth, "%20s: %u\n", end);
+        pr_view_enable(stack_depth, "%20s: %u\n", offset);
+        pr_view_enable(stack_depth, "%20s: %lu\n", pivots[offset]);
+
 		if (unlikely(ma_dead_node(node)))
 			goto dead_node;
 
@@ -2811,21 +2876,27 @@ static inline void *mtree_range_walk(struct ma_state *mas)
 			offset++;
 		} while((offset < end) && (pivots[offset] < mas->index));
 
-		prev_min = min;
+        pr_view_enable(stack_depth, "%25s: %u\n", offset);
+
+        prev_min = min;
 		prev_max = max;
-		if (offset < mt_pivots[type] && pivots[offset])
+        if (likely(offset < mt_pivots[type] && pivots[offset]))
 			max = pivots[offset];
 
-		if (offset)
+        //if (offset)
 			min = pivots[offset - 1] + 1;
 
-		if (likely(offset > end) && pivots[offset])
-			max = pivots[offset];
-
+        if (unlikely(offset > end && pivots[offset]))
+            max = pivots[offset];
 next:
 		slots = ma_slots(node, type);
 		next = mt_slot(mas->tree, slots, offset);
-		if (unlikely(ma_dead_node(node)))
+
+        pr_view_enable(stack_depth, "%25s: %lu\n", min);
+        pr_view_enable(stack_depth, "%25s: %lu\n", max);
+        pr_view_enable(stack_depth, "%25s: %p\n", next);
+
+        if (unlikely(ma_dead_node(node)))
 			goto dead_node;
 	} while (!ma_is_leaf(type));
 
@@ -2835,11 +2906,16 @@ next:
 	mas->min = prev_min;
 	mas->max = prev_max;
 	mas->node = last;
+
+    mt_debug_mas_print(mas);
+
+    pr_fn_end_enable(stack_depth);
 	return (void *) next;
 
 dead_node:
 	mas_reset(mas);
-	return NULL;
+    pr_fn_end_enable(stack_depth);
+    return NULL;
 }
 
 /*
@@ -3006,6 +3082,8 @@ static inline int mas_rebalance(struct ma_state *mas,
 	struct maple_subtree_state mast;
 	unsigned char shift, b_end = ++b_node->b_end;
 
+    pr_fn_start_enable(stack_depth);
+
 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
 
@@ -3043,6 +3121,8 @@ static inline int mas_rebalance(struct ma_state *mas,
 		b_node->b_end = shift + b_end;
 		l_mas.index = l_mas.last = l_mas.min;
 	}
+
+    pr_fn_end_enable(stack_depth);
 
 	return mas_spanning_rebalance(mas, &mast, empty_count);
 }
@@ -3178,6 +3258,7 @@ static inline bool mas_split_final_node(struct maple_subtree_state *mast,
 					struct ma_state *mas, int height)
 {
 	struct maple_enode *ancestor;
+    pr_fn_start_enable(stack_depth);
 
 	if (mte_is_root(mas->node)) {
 		if (mt_is_alloc(mas->tree))
@@ -3196,8 +3277,14 @@ static inline bool mas_split_final_node(struct maple_subtree_state *mast,
 	mte_to_node(ancestor)->parent = mas_mn(mas)->parent;
 
 	mast->l->node = ancestor;
-	mab_mas_cp(mast->bn, 0, mt_slots[mast->bn->type] - 1, mast->l, true);
+
+    pr_view_enable(stack_depth, "%20s: %p\n", ancestor);
+    pr_view_enable(stack_depth, "%20s: %p\n", mast->l->node);
+
+    mab_mas_cp(mast->bn, 0, mt_slots[mast->bn->type] - 1, mast->l, true);
 	mas->offset = mast->bn->b_end - 1;
+
+    pr_fn_end_enable(stack_depth);
 	return true;
 }
 
@@ -3262,6 +3349,8 @@ static inline void mast_split_data(struct maple_subtree_state *mast,
 {
 	unsigned char p_slot;
 
+    pr_fn_start_enable(stack_depth);
+
 	mab_mas_cp(mast->bn, 0, split, mast->l, true);
 	mte_set_pivot(mast->r->node, 0, mast->r->max);
 	mab_mas_cp(mast->bn, split + 1, mast->bn->b_end, mast->r, false);
@@ -3276,6 +3365,8 @@ static inline void mast_split_data(struct maple_subtree_state *mast,
 			     &p_slot, split);
 	mas_set_split_parent(mast->orig_r, mast->l->node, mast->r->node,
 			     &p_slot, split);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 /*
@@ -3362,10 +3453,11 @@ static inline bool mas_push_data(struct ma_state *mas, int height,
  */
 static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
 {
-
 	struct maple_subtree_state mast;
 	int height = 0;
 	unsigned char mid_split, split = 0;
+
+    pr_fn_start_enable(stack_depth);
 
 	/*
 	 * Splitting is handled differently from any other B-tree; the Maple
@@ -3404,8 +3496,15 @@ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
 	mast.free = &mat;
 	mast.bn = b_node;
 
+    pr_view_enable(stack_depth, "%15s: %d\n", mas->depth);
+    pr_view_enable(stack_depth, "%15s: %d\n", height);
+
 	while (height++ <= mas->depth) {
-		if (mt_slots[b_node->type] > b_node->b_end) {
+        pr_view_enable(stack_depth, "%15s: %d\n", height);
+        pr_view_enable(stack_depth, "%20s: %d\n", b_node->type);
+        pr_view_enable(stack_depth, "%20s: %d\n", b_node->b_end);
+
+        if (mt_slots[b_node->type] > b_node->b_end) {
 			mas_split_final_node(&mast, mas, height);
 			break;
 		}
@@ -3413,7 +3512,10 @@ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
 		l_mas = r_mas = *mas;
 		l_mas.node = mas_new_ma_node(mas, b_node);
 		r_mas.node = mas_new_ma_node(mas, b_node);
-		/*
+
+        pr_view_enable(stack_depth, "%20s: %p\n", l_mas.node);
+        pr_view_enable(stack_depth, "%20s: %p\n", r_mas.node);
+        /*
 		 * Another way that 'jitter' is avoided is to terminate a split up early if the
 		 * left or right node has space to spare.  This is referred to as "pushing left"
 		 * or "pushing right" and is similar to the B* tree, except the nodes left or
@@ -3438,13 +3540,15 @@ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
 		mast_fill_bnode(&mast, mas, 1);
 		prev_l_mas = *mast.l;
 		prev_r_mas = *mast.r;
-	}
+    }
 
 	/* Set the original node as dead */
 	mat_add(mast.free, mas->node);
 	mas->node = l_mas.node;
 	mas_wmb_replace(mas, mast.free, NULL);
 	mtree_range_walk(mas);
+
+    pr_fn_end_enable(stack_depth);
 	return 1;
 }
 
@@ -3499,6 +3603,8 @@ static inline int mas_commit_b_node(struct ma_state *mas,
 	unsigned char b_end = b_node->b_end;
 	enum maple_type b_type = b_node->type;
 
+    pr_fn_start_enable(stack_depth);
+
 	if ((b_end < mt_min_slots[b_type]) &&
 	    (!mte_is_root(mas->node)) && (mas_mt_height(mas) > 1))
 		return mas_rebalance(mas, b_node);
@@ -3523,6 +3629,8 @@ static inline int mas_commit_b_node(struct ma_state *mas,
 	mas_replace(mas, false);
 reuse_node:
 	mas_update_gap(mas);
+
+    pr_fn_end_enable(stack_depth);
 	return 1;
 }
 
@@ -3539,6 +3647,8 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 	void __rcu **slots;
 	unsigned long *pivots;
 	int slot = 0;
+
+    pr_fn_start_enable(stack_depth);
 
 	mas_node_count(mas, 1);
 	if (unlikely(mas_is_err(mas)))
@@ -3571,12 +3681,16 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 	/* swap the new root into the tree */
 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
 	ma_set_meta(node, maple_leaf_64, 0, slot);
+
+    pr_fn_end_enable(stack_depth);
 	return slot;
 }
 
 static inline void mas_store_root(struct ma_state *mas, void *entry)
 {
-	if (likely((mas->last != 0) || (mas->index != 0)))
+    pr_fn_start_enable(stack_depth);
+
+    if (likely((mas->last != 0) || (mas->index != 0)))
 		mas_root_expand(mas, entry);
 	else if (((unsigned long) (entry) & 3) == 2)
 		mas_root_expand(mas, entry);
@@ -3584,6 +3698,11 @@ static inline void mas_store_root(struct ma_state *mas, void *entry)
 		rcu_assign_pointer(mas->tree->ma_root, entry);
 		mas->node = MAS_START;
 	}
+
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->node);
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->tree->ma_root);
+    pr_view_enable(stack_depth, "%20s: %u\n", mas_mt_height(mas));
+    pr_fn_end_enable(stack_depth);
 }
 
 /*
@@ -3966,6 +4085,8 @@ static inline bool mas_wr_node_store(struct ma_wr_state *wr_mas)
 	unsigned char copy_size, max_piv = mt_pivots[wr_mas->type];
 	bool in_rcu = mt_in_rcu(mas->tree);
 
+    pr_fn_end_enable(stack_depth);
+
 	offset = mas->offset;
 	if (mas->last == wr_mas->r_max) {
 		/* runs right to the end of the node */
@@ -4066,6 +4187,8 @@ done:
 	}
 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
 	mas_update_gap(mas);
+
+    pr_fn_end_enable(stack_depth);
 	return true;
 }
 
@@ -4080,6 +4203,8 @@ static inline bool mas_wr_slot_store(struct ma_wr_state *wr_mas)
 	struct ma_state *mas = wr_mas->mas;
 	unsigned long lmax; /* Logical max. */
 	unsigned char offset = mas->offset;
+
+    pr_fn_start_enable(stack_depth);
 
 	if ((wr_mas->r_max > mas->last) && ((wr_mas->r_min != mas->index) ||
 				  (offset != wr_mas->node_end)))
@@ -4121,6 +4246,8 @@ static inline bool mas_wr_slot_store(struct ma_wr_state *wr_mas)
 done:
 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
 	mas_update_gap(mas);
+
+    pr_fn_end_enable(stack_depth);
 	return true;
 }
 
@@ -4177,6 +4304,16 @@ static inline bool mas_wr_append(struct ma_wr_state *wr_mas)
 	struct ma_state *mas = wr_mas->mas;
 	unsigned char node_pivots = mt_pivots[wr_mas->type];
 
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%20s: %u\n", end);
+    pr_view_enable(stack_depth, "%20s: %u\n", new_end);
+    pr_view_enable(stack_depth, "%20s: %u\n", node_pivots);
+
+    pr_view_enable(stack_depth, "%25s: %lu\n", wr_mas->pivots[end]);
+    pr_view_enable(stack_depth, "%25s: %lu\n", wr_mas->pivots[new_end]);
+    pr_view_enable(stack_depth, "%25s: %p\n", wr_mas->slots[end]);
+    pr_view_enable(stack_depth, "%25s: %p\n", wr_mas->slots[new_end]);
+
 	if ((mas->index != wr_mas->r_min) && (mas->last == wr_mas->r_max)) {
 		if (new_end < node_pivots)
 			wr_mas->pivots[new_end] = wr_mas->pivots[end];
@@ -4187,8 +4324,8 @@ static inline bool mas_wr_append(struct ma_wr_state *wr_mas)
 		rcu_assign_pointer(wr_mas->slots[new_end], wr_mas->entry);
 		mas->offset = new_end;
 		wr_mas->pivots[end] = mas->index - 1;
+        //return 1;
 
-		return 1;
 	} else if ((mas->index == wr_mas->r_min) && (mas->last < wr_mas->r_max)) {
 		if (new_end < node_pivots)
 			wr_mas->pivots[new_end] = wr_mas->pivots[end];
@@ -4199,9 +4336,20 @@ static inline bool mas_wr_append(struct ma_wr_state *wr_mas)
 
 		wr_mas->pivots[end] = mas->last;
 		rcu_assign_pointer(wr_mas->slots[end], wr_mas->entry);
-		return 1;
-	}
-	return 0;
+        //return 1;
+
+    } else {
+        return 0;
+    }
+
+    pr_view_enable(stack_depth, "%30s: %lu\n", wr_mas->pivots[end]);
+    pr_view_enable(stack_depth, "%30s: %lu\n", wr_mas->pivots[new_end]);
+    pr_view_enable(stack_depth, "%30s: %p\n", wr_mas->slots[end]);
+    pr_view_enable(stack_depth, "%30s: %p\n", wr_mas->slots[new_end]);
+    pr_view_enable(stack_depth, "%30s: %p\n", wr_mas->content);
+
+    pr_fn_end_enable(stack_depth);
+    return 1;
 }
 
 static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
@@ -4211,6 +4359,12 @@ static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
 	struct ma_state *mas = wr_mas->mas;
 	struct maple_big_node b_node;
 
+    pr_fn_start_enable(stack_depth);
+    pr_view_enable(stack_depth, "%20s: %lu\n", mas->index);
+    pr_view_enable(stack_depth, "%20s: %lu\n", wr_mas->r_min);
+    pr_view_enable(stack_depth, "%20s: %lu\n", wr_mas->r_max);
+    pr_view_enable(stack_depth, "%20s: %lu\n", mas->last);
+
 	/* Direct replacement */
 	if (wr_mas->r_min == mas->index && wr_mas->r_max == mas->last) {
 		rcu_assign_pointer(wr_mas->slots[mas->offset], wr_mas->entry);
@@ -4219,13 +4373,21 @@ static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
 		return;
 	}
 
-	/* Attempt to append */
+    /* Attempt to append */
 	node_slots = mt_slots[wr_mas->type];
+
+    pr_view_enable(stack_depth, "%25s: %u\n", node_slots);
+    pr_view_enable(stack_depth, "%25s: %u\n", wr_mas->offset_end);
+
 	/* slot and node store will not fit, go to the slow path */
 	if (unlikely(wr_mas->offset_end + 1 >= node_slots))
 		goto slow_path;
 
-	if (wr_mas->entry && (wr_mas->node_end < node_slots - 1) &&
+    pr_view_enable(stack_depth, "%30s: %p\n", wr_mas->entry);
+    pr_view_enable(stack_depth, "%30s: %u\n", mas->offset);
+    pr_view_enable(stack_depth, "%30s: %u\n", wr_mas->node_end);
+
+    if (wr_mas->entry && (wr_mas->node_end < node_slots - 1) &&
 	    (mas->offset == wr_mas->node_end) && mas_wr_append(wr_mas)) {
 			if (!wr_mas->content || !wr_mas->entry)
 				mas_update_gap(mas);
@@ -4241,6 +4403,8 @@ static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
 		return;
 
 slow_path:
+    pr_out_enable(stack_depth, ">>> slow_path:\n");
+
 	b_node.b_end = mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
 	b_node.min = mas->min;
 	zero = MAPLE_BIG_NODE_SLOTS - b_node.b_end - 1;
@@ -4248,8 +4412,12 @@ slow_path:
 	memset(b_node.pivot + b_node.b_end + 1, 0,
 	       sizeof(unsigned long) * zero);
 
+    mt_debug_big_node_print(&b_node);
+
 	trace_ma_write(__func__, mas, 0, wr_mas->entry);
 	mas_commit_b_node(mas, &b_node, wr_mas->node_end);
+
+    pr_fn_end_enable(stack_depth);
 }
 
 /*
@@ -4263,8 +4431,16 @@ static inline void *mas_wr_store_entry(struct ma_wr_state *wr_mas)
 {
 	struct ma_state *mas = wr_mas->mas;
 
-	if ((wr_mas->content = mas_start(mas)) || mas_is_none(mas) ||
-	    mas_is_ptr(mas)) {
+    pr_fn_start_enable(stack_depth);
+
+    wr_mas->content = mas_start(mas);
+
+    pr_view_enable(stack_depth, "%20s : %p\n", mas->node);
+    pr_view_enable(stack_depth, "%20s : %lu\n", mas->index);
+    pr_view_enable(stack_depth, "%20s : %p\n", wr_mas->node);
+    pr_view_enable(stack_depth, "%20s : %p\n", wr_mas->content);
+
+    if (wr_mas->content || mas_is_none(mas) || mas_is_ptr(mas)) {
 		mas_store_root(mas, wr_mas->entry);
 		return wr_mas->content;
 	}
@@ -4288,6 +4464,8 @@ static inline void *mas_wr_store_entry(struct ma_wr_state *wr_mas)
 	}
 
 	mas_wr_modify(wr_mas);
+
+    pr_fn_end_enable(stack_depth);
 	return wr_mas->content;
 }
 
@@ -5012,8 +5190,16 @@ void *mas_walk(struct ma_state *mas)
 {
 	void *entry;
 
+    pr_fn_start_enable(stack_depth);
+
+    unsigned retry_cnt = 0;
 retry:
-	entry = mas_state_walk(mas);
+    pr_view_enable(stack_depth, "%15s: %u\n", ++retry_cnt);
+    pr_view_enable(stack_depth, "%15s: %lu\n", mas->index);
+    pr_view_enable(stack_depth, "%15s: %p\n", mas->node);
+    entry = mas_state_walk(mas);
+    pr_view_enable(stack_depth, "%15s: %p\n", entry);
+
 	if (mas_is_start(mas))
 		goto retry;
 
@@ -5024,12 +5210,14 @@ retry:
 			mas->index = 1;
 			mas->last = ULONG_MAX;
 		}
-		return entry;
+        //return entry;
 	} else if (mas_is_none(mas)) {
 		mas->index = 1;
 		mas->last = ULONG_MAX;
 	}
 
+    mt_debug_mas_print(mas);
+    pr_fn_end_enable(stack_depth);
 	return entry;
 }
 
@@ -5589,6 +5777,8 @@ void *mas_store(struct ma_state *mas, void *entry)
 {
 	MA_WR_STATE(wr_mas, mas, entry);
 
+    pr_fn_start_enable(stack_depth);
+
 	trace_ma_write(__func__, mas, 0, entry);
 #ifdef CONFIG_DEBUG_MAPLE_TREE
 	if (mas->index > mas->last)
@@ -5609,7 +5799,10 @@ void *mas_store(struct ma_state *mas, void *entry)
 	 */
 	mas_wr_store_setup(&wr_mas);
 	mas_wr_store_entry(&wr_mas);
-	return wr_mas.content;
+
+    pr_fn_end_enable(stack_depth);
+
+    return wr_mas.content;
 }
 
 /**
@@ -5625,15 +5818,27 @@ int mas_store_gfp(struct ma_state *mas, void *entry, gfp_t gfp)
 {
 	MA_WR_STATE(wr_mas, mas, entry);
 
+    pr_fn_start_enable(stack_depth);
+
 	mas_wr_store_setup(&wr_mas);
 	trace_ma_write(__func__, mas, 0, entry);
+
+    unsigned debug_cnt = 0;
 retry:
-	mas_wr_store_entry(&wr_mas);
+    pr_view_enable(stack_depth, "%15s: %u\n", ++debug_cnt);
+    pr_view_enable(stack_depth, "%15s: %lu\n", mas->index);
+    mas_wr_store_entry(&wr_mas);
+
 	if (unlikely(mas_nomem(mas, gfp)))
 		goto retry;
 
 	if (unlikely(mas_is_err(mas)))
 		return xa_err(mas->node);
+
+    mt_debug_wr_mas_print(&wr_mas);
+    mt_debug_node_print(mas->tree, mas->node);
+
+    pr_fn_end_enable(stack_depth);
 
 	return 0;
 }
@@ -6012,6 +6217,8 @@ EXPORT_SYMBOL_GPL(mas_erase);
 bool mas_nomem(struct ma_state *mas, gfp_t gfp)
 	__must_hold(mas->tree->lock)
 {
+    pr_fn_start_enable(stack_depth);
+
 	if (likely(mas->node != MA_ERROR(-ENOMEM))) {
 		mas_destroy(mas);
 		return false;
@@ -6029,6 +6236,8 @@ bool mas_nomem(struct ma_state *mas, gfp_t gfp)
 		return false;
 
 	mas->node = MAS_START;
+
+    pr_fn_end_enable(stack_depth);
 	return true;
 }
 
@@ -6094,6 +6303,8 @@ int mtree_store_range(struct maple_tree *mt, unsigned long index,
 	MA_STATE(mas, mt, index, last);
 	MA_WR_STATE(wr_mas, &mas, entry);
 
+    pr_fn_start_enable(stack_depth);
+
 	trace_ma_write(__func__, &mas, 0, entry);
 	if (WARN_ON_ONCE(xa_is_advanced(entry)))
 		return -EINVAL;
@@ -6101,9 +6312,14 @@ int mtree_store_range(struct maple_tree *mt, unsigned long index,
 	if (index > last)
 		return -EINVAL;
 
+    unsigned retry_cnt = 0;
+
 	mtree_lock(mt);
 retry:
-	mas_wr_store_entry(&wr_mas);
+    pr_view_enable(stack_depth, "%15s: %u\n", ++retry_cnt);
+    pr_view_enable(stack_depth, "%15s: %lu\n", mas.index);
+    mas_wr_store_entry(&wr_mas);
+
 	if (mas_nomem(&mas, gfp))
 		goto retry;
 
@@ -6111,6 +6327,10 @@ retry:
 	if (mas_is_err(&mas))
 		return xa_err(mas.node);
 
+    //mt_debug_wr_mas_print(&wr_mas);
+    //mt_debug_node_print(mas.tree, mas.node);
+
+    pr_fn_end_enable(stack_depth);
 	return 0;
 }
 EXPORT_SYMBOL(mtree_store_range);
@@ -6938,6 +7158,8 @@ void mt_validate(struct maple_tree *mt)
 {
 	unsigned char end;
 
+    pr_fn_start_enable(stack_depth);
+
 	MA_STATE(mas, mt, 0, 0);
 	rcu_read_lock();
 	mas_start(&mas);
@@ -6962,12 +7184,17 @@ void mt_validate(struct maple_tree *mt)
 		mas_validate_limits(&mas);
 		if (mt_is_alloc(mt))
 			mas_validate_gaps(&mas);
-		mas_dfs_postorder(&mas, ULONG_MAX);
-	}
+
+        mt_debug_mas_print(&mas);
+        mt_debug_node_print(mt, mas.node);
+
+        mas_dfs_postorder(&mas, ULONG_MAX);
+    }
 	mt_validate_nulls(mt);
 done:
 	rcu_read_unlock();
 
+    pr_fn_end_enable(stack_depth);
 }
 
 #endif /* CONFIG_DEBUG_MAPLE_TREE */
