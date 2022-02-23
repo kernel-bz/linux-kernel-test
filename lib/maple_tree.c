@@ -3661,7 +3661,10 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 		      ((unsigned long)mas->tree | MA_ROOT_PARENT));
 	mas->node = mt_mk_node(node, type);
 
-	if (mas->index) {
+    pr_view_enable(stack_depth, "%20s: %lu\n", mas->index);
+    pr_view_enable(stack_depth, "%20s: %p\n", contents);
+
+    if (mas->index) {
 		if (contents) {
 			rcu_assign_pointer(slots[slot], contents);
 			if (likely(mas->index > 1))
@@ -3681,6 +3684,12 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 	/* swap the new root into the tree */
 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
 	ma_set_meta(node, maple_leaf_64, 0, slot);
+
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->node);
+    pr_view_enable(stack_depth, "%20s: %p\n", mas->tree->ma_root);
+    pr_view_enable(stack_depth, "%20s: %u\n", mas->offset);
+    pr_view_enable(stack_depth, "%20s: %lu\n", mas->last);
+    pr_view_enable(stack_depth, "%20s: %d\n", slot);
 
     pr_fn_end_enable(stack_depth);
 	return slot;
@@ -3787,6 +3796,8 @@ static bool mas_wr_walk(struct ma_wr_state *wr_mas)
 {
 	struct ma_state *mas = wr_mas->mas;
 
+    pr_fn_start_enable(stack_depth);
+
 	while (true) {
 		mas_wr_walk_descend(wr_mas);
 		if (unlikely(mas_is_span_wr(wr_mas)))
@@ -3799,6 +3810,8 @@ static bool mas_wr_walk(struct ma_wr_state *wr_mas)
 
 		mas_wr_walk_traverse(wr_mas);
 	}
+
+    pr_fn_end_enable(stack_depth);
 
 	return true;
 }
@@ -4085,7 +4098,7 @@ static inline bool mas_wr_node_store(struct ma_wr_state *wr_mas)
 	unsigned char copy_size, max_piv = mt_pivots[wr_mas->type];
 	bool in_rcu = mt_in_rcu(mas->tree);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_start_enable(stack_depth);
 
 	offset = mas->offset;
 	if (mas->last == wr_mas->r_max) {
@@ -4107,6 +4120,10 @@ static inline bool mas_wr_node_store(struct ma_wr_state *wr_mas)
 
 		new_end -= wr_mas->offset_end - offset - 1;
 	}
+
+    pr_view_enable(stack_depth, "%20s: %u\n", wr_mas->offset_end);
+    pr_view_enable(stack_depth, "%20s: %u\n", wr_mas->node_end);
+    pr_view_enable(stack_depth, "%20s: %u\n", new_end);
 
 	/* new range starts within a range */
 	if (wr_mas->r_min < mas->index)
@@ -4178,6 +4195,10 @@ done:
 			new_end++;
 		ma_set_meta(newnode, maple_leaf_64, 0, new_end);
 	}
+
+    pr_view_enable(stack_depth, "%20s: %u\n", dst_offset);
+    pr_view_enable(stack_depth, "%20s: %u\n", new_end);
+    pr_view_enable(stack_depth, "%20s: %p\n", newnode);
 
 	if (in_rcu) {
 		mas->node = mt_mk_node(newnode, wr_mas->type);
@@ -4449,6 +4470,8 @@ static inline void *mas_wr_store_entry(struct ma_wr_state *wr_mas)
 		mas_wr_spanning_store(wr_mas);
 		return wr_mas->content;
 	}
+
+    mt_debug_wr_mas_print(wr_mas);
 
 	/* At this point, we are at the leaf node that needs to be altered. */
 	wr_mas->end_piv = wr_mas->r_max;
@@ -6318,6 +6341,8 @@ int mtree_store_range(struct maple_tree *mt, unsigned long index,
 retry:
     pr_view_enable(stack_depth, "%15s: %u\n", ++retry_cnt);
     pr_view_enable(stack_depth, "%15s: %lu\n", mas.index);
+    pr_view_enable(stack_depth, "%15s: %lu\n", mas.last);
+    pr_view_enable(stack_depth, "%15s: %p\n", entry);
     mas_wr_store_entry(&wr_mas);
 
 	if (mas_nomem(&mas, gfp))

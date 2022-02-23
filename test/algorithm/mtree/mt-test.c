@@ -27,19 +27,28 @@ void mtree_basic_store_test(void)
 
     for (i = first; i <= last; i += step) {
         mtree_store(&mtree, i, xa_mk_value(i), GFP_KERNEL);
-        if (!(i % 8))
-            mt_validate(&mtree);
+        mt_validate(&mtree);
     }
     mt_validate(&mtree);
 
     void *entry;
-    unsigned long key = 7;
+    unsigned long key = 8;
     MA_STATE(mas, &mtree, key, key);
-    //mas_set(&mas, key);
+    entry = mas_walk(&mas);
+
+#if 0
+    for (i = first; i <= last/2; i++) {
+        mtree_store(&mtree, i, xa_mk_value(i), GFP_KERNEL);
+        mt_validate(&mtree);
+    }
+    mt_validate(&mtree);
+
+    mas_set(&mas, key);
     entry = mas_walk(&mas);
 
     //mas_set_range(&mas, key, key + 8);
     //entry = mas_walk(&mas);
+#endif
 
     mtree_destroy(&mtree);
 }

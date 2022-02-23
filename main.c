@@ -28,7 +28,7 @@ static void _main_menu_help(void)
     //help messages...
     printf("\n");
     printf("  This is the Linux kernel source testing program\n");
-    printf("that can be run at the user level.\n");
+    printf("that can be run at the user level space.\n");
     printf("written by www.kernel.bz\n");
     printf("Tested Kernel Version: v%d.%d-td%d\n",
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
