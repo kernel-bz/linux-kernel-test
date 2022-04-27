@@ -35,7 +35,7 @@ static int _algo_xarray_menu(int asize)
     printf("\n");
     printf("[#]--> Algorithm --> XArray Test Menu\n");
     printf(" 0: exit.\n");
-    printf(" 1: XArray Constants Test.\n");
+    printf(" 1: XArray Info.\n");
     printf(" 2: XArray Simple Test.\n");
     printf(" 3: XArray Store Range Test.\n");
     printf(" 4: XArray Marks Test.\n");
@@ -87,11 +87,15 @@ static int _algo_maple_menu(int asize)
     printf("\n");
     printf("[#]--> Algorithm --> Maple Tree Test Menu\n");
     printf("0: exit.\n");
-    printf("1: Basic Store Test.\n");
-    printf("2: Basic Walk Test.\n");
-    printf("3: Maple Tree Main Test.\n");
+    printf("1: Maple Tree Info.\n");
+    printf("2: Basic Store Test.\n");
+    printf("3: Basic Store Range Test.\n");
+    printf("4: Basic Walk Test.\n");
+    printf("5: Store Loop Test.\n");
+    printf("6: Store Load Erase Test.\n");
+    printf("7: Maple Tree Main Test.\n");
 
-    printf("4: help.\n");
+    printf("8: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -104,8 +108,12 @@ static int _algo_maple_menu(int asize)
 static void _algo_maple_tree_test(void)
 {
     void (*fn[])(void) = { _algo_struct_help
+        , mtree_info
         , mtree_basic_store_test
+        , mtree_basic_store_range_test
         , mtree_basic_walk_test
+        , mtree_store_loop_test
+        , mtree_store_load_erase_test
         , maple_main_test
 
         , _algo_struct_help

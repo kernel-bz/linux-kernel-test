@@ -44,6 +44,29 @@ void bits_printf(unsigned long* v, u32 nbits)
     printf("\n");
 }
 
+static void _bitmap_test_01()
+{
+    u32 i;
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(char));
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(int));
+    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(long));
+
+    for (i=0; i<=320; i+=32) {
+        pr_view_on(stack_depth, "%20s : %u\n", i);
+        pr_view_on(stack_depth, "%20s : %u\n", BITS_TO_LONGS(i));
+    }
+
+    //include/linux/types.h
+    //include/linux/bitmap.h
+    DECLARE_BITMAP(bitv, 300);
+    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv));
+    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv) * BITS_PER_BYTE);
+
+    pr_fn_end_on(stack_depth);
+}
+
 static void _bitmap_test_02(u32 nbits)
 {
     pr_fn_start_on(stack_depth);
@@ -69,25 +92,33 @@ static void _bitmap_test_02(u32 nbits)
     pr_fn_end_on(stack_depth);
 }
 
-static void _bitmap_test_01()
+static void _bitmap_test_03(void)
 {
-    u32 i;
+    const u32 nbits = 80;
+    unsigned long idx;
+
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(char));
-    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(int));
-    pr_view_on(stack_depth, "%20s : %u bits\n", BITS_PER_TYPE(long));
+    //unsigned long *bitv;
+    DECLARE_BITMAP(bitv, nbits);
+    bitmap_zero(bitv, nbits);
+    test_and_set_bit(10, bitv);
+    test_and_set_bit(20, bitv);
+    __set_bit(30, bitv);
 
-    for (i=0; i<=320; i+=32) {
-        pr_view_on(stack_depth, "%20s : %u\n", i);
-        pr_view_on(stack_depth, "%20s : %u\n", BITS_TO_LONGS(i));
-    }
+    bits_printf(bitv, nbits);
 
-    //include/linux/types.h
-    //include/linux/bitmap.h
-    DECLARE_BITMAP(bitv, 300);
-    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv));
-    pr_view_on(stack_depth, "%30s : %u\n",  sizeof(bitv) * BITS_PER_BYTE);
+    idx = find_first_bit(bitv, nbits);
+    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    idx = find_next_bit(bitv, nbits, 11);
+    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    idx = find_next_zero_bit(bitv, nbits, 10);
+    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+
+    idx = test_bit(30, bitv);
+    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    idx = test_bit(31, bitv);
+    pr_view_enable(stack_depth, "%20s : %u\n", idx);
 
     pr_fn_end_on(stack_depth);
 }
@@ -96,4 +127,5 @@ void bitmap_test(void)
 {
     _bitmap_test_01();
     _bitmap_test_02(32);
+    _bitmap_test_03();
 }

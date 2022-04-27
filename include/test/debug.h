@@ -50,6 +50,9 @@ extern int stack_depth;
 #define pr_crit					pr_err
 #define pr_notice				printf
 
+#define offset_of(type, member)	\
+    (char *) &((type *)0)->member
+
 //#define SPACE	"\t"
 #define SPACE	"    "
 

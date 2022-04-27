@@ -652,7 +652,8 @@ HEADERS += \
     test/algorithm/mtree/maple_tree.h \
     test/algorithm/mtree/trace_maple_tree.h \
     test/algorithm/mtree/test.h \
-    include/test/mt-debug.h
+    include/test/mt-debug.h \
+    arch/x86/include/asm/bitops.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

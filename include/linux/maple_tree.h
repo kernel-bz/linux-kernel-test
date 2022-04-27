@@ -160,7 +160,6 @@ enum maple_type {
     maple_leaf_64,
     maple_range_64,
     maple_arange_64,
-    maple_type_count,
 };
 
 

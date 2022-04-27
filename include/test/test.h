@@ -63,8 +63,12 @@ void xa_multiorder_test(void);
 //test/algorithm/mtree/maple.c
 int maple_main_test(void);
 //test/algorithm/mtree/mt-test.c
+void mtree_info(void);
 void mtree_basic_store_test(void);
+void mtree_basic_store_range_test(void);
 void mtree_basic_walk_test(void);
+void mtree_store_loop_test(void);
+void mtree_store_load_erase_test(void);
 
 //test/init
 void test_setup_arch(void);
