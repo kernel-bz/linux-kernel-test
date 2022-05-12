@@ -194,7 +194,8 @@ SOURCES += \
     test/algorithm/mtree/maple.c \
     lib/test_maple_tree.c \
     test/algorithm/mtree/mt-debug.c \
-    test/algorithm/mtree/mt-test.c
+    test/algorithm/mtree/mt-test.c \
+    mm/slub.c
 
 HEADERS += \
     include/test/test.h \
@@ -653,7 +654,8 @@ HEADERS += \
     test/algorithm/mtree/trace_maple_tree.h \
     test/algorithm/mtree/test.h \
     include/test/mt-debug.h \
-    arch/x86/include/asm/bitops.h
+    arch/x86/include/asm/bitops.h \
+    include/linux/slub_def.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

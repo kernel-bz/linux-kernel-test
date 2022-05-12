@@ -107,6 +107,7 @@
 	__PCPU_ATTRS(sec) __typeof__(type) name
 #endif
 
+#if 0
 /*
  * Variant on the per-CPU variable declaration/definition theme used for
  * ordinary per-CPU variables.
@@ -116,6 +117,9 @@
 
 #define DEFINE_PER_CPU(type, name)					\
 	DEFINE_PER_CPU_SECTION(type, name, "")
+#endif
+#define DECLARE_PER_CPU(type, val) type val
+#define DEFINE_PER_CPU(type, val) type val
 
 /*
  * Declaration/definition used for per-CPU variables that must come first in

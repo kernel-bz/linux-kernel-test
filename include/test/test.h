@@ -103,6 +103,7 @@ void sched_pelt_constants(void);
 //test/memory/mm-test.c
 int mm_memblock_add(unsigned int size);
 void mm_memblock_test(void);
+void mm_constant_infos(void);
 
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);

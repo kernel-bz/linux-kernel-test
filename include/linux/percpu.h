@@ -4,9 +4,10 @@
 
 #include "test/user-types.h"
 
+#include <linux/percpu-defs.h>
+#include <linux/gfp.h>
 #include <linux/slab.h>
 #include <linux/cpumask.h>
-#include <linux/gfp.h>
 
 //#define DECLARE_PER_CPU(type, val) extern type val
 #define DECLARE_PER_CPU(type, val) type val

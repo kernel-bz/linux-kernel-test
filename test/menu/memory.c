@@ -37,8 +37,9 @@ static int _mm_test_menu(int asize)
     printf("\n");
     printf("[#]--> Memory Test Menu\n");
     printf("0: exit.\n");
-    printf("1: memblock Test.\n");
-    printf("2: help.\n");
+    printf("1: memblock test.\n");
+    printf("2: mm constant infos.\n");
+    printf("3: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -52,6 +53,7 @@ void menu_mm_test(void)
 {
     void (*fn[])(void) = { _mm_test_help
         , mm_memblock_test
+        , mm_constant_infos
         , _mm_test_help
     };
     int idx;

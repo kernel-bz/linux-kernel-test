@@ -83,13 +83,6 @@ typedef __kernel_old_gid_t	old_gid_t;
 struct kmem_cache;
 struct page;
 
-typedef enum {
-	GFP_KERNEL,
-	GFP_ATOMIC,
-	__GFP_HIGHMEM,
-	__GFP_HIGH
-} gfp_t;
-
 //unistd.h
 //typedef unsigned long        size_t;
 //typedef   signed long       ssize_t;
@@ -119,7 +112,7 @@ typedef u32 dma_addr_t;
 
 #define __bitwise __bitwise__
 
-//typedef unsigned int __bitwise gfp_t;
+typedef unsigned int __bitwise gfp_t;
 typedef unsigned int __bitwise slab_flags_t;
 typedef unsigned int __bitwise fmode_t;
 

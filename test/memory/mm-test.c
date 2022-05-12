@@ -12,7 +12,9 @@
 #include "test/debug.h"
 
 #include <linux/memblock.h>
-#include <mm/slab.h>
+#include <linux/mm.h>
+#include <linux/slab.h>
+#include <linux/err.h>
 
 #define MM_MEMBLOCK_DEBUG
 
@@ -36,7 +38,7 @@ void mm_memblock_test(void)
 {
     pr_fn_start_on(stack_depth);
 
-    slab_state_set(DOWN);
+    //slab_state_set(DOWN);
 
     memblock_dump_all();
 
@@ -71,6 +73,43 @@ void mm_memblock_test(void)
     memblock_alloc(600, SMP_CACHE_BYTES);
 
     memblock_dump_all();
+
+    pr_fn_end_on(stack_depth);
+}
+
+void mm_constant_infos(void)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_SHIFT);
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_SIZE);
+    pr_view_on(stack_depth, "%20s : %p\n", PAGE_MASK);
+    pr_view_on(stack_depth, "%20s : %p\n", ~PAGE_MASK);
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_ALIGN(2000));
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_ALIGN(4000));
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_ALIGN(6000));
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_ALIGN(8000));
+    pr_view_on(stack_depth, "%20s : %u\n", PAGE_ALIGN(9000));
+    pr_view_on(stack_depth, "%30s : %u\n", DEFAULT_MAX_MAP_COUNT);
+    pr_view_on(stack_depth, "%30s : %u\n", MAX_ERRNO);
+    pr_view_on(stack_depth, "%30s : %p\n", -MAX_ERRNO);
+    pr_view_on(stack_depth, "%30s : %p\n", (unsigned long)-MAX_ERRNO);
+    //#define IS_ERR_VALUE(x) unlikely((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
+
+    pr_view_on(stack_depth, "%30s : %u\n", MAX_ORDER);
+    pr_view_on(stack_depth, "%30s : %u\n", KMALLOC_MAX_CACHE_SIZE);
+    pr_view_on(stack_depth, "%30s : %u\n", KMALLOC_MIN_SIZE);
+    pr_view_on(stack_depth, "%30s : %u\n", KMALLOC_SHIFT_HIGH);
+    pr_view_on(stack_depth, "%30s : %u\n", KMALLOC_SHIFT_LOW);
+    pr_view_on(stack_depth, "%30s : %u\n", kmalloc_index(8));
+    pr_view_on(stack_depth, "%30s : %u\n", kmalloc_index(16));
+    pr_view_on(stack_depth, "%30s : %u\n", kmalloc_index(32));
+    pr_view_on(stack_depth, "%30s : %u\n", kmalloc_index(64));
+    pr_view_on(stack_depth, "%30s : %u\n", kmalloc_index(128));
+    unsigned int size;
+    pr_view_on(stack_depth, "%30s : %u\n", sizeof(void *));
+    for (size = 0; size < 128; size += 13)
+        pr_view_on(stack_depth, "%30s : %u\n", ALIGN(size, sizeof(void *)));
 
     pr_fn_end_on(stack_depth);
 }

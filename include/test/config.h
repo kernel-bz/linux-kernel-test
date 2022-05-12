@@ -97,7 +97,9 @@ extern "C" {
 //Memory Configuration -----------------------------------
 #define CONFIG_ARCH_KEEP_MEMBLOCK
 #define CONFIG_HAVE_MEMBLOCK_NODE_MAP
-
+//#define CONFIG_SLAB
+#define CONFIG_SLUB
+//#define CONFIG_SLOB
 
 //drivers Configuration -----------------------------------
 #define CONFIG_OF

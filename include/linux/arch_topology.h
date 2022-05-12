@@ -10,6 +10,9 @@
 #include <linux/percpu.h>
 #include <linux/cpumask.h>
 
+#define per_cpu_ptr(ptr, cpu)   ({ (void)(cpu); (ptr); })
+#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+
 void topology_normalize_cpu_scale(void);
 int topology_update_cpu_topology(void);
 

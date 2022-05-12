@@ -35,7 +35,6 @@
 #include <linux/percpu.h>
 //#include <asm/topology.h>
 
-#include <linux/percpu.h>
 #include <arch/arm64/include/asm/numa_.h>
 
 #ifndef nr_cpus_node

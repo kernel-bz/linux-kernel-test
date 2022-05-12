@@ -6,7 +6,9 @@
 
 #include <linux/compiler.h>
 #include <linux/log2.h>
-#include "linux/mm.h"
+#include <linux/mm.h>
+
+#define PAGE_SHIFT	(12)
 
 /**
  * get_order - Determine the allocation order of a memory size
