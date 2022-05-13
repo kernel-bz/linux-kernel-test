@@ -181,4 +181,7 @@ static inline void *nearest_obj(struct kmem_cache_slub *cache, struct page *page
 }
 #endif
 
+void slub_calculate_sizes_test(void);
+
+
 #endif /* _LINUX_SLUB_DEF_H */

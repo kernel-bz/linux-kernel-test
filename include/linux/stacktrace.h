@@ -19,6 +19,7 @@ static inline void print_stack_trace(struct stack_trace *trace, int spaces)
 	((trace)->nr_entries =	\
 		backtrace((void **)(trace)->entries, (trace)->max_entries))
 
+#if 0
 static inline int dump_stack(void)
 {
 	void *array[64];
@@ -26,8 +27,8 @@ static inline int dump_stack(void)
 
 	size = backtrace(array, 64);
 	backtrace_symbols_fd(array, size, 1);
-
 	return 0;
 }
+#endif
 
 #endif

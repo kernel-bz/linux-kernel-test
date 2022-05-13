@@ -41,7 +41,7 @@ static inline void *__alloc_percpu(size_t size, size_t align)
     //BUG();
     //return NULL;
     gfp_t gfp = (gfp_t)align;
-    return kmalloc(nr_cpu_ids * size, GFP_NOWAIT);
+    //return kmalloc(nr_cpu_ids * size, GFP_NOWAIT);
 }
 
 static inline void free_percpu(void *ptr)

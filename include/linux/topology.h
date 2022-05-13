@@ -87,11 +87,12 @@ extern int __read_mostly node_reclaim_distance;
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
 DECLARE_PER_CPU(int, numa_node);
 
-#ifndef numa_node_id
+#ifndef __numa_node_id
 /* Returns the number of the current Node. */
-static inline int numa_node_id(void)
+//static inline int numa_node_id(void)
+static inline int __numa_node_id(void)
 {
-	return raw_cpu_read(numa_node);
+    return raw_cpu_read(numa_node);
 }
 #endif
 
@@ -180,11 +181,12 @@ static inline void set_cpu_numa_mem(int cpu, int node)
 
 #else	/* !CONFIG_HAVE_MEMORYLESS_NODES */
 
-#ifndef numa_mem_id
+#ifndef __numa_mem_id
 /* Returns the number of the nearest Node with memory */
-static inline int numa_mem_id(void)
+//static inline int numa_mem_id(void)
+static inline int __numa_mem_id(void)
 {
-	return numa_node_id();
+    return __numa_node_id();
 }
 #endif
 

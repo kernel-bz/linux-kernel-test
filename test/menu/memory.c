@@ -14,6 +14,7 @@
 #include "test/basic.h"
 #include "test/test.h"
 #include <linux/kernel.h>
+#include <linux/slub_def.h>
 
 static void _mm_test_help(void)
 {
@@ -39,7 +40,8 @@ static int _mm_test_menu(int asize)
     printf("0: exit.\n");
     printf("1: memblock test.\n");
     printf("2: mm constant infos.\n");
-    printf("3: help.\n");
+    printf("3: slub calculate_sizes test.\n");
+    printf("4: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize);
@@ -54,6 +56,7 @@ void menu_mm_test(void)
     void (*fn[])(void) = { _mm_test_help
         , mm_memblock_test
         , mm_constant_infos
+        , slub_calculate_sizes_test
         , _mm_test_help
     };
     int idx;

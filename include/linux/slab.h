@@ -5,12 +5,15 @@
 #include "test/user-types.h"
 #include "test/config.h"
 
+#include <linux/gfp.h>
 #include <linux/compiler_types.h>
 #include <linux/percpu.h>
 #include <linux/percpu-defs.h>
-#include <linux/gfp.h>
 #include <linux/kernel.h>
 #include "linux/mm.h"
+
+#define ___GFP_RECLAIMABLE	0x10u
+#define ___GFP_ZERO		0x100u
 
 /*
  * Flags to pass to kmem_cache_create().
@@ -204,7 +207,7 @@ static __always_inline enum kmalloc_cache_type kmalloc_type(gfp_t flags)
          */
         return flags & __GFP_DMA ? KMALLOC_DMA : KMALLOC_RECLAIM;
 #else
-        return flags & __GFP_RECLAIMABLE ? KMALLOC_RECLAIM : KMALLOC_NORMAL;
+        return flags & ___GFP_RECLAIMABLE ? KMALLOC_RECLAIM : KMALLOC_NORMAL;
 #endif
 }
 
@@ -269,12 +272,12 @@ void kfree(void *);
 
 static inline void *kzalloc(size_t size, gfp_t gfp)
 {
-        return kmalloc(size, gfp | __GFP_ZERO);
+        return kmalloc(size, gfp | ___GFP_ZERO);
 }
 
 static inline void *kcalloc(int nr, size_t size, gfp_t gfp)
 {
-        return kmalloc(nr*size, gfp | __GFP_ZERO);
+        return kmalloc(nr*size, gfp | ___GFP_ZERO);
 }
 
 void *kmem_cache_alloc(struct kmem_cache *cachep, int flags);
@@ -323,7 +326,7 @@ static __always_inline void *kmalloc_node(size_t size, gfp_t flags, int node)
 
 static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
 {
-    return kmalloc_node(size, flags | __GFP_ZERO, node);
+    return kmalloc_node(size, flags | ___GFP_ZERO, node);
 }
 
 static inline void *kmalloc_array(unsigned n, size_t s, gfp_t gfp)

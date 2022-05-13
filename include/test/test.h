@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include <linux/xarray.h>
+#include <linux/slub_def.h>
 
 //test/menu/
 void menu_basic_train(void);
@@ -104,6 +105,7 @@ void sched_pelt_constants(void);
 int mm_memblock_add(unsigned int size);
 void mm_memblock_test(void);
 void mm_constant_infos(void);
+void mm_kmem_cache_slub_info(struct kmem_cache_slub *s);
 
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);
