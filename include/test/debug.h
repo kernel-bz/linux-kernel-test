@@ -192,7 +192,7 @@ extern struct task_struct *current_task;
 void pr_sched_avg_info(struct sched_avg *sa);
 void pr_sched_pelt_info(struct sched_entity *se);
 
-void pr_sched_tg_view_cpu(struct task_group *tg);
+void pr_sched_tg_view_cpu_all(struct task_group *tg);
 int pr_sched_tg_view_only(void);
 
 void pr_sched_tg_info_all(void);
@@ -202,7 +202,7 @@ void pr_leaf_cfs_rq_info(void);
 void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq);
 
 void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se);
-void pr_sched_curr_task_info(struct task_struct *p);
+void pr_sched_task_info(struct task_struct *p);
 
 void pr_sched_cpumask_bits_info(unsigned int nr_cpu);
 

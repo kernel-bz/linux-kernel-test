@@ -1428,7 +1428,7 @@ static void __free_domain_allocs(struct s_data *d, enum s_alloc what,
 		free_percpu(d->sd);
 		/* Fall through */
 	case sa_sd_storage:
-		__sdt_free(cpu_map);
+        //__sdt_free(cpu_map);	//Bug: Error!
 		/* Fall through */
 	case sa_none:
 		break;

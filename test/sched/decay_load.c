@@ -27,6 +27,7 @@ static const u32 runnable_avg_yN_inv[] __maybe_unused = {
 static u64 decay_load(u64 val, u64 n)
 {
         unsigned int local_n;
+        u64 load = val;
 
         pr_fn_start_on(stack_depth);
         pr_view_on(stack_depth, "%10s : %llu\n", val);
@@ -55,12 +56,12 @@ static u64 decay_load(u64 val, u64 n)
 
         val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
 
-        u64 shift = (u64)1 << LOAD_AVG_PERIOD;
-        double decay_rate = (double)runnable_avg_yN_inv[local_n] / (double)shift;
+        //u64 shift = (u64)1 << LOAD_AVG_PERIOD;
+        //double decay_rate = (double)runnable_avg_yN_inv[local_n] / (double)shift;
+        double decay_rate = (double)val / (double)load;
 
         pr_view_on(stack_depth, "%10s : %llu\n", val);
         pr_view_on(stack_depth, "%30s : %u\n", runnable_avg_yN_inv[local_n]);
-        pr_view_on(stack_depth, "%30s : %llu\n", shift);
         pr_view_on(stack_depth, "%30s : %lf\n", decay_rate);
 
         pr_fn_end_on(stack_depth);

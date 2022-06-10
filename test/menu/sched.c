@@ -43,7 +43,7 @@ static int _sched_basic_pelt_test_menu(int asize)
     printf("5: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -84,7 +84,7 @@ static int _sched_cfs_test_menu(int asize)
     printf("5: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -120,7 +120,7 @@ static int _sched_rt_test_menu(int asize)
     printf("1: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -154,7 +154,7 @@ static int _sched_dl_test_menu(int asize)
     printf("3: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -186,15 +186,17 @@ static int _sched_test_menu(int asize)
     printf("[#]--> Scheduler Source Test Menu\n");
     printf(" 0: exit.\n");
 
-    printf(" 1: wake_up_new_task test.\n");
-    printf(" 2: current task info.\n");
-    printf(" 3: deactivate_task test.\n");
-    printf(" 4: setscheduler test.\n");
-    printf(" 5: schedule test.\n");
-    printf(" 6: create task group test.\n");
-    printf(" 7: wake up process test.\n");
-    printf(" 8: task group info.\n");
-    printf(" 9: task group info(detail).\n");
+    printf(" 1: create task group test.\n");
+    printf(" 2: task group info.\n");
+    printf(" 3: task group info(detail).\n");
+
+    printf(" 4: wake_up_new_task test.\n");
+    printf(" 5: current task info.\n");
+    printf(" 6: deactivate_task test.\n");
+    printf(" 7: setscheduler test.\n");
+    printf(" 8: schedule test.\n");
+    printf(" 9: wake up process test.\n");
+
     printf("10: Basic PELT Test -->\n");
     printf("11: CFS Test -->\n");
     printf("12: RT Test -->\n");
@@ -203,7 +205,7 @@ static int _sched_test_menu(int asize)
     printf("14: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -213,15 +215,17 @@ static int _sched_test_menu(int asize)
 void menu_sched_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
+        , test_sched_create_group
+        , pr_sched_tg_info
+        , pr_sched_tg_info_all
+
         , test_sched_new_task
         , test_sched_current_task_info
         , test_sched_deactivate_task
         , test_sched_setscheduler
         , test_sched_schedule
-        , test_sched_create_group
         , test_sched_wake_up_process
-        , pr_sched_tg_info
-        , pr_sched_tg_info_all
+
         , _menu_sched_basic_pelt_test
         , _menu_sched_cfs_test
         , _menu_sched_rt_test

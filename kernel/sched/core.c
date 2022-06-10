@@ -2340,18 +2340,14 @@ void wake_up_new_task(struct task_struct *p)
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
+
     update_rq_clock(rq);
     post_init_entity_util_avg(p);
 
-    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+    pr_sched_tg_info_all();
 
     activate_task(rq, p, ENQUEUE_NOCLOCK);
 
-    pr_view_on(stack_depth, "%20s : %d\n", task_cpu(p));
-    pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     //trace_sched_wakeup_new(p);
@@ -2361,6 +2357,7 @@ void wake_up_new_task(struct task_struct *p)
     }
     check_preempt_curr(rq, p, WF_FORK);
 #ifdef CONFIG_SMP
+    pr_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_woken);
     if (p->sched_class->task_woken) {
         /*
          * Nothing relies on rq->lock after this, so its fine to
@@ -3639,7 +3636,7 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
     else
         p->sched_class = &fair_sched_class;
 
-    pr_sched_curr_task_info(p);
+    pr_sched_task_info(p);
     pr_fn_end_on(stack_depth);
 }
 
@@ -4403,30 +4400,33 @@ void __init sched_init(void)
 #ifdef CONFIG_RT_GROUP_SCHED
         ptr += 2 * nr_cpu_ids * sizeof(void **);
 #endif
+        pr_view_on(stack_depth, "%30s : %u\n", nr_cpu_ids);
+        pr_view_on(stack_depth, "%30s : %d\n", sizeof(void **));
         pr_view_on(stack_depth, "%30s : %lu\n", ptr);
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)&root_task_group);
+        pr_view_on(stack_depth, "%30s : %p\n", &root_task_group);
         if (ptr) {
-                ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
-                pr_view_on(stack_depth, "%30s : %p\n", (void*)ptr);
+                //ptr = (unsigned long)kzalloc(ptr, GFP_NOWAIT);
+                ptr = kzalloc(ptr, GFP_NOWAIT);
+                pr_view_on(stack_depth, "%30s : %p\n", ptr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
                 root_task_group.se = (struct sched_entity **)ptr;
+                pr_view_on(stack_depth, "%30s : %p\n", root_task_group.se);
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.se);
 
                 root_task_group.cfs_rq = (struct cfs_rq **)ptr;
+                pr_view_on(stack_depth, "%30s : %p\n", root_task_group.cfs_rq);
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.cfs_rq);
 #endif /* CONFIG_FAIR_GROUP_SCHED */
 
 #ifdef CONFIG_RT_GROUP_SCHED
                 root_task_group.rt_se = (struct sched_rt_entity **)ptr;
+                pr_view_on(stack_depth, "%30s : %p\n", root_task_group.rt_se);
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_se);
 
                 root_task_group.rt_rq = (struct rt_rq **)ptr;
+                pr_view_on(stack_depth, "%30s : %p\n", root_task_group.rt_rq);
                 ptr += nr_cpu_ids * sizeof(void **);
-                pr_view_on(stack_depth, "%30s : %p\n", (void*)root_task_group.rt_rq);
 
 #endif /* CONFIG_RT_GROUP_SCHED */
         }

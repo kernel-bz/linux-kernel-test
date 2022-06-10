@@ -44,7 +44,7 @@ static int _mm_test_menu(int asize)
     printf("4: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 

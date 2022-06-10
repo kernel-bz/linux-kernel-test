@@ -42,7 +42,7 @@ static int _main_menu(int asize)
     __fpurge(stdin);
 
     printf("\n");
-    printf("[*] Linux Kernel Source Test (c)www.kernel.bz\n");
+    printf("[#] Linux Kernel Source Test (c)www.kernel.bz\n");
     printf("0: exit.\n");
     printf("1: Config Setting -->\n");
     printf("2: Basic Training -->\n");
@@ -56,7 +56,7 @@ static int _main_menu(int asize)
            CONFIG_VERSION_1, CONFIG_VERSION_2, CONFIG_VERSION_3);
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     scanf("%d", &idx);
     return (idx > 0 && idx < asize) ? idx : -1;
 }

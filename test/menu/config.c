@@ -42,7 +42,7 @@ static int _config_setting_menu(int asize)
     printf("4: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
 
     __fpurge(stdin);
     ret = scanf("%d", &idx);

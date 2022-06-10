@@ -55,7 +55,7 @@ static int _dtb_unittest_menu(int asize)
     printf(" 16: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 
@@ -107,7 +107,7 @@ static int _drivers_menu(int asize)
     printf("6: help.\n");
     printf("\n");
 
-    printf("Enter Menu Number[0,%d]: ", asize);
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
     ret = scanf("%d", &idx);
     if (ret <= 0) idx = 0;
 

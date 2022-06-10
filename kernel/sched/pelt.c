@@ -42,6 +42,9 @@
 static u64 decay_load(u64 val, u64 n)
 {
 	unsigned int local_n;
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%10s : %llu\n", val);
+    pr_view_on(stack_depth, "%10s : %llu\n", n);
 
 	if (unlikely(n > LOAD_AVG_PERIOD * 63))
 		return 0;
@@ -62,7 +65,10 @@ static u64 decay_load(u64 val, u64 n)
 	}
 
 	val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
-	return val;
+
+    pr_view_on(stack_depth, "%10s : %llu\n", val);
+    pr_fn_end_on(stack_depth);
+    return val;
 }
 
 static u32 __accumulate_pelt_segments(u64 periods, u32 d1, u32 d3)
@@ -219,12 +225,13 @@ ___update_load_sum(u64 now, struct sched_avg *sa,
     int ret=1;
 
     pr_fn_start_on(stack_depth);
-    pr_view_on(stack_depth, "%20s : %llu\n", now);
     pr_view_on(stack_depth, "%20s : %lu\n", load);
     pr_view_on(stack_depth, "%20s : %lu\n", runnable);
     pr_view_on(stack_depth, "%20s : %d\n", running);
 
 	delta = now - sa->last_update_time;
+    pr_view_on(stack_depth, "%20s : %llu\n", now);
+    pr_view_on(stack_depth, "%20s : %llu\n", sa->last_update_time);
     pr_view_on(stack_depth, "%16s(ns) : %lld\n", (s64)delta);
     /*
 	 * This should only happen when time goes backwards, which it
@@ -283,10 +290,10 @@ ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runna
 
     u32 divider = LOAD_AVG_MAX - 1024 + sa->period_contrib;
 
-    pr_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
-    pr_view_on(stack_depth, "%30s : %u\n", divider);
     pr_view_on(stack_depth, "%30s : %lu\n", load);
     pr_view_on(stack_depth, "%30s : %lu\n", runnable);
+    pr_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
+    pr_view_on(stack_depth, "%30s : %u\n", divider);
     /*
 	 * Step 2: update *_avg.
 	 */
@@ -329,18 +336,25 @@ ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runna
 
 int __update_load_avg_blocked_se(u64 now, struct sched_entity *se)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
+
 	if (___update_load_sum(now, &se->avg, 0, 0, 0)) {
 		___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
         //trace_pelt_se_tp(se);
 		return 1;
 	}
 
+    pr_fn_end_on(stack_depth);
 	return 0;
 }
 
 int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se)
 {
     pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
 
 	if (___update_load_sum(now, &se->avg, !!se->on_rq, !!se->on_rq,
 				cfs_rq->curr == se)) {
@@ -359,6 +373,8 @@ int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se
 int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
 {
     pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
 
 	if (___update_load_sum(now, &cfs_rq->avg,
 				scale_load_down(cfs_rq->load.weight),

@@ -125,6 +125,12 @@ static inline unsigned int slab_order(unsigned int size,
         unsigned int min_order = slub_min_order;
         unsigned int order;
 
+        pr_fn_start_enable(stack_depth);
+        pr_view_enable(stack_depth, "%20s : %u\n", size);
+        pr_view_enable(stack_depth, "%20s : %u\n", min_order);
+        pr_view_enable(stack_depth, "%20s : %u\n", max_order);
+        pr_view_enable(stack_depth, "%20s : %u\n", fract_leftover);
+
         if (order_objects(min_order, size) > MAX_OBJS_PER_PAGE)
                 return get_order(size * MAX_OBJS_PER_PAGE) - 1;
 
@@ -136,9 +142,17 @@ static inline unsigned int slab_order(unsigned int size,
 
                 rem = slab_size % size;
 
+                pr_view_enable(stack_depth, "%30s : %u\n", order);
+                pr_view_enable(stack_depth, "%30s : %u\n", slab_size);
+                pr_view_enable(stack_depth, "%30s : %u\n", order_objects(order, size));
+                pr_view_enable(stack_depth, "%30s : %u\n", rem);
+                pr_view_enable(stack_depth, "%30s : %u\n", slab_size / fract_leftover);
+
                 if (rem <= slab_size / fract_leftover)
                         break;
         }
+
+        pr_fn_end_enable(stack_depth);
 
         return order;
 }
@@ -165,6 +179,9 @@ static inline int calculate_order(unsigned int size)
         max_objects = order_objects(slub_max_order, size);
         min_objects = min(min_objects, max_objects);
 
+        pr_view_enable(stack_depth, "%20s : %u\n", slub_min_objects);
+        pr_view_enable(stack_depth, "%20s : %u\n", slub_min_order);
+        pr_view_enable(stack_depth, "%20s : %u\n", slub_max_order);
         pr_view_enable(stack_depth, "%20s : %u\n", min_objects);
         pr_view_enable(stack_depth, "%20s : %u\n", max_objects);
 
@@ -175,11 +192,14 @@ static inline int calculate_order(unsigned int size)
                 while (fraction >= 4) {
                         order = slab_order(size, min_objects,
                                         slub_max_order, fraction);
+                        pr_view_enable(stack_depth, "%20s : %u\n", fraction);
+                        pr_view_enable(stack_depth, "%20s : %u\n", order);
                         if (order <= slub_max_order)
                                 return order;
                         fraction /= 2;
                 }
                 min_objects--;
+                pr_view_enable(stack_depth, "%20s : %u\n", min_objects);
         }
 
         /*
@@ -330,10 +350,17 @@ static int calculate_sizes(struct kmem_cache_slub *s, int forced_order)
         if (oo_objects(s->oo) > oo_objects(s->max))
                 s->max = s->oo;
 
+        pr_view_enable(stack_depth, "%20s : %u\n", oo_order(s->oo));
+        pr_view_enable(stack_depth, "%20s : %u\n", oo_objects(s->oo));
         pr_fn_end_enable(stack_depth);
 
         return !!oo_objects(s->oo);
 }
+
+/**
+ *	function call flow
+ * 	__kmem_cache_create()
+ */
 
 void slub_calculate_sizes_test(void)
 {
@@ -347,9 +374,38 @@ void slub_calculate_sizes_test(void)
 
     pr_fn_start_enable(stack_depth);
 
-     __fpurge(stdin);
+    __fpurge(stdin);
     printf("Input Size: ");
     scanf("%u", &size);
+
+    size = ALIGN(size, sizeof(void *));
+
+    unsigned int order, min_order, slab_size, objects, rem, fract;
+    unsigned int min_objects, max_objects;
+
+    min_objects = 4 * (fls(nr_cpu_ids) + 1);
+    max_objects = order_objects(slub_max_order, size);
+    min_objects = min(min_objects, max_objects);
+    min_order = max(slub_min_order, (unsigned int)get_order(min_objects * size));
+    pr_view_enable(stack_depth, "%20s : %u\n", size);
+    pr_view_enable(stack_depth, "%20s : %u\n", min_objects);
+    pr_view_enable(stack_depth, "%20s : %u\n", max_objects);
+    pr_view_enable(stack_depth, "%20s : %u\n", min_order);
+    pr_view_enable(stack_depth, "%20s : %u\n", slub_min_order);
+    pr_view_enable(stack_depth, "%20s : %u\n\n", slub_max_order);
+    for (order = 0; order <= 11; order++) {
+    //for (order = min_order; order <= slub_max_order; order++) {
+        slab_size = (unsigned int)PAGE_SIZE << order;
+        objects = order_objects(order, size);	//slab_size / size
+        rem = slab_size % size;
+        pr_view_enable(stack_depth, "%30s : %u\n", order);
+        pr_view_enable(stack_depth, "%30s : %u\n", slab_size);
+        pr_view_enable(stack_depth, "%30s : %u\n", objects);
+        pr_view_enable(stack_depth, "%30s : %u\n", rem);
+        pr_view_enable(stack_depth, "%30s : %u\n", slab_size / 16);
+        pr_view_enable(stack_depth, "%30s : %u\n", slab_size / 8);
+        pr_view_enable(stack_depth, "%30s : %u\n\n", slab_size / 4);
+    }
 
     s->name = "test";
     //s->size = s->object_size = sizeof(struct kmem_cache_node);

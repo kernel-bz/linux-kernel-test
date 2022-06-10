@@ -111,6 +111,8 @@ _retry:
     pr_view_on(stack_depth, "%30s : %d\n", sizeof(struct task_struct));
     pr_view_on(stack_depth, "%30s : %d\n", sizeof(*p));
     pr_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
+    pr_view_on(stack_depth, "%30s : %p\n", current_task);
+
     p = (struct task_struct *)malloc(sizeof(*p));
 
     if (current_task) {
@@ -125,14 +127,19 @@ _retry:
     pr_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
     pr_view_on(stack_depth, "%30s : %p\n", (void*)p);
 
+    //pr_sched_task_info(&init_task);
+
     p->sched_task_group = _sched_test_tg_select();
     p->cpu = cpu;
     pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_view_on(stack_depth, "%30s : %u\n", p->cpu);
 
+    pr_sched_task_info(p);
+
     //kernel/sched/core.c
     if (sched_fork(0, p) == 0) {
         wake_up_new_task(p);
+        pr_sched_task_info(p);
     }
     rq = task_rq(p);
     rq->curr = p;
@@ -140,18 +147,7 @@ _retry:
     rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
     current_task = p;
 
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)p);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
-    pr_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
-    pr_view_on(stack_depth, "%30s : %d\n", cpu_of(rq));
-    pr_view_on(stack_depth, "%30s : %d\n", p->prio);
-    pr_view_on(stack_depth, "%30s : %d\n", p->on_rq);
-    pr_out_on(stack_depth, "\n");
-
-    //pr_sched_pelt_info(&p->se);
+    pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -172,10 +168,10 @@ _retry:
     rq = cpu_rq(cpu);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-    pr_sched_curr_task_info(rq->curr);
+    pr_sched_task_info(rq->curr);
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)current);
-    pr_sched_curr_task_info(current);	//current_task
+    pr_sched_task_info(current);	//current_task
 
     pr_fn_end_on(stack_depth);
 }
@@ -379,7 +375,8 @@ void test_calc_global_load(void)
     pr_view_on(stack_depth, "%30s : %lu\n", READ_ONCE(calc_load_update));
     this_rq->calc_load_update = READ_ONCE(calc_load_update);
     pr_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_update);
-    jiffies = this_rq->calc_load_update;
+    //jiffies = this_rq->calc_load_update;
+    jiffies = 0;
     pr_view_on(stack_depth, "%30s : %ld\n", atomic_long_read(&calc_load_tasks));	//delta active
     pr_view_on(stack_depth, "%30s : %d\n", HZ);
 
@@ -387,17 +384,21 @@ void test_calc_global_load(void)
         pr_out_on(stack_depth, "\n");
         pr_view_on(stack_depth, "%20s : %d\n", i);
         pr_view_on(stack_depth, "%20s : %lu\n", jiffies);
-        pr_view_on(stack_depth, "%20s : %u\n", this_rq->nr_running);
-
-        //kernel/sched/loadavg.c
-        calc_global_load(0);	//void
 
         //kernel/sched/core.c
         //scheduler_tick();
-        if(this_rq->nr_running >= 10) step = -1;
-        else if(this_rq->nr_running <= 0) step = 1;
+        if (this_rq->nr_running >= 5)
+            step = -1;
+        else if (this_rq->nr_running <= 0)
+            step = 1;
         this_rq->nr_running += step;
+
+        pr_view_on(stack_depth, "%20s : %u\n", this_rq->nr_running);
+
         calc_global_load_tick(this_rq);
+
+        //kernel/sched/loadavg.c
+        calc_global_load(0);	//void
 
         //usleep(tick * 1000);
 

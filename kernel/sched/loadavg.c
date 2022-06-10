@@ -80,13 +80,24 @@ long calc_load_fold_active(struct rq *this_rq, long adjust)
 {
 	long nr_active, delta = 0;
 
-	nr_active = this_rq->nr_running - adjust;
+    pr_fn_start_on(stack_depth);
+
+    nr_active = this_rq->nr_running - adjust;
 	nr_active += (long)this_rq->nr_uninterruptible;
+
+    pr_view_on(stack_depth, "%30s : %lu\n", this_rq->nr_running);
+    pr_view_on(stack_depth, "%30s : %lu\n", this_rq->nr_uninterruptible);
+    pr_view_on(stack_depth, "%30s : %ld\n", nr_active);
+    pr_view_on(stack_depth, "%30s : %lu\n", this_rq->calc_load_active);
 
 	if (nr_active != this_rq->calc_load_active) {
 		delta = nr_active - this_rq->calc_load_active;
 		this_rq->calc_load_active = nr_active;
 	}
+
+    pr_view_on(stack_depth, "%40s : %ld\n", delta);
+    pr_view_on(stack_depth, "%40s : %lu\n", this_rq->calc_load_active);
+    pr_fn_end_on(stack_depth);
 
 	return delta;
 }

@@ -15,25 +15,38 @@
 #include <linux/limits.h>
 #include "kernel/sched/sched-pelt.h"
 
-static struct sched_avg sa = {
-    .load_sum = 840000,
-    .runnable_load_sum = 8500000,
-    .util_sum = 86000000
+static struct sched_avg se_avg = {
+    .load_sum = 0,
+    .runnable_load_sum = 0,
+    .util_sum = 0
 };
 
-static void _pr_sched_avg_info(int idx)
+static struct sched_avg cfs_rq_avg = {
+    .load_sum = 0,
+    .runnable_load_sum = 0,
+    .util_sum = 0
+};
+
+static unsigned long load, runnable;
+static int running;
+static unsigned long se_load_weight, se_runnable_weight;
+
+static void _pr_sched_avg_info(struct sched_avg *sa)
 {
-    pr_view_on(stack_depth, "%25s : %d\n", idx);
-    pr_view_on(stack_depth, "%25s : %llu\n", sa.last_update_time);
-    pr_view_on(stack_depth, "%25s : %llu\n", sa.load_sum);
-    pr_view_on(stack_depth, "%25s : %llu\n", sa.runnable_load_sum);
-    pr_view_on(stack_depth, "%25s : %u\n", sa.util_sum);
-    pr_view_on(stack_depth, "%25s : %u\n", sa.period_contrib);
-    pr_view_on(stack_depth, "%25s : %lu\n", sa.load_avg);
-    pr_view_on(stack_depth, "%25s : %lu\n", sa.runnable_load_avg);
-    pr_view_on(stack_depth, "%25s : %lu\n", sa.util_avg);
-    //pr_view_on(stack_depth, "%25s : %llu\n", sa.util_est);
-    pr_out_on(stack_depth, "\n");
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%25s : %llu\n", sa->last_update_time);
+    pr_view_on(stack_depth, "%25s : %llu\n", sa->load_sum);
+    pr_view_on(stack_depth, "%25s : %llu\n", sa->runnable_load_sum);
+    pr_view_on(stack_depth, "%25s : %u\n", sa->util_sum);
+    pr_view_on(stack_depth, "%25s : %u\n", sa->period_contrib);
+    pr_view_on(stack_depth, "%25s : %lu\n", sa->load_avg);
+    pr_view_on(stack_depth, "%25s : %lu\n", sa->runnable_load_avg);
+    pr_view_on(stack_depth, "%25s : %lu\n", sa->util_avg);
+    //pr_view_on(stack_depth, "%25s : %llu\n", sa->util_est.enqueued);
+    //pr_view_on(stack_depth, "%25s : %llu\n", sa->util_est.ewma);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static u64 decay_load(u64 val, u64 n)
@@ -189,6 +202,34 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
     return periods;
 }
 
+/*
+ * We can represent the historical contribution to runnable average as the
+ * coefficients of a geometric series.  To do this we sub-divide our runnable
+ * history into segments of approximately 1ms (1024us); label the segment that
+ * occurred N-ms ago p_N, with p_0 corresponding to the current period, e.g.
+ *
+ * [<- 1024us ->|<- 1024us ->|<- 1024us ->| ...
+ *      p0            p1           p2
+ *     (now)       (~1ms ago)  (~2ms ago)
+ *
+ * Let u_i denote the fraction of p_i that the entity was runnable.
+ *
+ * We then designate the fractions u_i as our co-efficients, yielding the
+ * following representation of historical load:
+ *   u_0 + u_1*y + u_2*y^2 + u_3*y^3 + ...
+ *
+ * We choose y based on the with of a reasonably scheduling period, fixing:
+ *   y^32 = 0.5
+ *
+ * This means that the contribution to load ~32ms ago (u_32) will be weighted
+ * approximately half as much as the contribution to load within the last ms
+ * (u_0).
+ *
+ * When a period "rolls over" and we have new u_0`, multiplying the previous
+ * sum again by y is sufficient to update:
+ *   load_avg = u_0` + y*(u_0 + u_1*y + u_2*y^2 + ... )
+ *            = u_0 + u_1*y + u_2*y^2 + ... [re-labeling u_i --> u_{i+1}]
+ */
 static int
 ___update_load_sum(u64 now, struct sched_avg *sa,
                   unsigned long load, unsigned long runnable, int running)
@@ -270,47 +311,132 @@ update_load_avg()
     //kernel/sched/pelt.c
     ___update_load_sum(now, *sa, load, runnable, running)
         ___update_load_avg(*sa, load, runnable)
+
+int __update_load_avg_blocked_se(u64 now, struct sched_entity *se)
+{
+        if (___update_load_sum(now, &se->avg, 0, 0, 0)) {
+                ___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
+                trace_pelt_se_tp(se);
+                return 1;
+        }
+
+        return 0;
+}
+
+int __update_load_avg_se(u64 now, struct cfs_rq *cfs_rq, struct sched_entity *se)
+{
+        if (___update_load_sum(now, &se->avg, !!se->on_rq, !!se->on_rq,
+                                cfs_rq->curr == se)) {
+
+                ___update_load_avg(&se->avg, se_weight(se), se_runnable(se));
+                cfs_se_util_change(&se->avg);
+                trace_pelt_se_tp(se);
+                return 1;
+        }
+
+        return 0;
+}
+
+int __update_load_avg_cfs_rq(u64 now, struct cfs_rq *cfs_rq)
+{
+        if (___update_load_sum(now, &cfs_rq->avg,
+                                scale_load_down(cfs_rq->load.weight),
+                                scale_load_down(cfs_rq->runnable_weight),
+                                cfs_rq->curr != NULL)) {
+
+                ___update_load_avg(&cfs_rq->avg, 1, 1);
+                trace_pelt_cfs_tp(cfs_rq);
+                return 1;
+        }
+
+        return 0;
+}
 #endif //0
+
+static int __update_load_avg_se(u64 now)
+{
+    int decayed;
+
+    pr_fn_start_on(stack_depth);
+
+    if (___update_load_sum(now, &se_avg, load, runnable, running)) {
+            ___update_load_avg(&se_avg, se_load_weight, se_runnable_weight);
+            //cfs_se_util_change(&se_avg);
+            decayed = 1;
+    } else
+        decayed = 0;
+
+    pr_view_on(stack_depth, "%20s : %d\n", decayed);
+    _pr_sched_avg_info(&se_avg);
+
+    pr_fn_end_enable(stack_depth);
+}
+
+static int __update_load_avg_cfs_rq(u64 now)
+{
+    int decayed;
+    pr_fn_start_on(stack_depth);
+
+    if (___update_load_sum(now, &cfs_rq_avg,
+                           se_load_weight, se_runnable_weight, running)) {
+            ___update_load_avg(&cfs_rq_avg, 1, 1);
+            decayed = 1;
+    } else
+        decayed = 0;
+
+    pr_view_on(stack_depth, "%20s : %d\n", decayed);
+    _pr_sched_avg_info(&cfs_rq_avg);
+
+    pr_fn_end_enable(stack_depth);
+}
 
 void test_update_load_avg(void)
 {
-    unsigned long load, runnable, load_avg, runnable_avg;
-    int running;
     u64 now = 0, hz, ns;
-    int i, loop_cnt;
+    int i, loop_cnt, on_rq, run, weight, which;
+
+    pr_fn_start_on(stack_depth);
+
+    //se_load_weight = 1024;
+    //se_runnable_weight = 1024;
+
+    _pr_sched_avg_info(&se_avg);
+    _pr_sched_avg_info(&cfs_rq_avg);
 
     __fpurge(stdin);
-    printf("Input Load Weight Value[0,%d]: ", LOAD_AVG_MAX);
-    scanf("%lu", &load);
-    printf("Input Runnable Weight Value[0,%d]: ", LOAD_AVG_MAX);
-    scanf("%lu", &runnable);
-    printf("Input Running Value[0,%d]: ", LOAD_AVG_MAX);
-    scanf("%d", &running);
+    printf("Input on_rq value[0,1]: ");
+    scanf("%lu", &on_rq);
+    printf("Input running value[0,1]: ");
+    scanf("%d", &run);
+    printf("Input weight value[0,%d]: ", LOAD_AVG_MAX);
+    scanf("%d", &weight);
+    printf("Select which one[0,1]: ");
+    scanf("%d", &which);
 
-    printf("Input Load_Avg Weight Value[0,%d]: ", LOAD_AVG_MAX);
-    scanf("%lu", &load_avg);
-    printf("Input Runnable_Avg Weight Value[0,%d]: ", LOAD_AVG_MAX);
-    scanf("%lu", &runnable_avg);
+    load = on_rq;
+    runnable = on_rq;
+    running = run;
+    se_load_weight = weight;
+    se_runnable_weight = weight;
 
     printf("Input HZ Value[%d,%d]: ", HZ, HZ*100);
     scanf("%llu", &hz);
     printf("Input Loop Counter[0,%d]: ", S32_MAX);
     scanf("%d", &loop_cnt);
 
-    pr_fn_start_on(stack_depth);
-
     ns = 1000000000UL / hz;	//ns
 
-    _pr_sched_avg_info(0);
     for (i=0; i<loop_cnt; i++) {
         now += ns;
-        if (___update_load_sum(now, &sa, load, runnable, running)) {
-            //_pr_sched_avg_info(i);
-            ___update_load_avg(&sa, load_avg, runnable_avg);
-            _pr_sched_avg_info(i);
-        }
-        printf("++%d---------------------------------------------------\n", i+1);
+        printf("----- loop %d ------------------------------------------\n", i);
+
+        if (which == 0 || which >= 2)
+            __update_load_avg_se(now);
+        if (which == 1 || which >= 2)
+            __update_load_avg_cfs_rq(now);
     }
 
+    _pr_sched_avg_info(&se_avg);
+    _pr_sched_avg_info(&cfs_rq_avg);
     pr_fn_end_on(stack_depth);
 }
