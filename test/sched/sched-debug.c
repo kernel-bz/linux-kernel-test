@@ -15,7 +15,7 @@
 #include <linux/cpumask.h>
 #include "test/debug.h"
 
-void pr_sched_avg_info(struct sched_avg *sa)
+static void _pr_sched_avg_info(struct sched_avg *sa)
 {
     pr_fn_start_on(stack_depth);
     pr_out_on(stack_depth, "--------------- sched avg ----------------\n");
@@ -30,6 +30,31 @@ void pr_sched_avg_info(struct sched_avg *sa)
     pr_view_on(stack_depth, "%30s : %lu\n", sa->util_avg);
     pr_view_on(stack_depth, "%30s : %u\n", sa->util_est.enqueued);
     pr_view_on(stack_depth, "%30s : %u\n", sa->util_est.ewma);
+
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_sched_pelt_avg_info(struct sched_entity *se, struct cfs_rq *cfs_rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    if (se) {
+        pr_out_on(stack_depth, "-------------- se PELT info --------------\n");
+        pr_view_on(stack_depth, "%25s : %p\n", se);
+        pr_view_on(stack_depth, "%25s : %lu\n", se->load.weight);
+        //pr_view_on(stack_depth, "%25s : %u\n", se->load.inv_weight);
+        pr_view_on(stack_depth, "%25s : %lu\n", se->runnable_weight);
+        _pr_sched_avg_info(&se->avg);
+    }
+
+    if (cfs_rq) {
+        pr_out_on(stack_depth, "------------ cfs_rq PELT info ------------\n");
+        pr_view_on(stack_depth, "%25s : %p\n", cfs_rq);
+        pr_view_on(stack_depth, "%25s : %lu\n", cfs_rq->load.weight);
+        //pr_view_on(stack_depth, "%25s : %u\n", cfs_rq->load.inv_weight);
+        pr_view_on(stack_depth, "%25s : %lu\n", cfs_rq->runnable_weight);
+        _pr_sched_avg_info(&cfs_rq->avg);
+    }
 
     pr_fn_end_on(stack_depth);
 }
@@ -60,23 +85,15 @@ static void _pr_sched_rq_info(struct rq *rq)
     pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
     pr_view_on(stack_depth, "%20s : %lu\n", rq->lost_idle_time);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->cfs);
-    pr_sched_avg_info(&rq->cfs.avg);
+    pr_sched_pelt_avg_info(NULL, &rq->cfs);
 
     pr_fn_end_on(stack_depth);
 }
 
-static void __pr_sched_cfs_rq_pelt(struct cfs_rq *cfs_rq)
+static void __pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
 {
     pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
-
-    pr_view_on(stack_depth, "%30s : %lu\n", cfs_rq->load.weight);
-    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->load.inv_weight);
-
-    pr_view_on(stack_depth, "%30s : %lu\n", cfs_rq->runnable_weight);
-    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
-    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->h_nr_running);
-    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->idle_h_nr_running);
+    if (!cfs_rq) return;
 
     pr_view_on(stack_depth, "%30s : %llu\n", cfs_rq->min_vruntime);
 
@@ -102,23 +119,6 @@ static void __pr_sched_cfs_rq_pelt(struct cfs_rq *cfs_rq)
     pr_out_on(stack_depth, "\n");
 }
 
-static void _pr_sched_cfs_rq_pelt_info(struct cfs_rq *cfs_rq)
-{
-    pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "-------------- cfs_rq PELT info ----------\n");
-
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
-    u64 now = cfs_rq_clock_pelt(cfs_rq);	//rq->clock_pelt - rq->lost_idle_time;
-    pr_view_on(stack_depth, "%20s : %llu\n", now);
-    if(!cfs_rq) goto _end;
-
-    __pr_sched_cfs_rq_pelt(cfs_rq);
-    pr_sched_avg_info(&cfs_rq->avg);
-
-_end:
-    pr_fn_end_on(stack_depth);
-}
-
 static void _pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
 {
     pr_fn_start_on(stack_depth);
@@ -134,27 +134,10 @@ static void _pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
     pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->last);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq->skip);
 
-    pr_view_on(stack_depth, "%20s : %d\n", cfs_rq->on_list);
-    pr_view_on(stack_depth, "%20s : %u\n", cfs_rq->nr_running);
-    pr_view_on(stack_depth, "%20s : %u\n", cfs_rq->h_nr_running);
-
- _end:
-    pr_fn_end_on(stack_depth);
-}
-
-static void _pr_sched_se_pelt_info(struct sched_entity *se)
-{
-    pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "-------------- se PELT info --------------\n");
-
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
-    if(!se) goto _end;
-
-    pr_view_on(stack_depth, "%20s : %lu\n", se->load.weight);
-    pr_view_on(stack_depth, "%20s : %u\n", se->load.inv_weight);
-    pr_view_on(stack_depth, "%20s : %lu\n", se->runnable_weight);
-
-    pr_sched_avg_info(&se->avg);
+    pr_view_on(stack_depth, "%30s : %d\n", cfs_rq->on_list);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->h_nr_running);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->idle_h_nr_running);
 
  _end:
     pr_fn_end_on(stack_depth);
@@ -183,7 +166,8 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+    pr_out_on(stack_depth, "--------------- cfs_rq rblist -------------\n");
+    pr_view_on(stack_depth, "%10s : %p\n", (void*)cfs_rq);
     if(!cfs_rq) goto _end;
 
     if (cfs_rq->on_list > 0) {
@@ -193,10 +177,10 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
         struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
         while (next) {
             se = rb_entry(next, struct sched_entity, run_node);
-            pr_view_on(stack_depth, "%20s : %d\n", i++);
+            pr_view_on(stack_depth, "%10s : %d\n", i++);
 
             _pr_sched_se_info(se);
-            _pr_sched_se_pelt_info(se);
+            pr_sched_pelt_avg_info(se, NULL);
 
             if (entity_is_task(se)) {
                 p = container_of(se, struct task_struct, se);	//task_of
@@ -217,11 +201,12 @@ void pr_sched_pelt_info(struct sched_entity *se)
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
     _pr_sched_se_info(se);
-    _pr_sched_se_pelt_info(se);
+    pr_sched_pelt_avg_info(se, NULL);
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)se->cfs_rq);
     _pr_sched_cfs_rq_info(se->cfs_rq);
-    _pr_sched_cfs_rq_pelt_info(se->cfs_rq);
+    __pr_sched_cfs_rq_info(se->cfs_rq);
+    pr_sched_pelt_avg_info(NULL, se->cfs_rq);
     _pr_sched_cfs_rq_rblist(se->cfs_rq);
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)se->my_q);
@@ -230,7 +215,9 @@ void pr_sched_pelt_info(struct sched_entity *se)
         pr_view_on(stack_depth, "%20s : %p\n", (void*)se->my_q->tg);
         pr_view_on(stack_depth, "%20s : %p\n", (void*)se->my_q->rq);
         _pr_sched_cfs_rq_info(se->my_q);
-        _pr_sched_cfs_rq_pelt_info(se->my_q);
+        __pr_sched_cfs_rq_info(se->my_q);
+        pr_sched_pelt_avg_info(NULL, se->my_q);
+
     }
 
     pr_out_on(stack_depth, "===============================================\n");
@@ -272,11 +259,12 @@ static void _pr_sched_tg_view_cpu_detail(struct task_group *tg, int cpu)
 
     struct sched_entity *se = tg->se[cpu];
     _pr_sched_se_info(se);
-    _pr_sched_se_pelt_info(se);
+    pr_sched_pelt_avg_info(se, NULL);
 
     struct cfs_rq *cfs_rq = tg->cfs_rq[cpu];
     _pr_sched_cfs_rq_info(cfs_rq);
-    _pr_sched_cfs_rq_pelt_info(cfs_rq);
+    __pr_sched_cfs_rq_info(cfs_rq);
+    pr_sched_pelt_avg_info(NULL, cfs_rq);
     _pr_sched_cfs_rq_rblist(cfs_rq);
 
     //struct rt_rq *rt_rq = tg->rt_rq[cpu];
@@ -400,20 +388,29 @@ _retry:
     pr_fn_start_on(stack_depth);
 
     rq = cpu_rq(cpu);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->leaf_cfs_rq_list);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->tmp_alone_branch);
+    pr_view_on(stack_depth, "%10s : %p\n", (void*)rq);
 
     //for_each_leaf_cfs_rq_safe(rq, cfs_rq, pos) {
     list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,
                  leaf_cfs_rq_list) {
         struct sched_entity *se;
 
-        pr_view_on(stack_depth, "%30s : %d\n", count++);
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+        pr_view_on(stack_depth, "%20s : %d\n", count++);
         pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->tg);
         se = cfs_rq->tg->se[cpu];
         pr_view_on(stack_depth, "%30s : %p\n", (void*)se);
+        pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
+
+        _pr_sched_cfs_rq_info(cfs_rq);
+        __pr_sched_cfs_rq_info(cfs_rq);
+        pr_sched_pelt_avg_info(NULL, cfs_rq);
+
+        if (cfs_rq->curr) {
+            _pr_sched_se_info(cfs_rq->curr);
+            pr_sched_pelt_avg_info(cfs_rq->curr, NULL);
+        }
+
+        _pr_sched_cfs_rq_rblist(cfs_rq);
     }
 
     pr_fn_end_on(stack_depth);

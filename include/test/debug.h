@@ -189,7 +189,7 @@ extern int stack_depth;
 //test/sched/sched-test.c
 extern struct task_struct *current_task;
 
-void pr_sched_avg_info(struct sched_avg *sa);
+void pr_sched_pelt_avg_info(struct sched_entity *se, struct cfs_rq *cfs_rq);
 void pr_sched_pelt_info(struct sched_entity *se);
 
 void pr_sched_tg_view_cpu_all(struct task_group *tg);

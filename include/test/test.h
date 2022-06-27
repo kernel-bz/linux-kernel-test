@@ -109,6 +109,7 @@ void mm_kmem_cache_slub_info(struct kmem_cache_slub *s);
 
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);
+void sched_fair_vruntime_test(void);
 
 
 #ifdef __cplusplus

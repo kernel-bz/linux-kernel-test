@@ -233,6 +233,8 @@ void update_rq_clock(struct rq *rq)
     update_rq_clock_task(rq, delta);
 
     pr_view_on(stack_depth, "%20s : %llu\n", rq->clock);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
+    pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
     pr_fn_end_on(stack_depth);
 }
 //220 lines
@@ -2344,17 +2346,13 @@ void wake_up_new_task(struct task_struct *p)
     update_rq_clock(rq);
     post_init_entity_util_avg(p);
 
-    pr_sched_tg_info_all();
+    //pr_sched_tg_info_all();
 
     activate_task(rq, p, ENQUEUE_NOCLOCK);
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     //trace_sched_wakeup_new(p);
-    if (!rq->curr) {
-        pr_err("rq->curr NULL\n");
-        return;
-    }
     check_preempt_curr(rq, p, WF_FORK);
 #ifdef CONFIG_SMP
     pr_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_woken);
@@ -2370,6 +2368,7 @@ void wake_up_new_task(struct task_struct *p)
 #endif
     task_rq_unlock(rq, p, &rf);
 
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     pr_fn_end_on(stack_depth);
 }
 //2982 lines
@@ -2953,6 +2952,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
     const struct sched_class *class;
     struct task_struct *p;
 
+    pr_view_on(stack_depth, "%20s : %p\n", prev);
     pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
     pr_view_on(stack_depth, "%20s : %u\n", rq->cfs.h_nr_running);
 
@@ -3215,7 +3215,7 @@ asmlinkage __visible void __sched schedule(void)
     struct task_struct *tsk = current_task;
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+    if (!current_task) return;
 
     sched_submit_work(tsk);
     do {
@@ -3225,8 +3225,10 @@ asmlinkage __visible void __sched schedule(void)
     } while (need_resched());
     sched_update_worker(tsk);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)tsk);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)current_task);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)&current_task->se);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)tsk);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)&tsk->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -4473,7 +4475,6 @@ void __init sched_init(void)
             pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->cfs);
             pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->rt);
             pr_view_on(stack_depth, "%30s : %p\n", (void*)&rq->dl);
-            //pr_sched_avg_info(&rq->cfs.avg);
 
             raw_spin_lock_init(&rq->lock);
             rq->nr_running = 0;

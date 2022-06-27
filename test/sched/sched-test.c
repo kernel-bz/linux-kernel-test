@@ -113,6 +113,7 @@ _retry:
     pr_view_on(stack_depth, "%30s : %d\n", sizeof(init_task));
     pr_view_on(stack_depth, "%30s : %p\n", current_task);
 
+    //kernel/fork.c: copy_process()
     p = (struct task_struct *)malloc(sizeof(*p));
 
     if (current_task) {
@@ -141,13 +142,23 @@ _retry:
         wake_up_new_task(p);
         pr_sched_task_info(p);
     }
-    rq = task_rq(p);
-    rq->curr = p;
-    rq->cfs.curr = &p->se;
-    rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
-    current_task = p;
 
-    pr_sched_pelt_info(&p->se);
+    rq = task_rq(p);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    if (!rq->curr) {
+        rq->curr = p;
+        rq->cfs.curr = &p->se;
+        //rq->cfs.last = &p->se;
+        //rq->cfs.next = &p->se;
+        //rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
+        current_task = p;
+    }
+
+    p->sched_class->update_curr(rq);
+
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
+    //pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
 }
@@ -283,21 +294,20 @@ void test_sched_schedule(void)
     int cpu;
     struct rq *rq;
 
-#if 0
 _retry:
      __fpurge(stdin);
     printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
-#endif //0
 
-    cpu = smp_processor_id();
-
+    //cpu = smp_processor_id();
     rq = cpu_rq(cpu);
+    /*
     if (!rq->curr) {
         pr_warn("Please run sched_init and wake_up_new_task first!\n");
         return;
     }
+    */
 
     //kernel/sched/core.c
     schedule();

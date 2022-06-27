@@ -42,9 +42,11 @@
 static u64 decay_load(u64 val, u64 n)
 {
 	unsigned int local_n;
+    u64 oval = val;
+
     pr_fn_start_on(stack_depth);
     pr_view_on(stack_depth, "%10s : %llu\n", val);
-    pr_view_on(stack_depth, "%10s : %llu\n", n);
+    //pr_view_on(stack_depth, "%10s : %llu\n", n);
 
 	if (unlikely(n > LOAD_AVG_PERIOD * 63))
 		return 0;
@@ -66,7 +68,9 @@ static u64 decay_load(u64 val, u64 n)
 
 	val = mul_u64_u32_shr(val, runnable_avg_yN_inv[local_n], 32);
 
-    pr_view_on(stack_depth, "%10s : %llu\n", val);
+    if (oval != val)
+        pr_view_on(stack_depth, "%10s : %llu\n", val);
+
     pr_fn_end_on(stack_depth);
     return val;
 }
@@ -146,18 +150,11 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
 	 * Step 1: decay old *_sum if we crossed period boundaries.
 	 */
 	if (periods) {
-        pr_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
-        pr_view_on(stack_depth, "%30s : %llu\n", sa->runnable_load_sum);
-        pr_view_on(stack_depth, "%30s : %u\n", sa->util_sum);
-
 		sa->load_sum = decay_load(sa->load_sum, periods);
 		sa->runnable_load_sum =
 			decay_load(sa->runnable_load_sum, periods);
 		sa->util_sum = decay_load((u64)(sa->util_sum), periods);
 
-        pr_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
-        pr_view_on(stack_depth, "%30s : %llu\n", sa->runnable_load_sum);
-        pr_view_on(stack_depth, "%30s : %u\n", sa->util_sum);
 		/*
 		 * Step 2
 		 */
@@ -169,6 +166,7 @@ accumulate_sum(u64 delta, struct sched_avg *sa,
     }
 	sa->period_contrib = delta;
 
+    pr_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
     pr_view_on(stack_depth, "%30s : %lu\n", load);
     pr_view_on(stack_depth, "%30s : %lu\n", runnable);
     pr_view_on(stack_depth, "%30s : %d\n", running);
@@ -290,10 +288,10 @@ ___update_load_avg(struct sched_avg *sa, unsigned long load, unsigned long runna
 
     u32 divider = LOAD_AVG_MAX - 1024 + sa->period_contrib;
 
-    pr_view_on(stack_depth, "%30s : %lu\n", load);
-    pr_view_on(stack_depth, "%30s : %lu\n", runnable);
-    pr_view_on(stack_depth, "%30s : %u\n", sa->period_contrib);
-    pr_view_on(stack_depth, "%30s : %u\n", divider);
+    pr_view_on(stack_depth, "%20s : %lu\n", load);
+    pr_view_on(stack_depth, "%20s : %lu\n", runnable);
+    pr_view_on(stack_depth, "%20s : %u\n", sa->period_contrib);
+    pr_view_on(stack_depth, "%20s : %u\n", divider);
     /*
 	 * Step 2: update *_avg.
 	 */

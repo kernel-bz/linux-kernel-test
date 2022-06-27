@@ -40,7 +40,8 @@ static int _sched_basic_pelt_test_menu(int asize)
     printf("2: calc_global_load test.\n");
     printf("3: decay_load() test.\n");
     printf("4: update_load_avg() test.\n");
-    printf("5: help.\n");
+    printf("5: sched pelt info.\n");
+    printf("6: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -57,6 +58,7 @@ static void _menu_sched_basic_pelt_test(void)
         , test_calc_global_load
         , test_decay_load
         , test_update_load_avg
+        , test_sched_pelt_info
         , _sched_test_help
     };
     int idx;
@@ -77,11 +79,10 @@ static int _sched_cfs_test_menu(int asize)
     printf("\n");
     printf("[#]--> Scheduler --> CFS Test Menu\n");
     printf("0: exit.\n");
-    printf("1: sched pelt info.\n");
-    printf("2: leaf cfs_rq info.\n");
-    printf("3: set_user_nice test.\n");
-    printf("4: run rebalance test.\n");
-    printf("5: help.\n");
+    printf("1: set_user_nice test.\n");
+    printf("2: run rebalance test.\n");
+    printf("3: vruntime __calc_delta test.\n");
+    printf("4: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -94,10 +95,9 @@ static int _sched_cfs_test_menu(int asize)
 static void _menu_sched_cfs_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , test_sched_pelt_info
-        , pr_leaf_cfs_rq_info
         , test_sched_set_user_nice
         , sched_fair_run_rebalance	//kernel/sched/fair.c
+        , sched_fair_vruntime_test	//kernel/sched/fair.c
         , _sched_test_help
     };
     int idx;
@@ -196,13 +196,14 @@ static int _sched_test_menu(int asize)
     printf(" 7: setscheduler test.\n");
     printf(" 8: schedule test.\n");
     printf(" 9: wake up process test.\n");
+    printf("10: leaf_cfs_rq_list info.\n");
 
-    printf("10: Basic PELT Test -->\n");
-    printf("11: CFS Test -->\n");
-    printf("12: RT Test -->\n");
-    printf("13: DeadLine Test -->\n");
+    printf("11: Basic PELT Test -->\n");
+    printf("12: CFS Test -->\n");
+    printf("13: RT Test -->\n");
+    printf("14: DeadLine Test -->\n");
 
-    printf("14: help.\n");
+    printf("15: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -225,6 +226,7 @@ void menu_sched_test(void)
         , test_sched_setscheduler
         , test_sched_schedule
         , test_sched_wake_up_process
+        , pr_leaf_cfs_rq_info
 
         , _menu_sched_basic_pelt_test
         , _menu_sched_cfs_test
