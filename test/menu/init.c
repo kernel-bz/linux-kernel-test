@@ -14,6 +14,7 @@
 #include "test/debug.h"
 #include "test/test.h"
 #include <linux/kernel.h>
+#include <linux/sched/topology.h>
 
 static void _init_menu_help(void)
 {
@@ -41,8 +42,13 @@ static int _init_menu(int asize)
     printf("2: numa_init test.\n");
     printf("3: sched_init test.\n");
     printf("4: rcu_init test.\n");
+
     printf("5: sched_init_smp test.\n");
-    printf("6: help.\n");
+    printf("6: sched_domain info(tl).\n");
+    printf("7: sched_domain info(rq cpu).\n");
+    printf("8: sched_domain info(tl cpu).\n");
+
+    printf("9: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -65,6 +71,9 @@ void menu_start_kernel(void)
 
         //rest_init(), kernel_init
         , test_sched_init_smp
+        , pr_topology_info_tl
+        , pr_topology_info_rq_sd_cpu
+        , pr_topology_info_tl_sd_cpu
 
         , _init_menu_help
     };

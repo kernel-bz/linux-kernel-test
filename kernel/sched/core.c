@@ -4322,8 +4322,6 @@ void __init sched_init_smp(void)
 
     sched_init_numa();
 
-    pr_debug_sd_topo_info(cpu_active_mask);
-
     /*
      * There's no userspace yet to cause hotplug operations; hence all the
      * CPU masks are stable and all blatant races in the below code cannot

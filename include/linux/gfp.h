@@ -3,8 +3,8 @@
 #define __LINUX_GFP_H
 
 #include "test/user-types.h"
-#include <linux/percpu-defs.h>
-#include <linux/percpu.h>
+//#include <linux/percpu-defs.h>
+//#include <linux/percpu.h>
 
 //#include <linux/mmdebug.h>
 //#include <linux/mmzone.h>

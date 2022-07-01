@@ -21,13 +21,16 @@
 #define DECLARE_PER_CPU_PAGE_ALIGNED(type, name)	type name
 #define DEFINE_PER_CPU_PAGE_ALIGNED(type, name)		type name
 
+//#define per_cpu_ptr(ptr, cpu) \
+//    ((typeof(ptr)) ((char *) (ptr) + PERCPU_OFFSET * cpu))
+#define per_cpu_ptr(ptr, cpu)	((typeof(ptr))(ptr) + cpu)
+#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+
 #define __get_cpu_var(var)	var
 #define this_cpu_ptr(var)	var
 #define this_cpu_read(var)	var
 #define this_cpu_xchg(var, val)		uatomic_xchg(&var, val)
 #define this_cpu_cmpxchg(var, old, new)	uatomic_cmpxchg(&var, old, new)
-#define per_cpu_ptr(ptr, cpu)   ({ (void)(cpu); (ptr); })
-#define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
 
 /* Maximum size of any percpu data. */
 //#define PERCPU_OFFSET (4 * sizeof(long))
@@ -38,15 +41,14 @@
 
 static inline void *__alloc_percpu(size_t size, size_t align)
 {
-    //BUG();
-    //return NULL;
-    gfp_t gfp = (gfp_t)align;
+    //gfp_t flags = (gfp_t)align;
     //return kmalloc(nr_cpu_ids * size, GFP_NOWAIT);
+    //return kmalloc(nr_cpu_ids * size, flags);
+    return malloc(nr_cpu_ids * size);
 }
 
 static inline void free_percpu(void *ptr)
 {
-    //BUG();
     kfree(ptr);
 }
 
@@ -61,7 +63,6 @@ static inline void free_percpu(void *ptr)
 #define this_cpu_inc(pcp) this_cpu_add(pcp, 1)
 #define this_cpu_dec(pcp) this_cpu_sub(pcp, 1)
 #define this_cpu_sub(pcp, n) this_cpu_add(pcp, -(typeof(pcp)) (n))
-
 
 
 #endif

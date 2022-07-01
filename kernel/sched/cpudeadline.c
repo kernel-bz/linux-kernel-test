@@ -291,8 +291,6 @@ int cpudl_init(struct cpudl *cp)
     for_each_possible_cpu(i)
 		cp->elements[i].idx = IDX_INVALID;
 
-    pr_view_on(stack_depth, "%20s : %d\n", i);
-
     pr_fn_end_on(stack_depth);
 
 	return 0;

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
-#ifndef SLAB_H
-#define SLAB_H
+#ifndef __LINUX_SLAB_H
+#define __LINUX_SLAB_H
 
 #include "test/user-types.h"
 #include "test/config.h"
