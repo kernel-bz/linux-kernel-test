@@ -204,7 +204,8 @@ static inline int get_boot_cpu_id(void)
  * when smp_processor_id() is used when the CPU id is not stable.
  */
 
-#define raw_smp_processor_id()			0
+extern int smp_user_cpu;	//cpu.c
+#define raw_smp_processor_id()	smp_user_cpu
 
 /*
  * Allow the architecture to differentiate between a stable and unstable read.

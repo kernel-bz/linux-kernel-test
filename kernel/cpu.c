@@ -43,6 +43,8 @@
 
 #include "test/debug.h"
 
+int smp_user_cpu = 0;
+
 /**
  * cpuhp_cpu_state - Per cpu hotplug state storage
  * @state:	The current cpu state

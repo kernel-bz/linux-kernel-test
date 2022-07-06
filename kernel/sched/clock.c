@@ -63,9 +63,18 @@
  */
 unsigned long long __weak sched_clock(void)
 {
+    unsigned long long clk;
+
+    pr_fn_start_on(stack_depth);
+    jiffies++;
     //return (unsigned long long)(jiffies - INITIAL_JIFFIES)
-    return (unsigned long long)(++jiffies)
-                    * (NSEC_PER_SEC / HZ);
+    clk = (unsigned long long)(jiffies) * (NSEC_PER_SEC / HZ);
+
+    pr_view_on(stack_depth, "%20s : %llu\n", jiffies);
+    pr_view_on(stack_depth, "%20s : %llu\n", clk);
+
+    pr_fn_end_on(stack_depth);
+    return clk;
 }
 //EXPORT_SYMBOL_GPL(sched_clock);
 

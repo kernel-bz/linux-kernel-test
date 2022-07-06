@@ -3151,6 +3151,7 @@ static void __sched notrace __schedule(bool preempt)
     balance_callback(rq);
 
     pr_view_on(stack_depth, "%20s : %lu\n", *switch_count);
+    current_task = next;
 
     pr_fn_end_on(stack_depth);
 }

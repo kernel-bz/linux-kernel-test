@@ -106,6 +106,8 @@ _retry:
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
 
+    smp_user_cpu = cpu;
+
     pr_fn_start_on(stack_depth);
     //1280 Bytes
     pr_view_on(stack_depth, "%30s : %d\n", sizeof(struct task_struct));
@@ -114,7 +116,7 @@ _retry:
     pr_view_on(stack_depth, "%30s : %p\n", current_task);
 
     //kernel/fork.c: copy_process()
-    p = (struct task_struct *)malloc(sizeof(*p));
+    p = (struct task_struct *)kmalloc(sizeof(*p), GFP_KERNEL);
 
     if (current_task) {
         memcpy(p, current_task, sizeof(*p));
@@ -122,6 +124,7 @@ _retry:
         memcpy(p, &init_task, sizeof(init_task));
         current_task = p;
     }
+    p->cpu = cpu;
 
     pr_view_on(stack_depth, "%30s : %u\n", cpu);
     pr_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
@@ -131,7 +134,6 @@ _retry:
     //pr_sched_task_info(&init_task);
 
     p->sched_task_group = _sched_test_tg_select();
-    p->cpu = cpu;
     pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_view_on(stack_depth, "%30s : %u\n", p->cpu);
 
@@ -169,7 +171,7 @@ void test_sched_current_task_info(void)
     unsigned int cpu;
 
 _retry:
-     __fpurge(stdin);
+    __fpurge(stdin);
     printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
@@ -241,7 +243,7 @@ void test_sched_setscheduler(void)
 {
     struct rq *rq;
     struct task_struct *p;
-    int i, policy, cpu, prio, user;
+    int i, policy, cpu, prio, chk;
     int ret;
     struct sched_param param;
     char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
@@ -271,17 +273,15 @@ _retry:
     scanf("%d", &prio);
 
     printf("Select User Check[0,1]: ");
-    scanf("%d", &user);
+    scanf("%d", &chk);
 
     pr_fn_start_on(stack_depth);
 
     param.sched_priority = prio;
-    if (user) {
+    if (chk) {
         ret = sched_setscheduler_check(p, policy, &param);
-        //_sched_setscheduler(p, policy, param, true);	//user check
     } else {
         ret = sched_setscheduler_nocheck(p, policy, &param);
-        //_sched_setscheduler(p, policy, param, false);	//user nocheck
     }
 
     pr_view_on(stack_depth, "%20s : %d\n", ret);
@@ -300,14 +300,13 @@ _retry:
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
 
+    smp_user_cpu = cpu;
     //cpu = smp_processor_id();
     rq = cpu_rq(cpu);
-    /*
     if (!rq->curr) {
         pr_warn("Please run sched_init and wake_up_new_task first!\n");
         return;
     }
-    */
 
     //kernel/sched/core.c
     schedule();

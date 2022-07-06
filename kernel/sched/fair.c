@@ -6662,6 +6662,12 @@ static inline enum
 group_type group_classify(struct sched_group *group,
               struct sg_lb_stats *sgs)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%30s : %p\n", group);
+    pr_view_on(stack_depth, "%30s : %d\n", sgs->group_no_capacity);
+    pr_view_on(stack_depth, "%30s : %d\n", group->sgc->imbalance);
+    pr_view_on(stack_depth, "%30s : %lu\n", sgs->group_misfit_task_load);
+
     if (sgs->group_no_capacity)
         return group_overloaded;
 
@@ -6671,6 +6677,7 @@ group_type group_classify(struct sched_group *group,
     if (sgs->group_misfit_task_load)
         return group_misfit_task;
 
+    pr_fn_end_on(stack_depth);
     return group_other;
 }
 
@@ -6800,10 +6807,12 @@ static bool update_sd_pick_busiest(struct lb_env *env,
 
     struct sg_lb_stats *busiest = &sds->busiest_stat;
 
-    pr_view_on(stack_depth, "%30s : %d\n", sgs->group_type);
-    pr_view_on(stack_depth, "%30s : %d\n", busiest->group_type);
-    pr_view_on(stack_depth, "%30s : %lu\n", sgs->avg_load);
-    pr_view_on(stack_depth, "%30s : %lu\n", busiest->avg_load);
+    pr_view_on(stack_depth, "%20s : %p\n", sg);
+    pr_view_on(stack_depth, "%20s : %d\n", sgs->group_type);
+    pr_view_on(stack_depth, "%20s : %d\n", busiest->group_type);
+    pr_view_on(stack_depth, "%20s : %lu\n", sgs->avg_load);
+    pr_view_on(stack_depth, "%20s : %lu\n", busiest->avg_load);
+    pr_view_on(stack_depth, "%20s : %d\n", env->sd->flags);
 
     /*
      * Don't try to pull misfit tasks we can't help.
@@ -6847,6 +6856,12 @@ static bool update_sd_pick_busiest(struct lb_env *env,
 
 asym_packing:
     pr_out_on(stack_depth, "asym_packing:\n");
+    pr_view_on(stack_depth, "%30s : %d\n", env->sd->flags);
+    pr_view_on(stack_depth, "%30s : %d\n", env->idle);
+    pr_view_on(stack_depth, "%30s : %u\n", sgs->sum_nr_running);
+    pr_view_on(stack_depth, "%30s : %d\n", env->dst_cpu);
+    pr_view_on(stack_depth, "%30s : %d\n", sg->asym_prefer_cpu);
+    pr_view_on(stack_depth, "%30s : %p\n", sds->busiest);
 
     /* This is the busiest node in its class. */
     if (!(env->sd->flags & SD_ASYM_PACKING))
@@ -6865,6 +6880,7 @@ asym_packing:
         if (!sds->busiest)
             return true;
 
+        pr_view_on(stack_depth, "%30s : %d\n", sds->busiest->asym_prefer_cpu);
         /* Prefer to move from lowest priority CPU's work */
         if (sched_asym_prefer(sds->busiest->asym_prefer_cpu,
                       sg->asym_prefer_cpu))
@@ -6921,6 +6937,8 @@ static inline void update_sd_lb_stats(struct lb_env *env, struct sd_lb_stats *sd
     bool prefer_sibling = child && child->flags & SD_PREFER_SIBLING;
     int sg_status = 0;
 
+    pr_view_on(stack_depth, "%20s : %p\n", child);
+
 #ifdef CONFIG_NO_HZ_COMMON
     if (env->idle == CPU_NEWLY_IDLE && READ_ONCE(nohz.has_blocked))
         env->flags |= LBF_NOHZ_STATS;
@@ -6930,6 +6948,7 @@ static inline void update_sd_lb_stats(struct lb_env *env, struct sd_lb_stats *sd
         struct sg_lb_stats *sgs = &tmp_sgs;
         int local_group;
 
+        pr_view_on(stack_depth, "%20s : %p\n", sg);
         pr_view_on(stack_depth, "%20s : 0x%X\n", sg->cpumask[0]);
         local_group = cpumask_test_cpu(env->dst_cpu, sched_group_span(sg));
         pr_view_on(stack_depth, "%20s : %d\n", local_group);
@@ -6980,6 +6999,8 @@ next_group:
         sds->total_load += sgs->group_load;
         sds->total_capacity += sgs->group_capacity;
 
+        pr_view_on(stack_depth, "%20s : %p\n", env->sd->groups);
+        pr_view_on(stack_depth, "%20s : %p\n", sg->next);
         sg = sg->next;
     } while (sg != env->sd->groups);
 
@@ -7048,6 +7069,14 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
 {
     int busiest_cpu;
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %d\n", env->sd->flags);
+    pr_view_on(stack_depth, "%20s : %d\n", env->idle);
+    pr_view_on(stack_depth, "%20s : %p\n", sds->busiest);
+    pr_view_on(stack_depth, "%20s : %d\n", sds->busiest->asym_prefer_cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", env->dst_cpu);
+    pr_view_on(stack_depth, "%20s : %lu\n", sds->busiest_stat.group_load);
+
     if (!(env->sd->flags & SD_ASYM_PACKING))
         return 0;
 
@@ -7063,6 +7092,7 @@ static int check_asym_packing(struct lb_env *env, struct sd_lb_stats *sds)
 
     env->imbalance = sds->busiest_stat.group_load;
 
+    pr_fn_end_on(stack_depth);
     return 1;
 }
 
@@ -7250,10 +7280,11 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
  */
 static struct sched_group *find_busiest_group(struct lb_env *env)
 {
-    pr_fn_start_on(stack_depth);
-
     struct sg_lb_stats *local, *busiest;
     struct sd_lb_stats sds;
+
+    pr_fn_start_on(stack_depth);
+    pr_out_on(stack_depth, "find_busiest_group() --------------------------\n");
 
     init_sd_lb_stats(&sds);
 
@@ -7262,6 +7293,8 @@ static struct sched_group *find_busiest_group(struct lb_env *env)
      * this level.
      */
     update_sd_lb_stats(env, &sds);
+
+    pr_out_on(stack_depth, "End of update_sd_lb_stats() -------------------\n");
 
     if (sched_energy_enabled()) {
         struct root_domain *rd = env->dst_rq->rd;
@@ -7294,6 +7327,7 @@ static struct sched_group *find_busiest_group(struct lb_env *env)
     pr_view_on(stack_depth, "%30s : %lu\n", local->avg_load);
     pr_view_on(stack_depth, "%30s : %lu\n", busiest->avg_load);
     pr_view_on(stack_depth, "%30s : %d\n", busiest->group_type);
+    pr_view_on(stack_depth, "%30s : %d\n", env->idle);
 
     /*
      * If the busiest group is imbalanced the below checks don't
@@ -7345,13 +7379,16 @@ static struct sched_group *find_busiest_group(struct lb_env *env)
          * In the CPU_NEWLY_IDLE, CPU_NOT_IDLE cases, use
          * imbalance_pct to be conservative.
          */
+        pr_view_on(stack_depth, "%40s : %lu\n", 100 * busiest->avg_load);
+        pr_view_on(stack_depth, "%40s : %lu\n", env->sd->imbalance_pct);
+        pr_view_on(stack_depth, "%40s : %lu\n", env->sd->imbalance_pct * local->avg_load);
         if (100 * busiest->avg_load <=
                 env->sd->imbalance_pct * local->avg_load)
             goto out_balanced;
     }
 
 force_balance:
-    pr_out_on(stack_depth, "force_balance:\n");
+    pr_out_on(stack_depth, "find_busiest_group(): force_balance: -----------------\n");
 
     /* Looks like there is an imbalance. Compute it */
     env->src_grp_type = busiest->group_type;
@@ -7365,7 +7402,7 @@ force_balance:
     return env->imbalance ? sds.busiest : NULL;
 
 out_balanced:
-    pr_out_on(stack_depth, "out_balanced:\n");
+    pr_out_on(stack_depth, "find_busiest_group(): out_balanced: ------------------\n");
 
     env->imbalance = 0;
 
@@ -7387,7 +7424,7 @@ static struct rq *find_busiest_queue(struct lb_env *env,
     unsigned long busiest_load = 0, busiest_capacity = 1;
     int i;
 
-    pr_view_on(stack_depth, "%30s : 0x%X\n", group->cpumask[0]);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", group->cpumask[0]);
 
     for_each_cpu_and(i, sched_group_span(group), env->cpus) {
         unsigned long capacity, load;
@@ -7395,14 +7432,14 @@ static struct rq *find_busiest_queue(struct lb_env *env,
 
         rq = cpu_rq(i);
 
-        pr_view_on(stack_depth, "%30s : cpu: %d\n", i);
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)rq);
-        pr_view_on(stack_depth, "%30s : %d\n", rq->nr_running);
+        pr_view_on(stack_depth, "%20s : cpu: %d\n", i);
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
+        pr_view_on(stack_depth, "%20s : %d\n", rq->nr_running);
 
         rt = fbq_classify_rq(rq);
 
-        pr_view_on(stack_depth, "%30s : fbq_type: %d\n", rt);
-        pr_view_on(stack_depth, "%30s : %d\n", env->fbq_type);
+        pr_view_on(stack_depth, "%20s : fbq_type: %d\n", rt);
+        pr_view_on(stack_depth, "%20s : %d\n", env->fbq_type);
 
         /*
          * We classify groups/runqueues into three groups:
@@ -7496,6 +7533,7 @@ static struct rq *find_busiest_queue(struct lb_env *env,
     pr_view_on(stack_depth, "%30s : %lu\n", busiest_load);
     pr_view_on(stack_depth, "%30s : %lu\n", busiest_capacity);
     pr_view_on(stack_depth, "%30s : rq: %p\n", (void*)busiest);
+    pr_view_on(stack_depth, "%30s : %d\n", busiest->cpu);
 
     pr_fn_end_on(stack_depth);
 
@@ -7863,6 +7901,7 @@ more_balance:
             sd->balance_interval *= 2;
     }
 
+    pr_view_on(stack_depth, "%20s : %u\n", sd->balance_interval);
     goto out;
 
 out_balanced:
@@ -7910,6 +7949,7 @@ out_one_pinned:
         sd->balance_interval *= 2;
 out:
     pr_out_on(stack_depth, "out:\n");
+    pr_view_on(stack_depth, "%20s : %u\n", sd->balance_interval);
     pr_view_on(stack_depth, "%20s : %d\n", ld_moved);
     pr_fn_end_on(stack_depth);
 
@@ -8078,18 +8118,21 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
     int need_serialize, need_decay = 0;
     u64 max_cost = 0;
 
-    pr_view_on(stack_depth, "%10s : %d\n", cpu);
+    pr_view_on(stack_depth, "%10s : %d\n", rq->cpu);
     pr_view_on(stack_depth, "%10s : %d\n", idle);
     pr_view_on(stack_depth, "%10s : %p\n", (void*)rq);
 
     rcu_read_lock();
     for_each_domain(cpu, sd) {
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)sd);
-        pr_view_on(stack_depth, "%30s : %s\n", sd->name);
-        pr_out_on(stack_depth, "-------------------------------------------\n");
+        pr_out_on(stack_depth, "============ for_each_domain(cpu, sd) =============\n");
+        pr_view_on(stack_depth, "%20s : %d\n", cpu);
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)sd);
+        pr_view_on(stack_depth, "%20s : %s\n", sd->name);
+        pr_view_on(stack_depth, "%20s : %d\n", sd->level);
+
         pr_view_on(stack_depth, "%30s : %lu\n", jiffies);
+        pr_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
         pr_view_on(stack_depth, "%30s : %lu\n", next_balance);
-        pr_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
         pr_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
         /*
          * Decay the newidle max times here because this is a regular
@@ -8103,9 +8146,14 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
         }
         max_cost += sd->max_newidle_lb_cost;
 
+        pr_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
+        pr_view_on(stack_depth, "%30s : %llu\n", max_cost);
+        pr_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
+
         if (!(sd->flags & SD_LOAD_BALANCE))
             continue;
 
+        pr_view_on(stack_depth, "%30s : %d\n", need_decay);
         pr_view_on(stack_depth, "%30s : %d\n", continue_balancing);
 
         /*
@@ -8121,22 +8169,17 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
 
         interval = get_sd_balance_interval(sd, idle != CPU_IDLE);
 
-        pr_view_on(stack_depth, "%30s : %lu\n", jiffies);
-        pr_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
         pr_view_on(stack_depth, "%30s : %lu\n", interval);
-        pr_view_on(stack_depth, "%30s : %d\n", need_decay);
-        pr_view_on(stack_depth, "%30s : %lu\n", sd->next_decay_max_lb_cost);
-        pr_view_on(stack_depth, "%30s : %llu\n", sd->max_newidle_lb_cost);
-        pr_view_on(stack_depth, "%30s : %llu\n", max_cost);
 
         need_serialize = sd->flags & SD_SERIALIZE;
-        pr_view_on(stack_depth, "%30s : %d\n", need_serialize);
-
+        //pr_view_on(stack_depth, "%30s : %d\n", need_serialize);
         if (need_serialize) {
             //if (!spin_trylock(&balancing))
             //if (!spin_lock(&balancing))
                 //goto out;
         }
+
+        pr_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
 
         if (time_after_eq(jiffies, sd->last_balance + interval)) {
             if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
@@ -8153,17 +8196,20 @@ static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
         if (need_serialize)
             spin_unlock(&balancing);
 out:
+        pr_view_on(stack_depth, "%40s : %lu\n", interval);
+        pr_view_on(stack_depth, "%40s : %lu\n", sd->last_balance);
+
         if (time_after(next_balance, sd->last_balance + interval)) {
             next_balance = sd->last_balance + interval;
             update_next_balance = 1;
         }
 
-        pr_view_on(stack_depth, "%30s : %lu\n", sd->last_balance);
-        pr_view_on(stack_depth, "%30s : %lu\n", next_balance);
-        pr_view_on(stack_depth, "%30s : %d\n", update_next_balance);
-        pr_view_on(stack_depth, "%30s : %d\n", continue_balancing);
+        pr_view_on(stack_depth, "%40s : %lu\n", next_balance);
+        pr_view_on(stack_depth, "%40s : %d\n", update_next_balance);
+        pr_view_on(stack_depth, "%40s : %d\n", continue_balancing);
         jiffies += 3;
-    }
+    } //for_each_domain
+
     if (need_decay) {
         /*
          * Ensure the rq-wide value also decays but keep it at a
@@ -8248,6 +8294,8 @@ static bool _nohz_idle_balance(struct rq *this_rq, unsigned int flags,
     int balance_cpu;
     int ret = false;
     struct rq *rq;
+
+    pr_fn_start_on(stack_depth);
 
     SCHED_WARN_ON((flags & NOHZ_KICK_MASK) == NOHZ_BALANCE_KICK);
 
@@ -8334,6 +8382,7 @@ abort:
     if (likely(update_next_balance))
         nohz.next_balance = next_balance;
 
+    pr_fn_end_on(stack_depth);
     return ret;
 }
 
@@ -8345,6 +8394,8 @@ static bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
 {
     int this_cpu = this_rq->cpu;
     unsigned int flags;
+
+    pr_fn_start_on(stack_depth);
 
     if (!(atomic_read(nohz_flags(this_cpu)) & NOHZ_KICK_MASK))
         return false;
@@ -8362,6 +8413,7 @@ static bool nohz_idle_balance(struct rq *this_rq, enum cpu_idle_type idle)
 
     _nohz_idle_balance(this_rq, flags, idle);
 
+    pr_fn_end_on(stack_depth);
     return true;
 }
 
@@ -8419,11 +8471,30 @@ static inline void nohz_newidle_balance(struct rq *this_rq) { }
  */
 static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 {
+    int cpu;
     pr_fn_start_on(stack_depth);
 
-    struct rq *this_rq = this_rq();
+_retry:
+    __fpurge(stdin);
+    printf("Input destination CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    pr_fn_start_on(stack_depth);
+
+    smp_user_cpu = cpu;
+
+    //struct rq *this_rq = this_rq();
+    struct rq *this_rq = cpu_rq(cpu);
+
+    if (!this_rq->curr) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
+
     enum cpu_idle_type idle = this_rq->idle_balance ?
                         CPU_IDLE : CPU_NOT_IDLE;
+    pr_view_on(stack_depth, "%20s : %d\n", this_rq->idle_balance);
 
     /*
      * If this CPU has a pending nohz_balance_kick, then do the
@@ -8439,8 +8510,8 @@ static __latent_entropy void run_rebalance_domains(struct softirq_action *h)
 
     /* normal load balance */
     update_blocked_averages(this_rq->cpu);
-    //rebalance_domains(this_rq, idle);
-    rebalance_domains(this_rq, CPU_IDLE);
+    rebalance_domains(this_rq, idle);  //CPU_NOT_IDLE
+    //rebalance_domains(this_rq, CPU_IDLE);
 
     pr_fn_end_on(stack_depth);
 }

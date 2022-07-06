@@ -199,6 +199,7 @@ void pr_sched_tg_info_all(void);
 void pr_sched_tg_info(void);
 
 void pr_leaf_cfs_rq_info(void);
+void pr_sched_cfs_tasks_info(void);
 void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq);
 
 void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se);

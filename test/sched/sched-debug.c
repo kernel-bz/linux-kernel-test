@@ -194,6 +194,35 @@ _end:
     pr_fn_end_on(stack_depth);
 }
 
+static void _pr_sched_cfs_rq_rblist_task(struct cfs_rq *cfs_rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "--------------- cfs_rq rblist -------------\n");
+    pr_view_on(stack_depth, "%10s : %p\n", (void*)cfs_rq);
+    if(!cfs_rq) goto _end;
+
+    if (cfs_rq->on_list > 0) {
+        int i=0;
+        struct sched_entity *se;
+        struct task_struct *p;
+        struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
+        while (next) {
+            se = rb_entry(next, struct sched_entity, run_node);
+            pr_view_on(stack_depth, "%10s : %d\n", i++);
+
+            if (entity_is_task(se)) {
+                p = container_of(se, struct task_struct, se);	//task_of
+                if (p)
+                    pr_sched_task_info(p);
+            }
+            next = rb_next(&se->run_node);
+        }
+    }
+_end:
+    pr_fn_end_on(stack_depth);
+}
+
 void pr_sched_pelt_info(struct sched_entity *se)
 {
     pr_fn_start_on(stack_depth);
@@ -394,23 +423,61 @@ _retry:
     list_for_each_entry_safe(cfs_rq, pos, &rq->leaf_cfs_rq_list,
                  leaf_cfs_rq_list) {
         struct sched_entity *se;
+        struct task_struct *p;
 
         pr_view_on(stack_depth, "%20s : %d\n", count++);
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq->tg);
+        pr_view_on(stack_depth, "%20s : %p\n", cfs_rq->tg);
         se = cfs_rq->tg->se[cpu];
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)se);
-        pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
-
+        pr_view_on(stack_depth, "%20s : %p\n", se);
+        pr_view_on(stack_depth, "%20s : %p\n", cfs_rq);
+#if 0
         _pr_sched_cfs_rq_info(cfs_rq);
         __pr_sched_cfs_rq_info(cfs_rq);
         pr_sched_pelt_avg_info(NULL, cfs_rq);
 
+#endif
         if (cfs_rq->curr) {
-            _pr_sched_se_info(cfs_rq->curr);
-            pr_sched_pelt_avg_info(cfs_rq->curr, NULL);
+            pr_view_on(stack_depth, "%30s : %p\n", cfs_rq->curr);
+            se = cfs_rq->curr;
+            if (!se->my_q) {
+                p = container_of(se, struct task_struct, se);	//task_of
+                pr_sched_task_info(p);
+            }
         }
+        if (cfs_rq->next) {
+            pr_view_on(stack_depth, "%30s : %p\n", cfs_rq->next);
+            se = cfs_rq->next;
+            if (!se->my_q) {
+                p = container_of(se, struct task_struct, se);	//task_of
+                pr_sched_task_info(p);
+            }
+        }
+        _pr_sched_cfs_rq_rblist_task(cfs_rq);
+    }
 
-        _pr_sched_cfs_rq_rblist(cfs_rq);
+    pr_fn_end_on(stack_depth);
+}
+
+void pr_sched_cfs_tasks_info(void)
+{
+    int cpu;
+
+    pr_fn_start_on(stack_depth);
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    struct rq *rq = cpu_rq(cpu);
+    struct list_head *tasks = &rq->cfs_tasks, *cur, *n;
+    struct task_struct *p;
+
+    list_for_each_prev_safe(cur, n, tasks) {
+        //p = list_last_entry(cur, struct task_struct, se.group_node);
+        p = list_entry(cur, struct task_struct, se.group_node);
+        pr_sched_task_info(p);
     }
 
     pr_fn_end_on(stack_depth);
@@ -467,6 +534,7 @@ void pr_sched_task_info(struct task_struct *p)
     pr_view_on(stack_depth, "%30s : %d\n", p->on_cpu);
     pr_view_on(stack_depth, "%30s : %d\n", p->wake_cpu);
     pr_view_on(stack_depth, "%30s : %d\n", p->recent_used_cpu);
+    pr_view_on(stack_depth, "%30s : 0x%X\n", p->cpus_ptr->bits[0]);
     pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
     pr_view_on(stack_depth, "%30s : %d\n", p->prio);
     pr_view_on(stack_depth, "%30s : %d\n", p->normal_prio);

@@ -197,13 +197,14 @@ static int _sched_test_menu(int asize)
     printf(" 8: schedule test.\n");
     printf(" 9: wake up process test.\n");
     printf("10: leaf_cfs_rq_list info.\n");
+    printf("11: cfs_tasks info.\n");
 
-    printf("11: Basic PELT Test -->\n");
-    printf("12: CFS Test -->\n");
-    printf("13: RT Test -->\n");
-    printf("14: DeadLine Test -->\n");
+    printf("12: Basic PELT Test -->\n");
+    printf("13: CFS Test -->\n");
+    printf("14: RT Test -->\n");
+    printf("15: DeadLine Test -->\n");
 
-    printf("15: help.\n");
+    printf("16: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -227,6 +228,7 @@ void menu_sched_test(void)
         , test_sched_schedule
         , test_sched_wake_up_process
         , pr_leaf_cfs_rq_info
+        , pr_sched_cfs_tasks_info
 
         , _menu_sched_basic_pelt_test
         , _menu_sched_cfs_test
