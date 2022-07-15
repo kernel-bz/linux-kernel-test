@@ -4187,6 +4187,8 @@ find_idlest_group(struct sched_domain *sd, struct task_struct *p,
     unsigned long imbalance = scale_load_down(NICE_0_LOAD) *
                 (sd->imbalance_pct-100) / 100;
 
+    pr_fn_start_on(stack_depth);
+
     do {
         unsigned long load, avg_load, runnable_load;
         unsigned long spare_cap, max_spare_cap;
@@ -4301,6 +4303,8 @@ skip_spare:
          (100*this_avg_load < imbalance_scale*min_avg_load))
         return NULL;
 
+    pr_fn_end_on(stack_depth);
+
     return idlest;
 }
 
@@ -4316,6 +4320,8 @@ find_idlest_group_cpu(struct sched_group *group, struct task_struct *p, int this
     int least_loaded_cpu = this_cpu;
     int shallowest_idle_cpu = -1, si_cpu = -1;
     int i;
+
+    pr_fn_start_on(stack_depth);
 
     /* Check if we have any choice: */
     if (group->group_weight == 1)
@@ -4363,6 +4369,8 @@ find_idlest_group_cpu(struct sched_group *group, struct task_struct *p, int this
         return shallowest_idle_cpu;
     if (si_cpu != -1)
         return si_cpu;
+
+    pr_fn_end_on(stack_depth);
     return least_loaded_cpu;
 }
 
@@ -5242,9 +5250,13 @@ static void task_dead_fair(struct task_struct *p)
 static int
 balance_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
+
     if (rq->nr_running)
         return 1;
 
+    pr_fn_end_on(stack_depth);
     //return newidle_balance(rq, rf) != 0;
     return 0;
 }

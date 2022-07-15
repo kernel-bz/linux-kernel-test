@@ -16,7 +16,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20220705	//test date
+#define CONFIG_VERSION_3		20220714	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -50,7 +50,7 @@ extern "C" {
 #define CONFIG_CPU_FREQ
 #define CONFIG_CPUSETS
 #define CONFIG_VIRT_CPU_ACCOUNTING_NATIVE
-//#define CONFIG_HOTPLUG_CPU
+#define CONFIG_HOTPLUG_CPU
 #define CONFIG_INIT_ALL_POSSIBLE
 #define CONFIG_CPUMASK_OFFSTACK
 #define CONFIG_USE_PERCPU_NUMA_NODE_ID

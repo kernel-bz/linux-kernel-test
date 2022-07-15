@@ -232,6 +232,7 @@ void cpudl_set(struct cpudl *cp, int cpu, u64 dl)
 	}
 
     int i;
+    pr_view_on(stack_depth, "%20s : %d\n", cp->size);
     for (i=0; i < cp->size; i++) {
         pr_view_on(stack_depth, "%30s : %d\n", i);
         pr_view_on(stack_depth, "%30s : %d\n", cp->elements[i].idx);

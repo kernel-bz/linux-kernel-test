@@ -56,6 +56,9 @@ void test_sched_init(void)
     //638 lines
     sched_init();
     sched_clock_init();
+
+    //fork_init();
+    //task_struct_cachep = KMEM_CACHE(task_struct, 0);
 }
 
 void test_numa_init(void)

@@ -81,7 +81,6 @@ void test_rcu_init(void);
 //test/sched/sched-test.c
 void test_sched_create_group(void);
 void test_sched_new_task(void);
-void test_sched_current_task_info(void);
 void test_sched_deactivate_task(void);
 void test_sched_setscheduler(void);
 void test_sched_schedule(void);
@@ -91,6 +90,11 @@ void test_sched_pelt_info(void);
 void test_sched_set_user_nice(void);
 void test_sched_dl_enqueue(void);
 void test_sched_cpudl(void);
+
+void test_sched_current_task_info(void);
+void test_sched_rq_info(void);
+
+void test_sched_stop_cpu_dying(void);
 
 //test/sched/decay_load.c
 void test_decay_load(void);
@@ -111,6 +115,8 @@ void mm_kmem_cache_slub_info(struct kmem_cache_slub *s);
 void sched_fair_run_rebalance(void);
 void sched_fair_vruntime_test(void);
 
+//kernel/sched/rt.c
+void rt_debug_rt_rq_info(void);
 
 #ifdef __cplusplus
 }

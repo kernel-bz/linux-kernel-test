@@ -204,6 +204,7 @@ void pr_cfs_rq_removed_info(struct cfs_rq *cfs_rq);
 
 void pr_sched_dl_entity_info(struct sched_dl_entity *dl_se);
 void pr_sched_task_info(struct task_struct *p);
+void pr_sched_rq_info(struct rq *rq);
 
 void pr_sched_cpumask_bits_info(unsigned int nr_cpu);
 

@@ -455,6 +455,8 @@ static void enqueue_pushable_dl_task(struct rq *rq, struct task_struct *p)
 	struct task_struct *entry;
 	bool leftmost = true;
 
+    pr_fn_start_on(stack_depth);
+
 	BUG_ON(!RB_EMPTY_NODE(&p->pushable_dl_tasks));
 
 	while (*link) {
@@ -468,18 +470,24 @@ static void enqueue_pushable_dl_task(struct rq *rq, struct task_struct *p)
 			leftmost = false;
 		}
 	}
+    pr_view_on(stack_depth, "%20s : %d\n", leftmost);
+    pr_view_on(stack_depth, "%20s : %llu\n", p->dl.deadline);
 
 	if (leftmost)
 		dl_rq->earliest_dl.next = p->dl.deadline;
 
 	rb_link_node(&p->pushable_dl_tasks, parent, link);
 	rb_insert_color_cached(&p->pushable_dl_tasks,
-			       &dl_rq->pushable_dl_tasks_root, leftmost);
+                   &dl_rq->pushable_dl_tasks_root, leftmost);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void dequeue_pushable_dl_task(struct rq *rq, struct task_struct *p)
 {
 	struct dl_rq *dl_rq = &rq->dl;
+
+    pr_fn_start_on(stack_depth);
 
 	if (RB_EMPTY_NODE(&p->pushable_dl_tasks))
 		return;
@@ -488,14 +496,19 @@ static void dequeue_pushable_dl_task(struct rq *rq, struct task_struct *p)
 		struct rb_node *next_node;
 
 		next_node = rb_next(&p->pushable_dl_tasks);
+        pr_view_on(stack_depth, "%20s : %p\n", next_node);
+
 		if (next_node) {
 			dl_rq->earliest_dl.next = rb_entry(next_node,
 				struct task_struct, pushable_dl_tasks)->dl.deadline;
 		}
-	}
+        pr_view_on(stack_depth, "%20s : %llu\n", dl_rq->earliest_dl.next);
+    }
 
 	rb_erase_cached(&p->pushable_dl_tasks, &dl_rq->pushable_dl_tasks_root);
 	RB_CLEAR_NODE(&p->pushable_dl_tasks);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline int has_pushable_dl_tasks(struct rq *rq)
@@ -518,10 +531,18 @@ static void pull_dl_task(struct rq *);
 
 static inline void deadline_queue_push_tasks(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (!has_pushable_dl_tasks(rq))
 		return;
 
+    pr_view_on(stack_depth, "%20s : %p\n", rq);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", push_dl_tasks);
+
 	queue_balance_callback(rq, &per_cpu(dl_push_head, rq->cpu), push_dl_tasks);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void deadline_queue_pull_task(struct rq *rq)
@@ -662,6 +683,8 @@ static inline void setup_new_dl_entity(struct sched_dl_entity *dl_se)
 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
 	struct rq *rq = rq_of_dl_rq(dl_rq);
 
+    pr_fn_start_on(stack_depth);
+
 	WARN_ON(dl_se->dl_boosted);
 	WARN_ON(dl_time_before(rq_clock(rq), dl_se->deadline));
 
@@ -680,6 +703,13 @@ static inline void setup_new_dl_entity(struct sched_dl_entity *dl_se)
 	 */
 	dl_se->deadline = rq_clock(rq) + dl_se->dl_deadline;
 	dl_se->runtime = dl_se->dl_runtime;
+
+    pr_view_on(stack_depth, "%20s : %llu\n", dl_se->dl_deadline);
+    pr_view_on(stack_depth, "%20s : %llu\n", dl_se->dl_runtime);
+    pr_view_on(stack_depth, "%20s : %llu\n", dl_se->deadline);
+    pr_view_on(stack_depth, "%20s : %llu\n", dl_se->runtime);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1357,6 +1387,7 @@ static void inc_dl_deadline(struct dl_rq *dl_rq, u64 deadline)
 		cpudl_set(&rq->rd->cpudl, rq->cpu, deadline);
 	}
 
+    pr_view_on(stack_depth, "%30s : %llu\n", dl_rq->earliest_dl.curr);
     pr_fn_end_on(stack_depth);
 }
 
@@ -1397,16 +1428,14 @@ void inc_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 	int prio = dl_task_of(dl_se)->prio;
 	u64 deadline = dl_se->deadline;
 
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)dl_rq);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)dl_se);
-    pr_view_on(stack_depth, "%30s : %d\n", prio);
-    pr_view_on(stack_depth, "%30s : %llu\n", deadline);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)dl_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)dl_se);
+    pr_view_on(stack_depth, "%20s : %d\n", prio);
+    pr_view_on(stack_depth, "%20s : %llu\n", deadline);
 
     WARN_ON(!dl_prio(prio));
 	dl_rq->dl_nr_running++;
     add_nr_running(rq_of_dl_rq(dl_rq), 1);
-
-    pr_view_on(stack_depth, "%30s : %lu\n", dl_rq->dl_nr_running);
 
 	inc_dl_deadline(dl_rq, deadline);
 	inc_dl_migration(dl_se, dl_rq);
@@ -1578,7 +1607,10 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 
 	enqueue_dl_entity(&p->dl, pi_se, flags);
 
-	if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %d\n", p->nr_cpus_allowed);
+    if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
 		enqueue_pushable_dl_task(rq, p);
 
     pr_fn_end_on(stack_depth);
@@ -1653,6 +1685,8 @@ select_task_rq_dl(struct task_struct *p, int cpu, int sd_flag, int flags)
 	struct task_struct *curr;
 	struct rq *rq;
 
+    pr_fn_start_on(stack_depth);
+
 	if (sd_flag != SD_BALANCE_WAKE)
 		goto out;
 
@@ -1685,6 +1719,8 @@ select_task_rq_dl(struct task_struct *p, int cpu, int sd_flag, int flags)
 	rcu_read_unlock();
 
 out:
+    pr_view_on(stack_depth, "%10s : %d\n", cpu);
+    pr_fn_end_on(stack_depth);
 	return cpu;
 }
 
@@ -1742,6 +1778,8 @@ static void check_preempt_equal_dl(struct rq *rq, struct task_struct *p)
 
 static int balance_dl(struct rq *rq, struct task_struct *p, struct rq_flags *rf)
 {
+    pr_fn_start_on(stack_depth);
+
 	if (!on_dl_rq(&p->dl) && need_pull_dl_task(rq, p)) {
 		/*
 		 * This is OK, because current is on_cpu, which avoids it being
@@ -1754,6 +1792,7 @@ static int balance_dl(struct rq *rq, struct task_struct *p, struct rq_flags *rf)
 		rq_repin_lock(rq, rf);
 	}
 
+    pr_fn_end_on(stack_depth);
 	return sched_stop_runnable(rq) || sched_dl_runnable(rq);
 }
 #endif /* CONFIG_SMP */
@@ -1794,6 +1833,8 @@ static void start_hrtick_dl(struct rq *rq, struct task_struct *p)
 
 static void set_next_task_dl(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	p->se.exec_start = rq_clock_task(rq);
 
 	/* You can't push away the running task */
@@ -1806,6 +1847,8 @@ static void set_next_task_dl(struct rq *rq, struct task_struct *p)
 		update_dl_rq_load_avg(rq_clock_pelt(rq), rq, 0);
 
 	deadline_queue_push_tasks(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static struct sched_dl_entity *pick_next_dl_entity(struct rq *rq,
@@ -1826,25 +1869,39 @@ pick_next_task_dl(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 	struct dl_rq *dl_rq = &rq->dl;
 	struct task_struct *p;
 
-	WARN_ON_ONCE(prev || rf);
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %lu\n", rq->dl.dl_nr_running);
+    WARN_ON_ONCE(prev || rf);
 
 	if (!sched_dl_runnable(rq))
 		return NULL;
 
-	dl_se = pick_next_dl_entity(rq, dl_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", dl_rq);
+    dl_se = pick_next_dl_entity(rq, dl_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", dl_se);
 	BUG_ON(!dl_se);
+
 	p = dl_task_of(dl_se);
-	set_next_task_dl(rq, p);
-	return p;
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+
+    set_next_task_dl(rq, p);
+
+    pr_fn_end_on(stack_depth);
+    return p;
 }
 
 static void put_prev_task_dl(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
 	update_curr_dl(rq);
 
 	update_dl_rq_load_avg(rq_clock_pelt(rq), rq, 1);
 	if (on_dl_rq(&p->dl) && p->nr_cpus_allowed > 1)
-		enqueue_pushable_dl_task(rq, p);
+        enqueue_pushable_dl_task(rq, p);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1926,6 +1983,8 @@ static int find_later_rq(struct task_struct *task)
 	int this_cpu = smp_processor_id();
 	int cpu = task_cpu(task);
 
+    pr_fn_start_on(stack_depth);
+
 	/* Make sure the mask is initialized first */
 	if (unlikely(!later_mask))
 		return -1;
@@ -1992,6 +2051,8 @@ static int find_later_rq(struct task_struct *task)
 	}
 	rcu_read_unlock();
 
+    pr_view_on(stack_depth, "%20s : %d\n", this_cpu);
+
 	/*
 	 * At this point, all our guesses failed, we just return
 	 * 'something', and let the caller sort the things out.
@@ -2003,7 +2064,9 @@ static int find_later_rq(struct task_struct *task)
 	if (cpu < nr_cpu_ids)
 		return cpu;
 
-	return -1;
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_fn_end_on(stack_depth);
+    return -1;
 }
 
 /* Locks the rq it finds */
@@ -2012,6 +2075,8 @@ static struct rq *find_lock_later_rq(struct task_struct *task, struct rq *rq)
 	struct rq *later_rq = NULL;
 	int tries;
 	int cpu;
+
+    pr_fn_start_on(stack_depth);
 
 	for (tries = 0; tries < DL_MAX_TRIES; tries++) {
 		cpu = find_later_rq(task);
@@ -2061,6 +2126,7 @@ static struct rq *find_lock_later_rq(struct task_struct *task, struct rq *rq)
 		later_rq = NULL;
 	}
 
+    pr_fn_end_on(stack_depth);
 	return later_rq;
 }
 
@@ -2095,11 +2161,15 @@ static int push_dl_task(struct rq *rq)
 	struct rq *later_rq;
 	int ret = 0;
 
+    pr_fn_start_on(stack_depth);
+
 	if (!rq->dl.overloaded)
 		return 0;
 
 	next_task = pick_next_pushable_dl_task(rq);
-	if (!next_task)
+    pr_view_on(stack_depth, "%20s : %p\n", next_task);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    if (!next_task)
 		return 0;
 
 retry:
@@ -2150,7 +2220,10 @@ retry:
 	}
 
 	deactivate_task(rq, next_task, 0);
-	set_task_cpu(next_task, later_rq->cpu);
+
+    pr_view_on(stack_depth, "%20s : %p\n", next_task);
+    pr_view_on(stack_depth, "%20s : %d\n", later_rq->cpu);
+    set_task_cpu(next_task, later_rq->cpu);
 
 	/*
 	 * Update the later_rq clock here, because the clock is used
@@ -2165,16 +2238,25 @@ retry:
 	double_unlock_balance(rq, later_rq);
 
 out:
-	put_task_struct(next_task);
+    pr_view_on(stack_depth, "%20s : %p\n", next_task);
+    put_task_struct(next_task);
+
+    pr_fn_end_on(stack_depth);
 
 	return ret;
 }
 
 static void push_dl_tasks(struct rq *rq)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%10s : %p\n", rq);
+    pr_view_on(stack_depth, "%10s : %d\n", rq->cpu);
+
 	/* push_dl_task() will return true if it moved a -deadline task */
 	while (push_dl_task(rq))
-		;
+        ;
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void pull_dl_task(struct rq *this_rq)
@@ -2184,6 +2266,8 @@ static void pull_dl_task(struct rq *this_rq)
 	bool resched = false;
 	struct rq *src_rq;
 	u64 dmin = LONG_MAX;
+
+    pr_fn_start_on(stack_depth);
 
 	if (likely(!dl_overloaded(this_rq)))
 		return;
@@ -2256,6 +2340,8 @@ skip:
 
 	if (resched)
 		resched_curr(this_rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -2419,6 +2505,11 @@ static void switched_from_dl(struct rq *rq, struct task_struct *p)
  */
 static void switched_to_dl(struct rq *rq, struct task_struct *p)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %d\n", p->on_rq);
+
 	if (hrtimer_try_to_cancel(&p->dl.inactive_timer) == 1)
 		put_task_struct(p);
 
@@ -2429,7 +2520,9 @@ static void switched_to_dl(struct rq *rq, struct task_struct *p)
 		return;
 	}
 
-	if (rq->curr != p) {
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+
+    if (rq->curr != p) {
 #ifdef CONFIG_SMP
 		if (p->nr_cpus_allowed > 1 && rq->dl.overloaded)
 			deadline_queue_push_tasks(rq);
@@ -2439,6 +2532,8 @@ static void switched_to_dl(struct rq *rq, struct task_struct *p)
 		else
 			resched_curr(rq);
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -2662,12 +2757,17 @@ void __setparam_dl(struct task_struct *p, const struct sched_attr *attr)
 {
 	struct sched_dl_entity *dl_se = &p->dl;
 
+    pr_fn_start_on(stack_depth);
+
 	dl_se->dl_runtime = attr->sched_runtime;
 	dl_se->dl_deadline = attr->sched_deadline;
 	dl_se->dl_period = attr->sched_period ?: dl_se->dl_deadline;
 	dl_se->flags = attr->sched_flags;
 	dl_se->dl_bw = to_ratio(dl_se->dl_period, dl_se->dl_runtime);
 	dl_se->dl_density = to_ratio(dl_se->dl_deadline, dl_se->dl_runtime);
+
+    pr_sched_dl_entity_info(dl_se);
+    pr_fn_end_on(stack_depth);
 }
 
 void __getparam_dl(struct task_struct *p, struct sched_attr *attr)

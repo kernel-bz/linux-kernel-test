@@ -55,7 +55,6 @@ void test_sched_create_group(void)
 {
     struct task_group *parent = &root_task_group;
     struct task_group *tg;
-    int cnt=0, idx, tg_max;
 
     pr_fn_start_on(stack_depth);
 
@@ -79,6 +78,9 @@ _end:
     pr_fn_end_on(stack_depth);
 }
 
+//kernel/fork.c
+static struct kmem_cache *task_struct_cachep;
+
 /*
 _do_fork()
   struct task_struct *p;
@@ -98,13 +100,29 @@ void test_sched_new_task(void)
 {
     struct task_struct *p;
     struct rq *rq;
-    unsigned int cpu;
+    unsigned int i, cpu;
+    int policy, prio;
+    char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
+                , "SCHED_BATCH", "SCHED_ISO", "SCHED_IDLE", "SCHED_DEADLINE" };
+
+    if (!task_struct_cachep)
+        task_struct_cachep = KMEM_CACHE(task_struct, 0);
 
 _retry:
      __fpurge(stdin);
     printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
+
+    for (i=SCHED_NORMAL; i <= SCHED_DEADLINE; i++)
+        printf("%d: %s\n", i, spolicy[i]);
+    printf("Input Policy Number[%d,%d]: ", SCHED_NORMAL, SCHED_DEADLINE);
+    scanf("%d", &policy);
+
+    //if policy==RT then prio>=0 and prio<=99
+    //if policy==CFS then prio=0
+    printf("Input Priority Number[0,%d]: ", MAX_PRIO-1);
+    scanf("%d", &prio);
 
     smp_user_cpu = cpu;
 
@@ -116,7 +134,9 @@ _retry:
     pr_view_on(stack_depth, "%30s : %p\n", current_task);
 
     //kernel/fork.c: copy_process()
-    p = (struct task_struct *)kmalloc(sizeof(*p), GFP_KERNEL);
+    //p = (struct task_struct *)kmalloc(sizeof(*p), GFP_KERNEL);
+    p = kmem_cache_alloc(task_struct_cachep, GFP_KERNEL | __GFP_ZERO);
+    pr_view_on(stack_depth, "%30s : %p\n", p);
 
     if (current_task) {
         memcpy(p, current_task, sizeof(*p));
@@ -125,17 +145,13 @@ _retry:
         current_task = p;
     }
     p->cpu = cpu;
-
-    pr_view_on(stack_depth, "%30s : %u\n", cpu);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)cpu_rq(cpu));
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)task_rq(p));
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)p);
+    p->policy = policy;
+    p->prio = prio;
+    current_task->normal_prio = prio;
 
     //pr_sched_task_info(&init_task);
 
     p->sched_task_group = _sched_test_tg_select();
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)p->sched_task_group);
-    pr_view_on(stack_depth, "%30s : %u\n", p->cpu);
 
     pr_sched_task_info(p);
 
@@ -149,17 +165,17 @@ _retry:
     pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     if (!rq->curr) {
         rq->curr = p;
-        rq->cfs.curr = &p->se;
-        //rq->cfs.last = &p->se;
-        //rq->cfs.next = &p->se;
-        //rq->cfs.curr->exec_start = rq_clock(rq) - (sysctl_sched_wakeup_granularity * 2);
         current_task = p;
     }
+
+    if (p->policy == SCHED_NORMAL)
+        rq->cfs.curr = &p->se;
 
     p->sched_class->update_curr(rq);
 
     pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
     pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
+    pr_view_on(stack_depth, "%30s : %d\n", rq->rt.highest_prio.curr);
     //pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
@@ -181,10 +197,29 @@ _retry:
     rq = cpu_rq(cpu);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)current);
+
     pr_sched_task_info(rq->curr);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)current);
-    pr_sched_task_info(current);	//current_task
+    if (rq->curr != current)
+        pr_sched_task_info(current);	//current_task
+
+    pr_fn_end_on(stack_depth);
+}
+
+void test_sched_rq_info(void)
+{
+    int cpu;
+
+_retry:
+    __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%d", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_sched_rq_info(cpu_rq(cpu));
 
     pr_fn_end_on(stack_depth);
 }
@@ -244,10 +279,13 @@ void test_sched_setscheduler(void)
     struct rq *rq;
     struct task_struct *p;
     int i, policy, cpu, prio, chk;
-    int ret;
-    struct sched_param param;
+    int ret, cnt;
+    //struct sched_param param;
+    struct sched_attr attr;
     char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
             , "SCHED_BATCH", "SCHED_ISO", "SCHED_IDLE", "SCHED_DEADLINE" };
+
+    pr_fn_start_on(stack_depth);
 
 _retry:
      __fpurge(stdin);
@@ -255,12 +293,31 @@ _retry:
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
 
+    smp_user_cpu = cpu;
+
     rq = cpu_rq(cpu);
-    p = rq->curr;
-    if (!p) {
-        pr_warn("Please run sched_init and wake_up_new_task first!\n");
-        return;
+    printf("rq->curr : %p\n", rq->curr);
+    struct list_head *tasks = &rq->cfs_tasks, *cur, *n;
+    struct task_struct **pa;
+    i = 0;
+    cnt = 0;
+    list_for_each_safe(cur, n, tasks)
+            cnt++;
+    printf("cfs_tasks : %d\n", cnt);
+    pa =(struct task_struct **)malloc(cnt * sizeof(void **));
+
+    printf("------------------------------------------------\n");
+    list_for_each_prev_safe(cur, n, tasks) {
+        p = list_entry(cur, struct task_struct, se.group_node);
+        pa[i] = p;
+        printf("[%d] %p(%d, %d)\n", i, pa[i], p->on_rq, p->prio);
+        i++;
     }
+    printf("------------------------------------------------\n");
+
+    printf("Select Task Number[0,%d]: ", cnt - 1);
+    scanf("%d", &cnt);
+    p = pa[cnt];
 
     for (i=SCHED_NORMAL; i <= SCHED_DEADLINE; i++)
         printf("%d: %s\n", i, spolicy[i]);
@@ -269,23 +326,51 @@ _retry:
 
     //if policy==RT then prio>=0 and prio<=99
     //if policy==CFS then prio=0
+    //if policy==SCHED_DEADLINE then prio=-1
     printf("Input Priority Number[0,%d]: ", MAX_RT_PRIO-1);
     scanf("%d", &prio);
 
     printf("Select User Check[0,1]: ");
     scanf("%d", &chk);
 
-    pr_fn_start_on(stack_depth);
-
+#if 0
     param.sched_priority = prio;
     if (chk) {
         ret = sched_setscheduler_check(p, policy, &param);
     } else {
         ret = sched_setscheduler_nocheck(p, policy, &param);
     }
+#endif
+    memset(&attr, 0, sizeof(attr));
+    attr.sched_policy = policy;
+    switch (policy) {
+    case SCHED_DEADLINE:
+                attr.sched_priority = 0;
+                attr.sched_runtime = 3000000;	//3ms
+                attr.sched_deadline = 8000000;	//8ms
+                attr.sched_period = 8000000;	//8ms
+                break;
+    case SCHED_FIFO:
+    case SCHED_RR:
+                attr.sched_priority = prio;
+                break;
+    case SCHED_NORMAL:
+    case SCHED_BATCH:
+                attr.sched_priority = 120;
+                attr.sched_nice = 0;
+                break;
+    case SCHED_IDLE:
+                break;
+    }
+
+    if (chk)
+        ret = sched_setattr(p, &attr);
+    else
+        ret = sched_setattr_nocheck(p, &attr);
 
     pr_view_on(stack_depth, "%20s : %d\n", ret);
 
+    free(pa);
     pr_fn_end_on(stack_depth);
 }
 
@@ -499,22 +584,7 @@ _retry:
         pr_warn("Please run sched_init and wake_up_new_task first!\n");
         return;
     }
-    p->sched_class = &dl_sched_class;
-    p->prio = -1;
-    p->normal_prio = -1;
-    p->dl.dl_boosted = 0;
-    p->dl.dl_throttled = 1;
-    p->dl.dl_period = def_dl_bandwidth.dl_period;
-    p->dl.dl_runtime = def_dl_bandwidth.dl_runtime;
-
-    update_rq_clock(rq);
-
-    //enqueue_task_dl(rq, p, ENQUEUE_REPLENISH);
-    p->sched_class->enqueue_task(rq, p, ENQUEUE_REPLENISH);
-
-    p->sched_class = &fair_sched_class;
-    p->normal_prio = 120;
-    p->prio = p->normal_prio;
+    return;
 }
 
 void test_sched_cpudl(void)
@@ -537,4 +607,17 @@ void test_sched_cpudl(void)
     for (i=0; i<asize; i++) {
         cpudl_set(&rq->rd->cpudl, cpu[i], dl[i]);
     }
+}
+
+void test_sched_stop_cpu_dying(void)
+{
+    int cpu;
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    sched_cpu_dying(cpu);
 }

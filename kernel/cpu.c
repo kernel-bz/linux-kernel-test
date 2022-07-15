@@ -42,6 +42,7 @@
 //#include "smpboot.h"
 
 #include "test/debug.h"
+#include "test/config.h"
 
 int smp_user_cpu = 0;
 
@@ -314,12 +315,12 @@ EXPORT_SYMBOL_GPL(cpus_read_unlock);
 
 void cpus_write_lock(void)
 {
-	percpu_down_write(&cpu_hotplug_lock);
+    //percpu_down_write(&cpu_hotplug_lock);
 }
 
 void cpus_write_unlock(void)
 {
-	percpu_up_write(&cpu_hotplug_lock);
+    //percpu_up_write(&cpu_hotplug_lock);
 }
 
 void lockdep_assert_cpus_held(void)
@@ -330,20 +331,20 @@ void lockdep_assert_cpus_held(void)
 	 * This is all valid, so mute lockdep until it makes sense to report
 	 * unheld locks.
 	 */
-	if (system_state < SYSTEM_RUNNING)
-		return;
+    //if (system_state < SYSTEM_RUNNING)
+    //	return;
 
 	percpu_rwsem_assert_held(&cpu_hotplug_lock);
 }
 
 static void lockdep_acquire_cpus_lock(void)
 {
-	rwsem_acquire(&cpu_hotplug_lock.rw_sem.dep_map, 0, 0, _THIS_IP_);
+    //rwsem_acquire(&cpu_hotplug_lock.rw_sem.dep_map, 0, 0, _THIS_IP_);
 }
 
 static void lockdep_release_cpus_lock(void)
 {
-	rwsem_release(&cpu_hotplug_lock.rw_sem.dep_map, 1, _THIS_IP_);
+    //rwsem_release(&cpu_hotplug_lock.rw_sem.dep_map, 1, _THIS_IP_);
 }
 
 /*
@@ -860,10 +861,10 @@ void clear_tasks_mm_cpumask(int cpu)
 		 * Main thread might exit, but other threads may still have
 		 * a valid mm. Find one.
 		 */
-		t = find_lock_task_mm(p);
+        //t = find_lock_task_mm(p);
 		if (!t)
 			continue;
-		cpumask_clear_cpu(cpu, mm_cpumask(t->mm));
+        //cpumask_clear_cpu(cpu, mm_cpumask(t->mm));
 		task_unlock(t);
 	}
 	rcu_read_unlock();
@@ -878,7 +879,7 @@ static int take_cpu_down(void *_param)
 	int ret;
 
 	/* Ensure this CPU doesn't handle any more interrupts. */
-	err = __cpu_disable();
+    //err = __cpu_disable();
 	if (err < 0)
 		return err;
 
@@ -898,11 +899,11 @@ static int take_cpu_down(void *_param)
 	}
 
 	/* Give up timekeeping duties */
-	tick_handover_do_timer();
+    //tick_handover_do_timer();
 	/* Remove CPU from timer broadcasting */
-	tick_offline_cpu(cpu);
+    //tick_offline_cpu(cpu);
 	/* Park the stopper thread */
-	stop_machine_park(cpu);
+    //stop_machine_park(cpu);
 	return 0;
 }
 
@@ -910,25 +911,25 @@ static int takedown_cpu(unsigned int cpu)
 {
 	struct cpuhp_cpu_state *st = per_cpu_ptr(&cpuhp_state, cpu);
 	int err;
-
+#if 0
 	/* Park the smpboot threads */
-	kthread_park(per_cpu_ptr(&cpuhp_state, cpu)->thread);
+    kthread_park(per_cpu_ptr(&cpuhp_state, cpu)->thread);
 
 	/*
 	 * Prevent irq alloc/free while the dying cpu reorganizes the
 	 * interrupt affinities.
 	 */
-	irq_lock_sparse();
+    irq_lock_sparse();
 
 	/*
 	 * So now all preempt/rcu users must observe !cpu_active().
 	 */
-	err = stop_machine_cpuslocked(take_cpu_down, NULL, cpumask_of(cpu));
+    err = stop_machine_cpuslocked(take_cpu_down, NULL, cpumask_of(cpu));
 	if (err) {
 		/* CPU refused to die */
 		irq_unlock_sparse();
 		/* Unpark the hotplug thread so we can rollback there */
-        //kthread_unpark(per_cpu_ptr(&cpuhp_state, cpu)->thread);
+        kthread_unpark(per_cpu_ptr(&cpuhp_state, cpu)->thread);
 		return err;
 	}
 	BUG_ON(cpu_online(cpu));
@@ -952,6 +953,7 @@ static int takedown_cpu(unsigned int cpu)
 
 	tick_cleanup_dead_cpu(cpu);
 	rcutree_migrate_callbacks(cpu);
+#endif
 	return 0;
 }
 
@@ -967,6 +969,7 @@ void cpuhp_report_idle_dead(void)
 	struct cpuhp_cpu_state *st = this_cpu_ptr(&cpuhp_state);
 
 	BUG_ON(st->state != CPUHP_AP_OFFLINE);
+#if 0
 	rcu_report_dead(smp_processor_id());
 	st->state = CPUHP_AP_IDLE_DEAD;
 	/*
@@ -974,7 +977,8 @@ void cpuhp_report_idle_dead(void)
 	 * to an online cpu.
 	 */
 	smp_call_function_single(cpumask_first(cpu_online_mask),
-				 cpuhp_complete_idle_dead, st, 0);
+                 cpuhp_complete_idle_dead, st, 0);
+#endif
 }
 
 static void undo_cpu_down(unsigned int cpu, struct cpuhp_cpu_state *st)
@@ -1058,7 +1062,7 @@ out:
 	 * Do post unplug cleanup. This is still protected against
 	 * concurrent CPU hotplug via cpu_add_remove_lock.
 	 */
-	lockup_detector_cleanup();
+    //lockup_detector_cleanup();
 	arch_smt_update();
 	return ret;
 }
@@ -1485,8 +1489,8 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	/* First state is scheduler control. Interrupts are disabled */
 	[CPUHP_AP_SCHED_STARTING] = {
 		.name			= "sched:starting",
-        //.startup.single		= sched_cpu_starting,
-        //.teardown.single	= sched_cpu_dying,
+        .startup.single		= sched_cpu_starting,
+        .teardown.single	= sched_cpu_dying,
 	},
 	[CPUHP_AP_RCUTREE_DYING] = {
 		.name			= "RCU/tree:dying",

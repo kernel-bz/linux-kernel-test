@@ -1383,12 +1383,16 @@ queue_balance_callback(struct rq *rq,
 {
 	lockdep_assert_held(&rq->lock);
 
+    pr_fn_start_on(stack_depth);
+
 	if (unlikely(head->next))
 		return;
 
 	head->func = (void (*)(struct callback_head *))func;
 	head->next = rq->balance_callback;
 	rq->balance_callback = head;
+
+    pr_fn_end_on(stack_depth);
 }
 
 extern void sched_ttwu_pending(void);
@@ -1612,6 +1616,7 @@ static inline struct task_group *task_group(struct task_struct *p)
 static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 {
     pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %u\n", cpu);
 
 	set_task_rq(p, cpu);
 #ifdef CONFIG_SMP
@@ -1629,7 +1634,7 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 	p->wake_cpu = cpu;
 #endif
 
-    pr_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_view_on(stack_depth, "%20s : %u\n", p->cpu);
     pr_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
 
     pr_fn_end_on(stack_depth);
@@ -1868,8 +1873,14 @@ struct sched_class {
 
 static inline void put_prev_task(struct rq *rq, struct task_struct *prev)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", prev);
+
 	WARN_ON_ONCE(rq->curr != prev);
 	prev->sched_class->put_prev_task(rq, prev);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static inline void set_next_task(struct rq *rq, struct task_struct *next)

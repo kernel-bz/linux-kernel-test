@@ -268,6 +268,7 @@ void resched_curr(struct rq *rq)
     cpu = cpu_of(rq);
 
     pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", smp_processor_id());
 
     if (cpu == smp_processor_id()) {
         set_tsk_need_resched(curr);
@@ -279,7 +280,7 @@ void resched_curr(struct rq *rq)
         smp_send_reschedule(cpu);
     else
         trace_sched_wake_idle_without_ipi(cpu);
-#endif //0
+#endif
 
     pr_fn_end_on(stack_depth);
 }
@@ -1051,6 +1052,8 @@ static inline void check_class_changed(struct rq *rq, struct task_struct *p,
     pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)prev_class);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)p->sched_class);
+    pr_view_on(stack_depth, "%20s : %d\n", oldprio);
+    pr_view_on(stack_depth, "%20s : %d\n", p->prio);
 
     if (prev_class != p->sched_class) {
         if (prev_class->switched_from)
@@ -1365,6 +1368,9 @@ EXPORT_SYMBOL_GPL(set_cpus_allowed_ptr);
 //1705
 void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %u\n", new_cpu);
+
 #ifdef CONFIG_SCHED_DEBUG
     /*
      * We should never call set_task_cpu() on a blocked task,
@@ -1413,6 +1419,8 @@ void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
     }
 
     __set_task_cpu(p, new_cpu);
+
+    pr_fn_end_on(stack_depth);
 }
 //1757 lines
 
@@ -1446,12 +1454,14 @@ void set_task_cpu(struct task_struct *p, unsigned int new_cpu)
  */
 static int select_fallback_rq(int cpu, struct task_struct *p)
 {
-    pr_fn_start_on(stack_depth);
-
     int nid = cpu_to_node(cpu);
     const struct cpumask *nodemask = NULL;
     enum { cpuset, possible, fail } state = cpuset;
     int dest_cpu;
+
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%10s : %d\n", cpu);
+    pr_view_on(stack_depth, "%10s : %d\n", nid);
 
     /*
      * If the node that the CPU is on has been offlined, cpu_to_node()
@@ -1460,9 +1470,13 @@ static int select_fallback_rq(int cpu, struct task_struct *p)
      */
     if (nid != -1) {
         nodemask = cpumask_of_node(nid);
+        pr_view_on(stack_depth, "%20s : 0x%X\n", nodemask->bits[0]);
+        pr_view_on(stack_depth, "%20s : 0x%X\n", p->cpus_ptr->bits[0]);
 
         /* Look for allowed, online CPU in same node. */
         for_each_cpu(dest_cpu, nodemask) {
+            if (cpu == dest_cpu) continue;	//Modified for test by JJJ.
+
             if (!cpu_active(dest_cpu))
                 continue;
             if (cpumask_test_cpu(dest_cpu, p->cpus_ptr))
@@ -1558,10 +1572,36 @@ static void update_avg(u64 *avg, u64 sample)
     s64 diff = sample - *avg;
     *avg += diff >> 3;
 }
-//2133 lines
 
+void sched_set_stop_task(int cpu, struct task_struct *stop)
+{
+    struct sched_param param = { .sched_priority = MAX_RT_PRIO - 1 };
+    struct task_struct *old_stop = cpu_rq(cpu)->stop;
 
+    if (stop) {
+        /*
+         * Make it appear like a SCHED_FIFO task, its something
+         * userspace knows about and won't get confused about.
+         *
+         * Also, it will make PI more or less work without too
+         * much confusion -- but then, stop work should not
+         * rely on PI working anyway.
+         */
+        sched_setscheduler_nocheck(stop, SCHED_FIFO, &param);
 
+        stop->sched_class = &stop_sched_class;
+    }
+
+    cpu_rq(cpu)->stop = stop;
+
+    if (old_stop) {
+        /*
+         * Reset it back to a normal scheduling class so that
+         * it can die in pieces.
+         */
+        old_stop->sched_class = &rt_sched_class;
+    }
+}
 
 
 //2163 lines
@@ -2086,9 +2126,9 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 #endif
 
     RB_CLEAR_NODE(&p->dl.rb_node);
-    //init_dl_task_timer(&p->dl);
-    //init_dl_inactive_task_timer(&p->dl);
-    //__dl_clear_params(p);
+    init_dl_task_timer(&p->dl);
+    init_dl_inactive_task_timer(&p->dl);
+    __dl_clear_params(p);
 
     INIT_LIST_HEAD(&p->rt.run_list);
     p->rt.timeout		= 0;
@@ -2340,6 +2380,8 @@ void wake_up_new_task(struct task_struct *p)
     rq = __task_rq_lock(p, &rf);
     rq->cpu = p->cpu;
 
+    pr_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->cpu);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %d\n", cpu_of(rq));
 
@@ -2350,6 +2392,9 @@ void wake_up_new_task(struct task_struct *p)
 
     activate_task(rq, p, ENQUEUE_NOCLOCK);
 
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    if (!rq->curr)
+        rq->curr = p;
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
 
     //trace_sched_wakeup_new(p);
@@ -2582,16 +2627,23 @@ static void __balance_callback(struct rq *rq)
     struct callback_head *head, *next;
     void (*func)(struct rq *rq);
     unsigned long flags;
+    unsigned int debug_cnt = 0;
+
+    pr_view_on(stack_depth, "%10s : %p\n", rq);
+    pr_view_on(stack_depth, "%10s : %d\n", rq->cpu);
 
     raw_spin_lock_irqsave(&rq->lock, flags);
     head = rq->balance_callback;
     rq->balance_callback = NULL;
     while (head) {
+        pr_view_on(stack_depth, "%20s : %u\n", debug_cnt++);
+        pr_view_on(stack_depth, "%20s : %p\n", head);
         func = (void (*)(struct rq *))head->func;
         next = head->next;
         head->next = NULL;
         head = next;
 
+        pr_view_on(stack_depth, "%20s : %p\n", func);
         func(rq);
     }
     raw_spin_unlock_irqrestore(&rq->lock, flags);
@@ -2601,8 +2653,14 @@ static void __balance_callback(struct rq *rq)
 
 static inline void balance_callback(struct rq *rq)
 {
+    pr_fn_start(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", rq->balance_callback);
+
     if (unlikely(rq->balance_callback))
         __balance_callback(rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #else
@@ -2865,7 +2923,47 @@ void scheduler_tick(void)
 //3614 lines
 
 
+static void sched_tick_start(int cpu)
+{
+        int os;
+        struct tick_work *twork;
 
+        if (housekeeping_cpu(cpu, HK_FLAG_TICK))
+                return;
+
+#if 0
+        WARN_ON_ONCE(!tick_work_cpu);
+
+        twork = per_cpu_ptr(tick_work_cpu, cpu);
+        os = atomic_xchg(&twork->state, TICK_SCHED_REMOTE_RUNNING);
+        WARN_ON_ONCE(os == TICK_SCHED_REMOTE_RUNNING);
+        if (os == TICK_SCHED_REMOTE_OFFLINE) {
+                twork->cpu = cpu;
+                INIT_DELAYED_WORK(&twork->work, sched_tick_remote);
+                queue_delayed_work(system_unbound_wq, &twork->work, HZ);
+        }
+#endif
+}
+
+#ifdef CONFIG_HOTPLUG_CPU
+static void sched_tick_stop(int cpu)
+{
+        struct tick_work *twork;
+        int os;
+
+        if (housekeeping_cpu(cpu, HK_FLAG_TICK))
+                return;
+#if 0
+        WARN_ON_ONCE(!tick_work_cpu);
+
+        twork = per_cpu_ptr(tick_work_cpu, cpu);
+        /* There cannot be competing actions, but don't rely on stop-machine. */
+        os = atomic_xchg(&twork->state, TICK_SCHED_REMOTE_OFFLINING);
+        WARN_ON_ONCE(os != TICK_SCHED_REMOTE_RUNNING);
+        /* Don't cancel, as this would mess up the state machine. */
+#endif
+}
+#endif /* CONFIG_HOTPLUG_CPU */
 
 
 
@@ -2947,14 +3045,14 @@ static inline void schedule_debug(struct task_struct *prev, bool preempt)
 static inline struct task_struct *
 pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
-    pr_fn_start_on(stack_depth);
-
     const struct sched_class *class;
     struct task_struct *p;
+    unsigned int debug_cnt = 0;
+
+    pr_fn_start_on(stack_depth);
 
     pr_view_on(stack_depth, "%20s : %p\n", prev);
-    pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
-    pr_view_on(stack_depth, "%20s : %u\n", rq->cfs.h_nr_running);
+    pr_view_on(stack_depth, "%20s : %u\n", prev->policy);
 
     /*
      * Optimization: we know that if all tasks are in the fair class we can
@@ -2974,7 +3072,7 @@ pick_next_task(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
         if (unlikely(!p))
             p = idle_sched_class.pick_next_task(rq, prev, rf);
 
-        pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
+        pr_view_on(stack_depth, "%20s : next task fair: %p\n", p);
         pr_fn_end_on(stack_depth);
         return p;
     }
@@ -2991,6 +3089,8 @@ restart:
      * a runnable task of @class priority or higher.
      */
     for_class_range(class, prev->sched_class, &idle_sched_class) {
+        pr_view_on(stack_depth, "%20s : %u\n", debug_cnt++);
+        pr_out_on(stack_depth, "class->balance():\n");
         if (class->balance(rq, prev, rf))
             break;
     }
@@ -2998,10 +3098,12 @@ restart:
 
     put_prev_task(rq, prev);
 
+    debug_cnt = 0;
     for_each_class(class) {
+        pr_view_on(stack_depth, "%20s : %u\n", debug_cnt++);
         p = class->pick_next_task(rq, NULL, NULL);
         if (p) {
-            pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
+            pr_view_on(stack_depth, "%20s : next task: %p\n", p);
             return p;
         }
     }
@@ -3107,11 +3209,9 @@ static void __sched notrace __schedule(bool preempt)
         switch_count = &prev->nvcsw;
     }
 
-    pr_view_on(stack_depth, "%20s : %lu\n", *switch_count);
-
     next = pick_next_task(rq, prev, &rf);
     clear_tsk_need_resched(prev);
-    //clear_preempt_need_resched();
+    clear_preempt_need_resched();
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
@@ -3150,8 +3250,9 @@ static void __sched notrace __schedule(bool preempt)
 
     balance_callback(rq);
 
-    pr_view_on(stack_depth, "%20s : %lu\n", *switch_count);
     current_task = next;
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
+    pr_view_on(stack_depth, "%20s : %p\n", current_task);
 
     pr_fn_end_on(stack_depth);
 }
@@ -3589,6 +3690,9 @@ static void __setscheduler_params(struct task_struct *p,
 {
     int policy = attr->sched_policy;
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %d\n", policy);
+
     if (policy == SETPARAM_POLICY)
         policy = p->policy;
 
@@ -3606,7 +3710,10 @@ static void __setscheduler_params(struct task_struct *p,
      */
     p->rt_priority = attr->sched_priority;
     p->normal_prio = normal_prio(p);
+
     set_load_weight(p, true);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /* Actually do priority change: must hold pi & rq lock. */
@@ -3639,7 +3746,6 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
     else
         p->sched_class = &fair_sched_class;
 
-    pr_sched_task_info(p);
     pr_fn_end_on(stack_depth);
 }
 
@@ -3678,8 +3784,8 @@ static int __sched_setscheduler(struct task_struct *p,
     int queue_flags = DEQUEUE_SAVE | DEQUEUE_MOVE | DEQUEUE_NOCLOCK;
     struct rq *rq;
 
-    pr_view_on(stack_depth, "%30s : %d\n", newprio);
-    pr_view_on(stack_depth, "%30s : %d\n", policy);
+    pr_view_on(stack_depth, "%20s : %d\n", newprio);
+    pr_view_on(stack_depth, "%20s : %d\n", policy);
 
     /* The pi code expects interrupts enabled */
     //BUG_ON(pi && in_interrupt());
@@ -3698,6 +3804,11 @@ recheck:
     if (attr->sched_flags & ~(SCHED_FLAG_ALL | SCHED_FLAG_SUGOV))
         return -EINVAL;
 
+    pr_view_on(stack_depth, "%20s : 0x%X\n", attr->sched_flags);
+    pr_view_on(stack_depth, "%20s : %u\n", attr->sched_priority);
+    pr_view_on(stack_depth, "%20s : %u\n", attr->sched_policy);
+    pr_view_on(stack_depth, "%20s : %d\n", attr->sched_nice);
+
     /*
      * Valid priorities for SCHED_FIFO and SCHED_RR are
      * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_NORMAL,
@@ -3709,9 +3820,6 @@ recheck:
     if ((dl_policy(policy) && !__checkparam_dl(attr)) ||
         (rt_policy(policy) != (attr->sched_priority != 0)))
         return -EINVAL;
-
-    pr_view_on(stack_depth, "%30s : %u\n", attr->sched_priority);
-    pr_view_on(stack_depth, "%30s : %d\n", attr->sched_nice);
 
     /*
      * Allow unprivileged RT tasks to decrease priority:
@@ -3728,7 +3836,7 @@ recheck:
             unsigned long rlim_rtprio =
                     task_rlimit(p, RLIMIT_RTPRIO);
 
-            pr_view_on(stack_depth, "%30s : %lu\n", rlim_rtprio);
+            pr_view_on(stack_depth, "%20s : %lu\n", rlim_rtprio);
 
             /* Can't set/change the rt policy: */
             if (policy != p->policy && !rlim_rtprio)
@@ -3795,7 +3903,7 @@ recheck:
      */
     rq = task_rq_lock(p, &rf);
 
-    pr_view_on(stack_depth, "%30s : %p\n", rq);
+    pr_view_on(stack_depth, "%20s : %p\n", rq);
 
     update_rq_clock(rq);
 
@@ -3807,6 +3915,8 @@ recheck:
         goto unlock;
     }
 
+    pr_view_on(stack_depth, "%20s : %d\n", policy);
+    pr_view_on(stack_depth, "%20s : %u\n", p->policy);
     /*
      * If not changing anything there's no need to proceed further,
      * but store a possible modification of reset_on_fork.
@@ -3859,8 +3969,7 @@ change:
 #endif
     }
 
-    pr_view_on(stack_depth, "%30s : %d\n", oldpolicy);
-    pr_view_on(stack_depth, "%30s : %d\n", p->policy);
+    pr_view_on(stack_depth, "%20s : %d\n", oldpolicy);
 
     /* Re-check policy now with rq lock held: */
     if (unlikely(oldpolicy != -1 && oldpolicy != p->policy)) {
@@ -3900,8 +4009,8 @@ change:
     queued = task_on_rq_queued(p);
     running = task_current(rq, p);
 
-    pr_view_on(stack_depth, "%30s : %d\n", queued);
-    pr_view_on(stack_depth, "%30s : %d\n", running);
+    pr_view_on(stack_depth, "%20s : %d\n", queued);
+    pr_view_on(stack_depth, "%20s : %d\n", running);
 
     if (queued)
         dequeue_task(rq, p, queue_flags);
@@ -3910,9 +4019,14 @@ change:
 
     prev_class = p->sched_class;
 
+    pr_view_on(stack_depth, "%20s : %d\n", pi);
     __setscheduler(rq, p, attr, pi);
     __setscheduler_uclamp(p, attr);
 
+    pr_sched_task_info(p);
+
+    pr_view_on(stack_depth, "%20s : %d\n", queued);
+    pr_view_on(stack_depth, "%20s : %d\n", running);
     if (queued) {
         /*
          * We enqueue to tail when the priority of a task is
@@ -3923,6 +4037,7 @@ change:
 
         enqueue_task(rq, p, queue_flags);
     }
+
     if (running)
         set_next_task(rq, p);
 
@@ -3996,13 +4111,13 @@ int sched_setscheduler_check(struct task_struct *p, int policy,
 {
     return _sched_setscheduler(p, policy, param, true);
 }
-//EXPORT_SYMBOL_GPL(sched_setscheduler);
+EXPORT_SYMBOL_GPL(sched_setscheduler);
 
 int sched_setattr(struct task_struct *p, const struct sched_attr *attr)
 {
     return __sched_setscheduler(p, attr, true, true);
 }
-//EXPORT_SYMBOL_GPL(sched_setattr);
+EXPORT_SYMBOL_GPL(sched_setattr);
 
 int sched_setattr_nocheck(struct task_struct *p, const struct sched_attr *attr)
 {
@@ -4116,6 +4231,159 @@ err_size:
 //6120 lines
 bool sched_smp_initialized __read_mostly;
 
+
+
+#ifdef CONFIG_HOTPLUG_CPU
+/*
+ * Ensure that the idle task is using init_mm right before its CPU goes
+ * offline.
+ */
+void idle_task_exit(void)
+{
+    struct mm_struct *mm = current->active_mm;
+
+    BUG_ON(cpu_online(smp_processor_id()));
+#if 0
+    if (mm != &init_mm) {
+        switch_mm(mm, &init_mm, current);
+        current->active_mm = &init_mm;
+        finish_arch_post_lock_switch();
+    }
+
+    mmdrop(mm);
+#endif
+}
+
+/*
+ * Since this CPU is going 'away' for a while, fold any nr_active delta
+ * we might have. Assumes we're called after migrate_tasks() so that the
+ * nr_active count is stable. We need to take the teardown thread which
+ * is calling this into account, so we hand in adjust = 1 to the load
+ * calculation.
+ *
+ * Also see the comment "Global load-average calculations".
+ */
+static void calc_load_migrate(struct rq *rq)
+{
+    long delta = calc_load_fold_active(rq, 1);
+    if (delta)
+        atomic_long_add(delta, &calc_load_tasks);
+}
+
+static struct task_struct *__pick_migrate_task(struct rq *rq)
+{
+    const struct sched_class *class;
+    struct task_struct *next;
+
+    pr_fn_start_on(stack_depth);
+
+    for_each_class(class) {
+        next = class->pick_next_task(rq, NULL, NULL);
+        if (next) {
+            next->sched_class->put_prev_task(rq, next);
+            return next;
+        }
+    }
+
+    /* The idle class should always have a runnable task */
+    BUG();
+
+    pr_fn_end_on(stack_depth);
+}
+
+/*
+ * Migrate all tasks from the rq, sleeping tasks will be migrated by
+ * try_to_wake_up()->select_task_rq().
+ *
+ * Called with rq->lock held even though we'er in stop_machine() and
+ * there's no concurrency possible, we hold the required locks anyway
+ * because of lock validation efforts.
+ */
+static void migrate_tasks(struct rq *dead_rq, struct rq_flags *rf)
+{
+    struct rq *rq = dead_rq;
+    struct task_struct *next, *stop = rq->stop;
+    struct rq_flags orf = *rf;
+    int dest_cpu;
+
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->stop);
+    pr_view_on(stack_depth, "%20s : %p\n", stop);
+
+    /*
+         * Fudge the rq selection such that the below task selection loop
+         * doesn't get stuck on the currently eligible stop task.
+         *
+         * We're currently inside stop_machine() and the rq is either stuck
+         * in the stop_machine_cpu_stop() loop, or we're executing this code,
+         * either way we should never end up calling schedule() until we're
+         * done here.
+         */
+    rq->stop = NULL;
+    pr_view_on(stack_depth, "%20s : %p\n", rq->stop);
+
+    /*
+         * put_prev_task() and pick_next_task() sched
+         * class method both need to have an up-to-date
+         * value of rq->clock[_task]
+         */
+    update_rq_clock(rq);
+
+    for (;;) {
+        pr_view_on(stack_depth, "%30s : %u\n", rq->nr_running);
+        /*
+                 * There's this thread running, bail when that's the only
+                 * remaining thread:
+                 */
+        if (rq->nr_running == 1)
+            break;
+
+        next = __pick_migrate_task(rq);
+
+        /*
+                 * Rules for changing task_struct::cpus_mask are holding
+                 * both pi_lock and rq->lock, such that holding either
+                 * stabilizes the mask.
+                 *
+                 * Drop rq->lock is not quite as disastrous as it usually is
+                 * because !cpu_active at this point, which means load-balance
+                 * will not interfere. Also, stop-machine.
+                 */
+        rq_unlock(rq, rf);
+        raw_spin_lock(&next->pi_lock);
+        rq_relock(rq, rf);
+
+        /*
+                 * Since we're inside stop-machine, _nothing_ should have
+                 * changed the task, WARN if weird stuff happened, because in
+                 * that case the above rq->lock drop is a fail too.
+                 */
+        if (WARN_ON(task_rq(next) != rq || !task_on_rq_queued(next))) {
+            raw_spin_unlock(&next->pi_lock);
+            continue;
+        }
+
+        /* Find suitable destination for @next, with force if needed. */
+        dest_cpu = select_fallback_rq(dead_rq->cpu, next);
+        pr_view_on(stack_depth, "%30s : %d\n", dest_cpu);
+
+        rq = __migrate_task(rq, rf, next, dest_cpu);
+        if (rq != dead_rq) {
+            rq_unlock(rq, rf);
+            rq = dead_rq;
+            *rf = orf;
+            rq_relock(rq, rf);
+        }
+        raw_spin_unlock(&next->pi_lock);
+    }
+
+    rq->stop = stop;
+
+    pr_view_on(stack_depth, "%30s : %p\n", stop);
+    pr_view_on(stack_depth, "%30s : %p\n", rq->stop);
+    pr_fn_end_on(stack_depth);
+}
+#endif /* CONFIG_HOTPLUG_CPU */
 
 
 //6304 lines
@@ -4291,10 +4559,14 @@ int sched_cpu_starting(unsigned int cpu)
 }
 
 #ifdef CONFIG_HOTPLUG_CPU
+//kernel/cpu.c
+//struct cpuhp_step cpuhp_hp_states[]
 int sched_cpu_dying(unsigned int cpu)
 {
     struct rq *rq = cpu_rq(cpu);
     struct rq_flags rf;
+
+    pr_fn_start_on(stack_depth);
 
     /* Handle pending wakeups and then migrate everything off */
     sched_ttwu_pending();
@@ -4311,8 +4583,10 @@ int sched_cpu_dying(unsigned int cpu)
 
     calc_load_migrate(rq);
     update_max_interval();
-    nohz_balance_exit_idle(rq);
-    hrtick_clear(rq);
+    //nohz_balance_exit_idle(rq);
+    //hrtick_clear(rq);
+
+    pr_fn_end_on(stack_depth);
     return 0;
 }
 #endif
