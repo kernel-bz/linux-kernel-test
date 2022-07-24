@@ -457,7 +457,7 @@ static void enqueue_pushable_dl_task(struct rq *rq, struct task_struct *p)
 
     pr_fn_start_on(stack_depth);
 
-	BUG_ON(!RB_EMPTY_NODE(&p->pushable_dl_tasks));
+    BUG_ON(!RB_EMPTY_NODE(&p->pushable_dl_tasks));
 
 	while (*link) {
 		parent = *link;
@@ -1224,6 +1224,8 @@ static void update_curr_dl(struct rq *rq)
 	int cpu = cpu_of(rq);
 	u64 now;
 
+    pr_fn_start_on(stack_depth);
+
 	if (!dl_task(curr) || !on_dl_rq(dl_se))
 		return;
 
@@ -1237,6 +1239,9 @@ static void update_curr_dl(struct rq *rq)
 	 */
 	now = rq_clock_task(rq);
 	delta_exec = now - curr->se.exec_start;
+
+    pr_view_on(stack_depth, "%20s : %llu\n", delta_exec);
+
 	if (unlikely((s64)delta_exec <= 0)) {
 		if (unlikely(dl_se->dl_yielded))
 			goto throttle;
@@ -1274,10 +1279,15 @@ static void update_curr_dl(struct rq *rq)
 		scaled_delta_exec = cap_scale(scaled_delta_exec, scale_cpu);
 	}
 
-	dl_se->runtime -= scaled_delta_exec;
+    pr_view_on(stack_depth, "%20s : %lld\n", dl_se->runtime);
+    pr_view_on(stack_depth, "%20s : %llu\n", scaled_delta_exec);
+    dl_se->runtime -= scaled_delta_exec;
+    pr_view_on(stack_depth, "%20s : %lld\n", dl_se->runtime);
 
 throttle:
-	if (dl_runtime_exceeded(dl_se) || dl_se->dl_yielded) {
+    pr_view_on(stack_depth, "%20s : %d\n", dl_se->dl_yielded);
+
+    if (dl_runtime_exceeded(dl_se) || dl_se->dl_yielded) {
 		dl_se->dl_throttled = 1;
 
 		/* If requested, inform the user about runtime overruns. */
@@ -1317,6 +1327,8 @@ throttle:
 			rt_rq->rt_time += delta_exec;
 		raw_spin_unlock(&rt_rq->rt_runtime_lock);
 	}
+
+    pr_fn_end_on(stack_depth);
 }
 
 static enum hrtimer_restart inactive_task_timer(struct hrtimer *timer)
@@ -1496,6 +1508,8 @@ static void __dequeue_dl_entity(struct sched_dl_entity *dl_se)
 {
 	struct dl_rq *dl_rq = dl_rq_of_se(dl_se);
 
+    pr_fn_start_on(stack_depth);
+
 	if (RB_EMPTY_NODE(&dl_se->rb_node))
 		return;
 
@@ -1503,6 +1517,8 @@ static void __dequeue_dl_entity(struct sched_dl_entity *dl_se)
 	RB_CLEAR_NODE(&dl_se->rb_node);
 
 	dec_dl_tasks(dl_se, dl_rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void
@@ -1618,8 +1634,10 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 
 static void __dequeue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 {
-	dequeue_dl_entity(&p->dl);
+    pr_fn_start_on(stack_depth);
+    dequeue_dl_entity(&p->dl);
 	dequeue_pushable_dl_task(rq, p);
+    pr_fn_end_on(stack_depth);
 }
 
 static void dequeue_task_dl(struct rq *rq, struct task_struct *p, int flags)
@@ -1854,11 +1872,15 @@ static void set_next_task_dl(struct rq *rq, struct task_struct *p)
 static struct sched_dl_entity *pick_next_dl_entity(struct rq *rq,
 						   struct dl_rq *dl_rq)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct rb_node *left = rb_first_cached(&dl_rq->root);
 
+    pr_view_on(stack_depth, "%20s : %p\n", left);
 	if (!left)
 		return NULL;
 
+    pr_fn_end_on(stack_depth);
 	return rb_entry(left, struct sched_dl_entity, rb_node);
 }
 
@@ -2521,6 +2543,7 @@ static void switched_to_dl(struct rq *rq, struct task_struct *p)
 	}
 
     pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->dl.overloaded);
 
     if (rq->curr != p) {
 #ifdef CONFIG_SMP

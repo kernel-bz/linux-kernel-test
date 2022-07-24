@@ -255,7 +255,9 @@ void resched_curr(struct rq *rq)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    if (!rq->curr)
+        return;
 
     struct task_struct *curr = rq->curr;
     int cpu;
@@ -2740,11 +2742,15 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
     /* Here we just switch the register state and the stack. */
     switch_to(prev, next, prev);
+
+    rq->curr = next;	//Modified for switch to next;
+
     barrier();
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)next);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)prev);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)current_task);
+    pr_view_on(stack_depth, "%20s : %p\n", current_task);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
 
     pr_fn_end_on(stack_depth);
 

@@ -162,20 +162,10 @@ _retry:
     }
 
     rq = task_rq(p);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    if (!rq->curr) {
-        rq->curr = p;
-        current_task = p;
-    }
-
-    if (p->policy == SCHED_NORMAL)
-        rq->cfs.curr = &p->se;
-
     p->sched_class->update_curr(rq);
 
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->curr);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)rq->cfs.curr);
-    pr_view_on(stack_depth, "%30s : %d\n", rq->rt.highest_prio.curr);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->cfs.curr);
     //pr_sched_pelt_info(&p->se);
 
     pr_fn_end_on(stack_depth);
@@ -252,6 +242,10 @@ _retry:
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     prev = rq->curr;
+    if (!prev) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
 
     deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
@@ -356,8 +350,8 @@ _retry:
                 break;
     case SCHED_NORMAL:
     case SCHED_BATCH:
-                attr.sched_priority = 120;
-                attr.sched_nice = 0;
+                attr.sched_priority = prio;
+                attr.sched_nice = PRIO_TO_NICE(prio);
                 break;
     case SCHED_IDLE:
                 break;

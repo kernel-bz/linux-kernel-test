@@ -629,7 +629,9 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
      */
     while (*link) {
         parent = *link;
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)parent);
         entry = rb_entry(parent, struct sched_entity, run_node);
+        pr_view_on(stack_depth, "%20s : %p\n", (void*)entry);
         /*
          * We dont care about collisions. Nodes with
          * the same key stay together.
@@ -639,10 +641,10 @@ static void __enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
         pr_view_on(stack_depth, "%30s : %llu\n", entry->vruntime);
         if (entity_before(se, entry)) {		//se < entry
             link = &parent->rb_left;
-            pr_view_on(stack_depth, "%30s : %p\n", (void*)&parent->rb_left);
+            pr_view_on(stack_depth, "%30s : %p\n", parent->rb_left);
         } else {
             link = &parent->rb_right;		//se >= entry
-            pr_view_on(stack_depth, "%30s : %p\n", (void*)&parent->rb_right);
+            pr_view_on(stack_depth, "%30s : %p\n", parent->rb_right);
             leftmost = false;
         }
     }
@@ -661,9 +663,11 @@ static void __dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
     pr_view_on(stack_depth, "%30s : %p\n", (void*)cfs_rq);
     pr_view_on(stack_depth, "%30s : %p\n", (void*)se);
+    pr_view_on(stack_depth, "%30s : %p\n", cfs_rq->tasks_timeline.rb_leftmost);
 
     rb_erase_cached(&se->run_node, &cfs_rq->tasks_timeline);
 
+    pr_view_on(stack_depth, "%30s : %p\n", cfs_rq->tasks_timeline.rb_leftmost);
     pr_fn_end_on(stack_depth);
 }
 
@@ -2695,14 +2699,17 @@ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 
     clear_buddies(cfs_rq, se);
 
+    pr_view_on(stack_depth, "%20s : %p\n", cfs_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", se);
+    pr_view_on(stack_depth, "%20s : %p\n", cfs_rq->curr);
     if (se != cfs_rq->curr)
         __dequeue_entity(cfs_rq, se);
     se->on_rq = 0;
 
-    pr_view_on(stack_depth, "%30s : %u\n", se->on_rq);
-    pr_view_on(stack_depth, "%30s : %u\n", cfs_rq->nr_running);
-
     account_entity_dequeue(cfs_rq, se);
+
+    pr_view_on(stack_depth, "%20s : %u\n", se->on_rq);
+    pr_view_on(stack_depth, "%20s : %u\n", cfs_rq->nr_running);
 
     /*
      * Normalize after update_curr(); which will also have moved
@@ -3907,7 +3914,7 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 
         int count = 0;
         for_each_sched_entity(se) {
-                pr_out_on(stack_depth, "---------- for_each_sched_entity ----------\n");
+                pr_out_on(stack_depth, "============ for_each_sched_entity =============\n");
                 pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
                 pr_view_on(stack_depth, "%20s : %d\n", count++);
                 cfs_rq = cfs_rq_of(se);
@@ -3925,6 +3932,10 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
                 cfs_rq->h_nr_running--;
                 cfs_rq->idle_h_nr_running -= idle_h_nr_running;
 
+                pr_view_on(stack_depth, "%25s : %p\n", cfs_rq);
+                pr_view_on(stack_depth, "%25s : %u\n", cfs_rq->nr_running);
+                pr_view_on(stack_depth, "%25s : %u\n", cfs_rq->h_nr_running);
+                pr_view_on(stack_depth, "%25s : %lu\n", cfs_rq->load.weight);
                 /* Don't dequeue parent if it has other entities besides us */
                 if (cfs_rq->load.weight) {
                         /* Avoid re-evaluating load for this entity: */
@@ -3947,6 +3958,8 @@ static void dequeue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 
                 cfs_rq = cfs_rq_of(se);
                 cfs_rq->h_nr_running--;
+                pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
+                pr_view_on(stack_depth, "%20s : %u\n", cfs_rq->h_nr_running);
                 cfs_rq->idle_h_nr_running -= idle_h_nr_running;
 
                 if (cfs_rq_throttled(cfs_rq))
@@ -5655,9 +5668,11 @@ static void put_prev_task_fair(struct rq *rq, struct task_struct *prev)
 
     struct sched_entity *se = &prev->se;
     struct cfs_rq *cfs_rq;
+    unsigned int cnt = 0;
 
     for_each_sched_entity(se) {
-        pr_out_on(stack_depth, "---------- for_each_sched_entity ----------\n");
+        pr_out_on(stack_depth, "============== for_each_sched_entity ================\n");
+        pr_view_on(stack_depth, "%20s : %u\n", cnt++);
         pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
         cfs_rq = cfs_rq_of(se);
         put_prev_entity(cfs_rq, se);

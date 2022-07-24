@@ -394,13 +394,25 @@ static inline void rt_queue_pull_task(struct rq *rq)
 
 static void enqueue_pushable_task(struct rq *rq, struct task_struct *p)
 {
-	plist_del(&p->pushable_tasks, &rq->rt.pushable_tasks);
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", rq);
+    pr_view_on(stack_depth, "%20s : %p\n", &rq->rt);
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+
+    plist_del(&p->pushable_tasks, &rq->rt.pushable_tasks);
 	plist_node_init(&p->pushable_tasks, p->prio);
 	plist_add(&p->pushable_tasks, &rq->rt.pushable_tasks);
 
-	/* Update the highest prio pushable task */
+    pr_view_on(stack_depth, "%20s : %d\n", p->prio);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->rt.highest_prio.next);
+
+    /* Update the highest prio pushable task */
 	if (p->prio < rq->rt.highest_prio.next)
 		rq->rt.highest_prio.next = p->prio;
+
+    pr_view_on(stack_depth, "%20s : %d\n", rq->rt.highest_prio.next);
+    pr_fn_end_on(stack_depth);
 }
 
 static void dequeue_pushable_task(struct rq *rq, struct task_struct *p)
@@ -668,6 +680,8 @@ static void do_balance_runtime(struct rt_rq *rt_rq)
 	int i, weight;
 	u64 rt_period;
 
+    pr_fn_start_on(stack_depth);
+
 	weight = cpumask_weight(rd->span);
 
 	raw_spin_lock(&rt_b->rt_runtime_lock);
@@ -708,6 +722,8 @@ next:
 		raw_spin_unlock(&iter->rt_runtime_lock);
 	}
 	raw_spin_unlock(&rt_b->rt_runtime_lock);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -934,6 +950,12 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 {
 	u64 runtime = sched_rt_runtime(rt_rq);
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%30s : %p\n", rt_rq);
+    pr_view_on(stack_depth, "%30s : %llu\n", rt_rq->rt_runtime);
+    pr_view_on(stack_depth, "%30s : %llu\n", sched_rt_period(rt_rq));
+    pr_view_on(stack_depth, "%30s : %d\n", rt_rq->rt_throttled);
+
 	if (rt_rq->rt_throttled)
 		return rt_rq_throttled(rt_rq);
 
@@ -945,7 +967,9 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 	if (runtime == RUNTIME_INF)
 		return 0;
 
-	if (rt_rq->rt_time > runtime) {
+    pr_view_on(stack_depth, "%30s : %llu\n", rt_rq->rt_time);
+    pr_view_on(stack_depth, "%30s : %llu\n", runtime);
+    if (rt_rq->rt_time > runtime) {
 		struct rt_bandwidth *rt_b = sched_rt_bandwidth(rt_rq);
 
 		/*
@@ -969,6 +993,8 @@ static int sched_rt_runtime_exceeded(struct rt_rq *rt_rq)
 			return 1;
 		}
 	}
+
+    pr_fn_end_on(stack_depth);
 
 	return 0;
 }
@@ -1031,6 +1057,7 @@ dequeue_top_rt_rq(struct rt_rq *rt_rq)
 
     pr_fn_start_on(stack_depth);
     pr_view_on(stack_depth, "%20s : %p\n", rt_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", rt_rq->tg);
     pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
     pr_view_on(stack_depth, "%20s : %u\n", rt_rq->rt_nr_running);
     pr_view_on(stack_depth, "%20s : %d\n", rt_rq->rt_queued);
@@ -1294,10 +1321,11 @@ static void __enqueue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flag
 	struct list_head *queue = array->queue + rt_se_prio(rt_se);
 
     pr_fn_start_on(stack_depth);
-    pr_view_on(stack_depth, "%30s : %p\n", rt_se);
-    pr_view_on(stack_depth, "%30s : %p\n", rt_rq);
-    pr_view_on(stack_depth, "%30s : %p\n", group_rq);
-    pr_view_on(stack_depth, "%30s : %d\n", rt_se_prio(rt_se));
+    pr_view_on(stack_depth, "%20s : %p\n", rt_se);
+    pr_view_on(stack_depth, "%20s : %p\n", rt_rq);
+    if (group_rq)
+        pr_view_on(stack_depth, "%20s : %p\n", group_rq->tg);
+    pr_view_on(stack_depth, "%20s : %d\n", rt_se_prio(rt_se));
 
 	/*
 	 * Don't enqueue the group if its throttled, or when empty.
@@ -1325,8 +1353,11 @@ static void __enqueue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flag
 
 	inc_rt_tasks(rt_se, rt_rq);
 
-    pr_view_on(stack_depth, "%30s : 0x%lX\n", array->bitmap[0]);
-    pr_view_on(stack_depth, "%30s : 0x%lX\n", array->bitmap[1]);
+    pr_view_on(stack_depth, "%20s : %u\n", rt_rq->rt_nr_running);
+    pr_view_on(stack_depth, "%20s : %u\n", rt_rq->rr_nr_running);
+
+    pr_view_on(stack_depth, "%20s : 0x%lX\n", array->bitmap[0]);
+    pr_view_on(stack_depth, "%20s : 0x%lX\n", array->bitmap[1]);
 
     pr_fn_end_on(stack_depth);
 }
@@ -1337,6 +1368,7 @@ static void __dequeue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flag
 	struct rt_prio_array *array = &rt_rq->active;
 
     pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", rt_rq);
 
 	if (move_entity(flags)) {
 		WARN_ON_ONCE(!rt_se->on_list);
@@ -1366,8 +1398,11 @@ static void dequeue_rt_stack(struct sched_rt_entity *rt_se, unsigned int flags)
 
 	dequeue_top_rt_rq(rt_rq_of_se(back));
 
+    pr_view_on(stack_depth, "%10s : %p\n", back);
 	for (rt_se = back; rt_se; rt_se = rt_se->back) {
-		if (on_rt_rq(rt_se))
+        pr_view_on(stack_depth, "%20s : %p\n", rt_se);
+        pr_view_on(stack_depth, "%20s : %u\n", rt_se->on_rq);
+        if (on_rt_rq(rt_se))
 			__dequeue_rt_entity(rt_se, flags);
 	}
 
@@ -1380,8 +1415,9 @@ static void enqueue_rt_entity(struct sched_rt_entity *rt_se, unsigned int flags)
 
     pr_fn_start_on(stack_depth);
     pr_view_on(stack_depth, "%20s : %p\n", rt_se);
-    pr_view_on(stack_depth, "%20s : %p\n", rq);
-    pr_view_on(stack_depth, "%20s : %p\n", &rq->rt);
+    pr_view_on(stack_depth, "%20s : %p\n", rt_se->my_q);
+    if (rt_se->my_q)
+        pr_view_on(stack_depth, "%20s : %p\n", rt_se->my_q->tg);
 
 	dequeue_rt_stack(rt_se, flags);
 	for_each_sched_rt_entity(rt_se)
@@ -1419,13 +1455,19 @@ enqueue_task_rt(struct rq *rq, struct task_struct *p, int flags)
     pr_fn_start_on(stack_depth);
 
     struct sched_rt_entity *rt_se = &p->rt;
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)&p->rt);
+    pr_view_on(stack_depth, "%20s : %p\n", (void*)rt_se);
 
 	if (flags & ENQUEUE_WAKEUP)
 		rt_se->timeout = 0;
 
 	enqueue_rt_entity(rt_se, flags);
 
-	if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %d\n", p->nr_cpus_allowed);
+    if (!task_current(rq, p) && p->nr_cpus_allowed > 1)
 		enqueue_pushable_task(rq, p);
 
     pr_fn_end_on(stack_depth);
@@ -1641,11 +1683,19 @@ static struct sched_rt_entity *pick_next_rt_entity(struct rq *rq,
 	struct list_head *queue;
 	int idx;
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", rt_rq);
+
 	idx = sched_find_first_bit(array->bitmap);
 	BUG_ON(idx >= MAX_RT_PRIO);
 
 	queue = array->queue + idx;
 	next = list_entry(queue->next, struct sched_rt_entity, run_list);
+
+    pr_view_on(stack_depth, "%20s : %d\n", idx);
+    pr_view_on(stack_depth, "%20s : %p\n", next);
+
+    pr_fn_end_on(stack_depth);
 
 	return next;
 }
@@ -1815,8 +1865,11 @@ static struct rq *find_lock_lowest_rq(struct task_struct *task, struct rq *rq)
 	int tries;
 	int cpu;
 
+    pr_fn_start_on(stack_depth);
+
 	for (tries = 0; tries < RT_MAX_TRIES; tries++) {
 		cpu = find_lowest_rq(task);
+        pr_view_on(stack_depth, "%20s : %p\n", cpu);
 
 		if ((cpu == -1) || (cpu == rq->cpu))
 			break;
@@ -1862,6 +1915,8 @@ static struct rq *find_lock_lowest_rq(struct task_struct *task, struct rq *rq)
 		lowest_rq = NULL;
 	}
 
+    pr_view_on(stack_depth, "%20s : %p\n", lowest_rq);
+    pr_fn_end_on(stack_depth);
 	return lowest_rq;
 }
 
@@ -2333,7 +2388,15 @@ static void switched_to_rt(struct rq *rq, struct task_struct *p)
 {
     pr_fn_start_on(stack_depth);
 
-	/*
+    pr_view_on(stack_depth, "%20s : %p\n", p);
+    pr_view_on(stack_depth, "%20s : %d\n", p->on_rq);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %d\n", rq->rt.overloaded);
+    pr_view_on(stack_depth, "%20s : %d\n", p->prio);
+    if (rq->curr)
+        pr_view_on(stack_depth, "%20s : %d\n", rq->curr->prio);
+
+    /*
 	 * If we are already running, then there's nothing
 	 * that needs to be done. But if we are not running
 	 * we may need to preempt the current running task.

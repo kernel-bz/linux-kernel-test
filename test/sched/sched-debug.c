@@ -18,7 +18,6 @@
 static void _pr_sched_avg_info(struct sched_avg *sa)
 {
     pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "--------------- sched avg ----------------\n");
 
     pr_view_on(stack_depth, "%30s : %llu\n", sa->last_update_time);
     pr_view_on(stack_depth, "%30s : %llu\n", sa->load_sum);
@@ -59,19 +58,31 @@ void pr_sched_pelt_avg_info(struct sched_entity *se, struct cfs_rq *cfs_rq)
     pr_fn_end_on(stack_depth);
 }
 
+static void _pr_sched_pelt_avg_rt(struct rq *rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "-------------- rq->avg_rt info --------------\n");
+    _pr_sched_avg_info(&rq->avg_rt);
+    pr_out_on(stack_depth, "-------------- rq->avg_dl info --------------\n");
+    _pr_sched_avg_info(&rq->avg_dl);
+
+    pr_fn_end_on(stack_depth);
+}
+
 static void _pr_sched_rq_info(struct rq *rq)
 {
     pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "--------------- rq info ------------------\n");
+    pr_out_on(stack_depth, "=================== rq info ===================\n");
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
     pr_view_on(stack_depth, "%20s : %d\n", rq->cpu);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->idle);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->stop);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->cfs);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->rt);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->dl);
+    //pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->cfs);
+    //pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->rt);
+    //pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->dl);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->cfs.curr);
 
     pr_view_on(stack_depth, "%20s : %u\n", rq->nr_running);
@@ -83,9 +94,10 @@ static void _pr_sched_rq_info(struct rq *rq)
     pr_view_on(stack_depth, "%20s : %llu\n", rq->clock);
     pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_task);
     pr_view_on(stack_depth, "%20s : %llu\n", rq->clock_pelt);
-    pr_view_on(stack_depth, "%20s : %lu\n", rq->lost_idle_time);
+    //pr_view_on(stack_depth, "%20s : %lu\n", rq->lost_idle_time);
 
     pr_sched_pelt_avg_info(NULL, &rq->cfs);
+    _pr_sched_pelt_avg_rt(rq);
 
     pr_fn_end_on(stack_depth);
 }
@@ -122,7 +134,6 @@ static void __pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
 static void _pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
 {
     pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "---------------- cfs_rq info -------------\n");
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)cfs_rq);
     if(!cfs_rq) goto _end;
@@ -146,7 +157,6 @@ static void _pr_sched_cfs_rq_info(struct cfs_rq *cfs_rq)
 static void _pr_sched_se_info(struct sched_entity *se)
 {
     pr_fn_start_on(stack_depth);
-    pr_out_on(stack_depth, "---------------- se info -----------------\n");
 
     pr_view_on(stack_depth, "%20s : %p\n", (void*)se);
     if(!se) goto _end;
@@ -176,8 +186,23 @@ static void _pr_sched_cfs_rq_rblist(struct cfs_rq *cfs_rq)
         struct task_struct *p;
         struct rb_node *next = rb_first_cached(&cfs_rq->tasks_timeline);
         while (next) {
+            pr_view_on(stack_depth, "%20s : %d\n", i++);
+            pr_view_on(stack_depth, "%20s : %p\n", next);
+            pr_view_on(stack_depth, "%20s : %p\n", next->rb_left);
+            if (next->rb_left) {
+                se = rb_entry(next->rb_left, struct sched_entity, run_node);
+                pr_view_on(stack_depth, "%30s : left: %p\n", se);
+            }
+            pr_view_on(stack_depth, "%30s : %p\n", next->__rb_parent_color);
+            pr_view_on(stack_depth, "%30s : %p\n", next->rb_right);
+            if (next->rb_right) {
+                se = rb_entry(next->rb_right, struct sched_entity, run_node);
+                pr_view_on(stack_depth, "%30s : right: %p\n", se);
+            }
+
             se = rb_entry(next, struct sched_entity, run_node);
-            pr_view_on(stack_depth, "%10s : %d\n", i++);
+            pr_view_on(stack_depth, "%20s : %p\n", se);
+            pr_view_on(stack_depth, "%20s : %p\n", &se->run_node);
 
             _pr_sched_se_info(se);
             pr_sched_pelt_avg_info(se, NULL);
@@ -262,7 +287,7 @@ static void _pr_sched_rt_rq_info(struct rt_rq *rt_rq)
 
     int i, asize = BITS_TO_LONGS(MAX_RT_PRIO+1);
     for (i=0; i<asize; i++)
-        pr_view_on(stack_depth, "%30s : 0x%lX\n", rt_rq->active.bitmap[i]);
+        pr_view_on(stack_depth, "%30s : 0x%016llX\n", rt_rq->active.bitmap[i]);
 
     pr_view_on(stack_depth, "%30s : %u\n", rt_rq->rt_nr_running);
     pr_view_on(stack_depth, "%30s : %u\n", rt_rq->rr_nr_running);
@@ -277,14 +302,79 @@ _end:
     pr_fn_end_on(stack_depth);
 }
 
+static void _pr_sched_dl_rq_info(struct dl_rq *dl_rq)
+{
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%30s : %p\n", (void*)dl_rq);
+    if(!dl_rq) goto _end;
+
+    pr_view_on(stack_depth, "%30s : %llu\n", dl_rq->earliest_dl.curr);
+    pr_view_on(stack_depth, "%30s : %llu\n", dl_rq->earliest_dl.next);
+    pr_view_on(stack_depth, "%30s : %d\n", dl_rq->overloaded);
+    pr_view_on(stack_depth, "%30s : %p\n", dl_rq->root);
+    pr_view_on(stack_depth, "%30s : %p\n", dl_rq->pushable_dl_tasks_root);
+
+_end:
+    pr_fn_end_on(stack_depth);
+}
+
+static void _pr_sched_rt_prio_array_info(struct rt_rq *rt_rq)
+{
+    struct rt_prio_array *array = &rt_rq->active;
+    //int prio = rt_rq->highest_prio.curr;
+    //struct list_head *queue = array->queue + prio;
+    struct list_head *queue;
+    struct list_head *list;
+    struct sched_rt_entity *rt_se;
+    struct task_struct *p;
+    unsigned int i = 0;
+    int idx;
+    unsigned long nbits = MAX_RT_PRIO;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "-----------------------------------------------\n");
+
+    int asize = BITS_TO_LONGS(MAX_RT_PRIO+1);
+    for (i=0; i<asize; i++)
+        pr_out_on(stack_depth, "bitmap[%d] : 0x%016llX\n", i, rt_rq->active.bitmap[i]);
+
+    i = 0;
+    idx = find_first_bit(array->bitmap, nbits);
+    while (idx < nbits) {
+        pr_out_on(stack_depth, "prio idx : %d\n", idx);
+        queue = array->queue + idx;
+        list_for_each(list, queue) {
+            rt_se = list_entry(list, struct sched_rt_entity, run_list);
+            pr_out_on(stack_depth, "(%u) %p(%p)\n", i, rt_se, rt_se->my_q);
+            if (!rt_se->my_q) {
+                //p = rt_task_of(rt_se);
+                p = container_of(rt_se, struct task_struct, rt);
+                pr_out_on(stack_depth, "[%u] %p(%d, %u)\n", i, p, p->prio, p->rt_priority);
+            }
+            i++;
+        }
+        idx = find_next_bit(array->bitmap, nbits, idx + 1);
+    }
+
+    pr_out_on(stack_depth, "-------------- rt pushable_tasks -----------------\n");
+    struct plist_head *head = &rt_rq->pushable_tasks;
+
+    if (!plist_head_empty(&rt_rq->pushable_tasks)) {
+        i = 0;
+        plist_for_each_entry(p, head, pushable_tasks) {
+            pr_out_on(stack_depth, "[%u] %p(%d, %u)\n", i, p, p->prio, p->rt_priority);
+            i++;
+        }
+    }
+    pr_out_on(stack_depth, "-----------------------------------------------\n");
+    pr_fn_end_on(stack_depth);
+}
+
 static void _pr_sched_tg_view_cpu_detail(struct task_group *tg, int cpu)
 {
-    struct rq *rq;
-    rq = cpu_rq(cpu);
-    pr_view_on(stack_depth, "%10s : %d\n", cpu);
-    pr_out_on(stack_depth, "------------------------------------------\n");
-
-    _pr_sched_rq_info(rq);
+    pr_fn_start_on(stack_depth);
 
     struct sched_entity *se = tg->se[cpu];
     _pr_sched_se_info(se);
@@ -296,8 +386,11 @@ static void _pr_sched_tg_view_cpu_detail(struct task_group *tg, int cpu)
     pr_sched_pelt_avg_info(NULL, cfs_rq);
     _pr_sched_cfs_rq_rblist(cfs_rq);
 
-    //struct rt_rq *rt_rq = tg->rt_rq[cpu];
-    //_pr_sched_rt_rq_info(rt_rq);
+    struct rt_rq *rt_rq = tg->rt_rq[cpu];
+    _pr_sched_rt_rq_info(rt_rq);
+    _pr_sched_rt_prio_array_info(rt_rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 int pr_sched_tg_view_only(void)
@@ -308,7 +401,7 @@ int pr_sched_tg_view_only(void)
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
-        pr_view_on(stack_depth, "%30s : %u\n", index++);
+        pr_view_on(stack_depth, "%30s : %d\n", index++);
         pr_view_on(stack_depth, "%30s : %p\n", (void*)tg);
         pr_view_on(stack_depth, "%30s : %p\n", (void*)tg->parent);
     }
@@ -323,17 +416,15 @@ int pr_sched_tg_view_only(void)
 
 static void _pr_sched_tg_view_cpu(struct task_group *tg, int cpu)
 {
-    pr_view_on(stack_depth, "%10s : %d\n", cpu);
-    pr_out_on(stack_depth, "------------------------------------------\n");
-
-    struct rq *rq = cpu_rq(cpu);
-    _pr_sched_rq_info(rq);
-
-    struct sched_entity *se = tg->se[cpu];
-    _pr_sched_se_info(se);
+    pr_fn_start_on(stack_depth);
 
     struct cfs_rq *cfs_rq = tg->cfs_rq[cpu];
     _pr_sched_cfs_rq_info(cfs_rq);
+
+    struct rt_rq *rt_rq = tg->rt_rq[cpu];
+    _pr_sched_rt_rq_info(rt_rq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 void pr_sched_tg_info(void)
@@ -342,27 +433,27 @@ void pr_sched_tg_info(void)
     pr_out_on(stack_depth, "============== task group info ================\n");
 
     struct task_group *tg;
-    int cpu, mycpu=NR_CPUS, cnt=0;
+    int cpu, cnt=0;
 
-    if (pr_sched_tg_view_only() < 0) goto _end;
+    //if (pr_sched_tg_view_only() < 0) goto _end;
 
     __fpurge(stdin);
-    printf("Enter CPU Number[0,%d]: ", NR_CPUS);
-    scanf("%d", &mycpu);
+    printf("Enter CPU Number[0,%d]: ", NR_CPUS - 1);
+    scanf("%d", &cpu);
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
         pr_view_on(stack_depth, "%10s : %p\n", (void*)tg);
+        pr_view_on(stack_depth, "%20s : %lu\n", tg->shares);
+        pr_view_on(stack_depth, "%20s : %llu\n", tg->load_avg);
         pr_view_on(stack_depth, "%10s : %d\n", cnt++);
-        pr_out_on(stack_depth, "--------------------------------------\n");
-
-        for_each_possible_cpu(cpu) {
-            if (mycpu < NR_CPUS && mycpu != cpu) continue;
-            _pr_sched_tg_view_cpu(tg, cpu);
-        } //cpu
-        printf("\n");
+        pr_out_on(stack_depth, "============================================\n");
+        _pr_sched_tg_view_cpu(tg, cpu);
     } //tg
     rcu_read_unlock();
+
+    struct rq *rq = cpu_rq(cpu);
+    _pr_sched_rq_info(rq);
 
 _end:
     pr_out_on(stack_depth, "===============================================\n");
@@ -375,13 +466,13 @@ void pr_sched_tg_info_all(void)
     pr_out_on(stack_depth, "============ task group info all ==============\n");
 
     struct task_group *tg;
-    int cpu, mycpu=NR_CPUS, cnt=0;
+    int cpu, cnt=0;
 
-    if (pr_sched_tg_view_only() < 0) goto _end;
+    //if (pr_sched_tg_view_only() < 0) goto _end;
 
     __fpurge(stdin);
-    printf("Enter CPU Number[0,%d]: ", NR_CPUS);
-    scanf("%d", &mycpu);
+    printf("Enter CPU Number[0,%d]: ", NR_CPUS - 1);
+    scanf("%d", &cpu);
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
@@ -389,13 +480,13 @@ void pr_sched_tg_info_all(void)
         pr_view_on(stack_depth, "%20s : %lu\n", tg->shares);
         pr_view_on(stack_depth, "%20s : %llu\n", tg->load_avg);
         pr_view_on(stack_depth, "%20s : %d\n", cnt++);
-
-        for_each_possible_cpu(cpu) {
-            if (mycpu < NR_CPUS && mycpu != cpu) continue;
-            _pr_sched_tg_view_cpu_detail(tg, cpu);
-        }
+        pr_out_on(stack_depth, "============================================\n");
+        _pr_sched_tg_view_cpu_detail(tg, cpu);
     }
     rcu_read_unlock();
+
+    struct rq *rq = cpu_rq(cpu);
+    _pr_sched_rq_info(rq);
 
 _end:
     pr_out_on(stack_depth, "===============================================\n");
@@ -617,40 +708,7 @@ static void _pr_sched_rbtree_root_dl(struct rb_root *rb_root)
     pr_fn_end_on(stack_depth);
 }
 
-static void _pr_sched_rt_prio_array_info(struct rt_rq *rt_rq)
-{
-    struct rt_prio_array *array = &rt_rq->active;
-    //int prio = rt_rq->highest_prio.curr;
-    //struct list_head *queue = array->queue + prio;
-    struct list_head *queue;
-    struct list_head *list;
-    struct sched_rt_entity *rt_se;
-    struct task_struct *p;
-    unsigned int i = 0;
-    int idx;
-    unsigned long nbits = MAX_RT_PRIO;
 
-    pr_fn_start_on(stack_depth);
-
-    pr_out_on(stack_depth, "--------------------------------------\n");
-    pr_out_on(stack_depth, "bitmap[0] : 0x%016llX\n", array->bitmap[0]);
-    pr_out_on(stack_depth, "bitmap[1] : 0x%016llX\n", array->bitmap[1]);
-    idx = find_first_bit(array->bitmap, nbits);
-    while (idx < nbits) {
-        pr_out_on(stack_depth, "prio idx : %d\n", idx);
-        queue = array->queue + idx;
-        list_for_each(list, queue) {
-            rt_se = list_entry(list, struct sched_rt_entity, run_list);
-            //p = rt_task_of(rt_se);
-            p = container_of(rt_se, struct task_struct, rt);
-            pr_out_on(stack_depth, "[%u] %p(%d, %u)\n", i, p, p->prio, p->rt_priority);
-            i++;
-        }
-        idx = find_next_bit(array->bitmap, nbits, idx + 1);
-    }
-    pr_out_on(stack_depth, "--------------------------------------\n");
-    pr_fn_end_on(stack_depth);
-}
 
 void pr_sched_rq_info(struct rq *rq)
 {
@@ -672,6 +730,11 @@ void pr_sched_rq_info(struct rq *rq)
     pr_view_on(stack_depth, "%20s : %lu\n", rq->nr_load_updates);
     pr_view_on(stack_depth, "%20s : %u\n\n", rq->sched_count);
 
+    pr_view_on(stack_depth, "%20s : %lu\n", rq->cpu_capacity);
+    pr_view_on(stack_depth, "%20s : %lu\n", rq->calc_load_update);
+    pr_view_on(stack_depth, "%20s : %l\n\n", rq->calc_load_active);
+
+    pr_view_on(stack_depth, "%30s : %p\n", rq->cfs.curr);
     pr_view_on(stack_depth, "%30s : %u\n", rq->cfs.nr_running);
     pr_view_on(stack_depth, "%30s : %u\n", rq->cfs.h_nr_running);
     pr_view_on(stack_depth, "%30s : %u\n\n", rq->cfs.idle_h_nr_running);
@@ -687,9 +750,14 @@ void pr_sched_rq_info(struct rq *rq)
     pr_view_on(stack_depth, "%30s : %llu\n\n", rq->dl.earliest_dl.next);
 
     _pr_sched_cfs_tasks_info(rq);
+
     _pr_sched_rt_prio_array_info(&rq->rt);
+
     _pr_sched_rbtree_pushable_dl(&rq->dl.pushable_dl_tasks_root);
     _pr_sched_rbtree_root_dl(&rq->dl.root);
+
+    pr_sched_pelt_avg_info(NULL, &rq->cfs);
+    _pr_sched_pelt_avg_rt(rq);
 
 _end:
     pr_out_on(stack_depth, "===============================================\n");

@@ -1885,8 +1885,14 @@ static inline void put_prev_task(struct rq *rq, struct task_struct *prev)
 
 static inline void set_next_task(struct rq *rq, struct task_struct *next)
 {
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", rq->curr);
+    pr_view_on(stack_depth, "%20s : %p\n", next);
+
 	WARN_ON_ONCE(rq->curr != next);
 	next->sched_class->set_next_task(rq, next);
+
+    pr_fn_end_on(stack_depth);
 }
 
 #ifdef CONFIG_SMP
