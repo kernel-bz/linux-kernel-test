@@ -372,6 +372,25 @@ static void _pr_sched_rt_prio_array_info(struct rt_rq *rt_rq)
     pr_fn_end_on(stack_depth);
 }
 
+static void _pr_sched_tg_bandwidth_view(struct task_group *tg)
+{
+    struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%30s : %llu\n", cfs_b->quota);
+    pr_view_on(stack_depth, "%30s : %llu\n", cfs_b->period);
+    pr_view_on(stack_depth, "%30s : %llu\n", cfs_b->runtime);
+    pr_view_on(stack_depth, "%30s : %lld\n", cfs_b->hierarchical_quota);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_b->idle);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_b->period_active);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_b->distribute_running);
+    pr_view_on(stack_depth, "%30s : %u\n", cfs_b->slack_started);
+    pr_view_on(stack_depth, "%30s : %d\n", cfs_b->nr_throttled);
+    pr_view_on(stack_depth, "%30s : %llu\n", cfs_b->throttled_time);
+
+    pr_fn_end_on(stack_depth);
+}
+
 static void _pr_sched_tg_view_cpu_detail(struct task_group *tg, int cpu)
 {
     pr_fn_start_on(stack_depth);
@@ -389,6 +408,8 @@ static void _pr_sched_tg_view_cpu_detail(struct task_group *tg, int cpu)
     struct rt_rq *rt_rq = tg->rt_rq[cpu];
     _pr_sched_rt_rq_info(rt_rq);
     _pr_sched_rt_prio_array_info(rt_rq);
+
+    _pr_sched_tg_bandwidth_view(tg);
 
     pr_fn_end_on(stack_depth);
 }
@@ -424,6 +445,8 @@ static void _pr_sched_tg_view_cpu(struct task_group *tg, int cpu)
     struct rt_rq *rt_rq = tg->rt_rq[cpu];
     _pr_sched_rt_rq_info(rt_rq);
 
+    _pr_sched_tg_bandwidth_view(tg);
+
     pr_fn_end_on(stack_depth);
 }
 
@@ -432,28 +455,46 @@ void pr_sched_tg_info(void)
     pr_fn_start_on(stack_depth);
     pr_out_on(stack_depth, "============== task group info ================\n");
 
-    struct task_group *tg;
-    int cpu, cnt=0;
+    struct task_group *tg, *child;
+    int cnt = 0;
 
     //if (pr_sched_tg_view_only() < 0) goto _end;
 
+#if 0
+    int cpu;
     __fpurge(stdin);
     printf("Enter CPU Number[0,%d]: ", NR_CPUS - 1);
     scanf("%d", &cpu);
+#endif
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
-        pr_view_on(stack_depth, "%10s : %p\n", (void*)tg);
-        pr_view_on(stack_depth, "%20s : %lu\n", tg->shares);
-        pr_view_on(stack_depth, "%20s : %llu\n", tg->load_avg);
         pr_view_on(stack_depth, "%10s : %d\n", cnt++);
-        pr_out_on(stack_depth, "============================================\n");
-        _pr_sched_tg_view_cpu(tg, cpu);
-    } //tg
-    rcu_read_unlock();
+        pr_view_on(stack_depth, "%10s : %p\n", (void*)tg);
+        pr_view_on(stack_depth, "%20s : %p\n", tg->parent);
+        pr_out_on(stack_depth, "-------------------------------------------\n");
 
-    struct rq *rq = cpu_rq(cpu);
-    _pr_sched_rq_info(rq);
+        list_for_each_entry_rcu(child, &tg->children, siblings)
+            pr_view_on(stack_depth, "%20s : %p\n", child);
+    } //tg
+
+    cnt--;
+    pr_out_on(stack_depth, "===============================================\n");
+    list_for_each_entry_prev_rcu(tg, &task_groups, list) {
+        pr_view_on(stack_depth, "%10s : %d\n", cnt--);
+        pr_view_on(stack_depth, "%10s : %p\n", (void*)tg);
+        pr_view_on(stack_depth, "%20s : %p\n", tg->parent);
+        pr_out_on(stack_depth, "-------------------------------------------\n");
+
+        list_for_each_entry_rcu(child, &tg->children, siblings)
+            pr_view_on(stack_depth, "%20s : %p\n", child);
+    } //tg
+
+    pr_out_on(stack_depth, "===============================================\n");
+    test_fair_walk_tg_tree_from(&root_task_group);
+    test_fair_walk_tg_tree_from_new(&root_task_group);
+
+    rcu_read_unlock();
 
 _end:
     pr_out_on(stack_depth, "===============================================\n");

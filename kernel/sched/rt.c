@@ -203,6 +203,8 @@ int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)
 	struct sched_rt_entity *rt_se;
 	int i;
 
+    pr_fn_start_on(stack_depth);
+
 	tg->rt_rq = kcalloc(nr_cpu_ids, sizeof(rt_rq), GFP_KERNEL);
 	if (!tg->rt_rq)
 		goto err;
@@ -227,7 +229,9 @@ int alloc_rt_sched_group(struct task_group *tg, struct task_group *parent)
 		init_rt_rq(rt_rq);
 		rt_rq->rt_runtime = tg->rt_bandwidth.rt_runtime;
 		init_tg_rt_entry(tg, rt_rq, rt_se, i, parent->rt_se[i]);
-	}
+    }
+
+    pr_fn_end_on(stack_depth);
 
 	return 1;
 
@@ -1530,6 +1534,8 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	struct task_struct *curr;
 	struct rq *rq;
 
+    pr_fn_start_on(stack_depth);
+
 	/* For anything but wake ups, just return the task_cpu */
 	if (sd_flag != SD_BALANCE_WAKE && sd_flag != SD_BALANCE_FORK)
 		goto out;
@@ -1539,7 +1545,13 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	rcu_read_lock();
 	curr = READ_ONCE(rq->curr); /* unlocked access */
 
-	/*
+    pr_view_on(stack_depth, "%10s : %p\n", rq);
+    pr_view_on(stack_depth, "%10s : %p\n", rq->curr);
+    if (rq->curr)
+        pr_view_on(stack_depth, "%10s : %d\n", curr->prio);
+    pr_view_on(stack_depth, "%10s : %d\n", p->prio);
+
+    /*
 	 * If the current task on @p's runqueue is an RT task, then
 	 * try to see if we can wake this RT task up on another
 	 * runqueue. Otherwise simply start this RT task
@@ -1565,8 +1577,10 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	    (curr->nr_cpus_allowed < 2 ||
 	     curr->prio <= p->prio)) {
 		int target = find_lowest_rq(p);
-
-		/*
+        int target_prio = cpu_rq(target)->rt.highest_prio.curr;
+        pr_view_on(stack_depth, "%20s : %d\n", target);
+        pr_view_on(stack_depth, "%20s : %d\n", target_prio);
+        /*
 		 * Don't bother moving it if the destination CPU is
 		 * not running a lower priority task.
 		 */
@@ -1577,6 +1591,9 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	rcu_read_unlock();
 
 out:
+
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
+    pr_fn_end_on(stack_depth);
 	return cpu;
 }
 

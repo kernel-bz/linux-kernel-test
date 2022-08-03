@@ -375,6 +375,12 @@ static inline void list_splice_tail_init_rcu(struct list_head *list,
 		&pos->member != (head);					\
 		pos = list_entry_rcu(pos->member.next, typeof(*pos), member))
 
+#define list_for_each_entry_prev_rcu(pos, head, member, cond...)		\
+    for (__list_check_rcu(dummy, ## cond, 0),			\
+         pos = list_entry_rcu((head)->prev, typeof(*pos), member);	\
+        &pos->member != (head);					\
+        pos = list_entry_rcu(pos->member.prev, typeof(*pos), member))
+
 /**
  * list_entry_lockless - get the struct for this entry
  * @ptr:        the &struct list_head pointer.

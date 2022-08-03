@@ -190,9 +190,10 @@ static int _sched_cfs_test_menu(int asize)
     printf("3: vruntime __calc_delta test.\n");
     printf("4: leaf_cfs_rq_list info.\n");
     printf("5: cfs_tasks info.\n");
-    printf("6: PELT test -->\n");
+    printf("6: tg_set_cfs_bandwidth test.\n");
+    printf("7: PELT test -->\n");
 
-    printf("7: help.\n");
+    printf("8: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -205,11 +206,12 @@ static int _sched_cfs_test_menu(int asize)
 static void _sched_cfs_test(void)
 {
     void (*fn[])(void) = { _sched_test_help
-        , test_sched_set_user_nice
+        , test_fair_set_user_nice
         , sched_fair_run_rebalance	//kernel/sched/fair.c
         , sched_fair_vruntime_test	//kernel/sched/fair.c
         , pr_leaf_cfs_rq_info
         , pr_sched_cfs_tasks_info
+        , test_fair_tg_set_cfs_bandwidth
         , _sched_pelt_test
 
         , _sched_test_help

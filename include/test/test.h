@@ -79,6 +79,8 @@ void test_numa_init(void);
 void test_rcu_init(void);
 
 //test/sched/sched-test.c
+struct task_group *sched_test_tg_select(void);
+
 void test_sched_create_group(void);
 void test_sched_new_task(void);
 void test_sched_deactivate_task(void);
@@ -87,9 +89,14 @@ void test_sched_schedule(void);
 void test_sched_wake_up_process(void);
 void test_calc_global_load(void);
 void test_sched_pelt_info(void);
-void test_sched_set_user_nice(void);
 void test_sched_dl_enqueue(void);
 void test_sched_cpudl(void);
+
+//test/sched/test-fair.c
+void test_fair_set_user_nice(void);
+void test_fair_tg_set_cfs_bandwidth(void);
+void test_fair_walk_tg_tree_from(struct task_group *from);
+void test_fair_walk_tg_tree_from(struct task_group *from);
 
 void test_sched_current_task_info(void);
 void test_sched_rq_info(void);

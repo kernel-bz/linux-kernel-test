@@ -21,7 +21,7 @@
 
 struct task_struct *current_task;
 
-static struct task_group *_sched_test_tg_select(void)
+struct task_group *sched_test_tg_select(void)
 {
     int tg_max, idx, cnt=0;
     struct task_group *tg;
@@ -44,6 +44,48 @@ static struct task_group *_sched_test_tg_select(void)
     return NULL;
 }
 
+static struct task_struct *_sched_test_task_select(int cpu)
+{
+    struct rq *rq;
+    struct task_struct *p;
+    struct task_struct **pa;
+    struct list_head *tasks, *cur, *n;
+    int i, cnt = 0;
+
+    rq = cpu_rq(cpu);
+    printf("rq->curr : %p\n", rq->curr);
+
+    tasks = &rq->cfs_tasks;
+    list_for_each_safe(cur, n, tasks)
+            cnt++;
+    printf("cfs_tasks : %d\n", cnt);
+    if (cnt == 0) {
+        p = rq->curr;
+        goto _end;
+    }
+
+    pa =(struct task_struct **)malloc(cnt * sizeof(void **));
+
+    printf("------------------------------------------------\n");
+    i = 0;
+    list_for_each_prev_safe(cur, n, tasks) {
+        p = list_entry(cur, struct task_struct, se.group_node);
+        pa[i] = p;
+        printf("[%d] %p(%d, %d)\n", i, pa[i], p->on_rq, p->prio);
+        i++;
+    }
+    printf("------------------------------------------------\n");
+
+    printf("Select Task Number[0,%d]: ", cnt - 1);
+    scanf("%d", &cnt);
+    p = pa[cnt];
+
+    free(pa);
+
+_end:
+    return p;
+}
+
 /*
  * kernel/sys.c
  * 	ksys_setsid(void)
@@ -58,7 +100,7 @@ void test_sched_create_group(void)
 
     pr_fn_start_on(stack_depth);
 
-    parent = _sched_test_tg_select();
+    parent = sched_test_tg_select();
     if (!parent) return;
 
     tg = sched_create_group(parent);
@@ -151,7 +193,7 @@ _retry:
 
     //pr_sched_task_info(&init_task);
 
-    p->sched_task_group = _sched_test_tg_select();
+    p->sched_task_group = sched_test_tg_select();
 
     pr_sched_task_info(p);
 
@@ -226,7 +268,7 @@ _retry:
  */
 void test_sched_deactivate_task(void)
 {
-    struct task_struct *prev, *next;
+    struct task_struct *p;
     struct rq *rq;
     int cpu;
 
@@ -238,16 +280,15 @@ _retry:
 
     pr_fn_start_on(stack_depth);
 
-    rq = cpu_rq(cpu);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-    prev = rq->curr;
-    if (!prev) {
+    smp_user_cpu = cpu;
+    p = _sched_test_task_select(cpu);
+    if (!p) {
         pr_warn("Please run sched_init and wake_up_new_task first!\n");
         return;
     }
 
-    deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
+    rq = cpu_rq(cpu);
+    deactivate_task(rq, p, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
 
     //pr_sched_pelt_info(&rq->curr->se);
 
@@ -270,10 +311,9 @@ _retry:
  */
 void test_sched_setscheduler(void)
 {
-    struct rq *rq;
     struct task_struct *p;
     int i, policy, cpu, prio, chk;
-    int ret, cnt;
+    int ret;
     //struct sched_param param;
     struct sched_attr attr;
     char *spolicy[] = { "SCHED_NORMAL", "SCHED_FIFO", "SCHED_RR"
@@ -288,30 +328,11 @@ _retry:
     if (cpu >= NR_CPUS) goto _retry;
 
     smp_user_cpu = cpu;
-
-    rq = cpu_rq(cpu);
-    printf("rq->curr : %p\n", rq->curr);
-    struct list_head *tasks = &rq->cfs_tasks, *cur, *n;
-    struct task_struct **pa;
-    i = 0;
-    cnt = 0;
-    list_for_each_safe(cur, n, tasks)
-            cnt++;
-    printf("cfs_tasks : %d\n", cnt);
-    pa =(struct task_struct **)malloc(cnt * sizeof(void **));
-
-    printf("------------------------------------------------\n");
-    list_for_each_prev_safe(cur, n, tasks) {
-        p = list_entry(cur, struct task_struct, se.group_node);
-        pa[i] = p;
-        printf("[%d] %p(%d, %d)\n", i, pa[i], p->on_rq, p->prio);
-        i++;
+    p = _sched_test_task_select(cpu);
+    if (!p) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
     }
-    printf("------------------------------------------------\n");
-
-    printf("Select Task Number[0,%d]: ", cnt - 1);
-    scanf("%d", &cnt);
-    p = pa[cnt];
 
     for (i=SCHED_NORMAL; i <= SCHED_DEADLINE; i++)
         printf("%d: %s\n", i, spolicy[i]);
@@ -364,7 +385,6 @@ _retry:
 
     pr_view_on(stack_depth, "%20s : %d\n", ret);
 
-    free(pa);
     pr_fn_end_on(stack_depth);
 }
 
@@ -393,7 +413,6 @@ _retry:
 
 void test_sched_wake_up_process(void)
 {
-    struct rq *rq;
     struct task_struct *p;
     int cpu;
 
@@ -403,8 +422,8 @@ _retry:
     scanf("%u", &cpu);
     if (cpu >= NR_CPUS) goto _retry;
 
-    rq = cpu_rq(cpu);
-    p = rq->curr;
+    smp_user_cpu = cpu;
+    p = _sched_test_task_select(cpu);
     if (!p) {
         pr_warn("Please run sched_init and wake_up_new_task first!\n");
         return;
@@ -512,7 +531,7 @@ _retry:
 
     pr_fn_start_on(stack_depth);
 
-    tg = _sched_test_tg_select();
+    tg = sched_test_tg_select();
     pr_view_on(stack_depth, "%20s : %p\n", (void*)tg);
     pr_view_on(stack_depth, "%20s : %p\n", (void*)tg->se[cpu]);
     se = tg->se[cpu];
@@ -526,32 +545,6 @@ _retry:
         pr_view_on(stack_depth, "%20s : %p\n", (void*)&rq->curr->se);
     }
     pr_sched_pelt_info(se);
-
-    pr_fn_end_on(stack_depth);
-}
-
-void test_sched_set_user_nice(void)
-{
-    struct rq *rq;
-    unsigned int cpu;
-    long nice;
-
-_retry:
-     __fpurge(stdin);
-    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
-    scanf("%u", &cpu);
-    if (cpu >= NR_CPUS) goto _retry;
-
-    printf("Input Nice Number[%d,%d]: ", MIN_NICE, MAX_NICE);
-    scanf("%ld", &nice);
-
-    pr_fn_start_on(stack_depth);
-
-    rq = cpu_rq(cpu);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq);
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)rq->curr);
-
-    set_user_nice(rq->curr, nice);
 
     pr_fn_end_on(stack_depth);
 }

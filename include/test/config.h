@@ -16,7 +16,7 @@ extern "C" {
 //Data Configuraion ----------------------------------
 #define CONFIG_VERSION_1		5			//version
 #define CONFIG_VERSION_2		4			//patch
-#define CONFIG_VERSION_3		20220720	//test date
+#define CONFIG_VERSION_3		20220801	//test date
 
 #define CONFIG_64BIT
 #define CONFIG_64BIT_TIME		1
@@ -69,6 +69,9 @@ extern "C" {
 #define CONFIG_ENERGY_MODEL
 #define CONFIG_CPU_FREQ_GOV_SCHEDUTIL
 
+#define CONFIG_CPU_IDLE
+
+
 //Schedular Configuraion ----------------------------------
 #define CONFIG_THREAD_INFO_IN_TASK
 
@@ -80,7 +83,7 @@ extern "C" {
 #define CONFIG_CFS_BANDWIDTH
 #define CONFIG_RT_GROUP_SCHED
 
-//#define CONFIG_SCHED_SMT
+//#define CONFIG_SCHED_SMT	//error
 //#define CONFIG_SCHED_MC
 
 //#define CONFIG_SCHED_AUTOGROUP

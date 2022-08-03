@@ -320,9 +320,13 @@ int walk_tg_tree_from(struct task_group *from,
     struct task_group *parent, *child;
     int ret;
 
+    pr_fn_start_on(stack_depth);
+
     parent = from;
 
 down:
+    pr_view_on(stack_depth, "%10s : down: %p\n", parent);
+
     ret = (*down)(parent, data);
     if (ret)
         goto out;
@@ -339,9 +343,13 @@ up:
 
     child = parent;
     parent = parent->parent;
+    pr_view_on(stack_depth, "%10s : up: %p\n", parent);
     if (parent)
         goto up;
 out:
+
+    pr_view_on(stack_depth, "%10s : %d\n", ret);
+    pr_fn_end_on(stack_depth);
     return ret;
 }
 
@@ -1700,6 +1708,7 @@ ttwu_do_activate(struct rq *rq, struct task_struct *p, int wake_flags,
          struct rq_flags *rf)
 {
     int en_flags = ENQUEUE_WAKEUP | ENQUEUE_NOCLOCK;
+    pr_fn_start_on(stack_depth);
 
     lockdep_assert_held(&rq->lock);
 
@@ -1713,6 +1722,8 @@ ttwu_do_activate(struct rq *rq, struct task_struct *p, int wake_flags,
 
     activate_task(rq, p, en_flags);
     ttwu_do_wakeup(rq, p, wake_flags, rf);
+
+    pr_fn_end_on(stack_depth);
 }
 //2267
 /*
@@ -1797,6 +1808,7 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
 {
     struct rq *rq = cpu_rq(cpu);
     struct rq_flags rf;
+    pr_fn_start_on(stack_depth);
 
 #if defined(CONFIG_SMP)
     if (sched_feat(TTWU_QUEUE) && !cpus_share_cache(smp_processor_id(), cpu)) {
@@ -1810,6 +1822,8 @@ static void ttwu_queue(struct task_struct *p, int cpu, int wake_flags)
     update_rq_clock(rq);
     ttwu_do_activate(rq, p, wake_flags, &rf);
     rq_unlock(rq, &rf);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -2109,13 +2123,15 @@ int wake_up_state(struct task_struct *p, unsigned int state)
  */
 static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
 {
-    p->on_rq				= 0;
-    p->se.on_rq				= 0;
-    p->se.exec_start		= 0;
+    pr_fn_start_on(stack_depth);
+
+    p->on_rq					= 0;
+    p->se.on_rq					= 0;
+    p->se.exec_start			= 0;
     p->se.sum_exec_runtime		= 0;
     p->se.prev_sum_exec_runtime	= 0;
-    p->se.nr_migrations		= 0;
-    p->se.vruntime			= 0;
+    p->se.nr_migrations			= 0;
+    p->se.vruntime				= 0;
     INIT_LIST_HEAD(&p->se.group_node);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -2135,7 +2151,7 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
     INIT_LIST_HEAD(&p->rt.run_list);
     p->rt.timeout		= 0;
     p->rt.time_slice	= sched_rr_timeslice;
-    p->rt.on_rq		= 0;
+    p->rt.on_rq			= 0;
     p->rt.on_list		= 0;
 
 #ifdef CONFIG_PREEMPT_NOTIFIERS
@@ -2146,6 +2162,8 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
     p->capture_control = NULL;
 #endif
     init_numa_balancing(clone_flags, p);
+
+    pr_fn_end_on(stack_depth);
 }
 //2723 lines
 
@@ -2255,6 +2273,8 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 
     uclamp_fork(p);
 
+    pr_view_on(stack_depth, "%30s : %u\n", p->sched_reset_on_fork);
+
     /*
      * Revert to default priority/policy on fork if requested.
      */
@@ -2276,7 +2296,9 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
         p->sched_reset_on_fork = 0;
     }
 
+    pr_view_on(stack_depth, "%30s : %u\n", p->policy);
     pr_view_on(stack_depth, "%30s : %d\n", p->prio);
+    pr_view_on(stack_depth, "%30s : %d\n", p->normal_prio);
     pr_view_on(stack_depth, "%30s : %d\n", p->static_prio);
     pr_view_on(stack_depth, "%30s : %d\n", p->rt_priority);
 
@@ -2286,8 +2308,6 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
         p->sched_class = &rt_sched_class;
     else
         p->sched_class = &fair_sched_class;
-
-    pr_view_on(stack_depth, "%30s : %p\n", &p->se);
 
     init_entity_runnable_average(&p->se);
 
@@ -2303,8 +2323,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
      * We're setting the CPU for the first time, we don't migrate,
      * so use __set_task_cpu().
      */
-    //__set_task_cpu(p, smp_processor_id());
-    __set_task_cpu(p, p->cpu);	//task cpu for test
+    __set_task_cpu(p, smp_processor_id());	//smp_user_cpu == p->cpu
 
     pr_view_on(stack_depth, "%30s : %p\n", p->sched_class->task_fork);
     pr_view_on(stack_depth, "%30s : %p\n", p->se.cfs_rq);
@@ -2362,8 +2381,8 @@ void wake_up_new_task(struct task_struct *p)
 
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %p\n", (void*)p);
-    pr_view_on(stack_depth, "%20s : %d\n", p->cpu);
+    pr_view_on(stack_depth, "%10s : %p\n", (void*)p);
+    pr_view_on(stack_depth, "%10s : %d\n", p->cpu);
 
     raw_spin_lock_irqsave(&p->pi_lock, rf.flags);
     p->state = TASK_RUNNING;
@@ -5139,6 +5158,333 @@ static void cpu_cgroup_attach(struct cgroup_taskset *tset)
 
 
 
+//7341 lines
+#ifdef CONFIG_FAIR_GROUP_SCHED
+static int cpu_shares_write_u64(struct cgroup_subsys_state *css,
+                                struct cftype *cftype, u64 shareval)
+{
+    if (shareval > scale_load_down(ULONG_MAX))
+        shareval = MAX_SHARES;
+    return sched_group_set_shares(css_tg(css), scale_load(shareval));
+}
+
+static u64 cpu_shares_read_u64(struct cgroup_subsys_state *css,
+                               struct cftype *cft)
+{
+    struct task_group *tg = css_tg(css);
+
+    return (u64) scale_load_down(tg->shares);
+}
+
+#ifdef CONFIG_CFS_BANDWIDTH
+static DEFINE_MUTEX(cfs_constraints_mutex);
+
+const u64 max_cfs_quota_period = 1 * NSEC_PER_SEC; /* 1s */
+static const u64 min_cfs_quota_period = 1 * NSEC_PER_MSEC; /* 1ms */
+
+static int __cfs_schedulable(struct task_group *tg, u64 period, u64 runtime);
+
+//static int tg_set_cfs_bandwidth(struct task_group *tg, u64 period, u64 quota)
+int tg_set_cfs_bandwidth(struct task_group *tg, u64 period, u64 quota)
+{
+    int i, ret = 0, runtime_enabled, runtime_was_enabled;
+    struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
+
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%10s : %llu\n", period);
+    pr_view_on(stack_depth, "%10s : %llu\n", quota);
+
+    if (tg == &root_task_group)
+        return -EINVAL;
+
+    /*
+     * Ensure we have at some amount of bandwidth every period.  This is
+     * to prevent reaching a state of large arrears when throttled via
+     * entity_tick() resulting in prolonged exit starvation.
+     */
+    if (quota < min_cfs_quota_period || period < min_cfs_quota_period)
+        return -EINVAL;
+
+    /*
+     * Likewise, bound things on the otherside by preventing insane quota
+     * periods.  This also allows us to normalize in computing quota
+     * feasibility.
+     */
+    if (period > max_cfs_quota_period)
+        return -EINVAL;
+
+    /*
+     * Prevent race between setting of cfs_rq->runtime_enabled and
+     * unthrottle_offline_cfs_rqs().
+     */
+    get_online_cpus();
+    mutex_lock(&cfs_constraints_mutex);
+    ret = __cfs_schedulable(tg, period, quota);
+
+    pr_view_on(stack_depth, "%10s : %d\n", ret);
+    if (ret)
+        goto out_unlock;
+
+    runtime_enabled = quota != RUNTIME_INF;
+    runtime_was_enabled = cfs_b->quota != RUNTIME_INF;
+    /*
+     * If we need to toggle cfs_bandwidth_used, off->on must occur
+     * before making related changes, and on->off must occur afterwards
+     */
+    if (runtime_enabled && !runtime_was_enabled)
+        cfs_bandwidth_usage_inc();
+    raw_spin_lock_irq(&cfs_b->lock);
+    cfs_b->period = ns_to_ktime(period);
+    cfs_b->quota = quota;
+
+    __refill_cfs_bandwidth_runtime(cfs_b);
+
+    pr_view_on(stack_depth, "%20s : %lld\n", cfs_b->period);
+    pr_view_on(stack_depth, "%20s : %llu\n", cfs_b->quota);
+    pr_view_on(stack_depth, "%20s : %llu\n", cfs_b->runtime);
+    pr_view_on(stack_depth, "%20s : %d\n", runtime_enabled);
+
+    /* Restart the period timer (if active) to handle new period expiry: */
+    if (runtime_enabled)
+        start_cfs_bandwidth(cfs_b);
+
+    raw_spin_unlock_irq(&cfs_b->lock);
+
+    for_each_online_cpu(i) {
+        struct cfs_rq *cfs_rq = tg->cfs_rq[i];
+        struct rq *rq = cfs_rq->rq;
+        struct rq_flags rf;
+
+        rq_lock_irq(rq, &rf);
+        cfs_rq->runtime_enabled = runtime_enabled;
+        cfs_rq->runtime_remaining = 0;
+
+        pr_view_on(stack_depth, "%20s : cpu : %d\n", i);
+        pr_view_on(stack_depth, "%30s : %p\n", cfs_rq);
+        pr_view_on(stack_depth, "%30s : %d\n", cfs_rq->throttled);
+        pr_view_on(stack_depth, "%30s : %lld\n", cfs_rq->runtime_remaining);
+
+        if (cfs_rq->throttled)
+            unthrottle_cfs_rq(cfs_rq);
+        rq_unlock_irq(rq, &rf);
+    }
+    if (runtime_was_enabled && !runtime_enabled)
+        cfs_bandwidth_usage_dec();
+out_unlock:
+    mutex_unlock(&cfs_constraints_mutex);
+    put_online_cpus();
+
+    pr_view_on(stack_depth, "%30s : %d\n", ret);
+    pr_fn_end_on(stack_depth);
+    return ret;
+}
+
+static int tg_set_cfs_quota(struct task_group *tg, long cfs_quota_us)
+{
+    u64 quota, period;
+
+    period = ktime_to_ns(tg->cfs_bandwidth.period);
+    if (cfs_quota_us < 0)
+        quota = RUNTIME_INF;
+    else if ((u64)cfs_quota_us <= U64_MAX / NSEC_PER_USEC)
+        quota = (u64)cfs_quota_us * NSEC_PER_USEC;
+    else
+        return -EINVAL;
+
+    return tg_set_cfs_bandwidth(tg, period, quota);
+}
+
+static long tg_get_cfs_quota(struct task_group *tg)
+{
+    u64 quota_us;
+
+    if (tg->cfs_bandwidth.quota == RUNTIME_INF)
+        return -1;
+
+    quota_us = tg->cfs_bandwidth.quota;
+    do_div(quota_us, NSEC_PER_USEC);
+
+    return quota_us;
+}
+
+static int tg_set_cfs_period(struct task_group *tg, long cfs_period_us)
+{
+    u64 quota, period;
+
+    if ((u64)cfs_period_us > U64_MAX / NSEC_PER_USEC)
+        return -EINVAL;
+
+    period = (u64)cfs_period_us * NSEC_PER_USEC;
+    quota = tg->cfs_bandwidth.quota;
+
+    return tg_set_cfs_bandwidth(tg, period, quota);
+}
+
+static long tg_get_cfs_period(struct task_group *tg)
+{
+    u64 cfs_period_us;
+
+    cfs_period_us = ktime_to_ns(tg->cfs_bandwidth.period);
+    do_div(cfs_period_us, NSEC_PER_USEC);
+
+    return cfs_period_us;
+}
+
+static s64 cpu_cfs_quota_read_s64(struct cgroup_subsys_state *css,
+                                  struct cftype *cft)
+{
+    return tg_get_cfs_quota(css_tg(css));
+}
+
+static int cpu_cfs_quota_write_s64(struct cgroup_subsys_state *css,
+                                   struct cftype *cftype, s64 cfs_quota_us)
+{
+    return tg_set_cfs_quota(css_tg(css), cfs_quota_us);
+}
+
+static u64 cpu_cfs_period_read_u64(struct cgroup_subsys_state *css,
+                                   struct cftype *cft)
+{
+    return tg_get_cfs_period(css_tg(css));
+}
+
+static int cpu_cfs_period_write_u64(struct cgroup_subsys_state *css,
+                                    struct cftype *cftype, u64 cfs_period_us)
+{
+    return tg_set_cfs_period(css_tg(css), cfs_period_us);
+}
+
+struct cfs_schedulable_data {
+    struct task_group *tg;
+    u64 period, quota;
+};
+
+/*
+ * normalize group quota/period to be quota/max_period
+ * note: units are usecs
+ */
+static u64 normalize_cfs_quota(struct task_group *tg,
+                               struct cfs_schedulable_data *d)
+{
+    u64 quota, period, ratio;
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", tg);
+    pr_view_on(stack_depth, "%20s : %p\n", d->tg);
+    if (tg == d->tg) {
+        period = d->period;
+        quota = d->quota;
+    } else {
+        period = tg_get_cfs_period(tg);
+        quota = tg_get_cfs_quota(tg);
+    }
+
+    pr_view_on(stack_depth, "%20s : %llu\n", period);
+    pr_view_on(stack_depth, "%20s : %llu\n", quota);
+
+    /* note: these should typically be equivalent */
+    if (quota == RUNTIME_INF || quota == -1)
+        return RUNTIME_INF;
+
+    ratio = to_ratio(period, quota);
+
+    pr_view_on(stack_depth, "%20s : %llu\n", ratio);
+    pr_fn_end_on(stack_depth);
+    return ratio;
+}
+
+static int tg_cfs_schedulable_down(struct task_group *tg, void *data)
+{
+    struct cfs_schedulable_data *d = data;
+    struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
+    s64 quota = 0, parent_quota = -1;
+
+    pr_fn_start_on(stack_depth);
+
+    if (!tg->parent) {
+        quota = RUNTIME_INF;
+    } else {
+        struct cfs_bandwidth *parent_b = &tg->parent->cfs_bandwidth;
+
+        quota = normalize_cfs_quota(tg, d);
+        parent_quota = parent_b->hierarchical_quota;
+
+        pr_view_on(stack_depth, "%20s : %lld\n", quota);
+        pr_view_on(stack_depth, "%20s : %lld\n", parent_quota);
+
+        /*
+         * Ensure max(child_quota) <= parent_quota.  On cgroup2,
+         * always take the min.  On cgroup1, only inherit when no
+         * limit is set:
+         */
+        //Compile Error: undefined reference to `cpu_cgrp_subsys_on_dfl_key'
+        //if (cgroup_subsys_on_dfl(cpu_cgrp_subsys)) {
+        //    quota = min(quota, parent_quota);
+        //} else {
+            if (quota == RUNTIME_INF)
+                quota = parent_quota;
+            else if (parent_quota != RUNTIME_INF && quota > parent_quota)
+                return -EINVAL;
+        //}
+    }
+    cfs_b->hierarchical_quota = quota;
+
+    pr_view_on(stack_depth, "%30s : %lld\n", quota);
+    pr_view_on(stack_depth, "%30s : %lld\n", cfs_b->hierarchical_quota);
+    pr_view_on(stack_depth, "%30s : %lld\n", parent_quota);
+
+    pr_fn_end_on(stack_depth);
+    return 0;
+}
+
+static int __cfs_schedulable(struct task_group *tg, u64 period, u64 quota)
+{
+    int ret;
+    struct cfs_schedulable_data data = {
+        .tg = tg,
+        .period = period,
+        .quota = quota,
+    };
+
+    if (quota != RUNTIME_INF) {
+        do_div(data.period, NSEC_PER_USEC);
+        do_div(data.quota, NSEC_PER_USEC);
+    }
+
+    rcu_read_lock();
+    ret = walk_tg_tree(tg_cfs_schedulable_down, tg_nop, &data);
+    rcu_read_unlock();
+
+    return ret;
+}
+
+static int cpu_cfs_stat_show(struct seq_file *sf, void *v)
+{
+    struct task_group *tg = css_tg(seq_css(sf));
+    struct cfs_bandwidth *cfs_b = &tg->cfs_bandwidth;
+
+    seq_printf(sf, "nr_periods %d\n", cfs_b->nr_periods);
+    seq_printf(sf, "nr_throttled %d\n", cfs_b->nr_throttled);
+    seq_printf(sf, "throttled_time %llu\n", cfs_b->throttled_time);
+
+    if (schedstat_enabled() && tg != &root_task_group) {
+        u64 ws = 0;
+        int i;
+
+        for_each_possible_cpu(i)
+                ws += schedstat_val(tg->se[i]->statistics.wait_sum);
+
+        seq_printf(sf, "wait_sum %llu\n", ws);
+    }
+
+    return 0;
+}
+#endif /* CONFIG_CFS_BANDWIDTH */
+#endif /* CONFIG_FAIR_GROUP_SCHED */
+//7624 lines
+
+
+
 
 
 //7703 lines
@@ -5236,5 +5582,3 @@ const u32 sched_prio_to_wmult[40] = {
 };
 
 #undef CREATE_TRACE_POINTS
-
-//end of file

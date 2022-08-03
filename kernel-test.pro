@@ -195,7 +195,8 @@ SOURCES += \
     lib/test_maple_tree.c \
     test/algorithm/mtree/mt-debug.c \
     test/algorithm/mtree/mt-test.c \
-    mm/slub.c
+    mm/slub.c \
+    test/sched/test-fair.c
 
 HEADERS += \
     include/test/test.h \

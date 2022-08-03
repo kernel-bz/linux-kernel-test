@@ -130,13 +130,13 @@ struct cpuidle_state {
 
     unsigned int	flags;
     unsigned int	exit_latency; /* in US */
-    int		power_usage; /* in mW */
+    int				power_usage; /* in mW */
     unsigned int	target_residency; /* in US */
-    bool		disabled; /* disabled on all CPUs */
+    bool			disabled; /* disabled on all CPUs */
 
     int (*enter)	(struct cpuidle_device *dev,
-            struct cpuidle_driver *drv,
-            int index);
+                        struct cpuidle_driver *drv,
+                        int index);
 
     int (*enter_dead) (struct cpuidle_device *dev, int index);
 
@@ -1572,28 +1572,18 @@ static inline void set_task_rq(struct task_struct *p, unsigned int cpu)
 {
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%30s: %d\n", cpu);
+    pr_view_on(stack_depth, "%10s: %d\n", cpu);
 
 #if defined(CONFIG_FAIR_GROUP_SCHED) || defined(CONFIG_RT_GROUP_SCHED)
     struct task_group *tg = task_group(p);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg);
+    pr_view_on(stack_depth, "%10s: %p\n", (void*)tg);
 #endif
-
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)&p->se);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->se[cpu]);
-
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)tg->cfs_rq[cpu]->curr);
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
     set_task_rq_fair(&p->se, p->se.cfs_rq, tg->cfs_rq[cpu]);
     p->se.cfs_rq = tg->cfs_rq[cpu];
     p->se.parent = tg->se[cpu];
 #endif
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.cfs_rq->curr);
-    pr_view_on(stack_depth, "%30s: %p\n", (void*)p->se.parent);
 
 #ifdef CONFIG_RT_GROUP_SCHED
 	p->rt.rt_rq  = tg->rt_rq[cpu];
@@ -1616,7 +1606,7 @@ static inline struct task_group *task_group(struct task_struct *p)
 static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 {
     pr_fn_start_on(stack_depth);
-    pr_view_on(stack_depth, "%20s : %u\n", cpu);
+    pr_view_on(stack_depth, "%10s : %u\n", cpu);
 
 	set_task_rq(p, cpu);
 #ifdef CONFIG_SMP
@@ -1634,8 +1624,8 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 	p->wake_cpu = cpu;
 #endif
 
-    pr_view_on(stack_depth, "%20s : %u\n", p->cpu);
-    pr_view_on(stack_depth, "%20s : %d\n", p->wake_cpu);
+    pr_view_on(stack_depth, "%10s : %u\n", p->cpu);
+    pr_view_on(stack_depth, "%10s : %d\n", p->wake_cpu);
 
     pr_fn_end_on(stack_depth);
 }
@@ -1952,7 +1942,7 @@ static inline void idle_set_state(struct rq *rq,
 
 static inline struct cpuidle_state *idle_get_state(struct rq *rq)
 {
-	SCHED_WARN_ON(!rcu_read_lock_held());
+    //SCHED_WARN_ON(!rcu_read_lock_held());
 
 	return rq->idle_state;
 }
@@ -2335,6 +2325,10 @@ extern void nohz_balance_exit_idle(struct rq *rq);
 #else
 static inline void nohz_balance_exit_idle(struct rq *rq) { }
 #endif
+
+
+//for user test
+extern int tg_set_cfs_bandwidth(struct task_group *tg, u64 period, u64 quota);
 
 
 #ifdef CONFIG_SMP
