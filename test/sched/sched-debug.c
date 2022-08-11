@@ -52,6 +52,7 @@ void pr_sched_pelt_avg_info(struct sched_entity *se, struct cfs_rq *cfs_rq)
         pr_view_on(stack_depth, "%25s : %lu\n", cfs_rq->load.weight);
         //pr_view_on(stack_depth, "%25s : %u\n", cfs_rq->load.inv_weight);
         pr_view_on(stack_depth, "%25s : %lu\n", cfs_rq->runnable_weight);
+        pr_view_on(stack_depth, "%25s : %ld\n", cfs_rq->prop_runnable_sum);
         _pr_sched_avg_info(&cfs_rq->avg);
     }
 
@@ -460,18 +461,19 @@ void pr_sched_tg_info(void)
 
     //if (pr_sched_tg_view_only() < 0) goto _end;
 
-#if 0
     int cpu;
     __fpurge(stdin);
     printf("Enter CPU Number[0,%d]: ", NR_CPUS - 1);
     scanf("%d", &cpu);
-#endif
 
     rcu_read_lock();
     list_for_each_entry_rcu(tg, &task_groups, list) {
         pr_view_on(stack_depth, "%10s : %d\n", cnt++);
         pr_view_on(stack_depth, "%10s : %p\n", (void*)tg);
+        pr_view_on(stack_depth, "%20s : %lu\n", tg->shares);
         pr_view_on(stack_depth, "%20s : %p\n", tg->parent);
+        pr_view_on(stack_depth, "%20s : %p\n", tg->se[cpu]);
+        pr_view_on(stack_depth, "%20s : %p\n", tg->cfs_rq[cpu]);
         pr_out_on(stack_depth, "-------------------------------------------\n");
 
         list_for_each_entry_rcu(child, &tg->children, siblings)
