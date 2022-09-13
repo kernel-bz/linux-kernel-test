@@ -191,9 +191,10 @@ static int _sched_cfs_test_menu(int asize)
     printf("4: leaf_cfs_rq_list info.\n");
     printf("5: cfs_tasks info.\n");
     printf("6: tg_set_cfs_bandwidth test.\n");
-    printf("7: PELT test -->\n");
+    printf("7: task_tick_fair test.\n");
+    printf("8: PELT test -->\n");
 
-    printf("8: help.\n");
+    printf("9: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -212,6 +213,7 @@ static void _sched_cfs_test(void)
         , pr_leaf_cfs_rq_info
         , pr_sched_cfs_tasks_info
         , test_fair_tg_set_cfs_bandwidth
+        , sched_fair_task_tick_test
         , _sched_pelt_test
 
         , _sched_test_help

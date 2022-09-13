@@ -121,6 +121,7 @@ void mm_kmem_cache_slub_info(struct kmem_cache_slub *s);
 //kernel/sched/fair.c
 void sched_fair_run_rebalance(void);
 void sched_fair_vruntime_test(void);
+void sched_fair_task_tick_test(void);
 
 //kernel/sched/rt.c
 void rt_debug_rt_rq_info(void);

@@ -3354,8 +3354,13 @@ asmlinkage __visible void __sched schedule(void)
 
     pr_view_on(stack_depth, "%30s : %p\n", (void*)current_task);
     pr_view_on(stack_depth, "%30s : %p\n", (void*)&current_task->se);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)tsk);
-    pr_view_on(stack_depth, "%30s : %p\n", (void*)&tsk->se);
+    pr_view_on(stack_depth, "%30s : %llu\n", current_task->se.sum_exec_runtime);
+    pr_view_on(stack_depth, "%30s : %llu\n", current_task->se.prev_sum_exec_runtime);
+
+    pr_view_on(stack_depth, "%35s : %p\n", (void*)tsk);
+    pr_view_on(stack_depth, "%35s : %p\n", (void*)&tsk->se);
+    pr_view_on(stack_depth, "%35s : %llu\n", tsk->se.sum_exec_runtime);
+    pr_view_on(stack_depth, "%35s : %llu\n", tsk->se.prev_sum_exec_runtime);
 
     pr_fn_end_on(stack_depth);
 }
@@ -4245,11 +4250,79 @@ err_size:
 
 
 
+//6008lines
+/**
+ * init_idle - set up an idle thread for a given CPU
+ * @idle: task in question
+ * @cpu: CPU the idle task belongs to
+ *
+ * NOTE: this function does not set the idle thread's NEED_RESCHED
+ * flag, to make booting more robust.
+ */
+void init_idle(struct task_struct *idle, int cpu)
+{
+    struct rq *rq = cpu_rq(cpu);
+    unsigned long flags;
 
+    __sched_fork(0, idle);
 
+    raw_spin_lock_irqsave(&idle->pi_lock, flags);
+    raw_spin_lock(&rq->lock);
 
-//6078 lines
+    idle->state = TASK_RUNNING;
+    idle->se.exec_start = sched_clock();
+    idle->flags |= PF_IDLE;
+
+    //kasan_unpoison_task_stack(idle);
+
 #ifdef CONFIG_SMP
+    /*
+         * Its possible that init_idle() gets called multiple times on a task,
+         * in that case do_set_cpus_allowed() will not do the right thing.
+         *
+         * And since this is boot we can forgo the serialization.
+         */
+    set_cpus_allowed_common(idle, cpumask_of(cpu));
+#endif
+    /*
+         * We're having a chicken and egg problem, even though we are
+         * holding rq->lock, the CPU isn't yet set to this CPU so the
+         * lockdep check in task_group() will fail.
+         *
+         * Similar case to sched_fork(). / Alternatively we could
+         * use task_rq_lock() here and obtain the other rq->lock.
+         *
+         * Silence PROVE_RCU
+         */
+    rcu_read_lock();
+    __set_task_cpu(idle, cpu);
+    rcu_read_unlock();
+
+    rq->idle = idle;
+    rcu_assign_pointer(rq->curr, idle);
+    idle->on_rq = TASK_ON_RQ_QUEUED;
+#ifdef CONFIG_SMP
+    idle->on_cpu = 1;
+#endif
+    raw_spin_unlock(&rq->lock);
+    raw_spin_unlock_irqrestore(&idle->pi_lock, flags);
+
+    /* Set the preempt count _outside_ the spinlocks! */
+    init_idle_preempt_count(idle, cpu);
+
+    /*
+         * The idle tasks have their own, simple scheduling class:
+         */
+    idle->sched_class = &idle_sched_class;
+    //ftrace_graph_init_idle_task(idle, cpu);
+    //vtime_init_idle(idle, cpu);
+#ifdef CONFIG_SMP
+    sprintf(idle->comm, "%s/%d", INIT_TASK_COMM, cpu);
+#endif
+}
+
+#ifdef CONFIG_SMP
+
 
 
 
@@ -4855,7 +4928,8 @@ void __init sched_init(void)
          * but because we are the idle thread, we just pick up running again
          * when this runqueue becomes "idle".
          */
-        //init_idle(current, smp_processor_id());
+        current_task = &init_task;
+        init_idle(current, smp_processor_id());
 
         calc_load_update = jiffies + LOAD_FREQ;
         pr_view_on(stack_depth, "%30s : %lu\n", jiffies);

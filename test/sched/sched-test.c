@@ -608,3 +608,4 @@ _retry:
 
     sched_cpu_dying(cpu);
 }
+
