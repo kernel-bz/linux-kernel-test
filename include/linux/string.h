@@ -64,4 +64,9 @@ extern char * strnchr(const char *, size_t, int);
 //197 lines
 int match_string(const char * const *array, size_t n, const char *string);
 
+//lib/vsprintf.c
+int ptr_to_hashval(const void *ptr, unsigned long *hashval_out);
+
+
+
 #endif /* _TOOLS_LINUX_STRING_H_ */

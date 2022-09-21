@@ -135,3 +135,51 @@ void basic_struct_test(void)
         //_struct_span_value(level, &ts->span);
     }
 }
+
+struct test_class {
+    char a;
+    int b;
+    long c;
+};
+
+//DEFINE_SCHED_CLASS
+#define DEFINE_STRUCT_TEST(name) \
+const struct test_class name##_class \
+        __aligned(__alignof__(struct test_class)) \
+        __section(#name)
+
+DEFINE_STRUCT_TEST(test1) = {
+        .a = 10,
+        .b = 100,
+        .c = 1000
+};
+
+DEFINE_STRUCT_TEST(test2) = {
+        .a = 20,
+        .b = 200,
+        .c = 2000
+};
+
+DEFINE_STRUCT_TEST(test3) = {
+        .a = 30,
+        .b = 300,
+        .c = 3000
+};
+
+#define for_test_class_range(class, _from, _to) \
+        for (class = (_from); class <= (_to); class++)
+
+void basic_struct_test2(void)
+{
+    printf("size=%d\n", sizeof(test1_class));
+    printf("%p\n", &test1_class);
+    printf("%p\n", &test2_class);
+    printf("%p\n\n", &test3_class);
+
+    struct test_class *test_class;
+    for_test_class_range(test_class, &test1_class, &test3_class)
+            printf("%p\n", test_class);
+
+    printf("%d\n", &test3_class - &test1_class);
+}
+

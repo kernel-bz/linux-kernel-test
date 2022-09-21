@@ -196,7 +196,8 @@ SOURCES += \
     test/algorithm/mtree/mt-debug.c \
     test/algorithm/mtree/mt-test.c \
     mm/slub.c \
-    test/sched/test-fair.c
+    test/sched/test-fair.c \
+    lib/siphash.c
 
 HEADERS += \
     include/test/test.h \
@@ -656,7 +657,10 @@ HEADERS += \
     test/algorithm/mtree/test.h \
     include/test/mt-debug.h \
     arch/x86/include/asm/bitops.h \
-    include/linux/slub_def.h
+    include/linux/slub_def.h \
+    include/linux/siphash.h \
+    include/linux/byteorder/generic.h \
+    include/asm-generic/unaligned.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

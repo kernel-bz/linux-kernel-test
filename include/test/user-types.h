@@ -46,6 +46,14 @@ typedef unsigned short		ushort;
 typedef unsigned int		uint;
 typedef unsigned long		ulong;
 
+//fs/ntfs/types.h
+typedef __le16 le16;
+typedef __le32 le32;
+typedef __le64 le64;
+typedef __u16 __bitwise sle16;
+typedef __u32 __bitwise sle32;
+typedef __u64 __bitwise sle64;
+
 
 typedef unsigned int __kernel_dev_t;
 

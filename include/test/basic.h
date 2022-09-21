@@ -9,10 +9,12 @@ extern "C" {
 
 //test/basic/
 void basic_struct_test(void);
+void basic_struct_test2(void);
 void basic_ptr_test(void);
 
 //test/basic/basic-test.c
 void basic_run_time_test(void);
+void basic_lib_hashval_test(void);
 
 //test/basic/ptr-test.c
 void basic_ptr_test(void);

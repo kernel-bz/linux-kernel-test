@@ -9,6 +9,7 @@
 #include <stdio_ext.h>
 #include <stdlib.h>
 
+#include <linux/string.h>
 #include "test/config.h"
 #include "test/debug.h"
 
@@ -69,3 +70,21 @@ void basic_run_time_test(void)
 }
 
 #endif
+
+void basic_lib_hashval_test(void)
+{
+    int ret;
+    unsigned long hashval_out;
+    void *ptr = malloc(10);
+    if (!ptr) {
+        printf("malloc error!\n");
+        return;
+    }
+
+    ret = ptr_to_hashval(ptr, &hashval_out);
+    printf("ret = %d\n", ret);
+    printf("val = %p\n", ptr);
+    printf("hashval_out = %p\n", hashval_out);
+
+    free(ptr);
+}

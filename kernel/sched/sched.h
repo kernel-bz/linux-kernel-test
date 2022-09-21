@@ -1885,6 +1885,12 @@ static inline void set_next_task(struct rq *rq, struct task_struct *next)
     pr_fn_end_on(stack_depth);
 }
 
+//kernel version > v5.19
+#define DEFINE_SCHED_CLASS(name) \
+const struct sched_class name##_sched_class \
+        __aligned(__alignof__(struct sched_class)) \
+        __section("__" #name "_sched_class")
+
 #ifdef CONFIG_SMP
 #define sched_class_highest (&stop_sched_class)
 #else

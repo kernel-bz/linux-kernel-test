@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <linux/kernel.h>
+#include <linux/siphash.h>
 #include <stdio.h>
 
 //137 lines
@@ -282,4 +283,50 @@ int scnprintf_pad(char * buf, size_t size, const char * fmt, ...)
     }
 
     return (i >= ssize) ? (ssize - 1) : i;
+}
+
+//760 lines
+/* Maps a pointer to a 32 bit unique identifier. */
+static inline int __ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
+{
+        static siphash_key_t ptr_key __read_mostly;
+        unsigned long hashval;
+
+        /*
+        if (!static_branch_likely(&filled_random_ptr_key)) {
+                static bool filled = false;
+                static DEFINE_SPINLOCK(filling);
+                static DECLARE_WORK(enable_ptr_key_work, enable_ptr_key_workfn);
+                unsigned long flags;
+
+                if (!system_unbound_wq || !rng_is_initialized() ||
+                    !spin_trylock_irqsave(&filling, flags))
+                        return -EAGAIN;
+
+                if (!filled) {
+                        get_random_bytes(&ptr_key, sizeof(ptr_key));
+                        queue_work(system_unbound_wq, &enable_ptr_key_work);
+                        filled = true;
+                }
+                spin_unlock_irqrestore(&filling, flags);
+        }
+        */
+
+#ifdef CONFIG_64BIT
+        hashval = (unsigned long)siphash_1u64((u64)ptr, &ptr_key);
+        /*
+         * Mask off the first 32 bits, this makes explicit that we have
+         * modified the address (and 32 bits is plenty for a unique ID).
+         */
+        hashval = hashval & 0xffffffff;
+#else
+        hashval = (unsigned long)siphash_1u32((u32)ptr, &ptr_key);
+#endif
+        *hashval_out = hashval;
+        return 0;
+}
+
+int ptr_to_hashval(const void *ptr, unsigned long *hashval_out)
+{
+        return __ptr_to_hashval(ptr, hashval_out);
 }
