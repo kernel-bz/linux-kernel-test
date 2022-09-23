@@ -387,23 +387,26 @@ static void put_prev_task_idle(struct rq *rq, struct task_struct *prev)
 {
 }
 
-static void set_next_task_idle(struct rq *rq, struct task_struct *next)
+static void set_next_task_idle(struct rq *rq, struct task_struct *next, bool first)
 {
 	update_idle_core(rq);
 	schedstat_inc(rq->sched_goidle);
 }
 
-static struct task_struct *
-pick_next_task_idle(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+#ifdef CONFIG_SMP
+static struct task_struct *pick_task_idle(struct rq *rq)
 {
-	struct task_struct *next = rq->idle;
+    return rq->idle;
+}
+#endif
 
-	if (prev)
-		put_prev_task(rq, prev);
+struct task_struct *pick_next_task_idle(struct rq *rq)
+{
+    struct task_struct *next = rq->idle;
 
-	set_next_task_idle(rq, next);
+    set_next_task_idle(rq, next, true);
 
-	return next;
+    return next;
 }
 
 /*
@@ -466,10 +469,11 @@ const struct sched_class idle_sched_class = {
 
 	.pick_next_task		= pick_next_task_idle,
 	.put_prev_task		= put_prev_task_idle,
-	.set_next_task          = set_next_task_idle,
+    .set_next_task      = set_next_task_idle,
 
 #ifdef CONFIG_SMP
-	.balance		= balance_idle,
+    .balance			= balance_idle,
+    .pick_task          = pick_task_idle,
 	.select_task_rq		= select_task_rq_idle,
 	.set_cpus_allowed	= set_cpus_allowed_common,
 #endif

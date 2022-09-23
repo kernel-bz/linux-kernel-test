@@ -1381,6 +1381,9 @@ void init_dl_inactive_task_timer(struct sched_dl_entity *dl_se)
 	timer->function = inactive_task_timer;
 }
 
+#define __node_2_dle(node) \
+        rb_entry((node), struct sched_dl_entity, rb_node)
+
 #ifdef CONFIG_SMP
 
 static void inc_dl_deadline(struct dl_rq *dl_rq, u64 deadline)
@@ -1849,65 +1852,72 @@ static void start_hrtick_dl(struct rq *rq, struct task_struct *p)
 }
 #endif
 
-static void set_next_task_dl(struct rq *rq, struct task_struct *p)
+//kernel version >= v5.19
+static void set_next_task_dl(struct rq *rq, struct task_struct *p, bool first)
 {
+    struct sched_dl_entity *dl_se = &p->dl;
+    struct dl_rq *dl_rq = &rq->dl;
+
     pr_fn_start_on(stack_depth);
 
-	p->se.exec_start = rq_clock_task(rq);
+    p->se.exec_start = rq_clock_task(rq);
+    //if (on_dl_rq(&p->dl))
+    //    update_stats_wait_end_dl(dl_rq, dl_se);
 
-	/* You can't push away the running task */
-	dequeue_pushable_dl_task(rq, p);
+    /* You can't push away the running task */
+    dequeue_pushable_dl_task(rq, p);
 
-	if (hrtick_enabled(rq))
-		start_hrtick_dl(rq, p);
+    if (!first)
+        return;
 
-	if (rq->curr->sched_class != &dl_sched_class)
-		update_dl_rq_load_avg(rq_clock_pelt(rq), rq, 0);
+    //if (hrtick_enabled_dl(rq))
+    //    start_hrtick_dl(rq, p);
 
-	deadline_queue_push_tasks(rq);
+    if (rq->curr->sched_class != &dl_sched_class)
+        update_dl_rq_load_avg(rq_clock_pelt(rq), rq, 0);
+
+    deadline_queue_push_tasks(rq);
 
     pr_fn_end_on(stack_depth);
 }
 
-static struct sched_dl_entity *pick_next_dl_entity(struct rq *rq,
-						   struct dl_rq *dl_rq)
+static struct sched_dl_entity *pick_next_dl_entity(struct dl_rq *dl_rq)
 {
     pr_fn_start_on(stack_depth);
+    struct rb_node *left = rb_first_cached(&dl_rq->root);
 
-	struct rb_node *left = rb_first_cached(&dl_rq->root);
+    if (!left)
+        return NULL;
 
-    pr_view_on(stack_depth, "%20s : %p\n", left);
-	if (!left)
-		return NULL;
-
-    pr_fn_end_on(stack_depth);
-	return rb_entry(left, struct sched_dl_entity, rb_node);
+    pr_fn_start_on(stack_depth);
+    return __node_2_dle(left);
 }
 
-static struct task_struct *
-pick_next_task_dl(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+static struct task_struct *pick_task_dl(struct rq *rq)
 {
-	struct sched_dl_entity *dl_se;
-	struct dl_rq *dl_rq = &rq->dl;
-	struct task_struct *p;
+    struct sched_dl_entity *dl_se;
+    struct dl_rq *dl_rq = &rq->dl;
+    struct task_struct *p;
+
+    if (!sched_dl_runnable(rq))
+        return NULL;
+
+    dl_se = pick_next_dl_entity(dl_rq);
+    BUG_ON(!dl_se);
+    p = dl_task_of(dl_se);
+
+    return p;
+}
+
+static struct task_struct *pick_next_task_dl(struct rq *rq)
+{
+    struct task_struct *p;
 
     pr_fn_start_on(stack_depth);
 
-    pr_view_on(stack_depth, "%20s : %lu\n", rq->dl.dl_nr_running);
-    WARN_ON_ONCE(prev || rf);
-
-	if (!sched_dl_runnable(rq))
-		return NULL;
-
-    pr_view_on(stack_depth, "%20s : %p\n", dl_rq);
-    dl_se = pick_next_dl_entity(rq, dl_rq);
-    pr_view_on(stack_depth, "%20s : %p\n", dl_se);
-	BUG_ON(!dl_se);
-
-	p = dl_task_of(dl_se);
-    pr_view_on(stack_depth, "%20s : %p\n", p);
-
-    set_next_task_dl(rq, p);
+    p = pick_task_dl(rq);
+    if (p)
+        set_next_task_dl(rq, p, true);
 
     pr_fn_end_on(stack_depth);
     return p;
@@ -2595,11 +2605,13 @@ static void prio_changed_dl(struct rq *rq, struct task_struct *p,
 	}
 }
 
-const struct sched_class dl_sched_class = {
+//kernel version >= v5.19
+DEFINE_SCHED_CLASS(dl) = {
+//const struct sched_class dl_sched_class = {
 	.next			= &rt_sched_class,
 	.enqueue_task		= enqueue_task_dl,
 	.dequeue_task		= dequeue_task_dl,
-	.yield_task		= yield_task_dl,
+    .yield_task			= yield_task_dl,
 
 	.check_preempt_curr	= check_preempt_curr_dl,
 
@@ -2608,19 +2620,20 @@ const struct sched_class dl_sched_class = {
 	.set_next_task		= set_next_task_dl,
 
 #ifdef CONFIG_SMP
-	.balance		= balance_dl,
+    .balance			= balance_dl,
+    .pick_task          = pick_task_dl,
 	.select_task_rq		= select_task_rq_dl,
 	.migrate_task_rq	= migrate_task_rq_dl,
-	.set_cpus_allowed       = set_cpus_allowed_dl,
-	.rq_online              = rq_online_dl,
-	.rq_offline             = rq_offline_dl,
-	.task_woken		= task_woken_dl,
+    .set_cpus_allowed   = set_cpus_allowed_dl,
+    .rq_online          = rq_online_dl,
+    .rq_offline         = rq_offline_dl,
+    .task_woken			= task_woken_dl,
 #endif
 
-	.task_tick		= task_tick_dl,
-	.task_fork              = task_fork_dl,
+    .task_tick			= task_tick_dl,
+    .task_fork          = task_fork_dl,
 
-	.prio_changed           = prio_changed_dl,
+    .prio_changed       = prio_changed_dl,
 	.switched_from		= switched_from_dl,
 	.switched_to		= switched_to_dl,
 

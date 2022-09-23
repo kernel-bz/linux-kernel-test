@@ -1670,24 +1670,33 @@ static void check_preempt_curr_rt(struct rq *rq, struct task_struct *p, int flag
 #endif
 }
 
-static inline void set_next_task_rt(struct rq *rq, struct task_struct *p)
+//kernel version >= v5.19
+static inline void set_next_task_rt(struct rq *rq, struct task_struct *p, bool first)
 {
+    struct sched_rt_entity *rt_se = &p->rt;
+    struct rt_rq *rt_rq = &rq->rt;
+
     pr_fn_start_on(stack_depth);
 
-	p->se.exec_start = rq_clock_task(rq);
+    p->se.exec_start = rq_clock_task(rq);
+    //if (on_rt_rq(&p->rt))
+    //    update_stats_wait_end_rt(rt_rq, rt_se);
 
-	/* The running task is never eligible for pushing */
-	dequeue_pushable_task(rq, p);
+    /* The running task is never eligible for pushing */
+    dequeue_pushable_task(rq, p);
 
-	/*
-	 * If prev task was rt, put_prev_task() has already updated the
-	 * utilization. We only care of the case where we start to schedule a
-	 * rt task
-	 */
-	if (rq->curr->sched_class != &rt_sched_class)
-		update_rt_rq_load_avg(rq_clock_pelt(rq), rq, 0);
+    if (!first)
+        return;
 
-	rt_queue_push_tasks(rq);
+    /*
+         * If prev task was rt, put_prev_task() has already updated the
+         * utilization. We only care of the case where we start to schedule a
+         * rt task
+         */
+    if (rq->curr->sched_class != &rt_sched_class)
+        update_rt_rq_load_avg(rq_clock_pelt(rq), rq, 0);
+
+    rt_queue_push_tasks(rq);
 
     pr_fn_end_on(stack_depth);
 }
@@ -1731,19 +1740,27 @@ static struct task_struct *_pick_next_task_rt(struct rq *rq)
 	return rt_task_of(rt_se);
 }
 
-static struct task_struct *
-pick_next_task_rt(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+//kernel version >= v5.19
+static struct task_struct *pick_task_rt(struct rq *rq)
 {
-	struct task_struct *p;
+        struct task_struct *p;
 
-	WARN_ON_ONCE(prev || rf);
+        if (!sched_rt_runnable(rq))
+                return NULL;
 
-	if (!sched_rt_runnable(rq))
-		return NULL;
+        p = _pick_next_task_rt(rq);
 
-	p = _pick_next_task_rt(rq);
-	set_next_task_rt(rq, p);
-	return p;
+        return p;
+}
+
+static struct task_struct *pick_next_task_rt(struct rq *rq)
+{
+        struct task_struct *p = pick_task_rt(rq);
+
+        if (p)
+                set_next_task_rt(rq, p, true);
+
+        return p;
 }
 
 static void put_prev_task_rt(struct rq *rq, struct task_struct *p)
@@ -2554,26 +2571,29 @@ static unsigned int get_rr_interval_rt(struct rq *rq, struct task_struct *task)
 		return 0;
 }
 
-const struct sched_class rt_sched_class = {
+//kernel version >= v5.19
+DEFINE_SCHED_CLASS(rt) = {
+//const struct sched_class rt_sched_class = {
 	.next			= &fair_sched_class,
-	.enqueue_task		= enqueue_task_rt,
-	.dequeue_task		= dequeue_task_rt,
-	.yield_task		= yield_task_rt,
+    .enqueue_task			= enqueue_task_rt,
+    .dequeue_task			= dequeue_task_rt,
+    .yield_task				= yield_task_rt,
 
-	.check_preempt_curr	= check_preempt_curr_rt,
+    .check_preempt_curr		= check_preempt_curr_rt,
 
-	.pick_next_task		= pick_next_task_rt,
-	.put_prev_task		= put_prev_task_rt,
+    .pick_next_task			= pick_next_task_rt,
+    .put_prev_task			= put_prev_task_rt,
 	.set_next_task          = set_next_task_rt,
 
 #ifdef CONFIG_SMP
-	.balance		= balance_rt,
-	.select_task_rq		= select_task_rq_rt,
+    .balance				= balance_rt,
+    .pick_task              = pick_task_rt,
+    .select_task_rq			= select_task_rq_rt,
 	.set_cpus_allowed       = set_cpus_allowed_common,
 	.rq_online              = rq_online_rt,
 	.rq_offline             = rq_offline_rt,
-	.task_woken		= task_woken_rt,
-	.switched_from		= switched_from_rt,
+    .task_woken				= task_woken_rt,
+    .switched_from			= switched_from_rt,
 #endif
 
 	.task_tick		= task_tick_rt,

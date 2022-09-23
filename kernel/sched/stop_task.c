@@ -29,21 +29,27 @@ check_preempt_curr_stop(struct rq *rq, struct task_struct *p, int flags)
 	/* we're never preempted */
 }
 
-static void set_next_task_stop(struct rq *rq, struct task_struct *stop)
+static void set_next_task_stop(struct rq *rq, struct task_struct *stop, bool first)
 {
 	stop->se.exec_start = rq_clock_task(rq);
 }
 
-static struct task_struct *
-pick_next_task_stop(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
+static struct task_struct *pick_task_stop(struct rq *rq)
 {
-	WARN_ON_ONCE(prev || rf);
+    if (!sched_stop_runnable(rq))
+        return NULL;
 
-	if (!sched_stop_runnable(rq))
-		return NULL;
+    return rq->stop;
+}
 
-	set_next_task_stop(rq, rq->stop);
-	return rq->stop;
+static struct task_struct *pick_next_task_stop(struct rq *rq)
+{
+    struct task_struct *p = pick_task_stop(rq);
+
+    if (p)
+        set_next_task_stop(rq, p, true);
+
+    return p;
 }
 
 static void
@@ -129,10 +135,11 @@ const struct sched_class stop_sched_class = {
 
 	.pick_next_task		= pick_next_task_stop,
 	.put_prev_task		= put_prev_task_stop,
-	.set_next_task          = set_next_task_stop,
+    .set_next_task      = set_next_task_stop,
 
 #ifdef CONFIG_SMP
-	.balance		= balance_stop,
+    .balance			= balance_stop,
+    .pick_task          = pick_task_stop,
 	.select_task_rq		= select_task_rq_stop,
 	.set_cpus_allowed	= set_cpus_allowed_common,
 #endif

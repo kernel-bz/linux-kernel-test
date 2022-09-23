@@ -5827,8 +5827,42 @@ preempt:
     if (sched_feat(LAST_BUDDY) && scale && entity_is_task(se))
         set_last_buddy(se);
 }
-//6748
-static struct task_struct *
+
+#ifdef CONFIG_SMP
+static struct task_struct *pick_task_fair(struct rq *rq)
+{
+    struct sched_entity *se;
+    struct cfs_rq *cfs_rq;
+
+again:
+    cfs_rq = &rq->cfs;
+    if (!cfs_rq->nr_running)
+        return NULL;
+
+    do {
+        struct sched_entity *curr = cfs_rq->curr;
+
+        /* When we pick for a remote RQ, we'll not have done put_prev_entity() */
+        if (curr) {
+            if (curr->on_rq)
+                update_curr(cfs_rq);
+            else
+                curr = NULL;
+
+            if (unlikely(check_cfs_rq_runtime(cfs_rq)))
+                goto again;
+        }
+
+        se = pick_next_entity(cfs_rq, curr);
+        cfs_rq = group_cfs_rq(se);
+    } while (cfs_rq);
+
+    return task_of(se);
+}
+#endif
+
+//kerenl version >= v5.19
+struct task_struct *
 pick_next_task_fair(struct rq *rq, struct task_struct *prev, struct rq_flags *rf)
 {
     pr_fn_start_on(stack_depth);
@@ -5996,6 +6030,12 @@ idle:
     update_idle_rq_clock_pelt(rq);
 
     return NULL;
+}
+
+//kernel version >= v5.19
+static struct task_struct *__pick_next_task_fair(struct rq *rq)
+{
+    return pick_next_task_fair(rq, NULL, NULL);
 }
 
 /*
@@ -9035,6 +9075,123 @@ static void rq_offline_fair(struct rq *rq)
 
 //#endif /* CONFIG_SMP */
 
+
+#ifdef CONFIG_SCHED_CORE
+static inline bool
+__entity_slice_used(struct sched_entity *se, int min_nr_tasks)
+{
+        u64 slice = sched_slice(cfs_rq_of(se), se);
+        u64 rtime = se->sum_exec_runtime - se->prev_sum_exec_runtime;
+
+        return (rtime * min_nr_tasks > slice);
+}
+
+#define MIN_NR_TASKS_DURING_FORCEIDLE   2
+static inline void task_tick_core(struct rq *rq, struct task_struct *curr)
+{
+        if (!sched_core_enabled(rq))
+                return;
+
+        /*
+         * If runqueue has only one task which used up its slice and
+         * if the sibling is forced idle, then trigger schedule to
+         * give forced idle task a chance.
+         *
+         * sched_slice() considers only this active rq and it gets the
+         * whole slice. But during force idle, we have siblings acting
+         * like a single runqueue and hence we need to consider runnable
+         * tasks on this CPU and the forced idle CPU. Ideally, we should
+         * go through the forced idle rq, but that would be a perf hit.
+         * We can assume that the forced idle CPU has at least
+         * MIN_NR_TASKS_DURING_FORCEIDLE - 1 tasks and use that to check
+         * if we need to give up the CPU.
+         */
+        if (rq->core->core_forceidle_count && rq->cfs.nr_running == 1 &&
+            __entity_slice_used(&curr->se, MIN_NR_TASKS_DURING_FORCEIDLE))
+                resched_curr(rq);
+}
+
+/*
+ * se_fi_update - Update the cfs_rq->min_vruntime_fi in a CFS hierarchy if needed.
+ */
+static void se_fi_update(struct sched_entity *se, unsigned int fi_seq, bool forceidle)
+{
+        for_each_sched_entity(se) {
+                struct cfs_rq *cfs_rq = cfs_rq_of(se);
+
+                if (forceidle) {
+                        if (cfs_rq->forceidle_seq == fi_seq)
+                                break;
+                        cfs_rq->forceidle_seq = fi_seq;
+                }
+
+                cfs_rq->min_vruntime_fi = cfs_rq->min_vruntime;
+        }
+}
+
+void task_vruntime_update(struct rq *rq, struct task_struct *p, bool in_fi)
+{
+        struct sched_entity *se = &p->se;
+
+        if (p->sched_class != &fair_sched_class)
+                return;
+
+        se_fi_update(se, rq->core->core_forceidle_seq, in_fi);
+}
+
+bool cfs_prio_less(struct task_struct *a, struct task_struct *b, bool in_fi)
+{
+        struct rq *rq = task_rq(a);
+        struct sched_entity *sea = &a->se;
+        struct sched_entity *seb = &b->se;
+        struct cfs_rq *cfs_rqa;
+        struct cfs_rq *cfs_rqb;
+        s64 delta;
+
+        SCHED_WARN_ON(task_rq(b)->core != rq->core);
+
+#ifdef CONFIG_FAIR_GROUP_SCHED
+        /*
+         * Find an se in the hierarchy for tasks a and b, such that the se's
+         * are immediate siblings.
+         */
+        while (sea->cfs_rq->tg != seb->cfs_rq->tg) {
+                int sea_depth = sea->depth;
+                int seb_depth = seb->depth;
+
+                if (sea_depth >= seb_depth)
+                        sea = parent_entity(sea);
+                if (sea_depth <= seb_depth)
+                        seb = parent_entity(seb);
+        }
+
+        se_fi_update(sea, rq->core->core_forceidle_seq, in_fi);
+        se_fi_update(seb, rq->core->core_forceidle_seq, in_fi);
+
+        cfs_rqa = sea->cfs_rq;
+        cfs_rqb = seb->cfs_rq;
+#else
+        cfs_rqa = &task_rq(a)->cfs;
+        cfs_rqb = &task_rq(b)->cfs;
+#endif
+
+        /*
+         * Find delta after normalizing se's vruntime with its cfs_rq's
+         * min_vruntime_fi, which would have been updated in prior calls
+         * to se_fi_update().
+         */
+        delta = (s64)(sea->vruntime - seb->vruntime) +
+                (s64)(cfs_rqb->min_vruntime_fi - cfs_rqa->min_vruntime_fi);
+
+        return delta > 0;
+}
+#else
+static inline void task_tick_core(struct rq *rq, struct task_struct *curr) {}
+#endif
+
+
+
+
 //9932 lines
 /*
  * scheduler tick hitting a task of our scheduling class.
@@ -9660,7 +9817,9 @@ static unsigned int get_rr_interval_fair(struct rq *rq, struct task_struct *task
 /*
  * All the scheduling class methods:
  */
-const struct sched_class fair_sched_class = {
+//kernel version >= v5.19
+DEFINE_SCHED_CLASS(fair) = {
+//const struct sched_class fair_sched_class = {
     .next				= &idle_sched_class,
     .enqueue_task		= enqueue_task_fair,
     .dequeue_task		= dequeue_task_fair,
@@ -9669,12 +9828,13 @@ const struct sched_class fair_sched_class = {
 
     .check_preempt_curr	= check_preempt_wakeup,
 
-    .pick_next_task		= pick_next_task_fair,
+    .pick_next_task		= __pick_next_task_fair,
     .put_prev_task		= put_prev_task_fair,
     .set_next_task  	= set_next_task_fair,
 
 #ifdef CONFIG_SMP
     .balance			= balance_fair,
+    .pick_task          = pick_task_fair,
     .select_task_rq		= select_task_rq_fair,
     .migrate_task_rq	= migrate_task_rq_fair,
 

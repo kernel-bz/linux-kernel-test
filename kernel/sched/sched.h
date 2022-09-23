@@ -562,6 +562,11 @@ struct cfs_rq {
 
 	u64			exec_clock;
 	u64			min_vruntime;
+#ifdef CONFIG_SCHED_CORE
+        unsigned int            forceidle_seq;
+        u64                     min_vruntime_fi;
+#endif
+
 #ifndef CONFIG_64BIT
 	u64			min_vruntime_copy;
 #endif
@@ -912,7 +917,7 @@ struct uclamp_rq {
  */
 struct rq {
 	/* runqueue lock: */
-	raw_spinlock_t		lock;
+    raw_spinlock_t		lock;
 
 	/*
 	 * nr_running and cpu_load should be in the same cacheline because
@@ -1066,6 +1071,26 @@ struct rq {
 	/* Must be inspected within a rcu lock section */
 	struct cpuidle_state	*idle_state;
 #endif
+
+//>=v5.19
+#ifdef CONFIG_SCHED_CORE
+        /* per rq */
+        struct rq               *core;
+        struct task_struct      *core_pick;
+        unsigned int            core_enabled;
+        unsigned int            core_sched_seq;
+        struct rb_root          core_tree;
+
+        /* shared state -- careful with sched_core_cpu_deactivate() */
+        unsigned int            core_task_seq;
+        unsigned int            core_pick_seq;
+        unsigned long           core_cookie;
+        unsigned int            core_forceidle_count;
+        unsigned int            core_forceidle_seq;
+        unsigned int            core_forceidle_occupation;
+        u64                     core_forceidle_start;
+#endif
+
 };
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
@@ -1092,6 +1117,155 @@ static inline int cpu_of(struct rq *rq)
 	return 0;
 #endif
 }
+
+
+
+
+struct sched_group;
+#ifdef CONFIG_SCHED_CORE
+static inline struct cpumask *sched_group_span(struct sched_group *sg);
+
+DECLARE_STATIC_KEY_FALSE(__sched_core_enabled);
+
+static inline bool sched_core_enabled(struct rq *rq)
+{
+        return static_branch_unlikely(&__sched_core_enabled) && rq->core_enabled;
+}
+
+static inline bool sched_core_disabled(void)
+{
+        return !static_branch_unlikely(&__sched_core_enabled);
+}
+
+/*
+ * Be careful with this function; not for general use. The return value isn't
+ * stable unless you actually hold a relevant rq->__lock.
+ */
+static inline raw_spinlock_t *rq_lockp(struct rq *rq)
+{
+        if (sched_core_enabled(rq))
+                return &rq->core->lock;
+
+        return &rq->lock;
+}
+
+static inline raw_spinlock_t *__rq_lockp(struct rq *rq)
+{
+        if (rq->core_enabled)
+                return &rq->core->lock;
+
+        return &rq->lock;
+}
+
+bool cfs_prio_less(struct task_struct *a, struct task_struct *b, bool fi);
+
+/*
+ * Helpers to check if the CPU's core cookie matches with the task's cookie
+ * when core scheduling is enabled.
+ * A special case is that the task's cookie always matches with CPU's core
+ * cookie if the CPU is in an idle core.
+ */
+static inline bool sched_cpu_cookie_match(struct rq *rq, struct task_struct *p)
+{
+        /* Ignore cookie match if core scheduler is not enabled on the CPU. */
+        if (!sched_core_enabled(rq))
+                return true;
+
+        return rq->core->core_cookie == p->core_cookie;
+}
+
+static inline bool sched_core_cookie_match(struct rq *rq, struct task_struct *p)
+{
+        bool idle_core = true;
+        int cpu;
+
+        /* Ignore cookie match if core scheduler is not enabled on the CPU. */
+        if (!sched_core_enabled(rq))
+                return true;
+
+        for_each_cpu(cpu, cpu_smt_mask(cpu_of(rq))) {
+                if (!available_idle_cpu(cpu)) {
+                        idle_core = false;
+                        break;
+                }
+        }
+
+        /*
+         * A CPU in an idle core is always the best choice for tasks with
+         * cookies.
+         */
+        return idle_core || rq->core->core_cookie == p->core_cookie;
+}
+
+static inline bool sched_group_cookie_match(struct rq *rq,
+                                            struct task_struct *p,
+                                            struct sched_group *group)
+{
+        int cpu;
+
+        /* Ignore cookie match if core scheduler is not enabled on the CPU. */
+        if (!sched_core_enabled(rq))
+                return true;
+
+        for_each_cpu_and(cpu, sched_group_span(group), p->cpus_ptr) {
+                if (sched_core_cookie_match(rq, p))
+                        return true;
+        }
+        return false;
+}
+
+static inline bool sched_core_enqueued(struct task_struct *p)
+{
+        return !RB_EMPTY_NODE(&p->core_node);
+}
+
+extern void sched_core_enqueue(struct rq *rq, struct task_struct *p);
+extern void sched_core_dequeue(struct rq *rq, struct task_struct *p, int flags);
+
+extern void sched_core_get(void);
+extern void sched_core_put(void);
+
+#else /* !CONFIG_SCHED_CORE */
+
+static inline bool sched_core_enabled(struct rq *rq)
+{
+        return false;
+}
+
+static inline bool sched_core_disabled(void)
+{
+        return true;
+}
+
+static inline raw_spinlock_t *rq_lockp(struct rq *rq)
+{
+        return &rq->__lock;
+}
+
+static inline raw_spinlock_t *__rq_lockp(struct rq *rq)
+{
+        return &rq->__lock;
+}
+
+static inline bool sched_cpu_cookie_match(struct rq *rq, struct task_struct *p)
+{
+        return true;
+}
+
+static inline bool sched_core_cookie_match(struct rq *rq, struct task_struct *p)
+{
+        return true;
+}
+
+static inline bool sched_group_cookie_match(struct rq *rq,
+                                            struct task_struct *p,
+                                            struct sched_group *group)
+{
+        return true;
+}
+#endif /* CONFIG_SCHED_CORE */
+
+
 
 
 #ifdef CONFIG_SCHED_SMT
@@ -1547,6 +1721,32 @@ static inline int newidle_balance(struct rq *this_rq, struct rq_flags *rf) { ret
 #include "stats.h"
 #include "autogroup.h"
 
+#if defined(CONFIG_SCHED_CORE) && defined(CONFIG_SCHEDSTATS)
+
+extern void __sched_core_account_forceidle(struct rq *rq);
+
+static inline void sched_core_account_forceidle(struct rq *rq)
+{
+    if (schedstat_enabled())
+        __sched_core_account_forceidle(rq);
+}
+
+extern void __sched_core_tick(struct rq *rq);
+
+static inline void sched_core_tick(struct rq *rq)
+{
+    if (sched_core_enabled(rq) && schedstat_enabled())
+        __sched_core_tick(rq);
+}
+
+#else
+
+static inline void sched_core_account_forceidle(struct rq *rq) {}
+
+static inline void sched_core_tick(struct rq *rq) {}
+
+#endif /* CONFIG_SCHED_CORE && CONFIG_SCHEDSTATS */
+
 #ifdef CONFIG_CGROUP_SCHED
 
 /*
@@ -1803,26 +2003,18 @@ struct sched_class {
 
 	void (*check_preempt_curr)(struct rq *rq, struct task_struct *p, int flags);
 
-	/*
-	 * Both @prev and @rf are optional and may be NULL, in which case the
-	 * caller must already have invoked put_prev_task(rq, prev, rf).
-	 *
-	 * Otherwise it is the responsibility of the pick_next_task() to call
-	 * put_prev_task() on the @prev task or something equivalent, IFF it
-	 * returns a next task.
-	 *
-	 * In that case (@rf != NULL) it may return RETRY_TASK when it finds a
-	 * higher prio class has runnable tasks.
-	 */
-	struct task_struct * (*pick_next_task)(struct rq *rq,
-					       struct task_struct *prev,
-					       struct rq_flags *rf);
+    //kernel version >= v5.19
+    struct task_struct *(*pick_next_task)(struct rq *rq);
+
 	void (*put_prev_task)(struct rq *rq, struct task_struct *p);
 	void (*set_next_task)(struct rq *rq, struct task_struct *p);
 
 #ifdef CONFIG_SMP
 	int (*balance)(struct rq *rq, struct task_struct *prev, struct rq_flags *rf);
 	int  (*select_task_rq)(struct task_struct *p, int task_cpu, int sd_flag, int flags);
+
+    struct task_struct * (*pick_task)(struct rq *rq);
+
 	void (*migrate_task_rq)(struct task_struct *p, int new_cpu);
 
 	void (*task_woken)(struct rq *this_rq, struct task_struct *task);
@@ -1885,11 +2077,11 @@ static inline void set_next_task(struct rq *rq, struct task_struct *next)
     pr_fn_end_on(stack_depth);
 }
 
-//kernel version > v5.19
+//kernel version >= v5.19
 #define DEFINE_SCHED_CLASS(name) \
 const struct sched_class name##_sched_class \
-        __aligned(__alignof__(struct sched_class)) \
-        __section("__" #name "_sched_class")
+        __aligned(__alignof__(struct sched_class))
+//        __section("__" #name "_sched_class")
 
 #ifdef CONFIG_SMP
 #define sched_class_highest (&stop_sched_class)
@@ -1901,7 +2093,11 @@ const struct sched_class name##_sched_class \
 	for (class = (_from); class != (_to); class = class->next)
 
 #define for_each_class(class) \
-	for_class_range(class, sched_class_highest, NULL)
+    for_class_range(class, sched_class_highest, NULL)
+
+//kernel version >= v5.19
+#define sched_class_above(_a, _b)       ((_a) < (_b))
+
 
 extern const struct sched_class stop_sched_class;
 extern const struct sched_class dl_sched_class;
@@ -2220,7 +2416,7 @@ static inline void double_rq_lock(struct rq *rq1, struct rq *rq2)
 	BUG_ON(!irqs_disabled());
 	if (rq1 == rq2) {
 		raw_spin_lock(&rq1->lock);
-		__acquire(rq2->lock);	/* Fake it out ;) */
+        //__acquire(rq2->lock);	/* Fake it out ;) */
 	} else {
 		if (rq1 < rq2) {
 			raw_spin_lock(&rq1->lock);
@@ -2245,8 +2441,8 @@ static inline void double_rq_unlock(struct rq *rq1, struct rq *rq2)
 	raw_spin_unlock(&rq1->lock);
 	if (rq1 != rq2)
 		raw_spin_unlock(&rq2->lock);
-	else
-		__release(rq2->lock);
+    //else
+        //__release(rq2->lock);
 }
 
 extern void set_rq_online (struct rq *rq);
