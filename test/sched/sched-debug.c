@@ -817,3 +817,30 @@ void pr_sched_cpumask_bits_info(unsigned int nr_cpu)
     pr_view_on(stack_depth, "%30s : 0x%X\n", cpu_active_mask->bits[0]);
     pr_fn_end_on(stack_depth);
 }
+
+void pr_sched_core_sched_info(struct task_struct *p)
+{
+    struct sched_core_cookie {
+        refcount_t refcnt;
+    };
+    struct sched_core_cookie *cookie;
+
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%30s : %p\n", p);
+    pr_view_on(stack_depth, "%30s : %d\n", task_cpu(p));
+    pr_view_on(stack_depth, "%30s : %p\n", p->core_cookie);
+
+    cookie = (void *)p->core_cookie;
+    pr_view_on(stack_depth, "%30s : %d\n", cookie->refcnt);
+
+    pr_view_on(stack_depth, "%30s : %p\n", task_rq(p));
+    pr_view_on(stack_depth, "%30s : %p\n", task_rq(p)->core);
+    pr_view_on(stack_depth, "%40s : %p\n", task_rq(p)->core_cookie);
+    pr_view_on(stack_depth, "%40s : %p\n", task_rq(p)->core->core_cookie);
+    pr_view_on(stack_depth, "%40s : %d\n", task_rq(p)->core->core_enabled);
+    pr_view_on(stack_depth, "%40s : %d\n", task_rq(p)->core->core_pick_seq);
+    pr_view_on(stack_depth, "%40s : %d\n", task_rq(p)->core->core_task_seq);
+    pr_view_on(stack_depth, "%40s : %d\n", task_rq(p)->core->core_sched_seq);
+    pr_view_on(stack_depth, "%50s : %d\n", __sched_core_enabled.key.enabled.counter);
+    pr_fn_end_on(stack_depth);
+}

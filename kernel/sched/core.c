@@ -60,16 +60,16 @@ DEFINE_STATIC_KEY_FALSE(__sched_core_enabled);
 /* kernel prio, less is more */
 static inline int __task_prio(struct task_struct *p)
 {
-        if (p->sched_class == &stop_sched_class) /* trumps deadline */
-                return -2;
+    if (p->sched_class == &stop_sched_class) /* trumps deadline */
+        return -2;
 
-        if (rt_prio(p->prio)) /* includes deadline */
-                return p->prio; /* [-1, 99] */
+    if (rt_prio(p->prio)) /* includes deadline */
+        return p->prio; /* [-1, 99] */
 
-        if (p->sched_class == &idle_sched_class)
-                return MAX_RT_PRIO + NICE_WIDTH; /* 140 */
+    if (p->sched_class == &idle_sched_class)
+        return MAX_RT_PRIO + NICE_WIDTH; /* 140 */
 
-        return MAX_RT_PRIO + MAX_NICE; /* 120, squash fair */
+    return MAX_RT_PRIO + MAX_NICE; /* 120, squash fair */
 }
 
 /*
@@ -83,86 +83,86 @@ static inline int __task_prio(struct task_struct *p)
 static inline bool prio_less(struct task_struct *a, struct task_struct *b, bool in_fi)
 {
 
-        int pa = __task_prio(a), pb = __task_prio(b);
+    int pa = __task_prio(a), pb = __task_prio(b);
 
-        if (-pa < -pb)
-                return true;
+    if (-pa < -pb)
+        return true;
 
-        if (-pb < -pa)
-                return false;
-
-        if (pa == -1) /* dl_prio() doesn't work because of stop_class above */
-                return !dl_time_before(a->dl.deadline, b->dl.deadline);
-
-        if (pa == MAX_RT_PRIO + MAX_NICE)       /* fair */
-                return cfs_prio_less(a, b, in_fi);
-
+    if (-pb < -pa)
         return false;
+
+    if (pa == -1) /* dl_prio() doesn't work because of stop_class above */
+        return !dl_time_before(a->dl.deadline, b->dl.deadline);
+
+    if (pa == MAX_RT_PRIO + MAX_NICE)       /* fair */
+        return cfs_prio_less(a, b, in_fi);
+
+    return false;
 }
 
 static inline bool __sched_core_less(struct task_struct *a, struct task_struct *b)
 {
-        if (a->core_cookie < b->core_cookie)
-                return true;
+    if (a->core_cookie < b->core_cookie)
+        return true;
 
-        if (a->core_cookie > b->core_cookie)
-                return false;
-
-        /* flip prio, so high prio is leftmost */
-        if (prio_less(b, a, !!task_rq(a)->core->core_forceidle_count))
-                return true;
-
+    if (a->core_cookie > b->core_cookie)
         return false;
+
+    /* flip prio, so high prio is leftmost */
+    if (prio_less(b, a, !!task_rq(a)->core->core_forceidle_count))
+        return true;
+
+    return false;
 }
 
 #define __node_2_sc(node) rb_entry((node), struct task_struct, core_node)
 
 static inline bool rb_sched_core_less(struct rb_node *a, const struct rb_node *b)
 {
-        return __sched_core_less(__node_2_sc(a), __node_2_sc(b));
+    return __sched_core_less(__node_2_sc(a), __node_2_sc(b));
 }
 
 static inline int rb_sched_core_cmp(const void *key, const struct rb_node *node)
 {
-        const struct task_struct *p = __node_2_sc(node);
-        unsigned long cookie = (unsigned long)key;
+    const struct task_struct *p = __node_2_sc(node);
+    unsigned long cookie = (unsigned long)key;
 
-        if (cookie < p->core_cookie)
-                return -1;
+    if (cookie < p->core_cookie)
+        return -1;
 
-        if (cookie > p->core_cookie)
-                return 1;
+    if (cookie > p->core_cookie)
+        return 1;
 
-        return 0;
+    return 0;
 }
 
 void sched_core_enqueue(struct rq *rq, struct task_struct *p)
 {
-        rq->core->core_task_seq++;
+    rq->core->core_task_seq++;
 
-        if (!p->core_cookie)
-                return;
+    if (!p->core_cookie)
+        return;
 
-        rb_add(&p->core_node, &rq->core_tree, rb_sched_core_less);
+    rb_add(&p->core_node, &rq->core_tree, rb_sched_core_less);
 }
 
 void sched_core_dequeue(struct rq *rq, struct task_struct *p, int flags)
 {
-        rq->core->core_task_seq++;
+    rq->core->core_task_seq++;
 
-        if (sched_core_enqueued(p)) {
-                rb_erase(&p->core_node, &rq->core_tree);
-                RB_CLEAR_NODE(&p->core_node);
-        }
+    if (sched_core_enqueued(p)) {
+        rb_erase(&p->core_node, &rq->core_tree);
+        RB_CLEAR_NODE(&p->core_node);
+    }
 
-        /*
+    /*
          * Migrating the last task off the cpu, with the cpu in forced idle
          * state. Reschedule to create an accounting edge for forced idle,
          * and re-examine whether the core is still in forced idle state.
          */
-        if (!(flags & DEQUEUE_SAVE) && rq->nr_running == 1 &&
+    if (!(flags & DEQUEUE_SAVE) && rq->nr_running == 1 &&
             rq->core->core_forceidle_count && rq->curr == rq->idle)
-                resched_curr(rq);
+        resched_curr(rq);
 }
 
 /*
@@ -170,31 +170,31 @@ void sched_core_dequeue(struct rq *rq, struct task_struct *p, int flags)
  */
 static struct task_struct *sched_core_find(struct rq *rq, unsigned long cookie)
 {
-        struct rb_node *node;
+    struct rb_node *node;
 
-        node = rb_find_first((void *)cookie, &rq->core_tree, rb_sched_core_cmp);
-        /*
+    node = rb_find_first((void *)cookie, &rq->core_tree, rb_sched_core_cmp);
+    /*
          * The idle task always matches any cookie!
          */
-        if (!node)
-                return idle_sched_class.pick_task(rq);
+    if (!node)
+        return idle_sched_class.pick_task(rq);
 
-        return __node_2_sc(node);
+    return __node_2_sc(node);
 }
 
 static struct task_struct *sched_core_next(struct task_struct *p, unsigned long cookie)
 {
-        struct rb_node *node = &p->core_node;
+    struct rb_node *node = &p->core_node;
 
-        node = rb_next(node);
-        if (!node)
-                return NULL;
+    node = rb_next(node);
+    if (!node)
+        return NULL;
 
-        p = container_of(node, struct task_struct, core_node);
-        if (p->core_cookie != cookie)
-                return NULL;
+    p = container_of(node, struct task_struct, core_node);
+    if (p->core_cookie != cookie)
+        return NULL;
 
-        return p;
+    return p;
 }
 
 /*
@@ -216,136 +216,163 @@ static struct cpumask sched_core_mask;
 
 static void sched_core_lock(int cpu, unsigned long *flags)
 {
-        const struct cpumask *smt_mask = cpu_smt_mask(cpu);
-        int t, i = 0;
+    const struct cpumask *smt_mask = cpu_smt_mask(cpu);
+    int t, i = 0;
 
-        local_irq_save(*flags);
-        for_each_cpu(t, smt_mask)
-                raw_spin_lock_nested(&cpu_rq(t)->__lock, i++);
+    local_irq_save(*flags);
+    for_each_cpu(t, smt_mask)
+            raw_spin_lock_nested(&cpu_rq(t)->__lock, i++);
 }
 
 static void sched_core_unlock(int cpu, unsigned long *flags)
 {
-        const struct cpumask *smt_mask = cpu_smt_mask(cpu);
-        int t;
+    const struct cpumask *smt_mask = cpu_smt_mask(cpu);
+    int t;
 
-        for_each_cpu(t, smt_mask)
-                raw_spin_unlock(&cpu_rq(t)->__lock);
-        local_irq_restore(*flags);
+    for_each_cpu(t, smt_mask)
+            raw_spin_unlock(&cpu_rq(t)->__lock);
+    local_irq_restore(*flags);
 }
 
 static void __sched_core_flip(bool enabled)
 {
-        unsigned long flags;
-        int cpu, t;
+    unsigned long flags;
+    int cpu, t;
 
-        cpus_read_lock();
+    pr_fn_start_on(stack_depth);
 
-        /*
-         * Toggle the online cores, one by one.
-         */
-        cpumask_copy(&sched_core_mask, cpu_online_mask);
-        for_each_cpu(cpu, &sched_core_mask) {
-                const struct cpumask *smt_mask = cpu_smt_mask(cpu);
+    cpus_read_lock();
 
-                sched_core_lock(cpu, &flags);
+    /*
+     * Toggle the online cores, one by one.
+     */
+    cpumask_copy(&sched_core_mask, cpu_online_mask);
+    pr_view_on(stack_depth, "%20s : %X\n", cpu_online_mask->bits[0]);
+    pr_view_on(stack_depth, "%20s : %X\n", sched_core_mask.bits[0]);
 
-                for_each_cpu(t, smt_mask)
-                        cpu_rq(t)->core_enabled = enabled;
+    for_each_cpu(cpu, &sched_core_mask) {
+        pr_view_on(stack_depth, "%30s : %d\n", cpu);
+        const struct cpumask *smt_mask = cpu_smt_mask(cpu);
 
-                cpu_rq(cpu)->core->core_forceidle_start = 0;
+        pr_view_on(stack_depth, "%30s : %X\n", smt_mask->bits[0]);
 
-                sched_core_unlock(cpu, &flags);
+        sched_core_lock(cpu, &flags);
 
-                cpumask_andnot(&sched_core_mask, &sched_core_mask, smt_mask);
-        }
+        for_each_cpu(t, smt_mask)
+                cpu_rq(t)->core_enabled = enabled;
 
-        /*
-         * Toggle the offline CPUs.
-         */
-        cpumask_copy(&sched_core_mask, cpu_possible_mask);
-        cpumask_andnot(&sched_core_mask, &sched_core_mask, cpu_online_mask);
+        cpu_rq(cpu)->core->core_forceidle_start = 0;
 
-        for_each_cpu(cpu, &sched_core_mask)
-                cpu_rq(cpu)->core_enabled = enabled;
+        sched_core_unlock(cpu, &flags);
 
-        cpus_read_unlock();
+        cpumask_andnot(&sched_core_mask, &sched_core_mask, smt_mask);
+        pr_view_on(stack_depth, "%30s : %X\n", sched_core_mask.bits[0]);
+    }
+
+    /*
+     * Toggle the offline CPUs.
+     */
+    cpumask_copy(&sched_core_mask, cpu_possible_mask);
+    cpumask_andnot(&sched_core_mask, &sched_core_mask, cpu_online_mask);
+
+    for_each_cpu(cpu, &sched_core_mask)
+            cpu_rq(cpu)->core_enabled = enabled;
+
+    cpus_read_unlock();
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void sched_core_assert_empty(void)
 {
-        int cpu;
+    int cpu;
 
-        for_each_possible_cpu(cpu)
-                WARN_ON_ONCE(!RB_EMPTY_ROOT(&cpu_rq(cpu)->core_tree));
+    for_each_possible_cpu(cpu)
+            WARN_ON_ONCE(!RB_EMPTY_ROOT(&cpu_rq(cpu)->core_tree));
 }
 
 static void __sched_core_enable(void)
 {
-        static_branch_enable(&__sched_core_enabled);
-        /*
-         * Ensure all previous instances of raw_spin_rq_*lock() have finished
-         * and future ones will observe !sched_core_disabled().
-         */
-        synchronize_rcu();
-        __sched_core_flip(true);
-        sched_core_assert_empty();
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%40s : %d\n", __sched_core_enabled.key.enabled.counter);
+
+    static_branch_enable(&__sched_core_enabled);
+
+    pr_view_on(stack_depth, "%40s : %d\n", __sched_core_enabled.key.enabled.counter);
+    /*
+     * Ensure all previous instances of raw_spin_rq_*lock() have finished
+     * and future ones will observe !sched_core_disabled().
+     */
+    synchronize_rcu();
+    __sched_core_flip(true);
+    sched_core_assert_empty();
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void __sched_core_disable(void)
 {
-        sched_core_assert_empty();
-        __sched_core_flip(false);
-        static_branch_disable(&__sched_core_enabled);
+    sched_core_assert_empty();
+    __sched_core_flip(false);
+    static_branch_disable(&__sched_core_enabled);
 }
 
 void sched_core_get(void)
 {
-        //if (atomic_inc_not_zero(&sched_core_count))
-        //        return;
-        if (sched_core_count.counter > 0) {
-            atomic_inc(&sched_core_count);
-            return;
-        }
+    pr_fn_start_on(stack_depth);
 
-        mutex_lock(&sched_core_mutex);
-        if (!atomic_read(&sched_core_count))
-                __sched_core_enable();
+    pr_view_on(stack_depth, "%30s : %d\n", sched_core_count.counter);
 
-        smp_mb__before_atomic();
+    //if (atomic_inc_not_zero(&sched_core_count))
+    //        return;
+    if (sched_core_count.counter > 0) {
         atomic_inc(&sched_core_count);
-        mutex_unlock(&sched_core_mutex);
+        pr_view_on(stack_depth, "%30s : %d\n", sched_core_count.counter);
+        return;
+    }
+
+    mutex_lock(&sched_core_mutex);
+    if (!atomic_read(&sched_core_count))
+        __sched_core_enable();
+
+    smp_mb__before_atomic();
+    atomic_inc(&sched_core_count);
+    mutex_unlock(&sched_core_mutex);
+
+    pr_view_on(stack_depth, "%30s : %d\n", sched_core_count.counter);
+    pr_fn_end_on(stack_depth);
 }
 
 static void __sched_core_put(struct work_struct *work)
 {
-        /*
+    /*
         if (atomic_dec_and_mutex_lock(&sched_core_count, &sched_core_mutex)) {
-                __sched_core_disable();
-                mutex_unlock(&sched_core_mutex);
+            __sched_core_disable();
+            mutex_unlock(&sched_core_mutex);
         }
-        */
-        atomic_dec(&sched_core_count);
-        if (sched_core_count.counter == 0)
-                __sched_core_disable();
+    */
+    atomic_dec(&sched_core_count);
+    if (sched_core_count.counter == 0)
+        __sched_core_disable();
 }
 
 void sched_core_put(void)
 {
-        static DECLARE_WORK(_work, __sched_core_put);
+    static DECLARE_WORK(_work, __sched_core_put);
 
-        /*
+    /*
          * "There can be only one"
          *
          * Either this is the last one, or we don't actually need to do any
          * 'work'. If it is the last *again*, we rely on
          * WORK_STRUCT_PENDING_BIT.
          */
-        //if (!atomic_add_unless(&sched_core_count, -1, 1))
-        //        schedule_work(&_work);
-        atomic_add(-1, &sched_core_count);
-        if (sched_core_count.counter == 1)
-            schedule_work(&_work);
+    //if (!atomic_add_unless(&sched_core_count, -1, 1))
+    //        schedule_work(&_work);
+    atomic_add(-1, &sched_core_count);
+    if (sched_core_count.counter == 1)
+        schedule_work(&_work);
 }
 
 #else /* !CONFIG_SCHED_CORE */
@@ -3403,21 +3430,24 @@ static inline struct task_struct *
     const struct sched_class *class;
     struct task_struct *p;
 
+    pr_fn_start_on(stack_depth);
+
     /*
      * Optimization: we know that if all tasks are in the fair class we can
      * call that function directly, but only if the @prev task wasn't of a
      * higher scheduling class, because otherwise those lose the
      * opportunity to pull in more work from other CPUs.
      */
-#if 0
     if (likely((prev->sched_class == &idle_sched_class ||
                 prev->sched_class == &fair_sched_class) &&
                rq->nr_running == rq->cfs.h_nr_running)) {
-#endif
+#if 0
     if (likely(!sched_class_above(prev->sched_class, &fair_sched_class) &&
                rq->nr_running == rq->cfs.h_nr_running)) {
-
+#endif
         p = pick_next_task_fair(rq, prev, rf);
+        pr_view_on(stack_depth, "%10s : %p\n", p);
+
         if (unlikely(p == RETRY_TASK))
             goto restart;
 
@@ -3474,6 +3504,7 @@ static inline struct task_struct *pick_task(struct rq *rq)
         }
 
         BUG(); /* The idle class should always have a runnable task. */
+        return current; //for test
 }
 
 extern void task_vruntime_update(struct rq *rq, struct task_struct *p, bool in_fi);
@@ -3492,6 +3523,8 @@ static struct task_struct *
     struct rq *rq_i;
     bool need_sync;
 
+    pr_fn_start_on(stack_depth);
+
     if (!sched_core_enabled(rq))
         return __pick_next_task(rq, prev, rf);
 
@@ -3508,6 +3541,10 @@ static struct task_struct *
         return __pick_next_task(rq, prev, rf);
     }
 
+    pr_view_on(stack_depth, "%30s : %u\n", rq->core->core_pick_seq);
+    pr_view_on(stack_depth, "%30s : %u\n", rq->core->core_task_seq);
+    pr_view_on(stack_depth, "%30s : %u\n", rq->core->core_sched_seq);
+    pr_view_on(stack_depth, "%30s : %p\n", rq->core_pick);
     /*
      * If there were no {en,de}queues since we picked (IOW, the task
      * pointers are all still valid), and we haven't scheduled the last
@@ -3704,6 +3741,7 @@ out:
     if (rq->core->core_forceidle_count && next == rq->idle)
         queue_core_balance(rq);
 
+    pr_fn_end_on(stack_depth);
     return next;
 }
 
@@ -5656,6 +5694,18 @@ void __init sched_init(void)
     #endif /* CONFIG_SMP */
             //hrtick_rq_init(rq);
             atomic_set(&rq->nr_iowait, 0);
+
+#ifdef CONFIG_SCHED_CORE
+            rq->core = rq;
+            rq->core_pick = NULL;
+            rq->core_enabled = 0;
+            rq->core_tree = RB_ROOT;
+            rq->core_forceidle_count = 0;
+            rq->core_forceidle_occupation = 0;
+            rq->core_forceidle_start = 0;
+
+            rq->core_cookie = 0UL;
+#endif
         }
 
         set_load_weight(&init_task, false);

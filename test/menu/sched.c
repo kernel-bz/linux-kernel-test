@@ -263,6 +263,43 @@ static void _sched_idle_test(void)
     }
 }
 
+static int _sched_core_scheduling_test_menu(int asize)
+{
+    int idx, ret;
+    __fpurge(stdin);
+
+    printf("\n");
+    printf("[#]--> Scheduler --> Core Scheduling Test Menu\n");
+    printf("0: exit.\n");
+    printf("1: sched core create test.\n");
+    printf("2: sched core to test.\n");
+    printf("3: help.\n");
+    printf("\n");
+
+    printf("Enter Menu Number[0,%d]: ", asize - 1);
+    ret = scanf("%d", &idx);
+    if (ret <= 0) idx = 0;
+
+    return (idx > 0 && idx < asize) ? idx : -1;
+}
+
+static void _sched_core_scheduling_test(void)
+{
+    void (*fn[])(void) = { _sched_test_help
+        , test_sched_core_create
+        , test_sched_core_to
+        , _sched_test_help
+    };
+    int idx;
+
+    while (1) {
+        idx = _sched_core_scheduling_test_menu(ARRAY_SIZE(fn));
+        if (idx < 0) break;
+        fn[idx]();
+    }
+}
+
+
 static int _sched_test_menu(int asize)
 {
     int idx, ret;
@@ -290,8 +327,9 @@ static int _sched_test_menu(int asize)
     printf("13: RT Scheduler Test -->\n");
     printf("14: CFS Scheduler Test -->\n");
     printf("15: Idle Scheduler Test -->\n");
+    printf("16: Core Scheduling Test -->\n");
 
-    printf("15: help.\n");
+    printf("17: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -322,6 +360,7 @@ void menu_sched_test(void)
         , _sched_rt_test
         , _sched_cfs_test
         , _sched_idle_test
+        , _sched_core_scheduling_test
 
         , _sched_test_help
     };

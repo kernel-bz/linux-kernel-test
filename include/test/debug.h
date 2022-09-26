@@ -207,6 +207,7 @@ void pr_sched_task_info(struct task_struct *p);
 void pr_sched_rq_info(struct rq *rq);
 
 void pr_sched_cpumask_bits_info(unsigned int nr_cpu);
+void pr_sched_core_sched_info(struct task_struct *p);
 
 #ifdef __cplusplus
 }

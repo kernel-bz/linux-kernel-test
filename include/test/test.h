@@ -92,6 +92,9 @@ void test_sched_pelt_info(void);
 void test_sched_dl_enqueue(void);
 void test_sched_cpudl(void);
 
+void test_sched_core_create(void);
+void test_sched_core_to(void);
+
 //test/sched/test-fair.c
 void test_fair_set_user_nice(void);
 void test_fair_tg_set_cfs_bandwidth(void);

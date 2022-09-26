@@ -228,7 +228,8 @@ static inline int cpu_to_mem(int cpu)
 //#if defined(CONFIG_SCHED_SMT) && !defined(cpu_smt_mask)
 static inline const struct cpumask *cpu_smt_mask(int cpu)
 {
-	return topology_sibling_cpumask(cpu);
+    //return topology_sibling_cpumask(cpu);
+    return cpu_online_mask;	//for test
 }
 //#endif
 

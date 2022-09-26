@@ -18,6 +18,7 @@
 #include <linux/sched.h>
 
 #include <kernel/sched/sched.h>
+#include <uapi/linux/prctl.h>
 
 struct task_struct *current_task;
 
@@ -607,5 +608,54 @@ _retry:
     if (cpu >= NR_CPUS) goto _retry;
 
     sched_cpu_dying(cpu);
+}
+
+void test_sched_core_create(void)
+{
+    int ret;
+    unsigned long uaddr;
+
+    pr_fn_start_on(stack_depth);
+
+    ret = sched_core_share_pid(PR_SCHED_CORE_CREATE, current, PIDTYPE_PID, 0);
+    ret = sched_core_share_pid(PR_SCHED_CORE_GET, current, PIDTYPE_PID, &uaddr);
+
+    pr_view_on(stack_depth, "%20s : %p\n", uaddr);
+    pr_view_on(stack_depth, "%20s : %p\n", current);
+    pr_sched_core_sched_info(current);
+
+    pr_fn_end_on(stack_depth);
+}
+
+void test_sched_core_to(void)
+{
+    unsigned int cpu;
+    struct task_struct *p;
+    int ret;
+
+    pr_fn_start_on(stack_depth);
+
+_retry:
+     __fpurge(stdin);
+    printf("Input CPU Number[0,%d]: ", NR_CPUS-1);
+    scanf("%u", &cpu);
+    if (cpu >= NR_CPUS) goto _retry;
+
+    smp_user_cpu = cpu;
+    p = _sched_test_task_select(cpu);
+    if (!p) {
+        pr_warn("Please run sched_init and wake_up_new_task first!\n");
+        return;
+    }
+
+    //current to p
+    ret = sched_core_share_pid(PR_SCHED_CORE_SHARE_TO, p, PIDTYPE_PID, 0);
+    //current from p
+    //ret = sched_core_share_pid(PR_SCHED_CORE_SHARE_FROM, p, PIDTYPE_PID, 0);
+
+    pr_view_on(stack_depth, "%20s : %p\n", current);
+    pr_sched_core_sched_info(p);
+
+    pr_fn_end_on(stack_depth);
 }
 

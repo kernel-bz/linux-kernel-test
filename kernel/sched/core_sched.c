@@ -16,13 +16,19 @@ struct sched_core_cookie {
 
 static unsigned long sched_core_alloc_cookie(void)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct sched_core_cookie *ck = kmalloc(sizeof(*ck), GFP_KERNEL);
 	if (!ck)
 		return 0;
 
 	refcount_set(&ck->refcnt, 1);
-	sched_core_get();
 
+    pr_view_on(stack_depth, "%20s : %p\n", ck);
+    pr_view_on(stack_depth, "%20s : %d\n", ck->refcnt.refs);
+    sched_core_get();
+
+    pr_fn_end_on(stack_depth);
 	return (unsigned long)ck;
 }
 
@@ -63,6 +69,8 @@ static unsigned long sched_core_update_cookie(struct task_struct *p,
 	struct rq_flags rf;
 	struct rq *rq;
 
+    pr_fn_start_on(stack_depth);
+
 	rq = task_rq_lock(p, &rf);
 
 	/*
@@ -99,6 +107,12 @@ static unsigned long sched_core_update_cookie(struct task_struct *p,
 
 	task_rq_unlock(rq, p, &rf);
 
+    pr_view_on(stack_depth, "%20s : %p\n", old_cookie);
+    pr_view_on(stack_depth, "%20s : %p\n", cookie);
+    pr_view_on(stack_depth, "%20s : %p\n", p->core_cookie);
+
+    pr_fn_end_on(stack_depth);
+
 	return old_cookie;
 }
 
@@ -106,9 +120,14 @@ static unsigned long sched_core_clone_cookie(struct task_struct *p)
 {
 	unsigned long cookie, flags;
 
+    pr_fn_start_on(stack_depth);
+
 	raw_spin_lock_irqsave(&p->pi_lock, flags);
 	cookie = sched_core_get_cookie(p->core_cookie);
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
+
+    pr_view_on(stack_depth, "%20s : %p\n", cookie);
+    pr_fn_end_on(stack_depth);
 
 	return cookie;
 }
@@ -126,19 +145,28 @@ void sched_core_free(struct task_struct *p)
 
 static void __sched_core_set(struct task_struct *p, unsigned long cookie)
 {
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", cookie);
+
 	cookie = sched_core_get_cookie(cookie);
 	cookie = sched_core_update_cookie(p, cookie);
-	sched_core_put_cookie(cookie);
+    sched_core_put_cookie(cookie);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /* Called from prctl interface: PR_SCHED_CORE */
-int sched_core_share_pid(unsigned int cmd, pid_t pid, enum pid_type type,
-			 unsigned long uaddr)
+//int sched_core_share_pid(unsigned int cmd, pid_t pid, enum pid_type type,
+int sched_core_share_pid(unsigned int cmd, struct task_struct *task, enum pid_type type,
+             unsigned long uaddr)
 {
 	unsigned long cookie = 0, id = 0;
-	struct task_struct *task, *p;
+    struct task_struct *p;
 	struct pid *grp;
 	int err = 0;
+
+    pr_fn_start_on(stack_depth);
 
     //if (!static_branch_likely(&sched_smt_present))
     //	return -ENODEV;
@@ -147,21 +175,24 @@ int sched_core_share_pid(unsigned int cmd, pid_t pid, enum pid_type type,
 	BUILD_BUG_ON(PR_SCHED_CORE_SCOPE_THREAD_GROUP != PIDTYPE_TGID);
 	BUILD_BUG_ON(PR_SCHED_CORE_SCOPE_PROCESS_GROUP != PIDTYPE_PGID);
 
-	if (type > PIDTYPE_PGID || cmd >= PR_SCHED_CORE_MAX || pid < 0 ||
+    if (type > PIDTYPE_PGID || cmd >= PR_SCHED_CORE_MAX ||
 	    (cmd != PR_SCHED_CORE_GET && uaddr))
 		return -EINVAL;
 
 	rcu_read_lock();
+#if 0
 	if (pid == 0) {
 		task = current;
 	} else {
-        //task = find_task_by_vpid(pid);
-        task = NULL;
+        task = find_task_by_vpid(pid);
 		if (!task) {
 			rcu_read_unlock();
 			return -ESRCH;
 		}
 	}
+#endif
+    if (!task)
+        task = current;
 	get_task_struct(task);
 	rcu_read_unlock();
 
@@ -196,11 +227,11 @@ int sched_core_share_pid(unsigned int cmd, pid_t pid, enum pid_type type,
 		}
 		break;
 
-	case PR_SCHED_CORE_SHARE_TO:
+    case PR_SCHED_CORE_SHARE_TO:	//to task
 		cookie = sched_core_clone_cookie(current);
 		break;
 
-	case PR_SCHED_CORE_SHARE_FROM:
+    case PR_SCHED_CORE_SHARE_FROM:	//from task
 		if (type != PIDTYPE_PID) {
 			err = -EINVAL;
 			goto out;
@@ -240,6 +271,8 @@ out_tasklist:
 out:
 	sched_core_put_cookie(cookie);
 	put_task_struct(task);
+
+    pr_fn_end_on(stack_depth);
 	return err;
 }
 
