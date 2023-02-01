@@ -198,7 +198,8 @@ SOURCES += \
     mm/slub.c \
     test/sched/test-fair.c \
     lib/siphash.c \
-    kernel/sched/core_sched.c
+    kernel/sched/core_sched.c \
+    kernel/workqueue.c
 
 HEADERS += \
     include/test/test.h \
@@ -662,7 +663,8 @@ HEADERS += \
     include/linux/siphash.h \
     include/linux/byteorder/generic.h \
     include/asm-generic/unaligned.h \
-    include/linux/rbtree_types.h
+    include/linux/rbtree_types.h \
+    include/linux/rcuwait.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

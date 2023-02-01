@@ -6,10 +6,10 @@
 #include <linux/sched.h>
 
 __printf(4, 5)
-struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
+static struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 					   void *data,
 					   int node,
-					   const char namefmt[], ...);
+                                           const char namefmt[], ...) {}
 
 /**
  * kthread_create - create a kthread on the current node
@@ -51,14 +51,26 @@ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
 
 void free_kthread_struct(struct task_struct *k);
 void kthread_bind(struct task_struct *k, unsigned int cpu);
-void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
-int kthread_stop(struct task_struct *k);
-bool kthread_should_stop(void);
+
+//void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
+static void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask) {}
+
+//int kthread_stop(struct task_struct *k);
+static inline int kthread_stop(struct task_struct *k) {}
+
+//bool kthread_should_stop(void);
+static inline bool kthread_should_stop(void) {}
+
 bool kthread_should_park(void);
 bool __kthread_should_park(struct task_struct *k);
 bool kthread_freezable_should_stop(bool *was_frozen);
-void *kthread_data(struct task_struct *k);
-void *kthread_probe_data(struct task_struct *k);
+
+//void *kthread_data(struct task_struct *k);
+static inline void *kthread_data(struct task_struct *k) {}
+
+//void *kthread_probe_data(struct task_struct *k);
+static inline void *kthread_probe_data(struct task_struct *k) {}
+
 int kthread_park(struct task_struct *k);
 void kthread_unpark(struct task_struct *k);
 void kthread_parkme(void);
@@ -209,4 +221,7 @@ static inline struct cgroup_subsys_state *kthread_blkcg(void)
 	return NULL;
 }
 #endif
+
+static inline void kthread_set_per_cpu(struct task_struct *k, int cpu) {}
+
 #endif /* _LINUX_KTHREAD_H */

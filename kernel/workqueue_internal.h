@@ -9,9 +9,8 @@
 #define _KERNEL_WORKQUEUE_INTERNAL_H
 
 #include <linux/workqueue.h>
-//#include <linux/kthread.h>
+#include <linux/kthread.h>
 #include <linux/preempt.h>
-#include <asm/current.h>
 
 struct worker_pool;
 
@@ -31,7 +30,8 @@ struct worker {
 
 	struct work_struct	*current_work;	/* L: work being processed */
 	work_func_t		current_func;	/* L: current_work's fn */
-	struct pool_workqueue	*current_pwq; /* L: current_work's pwq */
+	struct pool_workqueue	*current_pwq;	/* L: current_work's pwq */
+	unsigned int		current_color;	/* L: current_work's color */
 	struct list_head	scheduled;	/* L: scheduled works */
 
 	/* 64 bytes boundary on 64bit, 32 on 32bit */
@@ -65,9 +65,9 @@ struct worker {
  */
 static inline struct worker *current_wq_worker(void)
 {
-    //if (in_task() && (current->flags & PF_WQ_WORKER))
-        //return kthread_data(current);
-    return NULL;
+	if (in_task() && (current->flags & PF_WQ_WORKER))
+		return kthread_data(current);
+	return NULL;
 }
 
 /*

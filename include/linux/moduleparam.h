@@ -12,9 +12,9 @@
 #define MODULE_PARAM_PREFIX /* empty */
 #define __MODULE_INFO_PREFIX /* empty */
 #else
-#define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
+//#define MODULE_PARAM_PREFIX KBUILD_MODNAME "."
 /* We cannot use MODULE_PARAM_PREFIX because some modules override it. */
-#define __MODULE_INFO_PREFIX KBUILD_MODNAME "."
+//#define __MODULE_INFO_PREFIX KBUILD_MODNAME "."
 #endif
 
 /* Chosen so that structs with an unsigned long line up. */
@@ -23,7 +23,7 @@
 #define __MODULE_INFO(tag, name, info)					  \
 static const char __UNIQUE_ID(name)[]					  \
   __used __attribute__((section(".modinfo"), unused, aligned(1)))	  \
-  = __MODULE_INFO_PREFIX __stringify(tag) "=" info
+  //= __MODULE_INFO_PREFIX __stringify(tag) "=" info
 
 #define __MODULE_PARM_TYPE(name, _type)					  \
   __MODULE_INFO(parmtype, name##type, #name ":" _type)
@@ -165,7 +165,7 @@ struct kparam_array
  * The ops can have NULL set or get functions.
  */
 #define module_param_cb(name, ops, arg, perm)				      \
-	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1, 0)
+//	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1, 0)
 
 #define module_param_cb_unsafe(name, ops, arg, perm)			      \
 	__module_param_call(MODULE_PARAM_PREFIX, name, ops, arg, perm, -1,    \

@@ -34,7 +34,11 @@ static inline s64 atomic64_xchg(atomic64_t *v, s64 new)
     return val;
 }
 
-extern void atomic64_set(atomic64_t *v, s64 i);
+//extern void atomic64_set(atomic64_t *v, s64 i);
+static inline atomic64_set(atomic64_t *v, s64 i)
+{
+    WRITE_ONCE(v->counter, i);
+}
 
 #define atomic64_set_release(v, i)	atomic64_set((v), (i))
 

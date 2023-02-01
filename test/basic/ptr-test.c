@@ -31,7 +31,17 @@ ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0          [vsyscall]
 #ifndef offsetof
 //include/linux/stddef.h
 //typedef unsigned long size_t
-#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+//#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+#define offsetof(TYPE, MEMBER) __builtin_offsetof (TYPE, MEMBER)
+#endif
+
+#ifndef sizeof_field
+#define sizeof_field(TYPE, MEMBER) sizeof((((TYPE *)0)->MEMBER))
+#endif
+
+#ifndef offsetofend
+#define offsetofend(TYPE, MEMBER) \
+        (offsetof(TYPE, MEMBER) + sizeof_field(TYPE, MEMBER))
 #endif
 
 #ifndef container_of
@@ -88,12 +98,24 @@ static void _ptr_offsetof_test(void)
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample, d));
     pr_view(stack_depth, "%30s : %d\n\n", offsetof(struct sample, e));
 
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample, a));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample, b));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample, c));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample, d));
+    pr_view(stack_depth, "%30s : %d\n\n", offsetofend(struct sample, e));
+
     pr_view(stack_depth, "%30s : %d\n", sizeof(struct sample2));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, a));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, b));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, c));
     pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, d));
-    pr_view(stack_depth, "%30s : %d\n", offsetof(struct sample2, e));
+    pr_view(stack_depth, "%30s : %d\n\n", offsetof(struct sample2, e));
+
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, a));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, b));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, c));
+    pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, d));
+    pr_view(stack_depth, "%30s : %d\n\n", offsetofend(struct sample2, e));
 
     pr_fn_end(stack_depth);
 }

@@ -20,6 +20,7 @@
 #include <linux/rcupdate.h>
 #include <asm/numa_.h>
 #include <mm/slab.h>
+#include <linux/workqueue.h>
 
 void test_setup_arch(void)
 {
@@ -87,6 +88,12 @@ void test_sched_init_smp(void)
      */
     //kernel/sched/core.c
     sched_init_smp();
+}
+
+void test_workqueue_init(void)
+{
+    workqueue_init_early();
+    workqueue_init();
 }
 
 /*

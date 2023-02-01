@@ -62,6 +62,9 @@ void *kmem_cache_alloc(struct kmem_cache *cachep, int gfp)
 {
 	void *p;
 
+    if (!cachep)
+        return NULL;
+
 	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
 		if (!cachep->non_kernel)
 			return NULL;
@@ -69,7 +72,7 @@ void *kmem_cache_alloc(struct kmem_cache *cachep, int gfp)
 		cachep->non_kernel--;
 	}
 
-	pthread_mutex_lock(&cachep->lock);
+    //pthread_mutex_lock(&cachep->lock);
 	if (cachep->nr_objs) {
 		struct radix_tree_node *node = cachep->objs;
 		cachep->nr_objs--;

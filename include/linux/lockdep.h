@@ -13,6 +13,10 @@ extern "C" {
 #define asmlinkage
 #define __visible
 
+#define lock_map_acquire(l)
+#define lock_map_acquire_read(l)
+#define lock_map_acquire_tryread(l)
+#define lock_map_release(l)
 
 struct lock_class_key {
 	unsigned int a;

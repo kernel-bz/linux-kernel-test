@@ -234,9 +234,14 @@ extern void scheduler_tick(void);
 //extern long schedule_timeout(long timeout);i
 static inline long schedule_timeout(long timeout) { }
 
-extern long schedule_timeout_interruptible(long timeout);
+//extern long schedule_timeout_interruptible(long timeout);
+static inline long schedule_timeout_interruptible(long timeout) {}
+
 extern long schedule_timeout_killable(long timeout);
-extern long schedule_timeout_uninterruptible(long timeout);
+
+//extern long schedule_timeout_uninterruptible(long timeout);
+static inline long schedule_timeout_uninterruptible(long timeout) {}
+
 extern long schedule_timeout_idle(long timeout);
 asmlinkage void schedule(void);
 extern void schedule_preempt_disabled(void);
@@ -1712,7 +1717,7 @@ extern void __set_task_comm(struct task_struct *tsk, const char *from, bool exec
 
 static inline void set_task_comm(struct task_struct *tsk, const char *from)
 {
-	__set_task_comm(tsk, from, false);
+    //__set_task_comm(tsk, from, false);
 }
 
 extern char *__get_task_comm(char *to, size_t len, struct task_struct *tsk);

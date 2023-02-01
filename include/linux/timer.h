@@ -87,9 +87,9 @@ struct timer_list {
 /*
  * LOCKDEP and DEBUG timer interfaces.
  */
-void init_timer_key(struct timer_list *timer,
+static inline void init_timer_key(struct timer_list *timer,
 		    void (*func)(struct timer_list *), unsigned int flags,
-		    const char *name, struct lock_class_key *key);
+                                  const char *name, struct lock_class_key *key) {}
 
 #ifdef CONFIG_DEBUG_OBJECTS_TIMERS
 extern void init_timer_on_stack_key(struct timer_list *timer,
@@ -167,10 +167,18 @@ static inline int timer_pending(const struct timer_list * timer)
 	return timer->entry.pprev != NULL;
 }
 
-extern void add_timer_on(struct timer_list *timer, int cpu);
-extern int del_timer(struct timer_list * timer);
-extern int mod_timer(struct timer_list *timer, unsigned long expires);
-extern int mod_timer_pending(struct timer_list *timer, unsigned long expires);
+//extern void add_timer_on(struct timer_list *timer, int cpu);
+static inline void add_timer_on(struct timer_list *timer, int cpu) {}
+
+//extern int del_timer(struct timer_list * timer);
+static inline int del_timer(struct timer_list * timer) {}
+
+//extern int mod_timer(struct timer_list *timer, unsigned long expires);
+static inline int mod_timer(struct timer_list *timer, unsigned long expires) {}
+
+//extern int mod_timer_pending(struct timer_list *timer, unsigned long expires);
+static inline int mod_timer_pending(struct timer_list *timer, unsigned long expires) {}
+
 extern int timer_reduce(struct timer_list *timer, unsigned long expires);
 
 /*
@@ -179,12 +187,14 @@ extern int timer_reduce(struct timer_list *timer, unsigned long expires);
  */
 #define NEXT_TIMER_MAX_DELTA	((1UL << 30) - 1)
 
-extern void add_timer(struct timer_list *timer);
+//extern void add_timer(struct timer_list *timer);
+static inline void add_timer(struct timer_list *timer) {}
 
 extern int try_to_del_timer_sync(struct timer_list *timer);
 
 #if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
-  extern int del_timer_sync(struct timer_list *timer);
+  //extern int del_timer_sync(struct timer_list *timer);
+static inline int del_timer_sync(struct timer_list *timer) {}
 #else
 # define del_timer_sync(t)		del_timer(t)
 #endif

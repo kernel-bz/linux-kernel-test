@@ -76,6 +76,7 @@ void test_setup_arch(void);
 void test_sched_init(void);
 void test_sched_init_smp(void);
 void test_numa_init(void);
+void test_workqueue_init(void);
 void test_rcu_init(void);
 
 //test/sched/sched-test.c

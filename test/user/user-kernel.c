@@ -72,32 +72,6 @@ inline struct irq_domain *irq_find_matching_fwspec(struct irq_fwspec *fwspec,
 EXPORT_SYMBOL_GPL(irq_find_matching_fwspec);
 
 
-//include/linux/workqueue.h
-//kernel/workqueue.c
-bool queue_delayed_work_on(int cpu, struct workqueue_struct *wq,
-               struct delayed_work *dwork, unsigned long delay)
-{
-    return false;
-}
-EXPORT_SYMBOL(queue_delayed_work_on);
-
-bool flush_work(struct work_struct *work)
-{
-    //return __flush_work(work, false);
-    return false;
-}
-EXPORT_SYMBOL_GPL(flush_work);
-
-void delayed_work_timer_fn(struct timer_list *t)
-{
-    //struct delayed_work *dwork = from_timer(dwork, t, timer);
-
-    /* should have been called from irqsafe timer with irq already off */
-    //__queue_work(dwork->cpu, dwork->wq, &dwork->work);
-}
-EXPORT_SYMBOL(delayed_work_timer_fn);
-
-
 //kernel/ksysfs.c
 struct kobject *kernel_kobj;
 EXPORT_SYMBOL_GPL(kernel_kobj);
