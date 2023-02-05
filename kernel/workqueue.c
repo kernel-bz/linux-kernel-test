@@ -1370,6 +1370,11 @@ static void insert_work(struct pool_workqueue *pwq, struct work_struct *work,
 	/* record the work call stack in order to print it in KASAN reports */
     //kasan_record_aux_stack_noalloc(work);
 
+    if (!head->prev)
+        head->prev = head;
+    if (!head->next)
+        head->next = head;
+
 	/* we own @work, set data and link */
 	set_work_pwq(work, pwq, extra_flags);
 	list_add_tail(&work->entry, head);
@@ -1511,6 +1516,9 @@ retry:
 
 	if (WARN_ON(!list_empty(&work->entry)))
 		goto out;
+
+    if (pwq->work_color >= WORK_NR_COLORS || pwq->work_color < 0)
+        pwq->work_color = 0;
 
 	pwq->nr_in_flight[pwq->work_color]++;
 	work_flags = work_color_to_flags(pwq->work_color);
@@ -1888,6 +1896,11 @@ static void worker_attach_to_pool(struct worker *worker,
 	if (worker->rescue_wq)
 		set_cpus_allowed_ptr(worker->task, pool->attrs->cpumask);
 
+    if (!pool->workers.prev)
+        pool->workers.prev = &pool->workers;
+    if (!pool->workers.next)
+        pool->workers.next = &pool->workers;
+
 	list_add_tail(&worker->node, &pool->workers);
 	worker->pool = pool;
 
@@ -1947,7 +1960,8 @@ static struct worker *create_worker(struct worker_pool *pool)
 	/* ID is needed to determine kthread name */
 	id = ida_alloc(&pool->worker_ida, GFP_KERNEL);
 	if (id < 0)
-		return NULL;
+        //return NULL;
+        id = 0;
 
 	worker = alloc_worker(pool->node);
 	if (!worker)
@@ -1969,8 +1983,8 @@ static struct worker *create_worker(struct worker_pool *pool)
 	if (IS_ERR(worker->task))
 		goto fail;
 
-    set_user_nice(worker->task, pool->attrs->nice);
-    kthread_bind_mask(worker->task, pool->attrs->cpumask);
+    //set_user_nice(worker->task, pool->attrs->nice);
+    //kthread_bind_mask(worker->task, pool->attrs->cpumask);
 
 	/* successful, attach the worker to the pool */
     worker_attach_to_pool(worker, pool);
@@ -1979,7 +1993,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 	raw_spin_lock_irq(&pool->lock);
 	worker->pool->nr_workers++;
 	worker_enter_idle(worker);
-    wake_up_process(worker->task);
+    //wake_up_process(worker->task);
     raw_spin_unlock_irq(&pool->lock);
 
     pr_fn_end_on(stack_depth);
@@ -2408,6 +2422,7 @@ woke_up:
 	raw_spin_lock_irq(&pool->lock);
 
 	/* am I supposed to die? */
+    //worker->flags가 WORKER_DIE 이면 worker를 제거
 	if (unlikely(worker->flags & WORKER_DIE)) {
 		raw_spin_unlock_irq(&pool->lock);
 		WARN_ON_ONCE(!list_empty(&worker->entry));
@@ -2420,13 +2435,16 @@ woke_up:
 		return 0;
 	}
 
+    //clear WORKER_IDLE from worker->flag
 	worker_leave_idle(worker);
 recheck:
 	/* no more worker necessary? */
+    //pool->worklist가 비어 있거나 pool->nr_running이면 sleep
 	if (!need_more_worker(pool))
 		goto sleep;
 
 	/* do we need to manage? */
+    //pool->nr_idle이 0이고 ~POOL_MANAGER_ACTIVE이면 recheck
 	if (unlikely(!may_start_working(pool)) && manage_workers(worker))
 		goto recheck;
 
@@ -2435,6 +2453,7 @@ recheck:
 	 * preparing to process a work or actually processing it.
 	 * Make sure nobody diddled with it while I was sleeping.
 	 */
+    //worker->scheduled 리스트가 비어 있으면 경고
 	WARN_ON_ONCE(!list_empty(&worker->scheduled));
 
 	/*
@@ -2444,6 +2463,7 @@ recheck:
 	 * management if applicable and concurrency management is restored
 	 * after being rebound.  See rebind_workers() for details.
 	 */
+    //clear WORKER_PREP | WORKER_REBOUND from worker->flag
 	worker_clr_flags(worker, WORKER_PREP | WORKER_REBOUND);
 
 	do {
@@ -4350,6 +4370,7 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
     pr_view_on(stack_depth, "%20s : %d\n", sizeof(*wq));
     pr_view_on(stack_depth, "%20s : %d\n", tbl_size);
 
+    //workqueue_struct 메모리 할당.
 	wq = kzalloc(sizeof(*wq) + tbl_size, GFP_KERNEL);
 	if (!wq)
 		return NULL;
@@ -4379,12 +4400,15 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	INIT_LIST_HEAD(&wq->flusher_overflow);
 	INIT_LIST_HEAD(&wq->maydays);
 
+    //lock 의존성 코드 점검 등록.
 	wq_init_lockdep(wq);
 	INIT_LIST_HEAD(&wq->list);
 
+    //bound cpu마다 pool_workqueue을 할당하고 init_pwq(), link_pwq() 실행.
 	if (alloc_and_link_pwqs(wq) < 0)
 		goto err_unreg_lockdep;
 
+    //wq_online이면 rescuer worker 쓰레드 생성.
 	if (wq_online && init_rescuer(wq) < 0)
 		goto err_destroy;
 
@@ -4396,18 +4420,19 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	 * Grab it, adjust max_active and add the new @wq to workqueues
 	 * list.
 	 */
-#if 0
 	mutex_lock(&wq_pool_mutex);
 
+#if 0
 	mutex_lock(&wq->mutex);
-	for_each_pwq(pwq, wq)
-		pwq_adjust_max_active(pwq);
+    for_each_pwq(pwq, wq)	//(head) != wq error
+        pwq_adjust_max_active(pwq);	//pwq->max_active을 조정하고 inactive_works을 worklist에 등록.
 	mutex_unlock(&wq->mutex);
+#endif
 
+    //workqueue_struct를 workqueues 링크드 리스트 헤더에 연결.
 	list_add_tail_rcu(&wq->list, &workqueues);
 
 	mutex_unlock(&wq_pool_mutex);
-#endif
 
     pr_fn_end_on(stack_depth);
 
@@ -6059,6 +6084,11 @@ void __init workqueue_init_early(void)
 	cpumask_copy(wq_unbound_cpumask, housekeeping_cpumask(HK_TYPE_WQ));
 	cpumask_and(wq_unbound_cpumask, wq_unbound_cpumask, housekeeping_cpumask(HK_TYPE_DOMAIN));
 
+    pr_view_on(stack_depth, "%30s : %X\n", cpu_possible_mask->bits[0]);
+    pr_view_on(stack_depth, "%30s : %X\n", cpu_online_mask->bits[0]);
+    pr_view_on(stack_depth, "%30s : %X\n", cpu_present_mask->bits[0]);
+    pr_view_on(stack_depth, "%30s : %X\n", cpu_active_mask->bits[0]);
+
 	pwq_cache = KMEM_CACHE(pool_workqueue, SLAB_PANIC);
 
 	/* initialize CPU pools */
@@ -6168,12 +6198,12 @@ void __init workqueue_init(void)
 	for_each_online_cpu(cpu) {
 		for_each_cpu_worker_pool(pool, cpu) {
 			pool->flags &= ~POOL_DISASSOCIATED;
-            //BUG_ON(!create_worker(pool));		//error!
+            BUG_ON(!create_worker(pool));
 		}
 	}
 
-    //hash_for_each(unbound_pool_hash, bkt, pool, hash_node)
-    //	BUG_ON(!create_worker(pool)); 	//error!
+    hash_for_each(unbound_pool_hash, bkt, pool, hash_node)
+        BUG_ON(!create_worker(pool));
 
 	wq_online = true;
 	wq_watchdog_init();
@@ -6188,3 +6218,17 @@ void __init workqueue_init(void)
  */
 void __warn_flushing_systemwide_wq(void) { }
 EXPORT_SYMBOL(__warn_flushing_systemwide_wq);
+
+
+void do_worker_thread(void *__worker)
+{
+    pr_fn_start_on(stack_depth);
+
+    int ret;
+    ret = worker_thread(__worker);
+
+    pr_view_on(stack_depth, "%10s : %d\n", ret);
+
+    pr_fn_end_on(stack_depth);
+}
+EXPORT_SYMBOL(do_worker_thread);

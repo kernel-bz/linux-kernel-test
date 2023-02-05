@@ -90,10 +90,36 @@ void test_sched_init_smp(void)
     sched_init_smp();
 }
 
+static void wq_func_test(struct work_struct *work)
+{
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", work);
+    pr_fn_end_on(stack_depth);
+}
+
+static DECLARE_WORK(work_test, wq_func_test);
+//static DECLARE_DELAYED_WORK(work_test2, wq_func_test2);
+
+static void wq_test(void)
+{
+    pr_fn_start_on(stack_depth);
+
+    bool ret;
+    ret = queue_work(system_long_wq, &work_test);
+    if (ret)
+        pr_view_on(stack_depth, "OK: %20s : %d\n", ret);
+    else
+        pr_view_on(stack_depth, "Fail: %20s : %d\n", ret);
+
+    pr_fn_end_on(stack_depth);
+}
+
 void test_workqueue_init(void)
 {
     workqueue_init_early();
     workqueue_init();
+
+    wq_test();
 }
 
 /*

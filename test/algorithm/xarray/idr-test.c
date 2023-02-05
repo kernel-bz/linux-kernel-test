@@ -585,7 +585,8 @@ static void _idr_simple_test(void)
     }
 
     printf("idr_find()...........................\n");
-    id = 5;
+    //idr_init_base(&idr, 5);
+    id = 7;
     item = (struct item *)idr_find(&idr, id);
     if (item)
         printf("found id=%d, item->index=%lu, order=%u\n",

@@ -42,8 +42,8 @@ extern "C" {
 #define CONFIG_USER_DTB_FILE	"testcases.dtb"
 
 //CPU Configuration ----------------------------------------
-//#define CONFIG_NR_CPUS		4
-#define CONFIG_NR_CPUS			8
+#define CONFIG_NR_CPUS		4
+//#define CONFIG_NR_CPUS		8
 //#define CONFIG_NR_CPUS		16
 #define CONFIG_SMP
 
