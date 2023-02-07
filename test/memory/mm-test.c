@@ -117,24 +117,24 @@ void mm_constant_infos(void)
 
 void mm_kmem_cache_slub_info(struct kmem_cache_slub *s)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%20s : %p\n", s->flags);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->min_partial);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->size);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->object_size);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->offset);
-    pr_view_enable(stack_depth, "%20s : %p\n", s->oo.x);
-    pr_view_enable(stack_depth, "%20s : %p\n", s->max.x);
-    pr_view_enable(stack_depth, "%20s : %p\n", s->min.x);
-    pr_view_enable(stack_depth, "%20s : %p\n", s->allocflags);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->refcount);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->inuse);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->align);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->red_left_pad);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->useroffset);
-    pr_view_enable(stack_depth, "%20s : %u\n", s->usersize);
+    pr_view_on(stack_depth, "%20s : %p\n", s->flags);
+    pr_view_on(stack_depth, "%20s : %u\n", s->min_partial);
+    pr_view_on(stack_depth, "%20s : %u\n", s->size);
+    pr_view_on(stack_depth, "%20s : %u\n", s->object_size);
+    pr_view_on(stack_depth, "%20s : %u\n", s->offset);
+    pr_view_on(stack_depth, "%20s : %p\n", s->oo.x);
+    pr_view_on(stack_depth, "%20s : %p\n", s->max.x);
+    pr_view_on(stack_depth, "%20s : %p\n", s->min.x);
+    pr_view_on(stack_depth, "%20s : %p\n", s->allocflags);
+    pr_view_on(stack_depth, "%20s : %u\n", s->refcount);
+    pr_view_on(stack_depth, "%20s : %u\n", s->inuse);
+    pr_view_on(stack_depth, "%20s : %u\n", s->align);
+    pr_view_on(stack_depth, "%20s : %u\n", s->red_left_pad);
+    pr_view_on(stack_depth, "%20s : %u\n", s->useroffset);
+    pr_view_on(stack_depth, "%20s : %u\n", s->usersize);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 

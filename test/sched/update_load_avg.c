@@ -369,7 +369,7 @@ static int __update_load_avg_se(u64 now)
     pr_view_on(stack_depth, "%20s : %d\n", decayed);
     _pr_sched_avg_info(&se_avg);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 static int __update_load_avg_cfs_rq(u64 now)
@@ -387,7 +387,7 @@ static int __update_load_avg_cfs_rq(u64 now)
     pr_view_on(stack_depth, "%20s : %d\n", decayed);
     _pr_sched_avg_info(&cfs_rq_avg);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void test_update_load_avg(void)

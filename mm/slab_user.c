@@ -278,13 +278,13 @@ void test_kmem_cache_bulk(void)
 
 void mm_debug_kmem_cache_print(struct kmem_cache *cachep)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%25s : %u\n", cachep->size);
-    pr_view_enable(stack_depth, "%25s : %d\n", cachep->nr_objs);
-    pr_view_enable(stack_depth, "%25s : %p\n", cachep->objs);
-    pr_view_enable(stack_depth, "%25s : %lu\n", cachep->nr_allocated);
-    pr_view_enable(stack_depth, "%25s : %lu\n", cachep->nr_tallocated);
+    pr_view_on(stack_depth, "%25s : %u\n", cachep->size);
+    pr_view_on(stack_depth, "%25s : %d\n", cachep->nr_objs);
+    pr_view_on(stack_depth, "%25s : %p\n", cachep->objs);
+    pr_view_on(stack_depth, "%25s : %lu\n", cachep->nr_allocated);
+    pr_view_on(stack_depth, "%25s : %lu\n", cachep->nr_tallocated);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }

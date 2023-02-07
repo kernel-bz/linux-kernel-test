@@ -199,7 +199,8 @@ SOURCES += \
     test/sched/test-fair.c \
     lib/siphash.c \
     kernel/sched/core_sched.c \
-    kernel/workqueue.c
+    kernel/workqueue.c \
+    test/algorithm/hlist01.c
 
 HEADERS += \
     include/test/test.h \

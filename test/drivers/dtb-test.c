@@ -72,7 +72,7 @@ void dtb_test_read_file(void)
         if (dtb_size > 0 && dtb_early_va)
             free(dtb_early_va);        //free old allocation
 
-    pr_view_enable(stack_depth, "%20s : %s\n", dtb_file_name);
+    pr_view_on(stack_depth, "%20s : %s\n", dtb_file_name);
 
     while (1) {
         ret = read(fd, buf, sizeof(buf));
@@ -101,7 +101,7 @@ _exit:
     close(fd);
     dtb_size = size;
 
-    pr_view_enable(stack_depth, "%20s : %d bytes\n", dtb_size);
+    pr_view_on(stack_depth, "%20s : %d bytes\n", dtb_size);
 
     pr_fn_end(stack_depth);
 }

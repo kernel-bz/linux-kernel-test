@@ -553,7 +553,7 @@ static inline void debug_work_deactivate(struct work_struct *work) { }
  * worker_pool_assign_id - allocate ID and assign it to @pool
  * @pool: the pool pointer of interest
  *
- * Returns 0 if ID in [0, WORK_OFFQ_POOL_NONE) is allocated and assigned
+ * Returns 0 if ID in [0, INT_MAX) is allocated and assigned
  * successfully, -errno on failure.
  */
 static int worker_pool_assign_id(struct worker_pool *pool)
@@ -564,14 +564,14 @@ static int worker_pool_assign_id(struct worker_pool *pool)
 
 	lockdep_assert_held(&wq_pool_mutex);
 
-	ret = idr_alloc(&worker_pool_idr, pool, 0, WORK_OFFQ_POOL_NONE,
-			GFP_KERNEL);
-	if (ret >= 0) {
+    ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
+    pr_view_on(stack_depth, "%10s : %d\n", ret);
+
+    if (ret >= 0) {
 		pool->id = ret;
 		return 0;
     }
 
-    pr_view_on(stack_depth, "%10s : %d\n", ret);
     pr_fn_end_on(stack_depth);
 
 	return ret;
@@ -748,8 +748,6 @@ static struct worker_pool *get_work_pool(struct work_struct *work)
 			(data & WORK_STRUCT_WQ_DATA_MASK))->pool;
 
 	pool_id = data >> WORK_OFFQ_POOL_SHIFT;
-	if (pool_id == WORK_OFFQ_POOL_NONE)
-		return NULL;
 
 	return idr_find(&worker_pool_idr, pool_id);
 }
@@ -1365,6 +1363,8 @@ fail:
 static void insert_work(struct pool_workqueue *pwq, struct work_struct *work,
 			struct list_head *head, unsigned int extra_flags)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct worker_pool *pool = pwq->pool;
 
 	/* record the work call stack in order to print it in KASAN reports */
@@ -1380,8 +1380,15 @@ static void insert_work(struct pool_workqueue *pwq, struct work_struct *work,
 	list_add_tail(&work->entry, head);
 	get_pwq(pwq);
 
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->refcnt);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_running);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_workers);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_idle);
+
 	if (__need_more_worker(pool))
-		wake_up_worker(pool);
+        wake_up_worker(pool);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /*
@@ -1441,6 +1448,9 @@ static void __queue_work(int cpu, struct workqueue_struct *wq,
 	struct list_head *worklist;
 	unsigned int work_flags;
 	unsigned int req_cpu = cpu;
+
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %d\n", cpu);
 
 	/*
 	 * While a work item is PENDING && off queue, a task trying to
@@ -1540,6 +1550,8 @@ retry:
 out:
 	raw_spin_unlock(&pwq->pool->lock);
 	rcu_read_unlock();
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -1812,6 +1824,8 @@ EXPORT_SYMBOL(queue_rcu_work);
  */
 static void worker_enter_idle(struct worker *worker)
 {
+    pr_fn_start_on(stack_depth);
+
 	struct worker_pool *pool = worker->pool;
 
 	if (WARN_ON_ONCE(worker->flags & WORKER_IDLE) ||
@@ -1822,7 +1836,7 @@ static void worker_enter_idle(struct worker *worker)
 	/* can't use worker_set_flags(), also called from create_worker() */
 	worker->flags |= WORKER_IDLE;
 	pool->nr_idle++;
-	worker->last_active = jiffies;
+    worker->last_active = jiffies;
 
 	/* idle_list is LIFO */
 	list_add(&worker->entry, &pool->idle_list);
@@ -1832,6 +1846,12 @@ static void worker_enter_idle(struct worker *worker)
 
 	/* Sanity check nr_running. */
 	WARN_ON_ONCE(pool->nr_workers == pool->nr_idle && pool->nr_running);
+
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_idle);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_workers);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_running);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -1857,6 +1877,7 @@ static void worker_leave_idle(struct worker *worker)
 static struct worker *alloc_worker(int node)
 {
 	struct worker *worker;
+    pr_fn_start_on(stack_depth);
 
 	worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node);
 	if (worker) {
@@ -1865,7 +1886,9 @@ static struct worker *alloc_worker(int node)
 		INIT_LIST_HEAD(&worker->node);
 		/* on creation a worker is in !idle && prep state */
 		worker->flags = WORKER_PREP;
-	}
+    }
+
+    pr_fn_end_on(stack_depth);
 	return worker;
 }
 
@@ -1881,6 +1904,8 @@ static struct worker *alloc_worker(int node)
 static void worker_attach_to_pool(struct worker *worker,
 				   struct worker_pool *pool)
 {
+    pr_fn_start_on(stack_depth);
+
 	mutex_lock(&wq_pool_attach_mutex);
 
 	/*
@@ -1904,7 +1929,9 @@ static void worker_attach_to_pool(struct worker *worker,
 	list_add_tail(&worker->node, &pool->workers);
 	worker->pool = pool;
 
-	mutex_unlock(&wq_pool_attach_mutex);
+    mutex_unlock(&wq_pool_attach_mutex);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -1960,8 +1987,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 	/* ID is needed to determine kthread name */
 	id = ida_alloc(&pool->worker_ida, GFP_KERNEL);
 	if (id < 0)
-        //return NULL;
-        id = 0;
+        return NULL;
 
 	worker = alloc_worker(pool->node);
 	if (!worker)
@@ -1969,6 +1995,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 
     pr_view_on(stack_depth, "%20s : %d\n", worker->id);
     pr_view_on(stack_depth, "%20s : %d\n", pool->cpu);
+    pr_view_on(stack_depth, "%20s : %p\n", pool->attrs);
 
 	worker->id = id;
 
@@ -3493,7 +3520,7 @@ static bool wqattrs_equal(const struct workqueue_attrs *a,
  */
 static int init_worker_pool(struct worker_pool *pool)
 {
-    //pr_fn_start_on(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     raw_spin_lock_init(&pool->lock);
 	pool->id = -1;
@@ -3518,7 +3545,7 @@ static int init_worker_pool(struct worker_pool *pool)
 	/* shouldn't fail above this point */
 	pool->attrs = alloc_workqueue_attrs();
 
-    //pr_fn_end_on(stack_depth);
+    pr_fn_end_on(stack_depth);
 
     if (!pool->attrs)
 		return -ENOMEM;
@@ -4196,6 +4223,10 @@ static void wq_update_unbound_numa(struct workqueue_struct *wq, int cpu,
 	struct workqueue_attrs *target_attrs;
 	cpumask_t *cpumask;
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %s\n", wq->name);
+    pr_view_on(stack_depth, "%20s : %d\n", wq_numa_enabled);
+
 	lockdep_assert_held(&wq_pool_mutex);
 
 	if (!wq_numa_enabled || !(wq->flags & WQ_UNBOUND) ||
@@ -4247,7 +4278,9 @@ use_dfl_pwq:
 	old_pwq = numa_pwq_tbl_install(wq, node, wq->dfl_pwq);
 out_unlock:
 	mutex_unlock(&wq->mutex);
-	put_pwq_unlocked(old_pwq);
+    put_pwq_unlocked(old_pwq);
+
+    pr_fn_end_on(stack_depth);
 }
 
 static int alloc_and_link_pwqs(struct workqueue_struct *wq)
@@ -6095,9 +6128,10 @@ void __init workqueue_init_early(void)
 	for_each_possible_cpu(cpu) {
 		struct worker_pool *pool;
 
-		i = 0;
+        i = 0;
+        //cpu_worker_pools
 		for_each_cpu_worker_pool(pool, cpu) {
-            BUG_ON(init_worker_pool(pool));		//cpu_worker_pools
+            BUG_ON(init_worker_pool(pool));
 			pool->cpu = cpu;
 			cpumask_copy(pool->attrs->cpumask, cpumask_of(cpu));
 			pool->attrs->nice = std_nice[i++];
@@ -6105,7 +6139,7 @@ void __init workqueue_init_early(void)
 
 			/* alloc pool ID */
 			mutex_lock(&wq_pool_mutex);
-            //BUG_ON(worker_pool_assign_id(pool));
+            BUG_ON(worker_pool_assign_id(pool));
 			mutex_unlock(&wq_pool_mutex);
 		}
 	}

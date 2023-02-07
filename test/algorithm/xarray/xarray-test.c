@@ -29,60 +29,60 @@
 
 void xa_debug_xarray_view(struct xarray *xa, u64 index, void *entry)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%10s : %lu\n", index);
-    pr_view_enable(stack_depth, "%10s : 0x%lX\n", entry);
-    pr_view_enable(stack_depth, "%10s : %p\n", xa);
+    pr_view_on(stack_depth, "%10s : %lu\n", index);
+    pr_view_on(stack_depth, "%10s : 0x%lX\n", entry);
+    pr_view_on(stack_depth, "%10s : %p\n", xa);
 
-    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_lock);
-    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_flags);
-    pr_view_enable(stack_depth, "%20s : %p\n", xa->xa_head);
+    pr_view_on(stack_depth, "%20s : %p\n", xa->xa_lock);
+    pr_view_on(stack_depth, "%20s : %p\n", xa->xa_flags);
+    pr_view_on(stack_depth, "%20s : %p\n", xa->xa_head);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xa_debug_state_view(struct xa_state *xas, void *entry)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%10s : 0x%lX\n", entry);
-    pr_view_enable(stack_depth, "%10s : %p\n", xas);
+    pr_view_on(stack_depth, "%10s : 0x%lX\n", entry);
+    pr_view_on(stack_depth, "%10s : %p\n", xas);
 
     if(!xas) return;
 
-    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa);
-    pr_view_enable(stack_depth, "%20s : %p\n", &xas->xa->xa_head);
-    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa->xa_head);
-    pr_view_enable(stack_depth, "%20s : %lu\n", xas->xa_index);
-    pr_view_enable(stack_depth, "%20s : %d\n", xas->xa_shift);
-    pr_view_enable(stack_depth, "%20s : %d\n", xas->xa_sibs);
-    pr_view_enable(stack_depth, "%20s : %d\n", xas->xa_offset);
-    pr_view_enable(stack_depth, "%20s : %d\n", xas->xa_pad);
-    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa_node);
-    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa_alloc);
-    pr_view_enable(stack_depth, "%20s : %p\n", xas->xa_update);
+    pr_view_on(stack_depth, "%20s : %p\n", xas->xa);
+    pr_view_on(stack_depth, "%20s : %p\n", &xas->xa->xa_head);
+    pr_view_on(stack_depth, "%20s : %p\n", xas->xa->xa_head);
+    pr_view_on(stack_depth, "%20s : %lu\n", xas->xa_index);
+    pr_view_on(stack_depth, "%20s : %d\n", xas->xa_shift);
+    pr_view_on(stack_depth, "%20s : %d\n", xas->xa_sibs);
+    pr_view_on(stack_depth, "%20s : %d\n", xas->xa_offset);
+    pr_view_on(stack_depth, "%20s : %d\n", xas->xa_pad);
+    pr_view_on(stack_depth, "%20s : %p\n", xas->xa_node);
+    pr_view_on(stack_depth, "%20s : %p\n", xas->xa_alloc);
+    pr_view_on(stack_depth, "%20s : %p\n", xas->xa_update);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xa_debug_node_view(struct xa_node *node, void *entry)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%10s : 0x%lX\n", entry);
-    pr_view_enable(stack_depth, "%10s : %p\n", node);
+    pr_view_on(stack_depth, "%10s : 0x%lX\n", entry);
+    pr_view_on(stack_depth, "%10s : %p\n", node);
 
     //if (!xa_is_node(node) || xa_is_err(node)) return;
     if ((unsigned long)node <= MAX_ERRNO || IS_ERR(node)) return;
 
-    pr_view_enable(stack_depth, "%20s : %p\n", node->array);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->parent);
-    pr_view_enable(stack_depth, "%20s : %p\n", node->slots);
-    pr_view_enable(stack_depth, "%20s : %d\n", node->shift);
-    pr_view_enable(stack_depth, "%20s : %d\n", node->offset);
-    pr_view_enable(stack_depth, "%20s : %d\n", node->count);
-    pr_view_enable(stack_depth, "%20s : %d\n\t", node->nr_values);
+    pr_view_on(stack_depth, "%20s : %p\n", node->array);
+    pr_view_on(stack_depth, "%20s : %p\n", node->parent);
+    pr_view_on(stack_depth, "%20s : %p\n", node->slots);
+    pr_view_on(stack_depth, "%20s : %d\n", node->shift);
+    pr_view_on(stack_depth, "%20s : %d\n", node->offset);
+    pr_view_on(stack_depth, "%20s : %d\n", node->count);
+    pr_view_on(stack_depth, "%20s : %d\n\t", node->nr_values);
     pr_out_enable(stack_depth, "slots[ ");
     int i, j;
     for(i=0; i<XA_CHUNK_SIZE; i++)
@@ -96,7 +96,7 @@ void xa_debug_node_view(struct xa_node *node, void *entry)
         }
     }
     printf("]\n");
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xa_debug_node_print(struct xarray *xa)
@@ -104,7 +104,7 @@ void xa_debug_node_print(struct xarray *xa)
     void *entry, *onode = NULL;
     XA_STATE(xas, xa, 0);
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     xa_lock(xa);
     pr_out_on(stack_depth, ">>> %s\n", "xa_node total outputs...");
@@ -127,12 +127,12 @@ void xa_debug_node_print(struct xarray *xa)
     }
     xa_unlock(xa);
 
-    pr_view_enable(stack_depth, "%40s : %u\n",
+    pr_view_on(stack_depth, "%40s : %u\n",
                         xa_to_node(xa_head(xa))->count);
-    pr_view_enable(stack_depth, "%40s : %u\n",
+    pr_view_on(stack_depth, "%40s : %u\n",
                         xa_to_node(xa_head(xa))->nr_values);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xa_debug_node_print_range(struct xarray *xa)
@@ -140,7 +140,7 @@ void xa_debug_node_print_range(struct xarray *xa)
     void *entry, *onode = NULL;
     XA_STATE_ORDER(xas, xa, 0, 0);
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     xa_lock(xa);
     pr_out_on(stack_depth, ">>> %s\n", "xa_node total outputs over range...");
@@ -164,12 +164,12 @@ void xa_debug_node_print_range(struct xarray *xa)
     }
     xa_unlock(xa);
 
-    pr_view_enable(stack_depth, "%40s : %u\n",
+    pr_view_on(stack_depth, "%40s : %u\n",
                         xa_to_node(xa_head(xa))->count);
-    pr_view_enable(stack_depth, "%40s : %u\n",
+    pr_view_on(stack_depth, "%40s : %u\n",
                         xa_to_node(xa_head(xa))->nr_values);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xa_constants_view(void)
@@ -229,7 +229,7 @@ static DEFINE_XARRAY(xa1);
 
 static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, int step)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     //XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_value(0), GFP_NOWAIT)) != 0);
     unsigned long index;
@@ -246,10 +246,10 @@ static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, in
     index = first;
     //for (index = first; index <= last; index += step) {
         pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_find() testing...");
-        pr_view_enable(stack_depth, "%10s : %u\n", index);
+        pr_view_on(stack_depth, "%10s : %u\n", index);
         entry = xa_find(xa, &index, ULONG_MAX, XA_PRESENT);
-        pr_view_enable(stack_depth, "%20s : %p\n", entry);
-        pr_view_enable(stack_depth, "%20s : %d\n\n", xa_to_value(entry));
+        pr_view_on(stack_depth, "%20s : %p\n", entry);
+        pr_view_on(stack_depth, "%20s : %d\n\n", xa_to_value(entry));
     //}
 
     //for (index = 16; index <= last; index += step) {
@@ -261,14 +261,14 @@ static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, in
 
     //xa_debug_node_print(xa);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xarray_test_simple(void)
 {
     int first, last, step;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     __fpurge(stdin);
     printf("Input first index for testing: ");
@@ -278,20 +278,20 @@ void xarray_test_simple(void)
     printf("Input step size for testing: ");
     scanf("%d", &step);
 
-    pr_view_enable(stack_depth, "%s : %p\n", &xa1);
+    pr_view_on(stack_depth, "%s : %p\n", &xa1);
 
     radix_tree_init();
 
     _xa_store_find_erase_test(&xa1, first, last, step);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xarray_test_store_range(void)
 {
     unsigned long first, last, index;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     __fpurge(stdin);
     printf("Enter range first index: ");
@@ -301,7 +301,7 @@ void xarray_test_store_range(void)
     printf("Enter index to find: ");
     scanf("%lu", &index);
 
-    pr_view_enable(stack_depth, "%10s : %p\n", &xa1);
+    pr_view_on(stack_depth, "%10s : %p\n", &xa1);
 
     radix_tree_init();
 
@@ -311,13 +311,13 @@ void xarray_test_store_range(void)
 
     void *entry;
     entry = xa_find(&xa1, &index, ULONG_MAX, XA_PRESENT);
-    pr_view_enable(stack_depth, "%10s : %p\n", entry);
+    pr_view_on(stack_depth, "%10s : %p\n", entry);
 
     XA_STATE(xas, &xa1, index);
     entry = xas_find_conflict(&xas);
-    pr_view_enable(stack_depth, "%10s : %p\n", entry);
+    pr_view_on(stack_depth, "%10s : %p\n", entry);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xarray_test_marks(void)
@@ -325,7 +325,7 @@ void xarray_test_marks(void)
     unsigned long index, count;
     void *entry;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     __fpurge(stdin);
     printf("Enter index count: ");
@@ -364,12 +364,12 @@ void xarray_test_marks(void)
     xas_for_each_marked(&xas, entry, ULONG_MAX, XA_MARK_2) {
         if (xas_retry(&xas, entry))
             continue;
-        pr_view_enable(stack_depth, "%20s : %d\n", xas.xa_index);
-        pr_view_enable(stack_depth, "%20s : %p\n", entry);
+        pr_view_on(stack_depth, "%20s : %d\n", xas.xa_index);
+        pr_view_on(stack_depth, "%20s : %p\n", entry);
     }
     rcu_read_unlock();
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void xarray_tests(void)

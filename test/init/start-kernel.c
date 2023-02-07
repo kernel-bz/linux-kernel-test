@@ -16,6 +16,7 @@
 #include "test/user-define.h"
 
 #include <linux/init.h>
+#include <linux/radix-tree.h>
 #include <linux/sched/init.h>
 #include <linux/rcupdate.h>
 #include <asm/numa_.h>
@@ -106,16 +107,43 @@ static void wq_test(void)
 
     bool ret;
     ret = queue_work(system_long_wq, &work_test);
-    if (ret)
-        pr_view_on(stack_depth, "OK: %20s : %d\n", ret);
-    else
-        pr_view_on(stack_depth, "Fail: %20s : %d\n", ret);
+    if (!ret)
+        goto _end;
+
+    long result;
+    int cpu = 0;
+    result = work_on_cpu(cpu, &work_test, NULL);
+    if (result < 0)
+        goto _end;
+
+    //result = schedule_on_each_cpu(&work_test);
+
+_end:
+    pr_view_on(stack_depth, "%20s : %d\n", ret);
+    pr_view_on(stack_depth, "%20s : %ld\n", result);
+
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_NR_COLORS);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_FLAG_BASE);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_CANCELING);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_SHIFT);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_LEFT);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_BITS);
+    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_NONE);
+    pr_view_on(stack_depth, "%20s : %d\n", INT_MAX);
+
+    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_NO_POOL);
+
+    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_FLAG_BITS);
+    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_FLAG_MASK);
+    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_WQ_DATA_MASK);
 
     pr_fn_end_on(stack_depth);
 }
 
 void test_workqueue_init(void)
 {
+    radix_tree_init();
+
     workqueue_init_early();
     workqueue_init();
 

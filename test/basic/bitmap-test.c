@@ -109,16 +109,16 @@ static void _bitmap_test_03(void)
     bits_printf(bitv, nbits);
 
     idx = find_first_bit(bitv, nbits);
-    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    pr_view_on(stack_depth, "%20s : %u\n", idx);
     idx = find_next_bit(bitv, nbits, 11);
-    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    pr_view_on(stack_depth, "%20s : %u\n", idx);
     idx = find_next_zero_bit(bitv, nbits, 10);
-    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    pr_view_on(stack_depth, "%20s : %u\n", idx);
 
     idx = test_bit(30, bitv);
-    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    pr_view_on(stack_depth, "%20s : %u\n", idx);
     idx = test_bit(31, bitv);
-    pr_view_enable(stack_depth, "%20s : %u\n", idx);
+    pr_view_on(stack_depth, "%20s : %u\n", idx);
 
     pr_fn_end_on(stack_depth);
 }

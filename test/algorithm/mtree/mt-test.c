@@ -14,16 +14,16 @@ void mtree_info(void)
 {
     struct maple_node node;
     unsigned int offset;
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node.mr64));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node.ma64));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node.alloc));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node.mr64));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node.ma64));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node.alloc));
 
-    pr_view_enable(stack_depth, "%40s: %lu\n",
+    pr_view_on(stack_depth, "%40s: %lu\n",
                    offset_of(struct maple_range_64, meta));
-    pr_view_enable(stack_depth, "%40s: %lu\n",
+    pr_view_on(stack_depth, "%40s: %lu\n",
                    offset_of(struct maple_arange_64, meta));
 
     pr_view(stack_depth, "%30s: %u\n", MAPLE_NODE_SLOTS);
@@ -32,7 +32,7 @@ void mtree_info(void)
     pr_view(stack_depth, "%30s: %u\n", MAPLE_ARANGE64_META_MAX);
     pr_view(stack_depth, "%30s: %u\n", MAPLE_ALLOC_SLOTS);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void mtree_basic_store_test(void)
@@ -193,7 +193,7 @@ void mtree_store_load_erase_test(void)
     printf("Input step size for testing: ");
     scanf("%d", &step);
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     maple_tree_init();
 
@@ -205,9 +205,9 @@ void mtree_store_load_erase_test(void)
 
     index = 4;
     content = mtree_load(&mtree, index);
-    pr_view_enable(stack_depth, "%10s: %p\n", content);
+    pr_view_on(stack_depth, "%10s: %p\n", content);
     content = mtree_erase(&mtree, index);
-    pr_view_enable(stack_depth, "%10s: %p\n", content);
+    pr_view_on(stack_depth, "%10s: %p\n", content);
 
     mt_validate(&mtree);
 
@@ -218,5 +218,5 @@ void mtree_store_load_erase_test(void)
     mt_validate(&mtree);
 
     mtree_destroy(&mtree);
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }

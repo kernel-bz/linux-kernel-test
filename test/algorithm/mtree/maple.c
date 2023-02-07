@@ -26,7 +26,7 @@ void farmer_tests(void)
 	struct maple_node *node;
 	DEFINE_MTREE(tree);
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
 	mt_dump(&tree);
 
@@ -48,7 +48,7 @@ void farmer_tests(void)
 
     ma_free_rcu(node);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void maple_tree_tests(void)

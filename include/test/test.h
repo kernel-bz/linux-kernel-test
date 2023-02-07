@@ -39,6 +39,8 @@ void rbtree_test02(void);
 void rbtree_test03(void);
 void lib_sort_test(void);
 
+void hlist_test01(void);
+
 void lib_ida_test(void);
 void lib_xarray_test(void);
 //test/algorithm/xarray/xa-text.c

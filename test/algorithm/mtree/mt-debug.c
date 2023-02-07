@@ -39,25 +39,25 @@ struct maple_big_node {
 static void _mt_debug_node_info(struct maple_node *node)
 {
     unsigned int offset;
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(*node));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node->mr64));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node->ma64));
-    pr_view_enable(stack_depth, "%20s: %lu\n", sizeof(node->alloc));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(*node));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node->mr64));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node->ma64));
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node->alloc));
 
-    pr_view_enable(stack_depth, "%35s: %lu\n",
+    pr_view_on(stack_depth, "%35s: %lu\n",
                    offset_of(struct maple_range_64, meta));
-    pr_view_enable(stack_depth, "%35s: %lu\n",
+    pr_view_on(stack_depth, "%35s: %lu\n",
                    offset_of(struct maple_arange_64, meta));
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 static void _mt_debug_node_print_all(struct maple_node *node)
 {
     unsigned int i;
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     printf("\n\t==> ");
     printf("node->slot[%d]: ", MAPLE_NODE_SLOTS);
@@ -100,18 +100,18 @@ static void _mt_debug_node_print_all(struct maple_node *node)
         printf("%p, ", node->alloc.slot[i]);
 
     printf("\n\n");
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void mt_debug_big_node_print(struct maple_big_node *bnode)
 {
     unsigned int i;
 
-    pr_fn_start_enable(stack_depth);
-    pr_view_enable(stack_depth, "%10s: %p\n", bnode->parent);
-    pr_view_enable(stack_depth, "%10s: %lu\n", bnode->min);
-    pr_view_enable(stack_depth, "%10s: %u\n", bnode->b_end);
-    pr_view_enable(stack_depth, "%10s: %d\n", bnode->type);
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%10s: %p\n", bnode->parent);
+    pr_view_on(stack_depth, "%10s: %lu\n", bnode->min);
+    pr_view_on(stack_depth, "%10s: %u\n", bnode->b_end);
+    pr_view_on(stack_depth, "%10s: %d\n", bnode->type);
 
     printf("\n\t==> ");
     printf("bnode->pivot[%d]: ", MAPLE_BIG_NODE_SLOTS - 1);
@@ -139,14 +139,14 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
     unsigned long *pivots, *gaps;
     unsigned char i, cnt, height;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     //_mt_debug_node_info(node);
 
-    pr_view_enable(stack_depth, "%20s : %p\n", mt);
-    pr_view_enable(stack_depth, "%20s : %p\n", mt->ma_flags);
-    pr_view_enable(stack_depth, "%20s : %p\n", mt->ma_root);
-    pr_view_enable(stack_depth, "%20s : %p\n", node);
+    pr_view_on(stack_depth, "%20s : %p\n", mt);
+    pr_view_on(stack_depth, "%20s : %p\n", mt->ma_flags);
+    pr_view_on(stack_depth, "%20s : %p\n", mt->ma_root);
+    pr_view_on(stack_depth, "%20s : %p\n", node);
     if ((unsigned long)node < 4096 || xa_is_err(node)) return;
 
     //mte_node_type
@@ -184,9 +184,9 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
     //mt_height
     height = (mt->ma_flags & MT_FLAGS_HEIGHT_MASK) >> MT_FLAGS_HEIGHT_OFFSET;
 
-    pr_view_enable(stack_depth, "%20s : %p\n", node->parent);
-    pr_view_enable(stack_depth, "%20s : %d\n", height);
-    pr_view_enable(stack_depth, "%20s : %d\n", type);
+    pr_view_on(stack_depth, "%20s : %p\n", node->parent);
+    pr_view_on(stack_depth, "%20s : %d\n", height);
+    pr_view_on(stack_depth, "%20s : %d\n", type);
 
     if (pivots || slots) {
         if (pivots) {
@@ -213,53 +213,53 @@ void mt_debug_node_print(struct maple_tree *mt, struct maple_node *node)
         _mt_debug_node_print_all(node);
     }
     printf("\n\n");
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void mt_debug_mas_print(struct ma_state *mas)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
-    pr_view_enable(stack_depth, "%20s : %lu\n", mas->index);
-    pr_view_enable(stack_depth, "%20s : %lu\n", mas->last);
-    pr_view_enable(stack_depth, "%20s : %p\n", mas->node);
-    pr_view_enable(stack_depth, "%20s : %lu\n", mas->min);
-    pr_view_enable(stack_depth, "%20s : %lu\n", mas->max);
-    pr_view_enable(stack_depth, "%20s : %p\n", mas->alloc);
-    pr_view_enable(stack_depth, "%20s : %d\n", mas->depth);
-    pr_view_enable(stack_depth, "%20s : %d\n", mas->offset);
-    pr_view_enable(stack_depth, "%20s : 0x%X\n", mas->mas_flags);
+    pr_view_on(stack_depth, "%20s : %lu\n", mas->index);
+    pr_view_on(stack_depth, "%20s : %lu\n", mas->last);
+    pr_view_on(stack_depth, "%20s : %p\n", mas->node);
+    pr_view_on(stack_depth, "%20s : %lu\n", mas->min);
+    pr_view_on(stack_depth, "%20s : %lu\n", mas->max);
+    pr_view_on(stack_depth, "%20s : %p\n", mas->alloc);
+    pr_view_on(stack_depth, "%20s : %d\n", mas->depth);
+    pr_view_on(stack_depth, "%20s : %d\n", mas->offset);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", mas->mas_flags);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void mt_debug_wr_mas_print(struct ma_wr_state *wr_mas)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     mt_debug_mas_print(wr_mas->mas);
 
-    pr_view_enable(stack_depth, "%20s : %d\n", wr_mas->type);
-    pr_view_enable(stack_depth, "%20s : %p\n", wr_mas->node);
-    pr_view_enable(stack_depth, "%20s : %lu\n", wr_mas->r_min);
-    pr_view_enable(stack_depth, "%20s : %lu\n", wr_mas->r_max);
-    pr_view_enable(stack_depth, "%20s : %d\n", wr_mas->offset_end);
-    pr_view_enable(stack_depth, "%20s : %d\n", wr_mas->node_end);
-    pr_view_enable(stack_depth, "%20s : %p\n", wr_mas->entry);
-    pr_view_enable(stack_depth, "%20s : %p\n", wr_mas->content);
+    pr_view_on(stack_depth, "%20s : %d\n", wr_mas->type);
+    pr_view_on(stack_depth, "%20s : %p\n", wr_mas->node);
+    pr_view_on(stack_depth, "%20s : %lu\n", wr_mas->r_min);
+    pr_view_on(stack_depth, "%20s : %lu\n", wr_mas->r_max);
+    pr_view_on(stack_depth, "%20s : %d\n", wr_mas->offset_end);
+    pr_view_on(stack_depth, "%20s : %d\n", wr_mas->node_end);
+    pr_view_on(stack_depth, "%20s : %p\n", wr_mas->entry);
+    pr_view_on(stack_depth, "%20s : %p\n", wr_mas->content);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 void mt_debug_mas_alloc_print(struct ma_state *mas)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     mt_debug_mas_print(mas);
 
-    pr_view_enable(stack_depth, "%30s : %lu\n", mas->alloc->total);
-    pr_view_enable(stack_depth, "%30s : %u\n", mas->alloc->node_count);
-    pr_view_enable(stack_depth, "%30s : %u\n", mas->alloc->request_count);
+    pr_view_on(stack_depth, "%30s : %lu\n", mas->alloc->total);
+    pr_view_on(stack_depth, "%30s : %u\n", mas->alloc->node_count);
+    pr_view_on(stack_depth, "%30s : %u\n", mas->alloc->request_count);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }

@@ -75,7 +75,7 @@ static void *xa_store_order(struct xarray *xa, unsigned long index,
 	XA_STATE_ORDER(xas, xa, index, order);
 	void *curr;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     xa_debug_state_view(&xas, entry);
 
@@ -85,13 +85,13 @@ static void *xa_store_order(struct xarray *xa, unsigned long index,
 		xas_unlock(&xas);
 	} while (xas_nomem(&xas, gfp));
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 	return curr;
 }
 
 static noinline void check_xa_err(struct xarray *xa)
 {
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
 	XA_BUG_ON(xa, xa_err(xa_store_index(xa, 0, GFP_NOWAIT)) != 0);
 	XA_BUG_ON(xa, xa_err(xa_erase(xa, 0)) != 0);
@@ -106,7 +106,7 @@ static noinline void check_xa_err(struct xarray *xa)
 // kills the test-suite :-(
 //	XA_BUG_ON(xa, xa_err(xa_store(xa, 0, xa_mk_internal(0), 0)) != -EINVAL);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 static noinline void check_xas_retry(struct xarray *xa)
@@ -114,7 +114,7 @@ static noinline void check_xas_retry(struct xarray *xa)
 	XA_STATE(xas, xa, 0);
 	void *entry;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     xa_store_index(xa, 0, GFP_KERNEL);
 	xa_store_index(xa, 1, GFP_KERNEL);
@@ -159,7 +159,7 @@ static noinline void check_xas_retry(struct xarray *xa)
 	xa_erase_index(xa, 0);
 	xa_erase_index(xa, 1);
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 //count=1024
@@ -167,7 +167,7 @@ static noinline void check_xa_load(struct xarray *xa, unsigned long count)
 {
 	unsigned long i, j;
 
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
     for (i = 0; i < count; i++) {
         for (j = 0; j < count; j++) {
@@ -192,7 +192,7 @@ static noinline void check_xa_load(struct xarray *xa, unsigned long count)
 	}
 	XA_BUG_ON(xa, !xa_empty(xa));
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 }
 
 static noinline void check_xa_mark_1(struct xarray *xa, unsigned long index)
@@ -1604,8 +1604,8 @@ static noinline void check_account(struct xarray *xa)
 	for (order = 1; order < 12; order++) {
 		XA_STATE(xas, xa, 1 << order);
 
-        pr_view_enable(stack_depth, "%20s : %d\n", order);
-        pr_view_enable(stack_depth, "%20s : %d\n", 1 << order);
+        pr_view_on(stack_depth, "%20s : %d\n", order);
+        pr_view_on(stack_depth, "%20s : %d\n", 1 << order);
         xa_debug_state_view(&xas, xa);
 
 		xa_store_order(xa, 0, order, xa, GFP_KERNEL);
@@ -1613,8 +1613,8 @@ static noinline void check_account(struct xarray *xa)
 		xas_load(&xas);
 
         xa_debug_state_view(&xas, xa);
-        pr_view_enable(stack_depth, "%30s : %d\n", xas.xa_node->count);
-        pr_view_enable(stack_depth, "%30s : %d\n", xas.xa_node->nr_values);
+        pr_view_on(stack_depth, "%30s : %d\n", xas.xa_node->count);
+        pr_view_on(stack_depth, "%30s : %d\n", xas.xa_node->nr_values);
 
 		XA_BUG_ON(xa, xas.xa_node->count == 0);
 		XA_BUG_ON(xa, xas.xa_node->count > (1 << order));
@@ -1624,8 +1624,8 @@ static noinline void check_account(struct xarray *xa)
 		xa_store_order(xa, 1 << order, order, xa_mk_index(1UL << order),
 				GFP_KERNEL);
 
-        pr_view_enable(stack_depth, "%40s : %d\n", xas.xa_node->count);
-        pr_view_enable(stack_depth, "%40s : %d\n", xas.xa_node->nr_values);
+        pr_view_on(stack_depth, "%40s : %d\n", xas.xa_node->count);
+        pr_view_on(stack_depth, "%40s : %d\n", xas.xa_node->nr_values);
 
 		XA_BUG_ON(xa, xas.xa_node->count != xas.xa_node->nr_values * 2);
 
@@ -1704,7 +1704,7 @@ static unsigned long _test_xa_wait_count(char *s1, char *s2)
 static int xarray_checks(void)
 {
     unsigned long count;
-    pr_fn_start_enable(stack_depth);
+    pr_fn_start_on(stack_depth);
 
 #if 0
     _test_xa_wait_next("check_xa_err()", "check_xa_err()");
@@ -1784,7 +1784,7 @@ static int xarray_checks(void)
 
     _test_xa_wait_next("check_workingset()", "");
 
-    pr_fn_end_enable(stack_depth);
+    pr_fn_end_on(stack_depth);
 	return (tests_run == tests_passed) ? 0 : -EINVAL;
 }
 
