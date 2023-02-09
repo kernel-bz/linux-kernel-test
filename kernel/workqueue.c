@@ -352,7 +352,8 @@ module_param_named(debug_force_rr_cpu, wq_debug_force_rr_cpu, bool, 0644);
 
 /* the per-cpu worker pools */
 //static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], cpu_worker_pools);
-static __typeof__(struct worker_pool [NR_STD_WORKER_POOLS]) cpu_worker_pools;
+//static __typeof__(struct worker_pool [NR_STD_WORKER_POOLS]) cpu_worker_pools;
+static struct worker_pool cpu_worker_pools[NR_CPUS][NR_STD_WORKER_POOLS];
 
 static DEFINE_IDR(worker_pool_idr);	/* PR: idr of all pools */
 
@@ -400,8 +401,8 @@ static void show_one_worker_pool(struct worker_pool *pool);
 			 "RCU, wq->mutex or wq_pool_mutex should be held")
 
 #define for_each_cpu_worker_pool(pool, cpu)				\
-	for ((pool) = &per_cpu(cpu_worker_pools, cpu)[0];		\
-	     (pool) < &per_cpu(cpu_worker_pools, cpu)[NR_STD_WORKER_POOLS]; \
+    for ((pool) = &per_cpu(cpu_worker_pools[0], cpu)[0];		\
+         (pool) < &per_cpu(cpu_worker_pools[0], cpu)[NR_STD_WORKER_POOLS]; \
 	     (pool)++)
 
 /**
@@ -564,12 +565,15 @@ static int worker_pool_assign_id(struct worker_pool *pool)
 
 	lockdep_assert_held(&wq_pool_mutex);
 
+    pr_view_on(stack_depth, "%10s : %p\n", pool);
+
     ret = idr_alloc(&worker_pool_idr, pool, 0, 0, GFP_KERNEL);
     pr_view_on(stack_depth, "%10s : %d\n", ret);
 
     if (ret >= 0) {
 		pool->id = ret;
-		return 0;
+        pr_view_on(stack_depth, "%10s : %d\n", pool->id);
+        return 0;
     }
 
     pr_fn_end_on(stack_depth);
@@ -1370,23 +1374,28 @@ static void insert_work(struct pool_workqueue *pwq, struct work_struct *work,
 	/* record the work call stack in order to print it in KASAN reports */
     //kasan_record_aux_stack_noalloc(work);
 
-    if (!head->prev)
-        head->prev = head;
-    if (!head->next)
-        head->next = head;
-
 	/* we own @work, set data and link */
 	set_work_pwq(work, pwq, extra_flags);
 	list_add_tail(&work->entry, head);
 	get_pwq(pwq);
+
+    pr_view_on(stack_depth, "%20s : %p\n", pwq);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->wq);
+    pr_view_on(stack_depth, "%20s : %s\n", pwq->wq->name);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->pool);
+    pr_view_on(stack_depth, "%20s : %p\n", work);
 
     pr_view_on(stack_depth, "%20s : %d\n", pwq->refcnt);
     pr_view_on(stack_depth, "%20s : %d\n", pool->nr_running);
     pr_view_on(stack_depth, "%20s : %d\n", pool->nr_workers);
     pr_view_on(stack_depth, "%20s : %d\n", pool->nr_idle);
 
-	if (__need_more_worker(pool))
+    pr_view_on(stack_depth, "%30s : %d\n", __need_more_worker(pool));
+
+    /*
+    if (__need_more_worker(pool))
         wake_up_worker(pool);
+    */
 
     pr_fn_end_on(stack_depth);
 }
@@ -1478,7 +1487,12 @@ retry:
 		pwq = per_cpu_ptr(wq->cpu_pwqs, cpu);
 	}
 
-	/*
+    pr_view_on(stack_depth, "%20s : %p\n", pwq);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->pool);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->id);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->cpu);
+
+    /*
 	 * If @work was previously on a different pool, it might still be
 	 * running there, in which case the work needs to be queued on that
 	 * pool to guarantee non-reentrancy.
@@ -1533,16 +1547,26 @@ retry:
 	pwq->nr_in_flight[pwq->work_color]++;
 	work_flags = work_color_to_flags(pwq->work_color);
 
+    pr_view_on(stack_depth, "%30s : %p\n", pwq);
+    pr_view_on(stack_depth, "%30s : %p\n", pwq->pool);
+    pr_view_on(stack_depth, "%30s : %d\n", pwq->pool->id);
+    pr_view_on(stack_depth, "%30s : %d\n", pwq->pool->cpu);
+    pr_view_on(stack_depth, "%35s : %d\n", pwq->nr_active);
+    pr_view_on(stack_depth, "%35s : %d\n", pwq->max_active);
+
 	if (likely(pwq->nr_active < pwq->max_active)) {
         //trace_workqueue_activate_work(work);
 		pwq->nr_active++;
 		worklist = &pwq->pool->worklist;
-		if (list_empty(worklist))
+        pr_view_on(stack_depth, "%35s : %p\n", &pwq->pool->worklist);
+
+        if (list_empty(worklist))
 			pwq->pool->watchdog_ts = jiffies;
 	} else {
 		work_flags |= WORK_STRUCT_INACTIVE;
 		worklist = &pwq->inactive_works;
-	}
+        pr_view_on(stack_depth, "%35s : %p\n", &pwq->inactive_works);
+    }
 
 	debug_work_activate(work);
 	insert_work(pwq, work, worklist, work_flags);
@@ -1983,8 +2007,9 @@ static struct worker *create_worker(struct worker_pool *pool)
 	char id_buf[16];
 
     pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", pool);
 
-	/* ID is needed to determine kthread name */
+    /* ID is needed to determine kthread name */
 	id = ida_alloc(&pool->worker_ida, GFP_KERNEL);
 	if (id < 0)
         return NULL;
@@ -2011,7 +2036,7 @@ static struct worker *create_worker(struct worker_pool *pool)
 		goto fail;
 
     //set_user_nice(worker->task, pool->attrs->nice);
-    //kthread_bind_mask(worker->task, pool->attrs->cpumask);
+    kthread_bind_mask(worker->task, pool->attrs->cpumask);
 
 	/* successful, attach the worker to the pool */
     worker_attach_to_pool(worker, pool);
@@ -3459,6 +3484,7 @@ void free_workqueue_attrs(struct workqueue_attrs *attrs)
 struct workqueue_attrs *alloc_workqueue_attrs(void)
 {
 	struct workqueue_attrs *attrs;
+    pr_fn_start_on(stack_depth);
 
 	attrs = kzalloc(sizeof(*attrs), GFP_KERNEL);
 	if (!attrs)
@@ -3466,7 +3492,11 @@ struct workqueue_attrs *alloc_workqueue_attrs(void)
 	if (!alloc_cpumask_var(&attrs->cpumask, GFP_KERNEL))
 		goto fail;
 
-	cpumask_copy(attrs->cpumask, cpu_possible_mask);
+    cpumask_copy(attrs->cpumask, cpu_possible_mask);
+
+    pr_view_on(stack_depth, "%10s : %p\n", attrs);
+
+    pr_fn_end_on(stack_depth);
 	return attrs;
 fail:
 	free_workqueue_attrs(attrs);
@@ -3710,6 +3740,8 @@ static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs)
 	int node;
 	int target_node = NUMA_NO_NODE;
 
+    pr_fn_start_on(stack_depth);
+
 	lockdep_assert_held(&wq_pool_mutex);
 
 	/* do we already have a matching pool? */
@@ -3731,10 +3763,14 @@ static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs)
 		}
 	}
 
+    pr_view_on(stack_depth, "%20s : %d\n", sizeof(*pool));
+
 	/* nope, create a new one */
 	pool = kzalloc_node(sizeof(*pool), GFP_KERNEL, target_node);
 	if (!pool || init_worker_pool(pool) < 0)
 		goto fail;
+
+    pr_view_on(stack_depth, "%20s : %p\n", pool);
 
     //lockdep_set_subclass(&pool->lock, 1);	/* see put_pwq() */
 	copy_workqueue_attrs(pool->attrs, attrs);
@@ -3753,8 +3789,17 @@ static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs)
 	if (wq_online && !create_worker(pool))
 		goto fail;
 
-	/* install */
-	hash_add(unbound_pool_hash, &pool->hash_node, hash);
+    pr_view_on(stack_depth, "%20s : %u\n", hash);
+
+    /* install */
+    hash_add(unbound_pool_hash, &pool->hash_node, hash);
+
+    pr_view_on(stack_depth, "%20s : %d\n", target_node);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->node);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->id);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->attrs->no_numa);
+
+    pr_fn_end_on(stack_depth);
 
 	return pool;
 fail:
@@ -3825,6 +3870,8 @@ static void pwq_adjust_max_active(struct pool_workqueue *pwq)
 	bool freezable = wq->flags & WQ_FREEZABLE;
 	unsigned long flags;
 
+    pr_fn_start_on(stack_depth);
+
 	/* for @wq->saved_max_active */
 	lockdep_assert_held(&wq->mutex);
 
@@ -3863,7 +3910,12 @@ static void pwq_adjust_max_active(struct pool_workqueue *pwq)
 		pwq->max_active = 0;
 	}
 
-	raw_spin_unlock_irqrestore(&pwq->pool->lock, flags);
+    pr_view_on(stack_depth, "%20s : %d\n", wq->saved_max_active);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->max_active);
+
+    raw_spin_unlock_irqrestore(&pwq->pool->lock, flags);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /* initialize newly allocated @pwq which is associated with @wq and @pool */
@@ -3889,6 +3941,13 @@ static void link_pwq(struct pool_workqueue *pwq)
 {
 	struct workqueue_struct *wq = pwq->wq;
 
+    pr_fn_start_on(stack_depth);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->wq);
+    pr_view_on(stack_depth, "%20s : %s\n", pwq->wq->name);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq);
+
+    pr_view_on(stack_depth, "%30s : %d\n", list_empty(&pwq->pwqs_node));
+
 	lockdep_assert_held(&wq->mutex);
 
 	/* may be called multiple times, ignore if already linked */
@@ -3901,8 +3960,15 @@ static void link_pwq(struct pool_workqueue *pwq)
 	/* sync max_active to the current setting */
 	pwq_adjust_max_active(pwq);
 
+    pr_view_on(stack_depth, "%30s : %d\n", pwq->work_color);
+    pr_view_on(stack_depth, "%30s : %d\n", pwq->nr_active);
+    pr_view_on(stack_depth, "%30s : %d\n", pwq->max_active);
+
 	/* link in @pwq */
-	list_add_rcu(&pwq->pwqs_node, &wq->pwqs);
+    list_add_rcu(&pwq->pwqs_node, &wq->pwqs);
+    //list_add(&pwq->pwqs_node, &wq->pwqs);
+
+    pr_fn_end_on(stack_depth);
 }
 
 /* obtain a pool matching @attr and create a pwq associating the pool and @wq */
@@ -3911,6 +3977,8 @@ static struct pool_workqueue *alloc_unbound_pwq(struct workqueue_struct *wq,
 {
 	struct worker_pool *pool;
 	struct pool_workqueue *pwq;
+
+    pr_fn_start_on(stack_depth);
 
 	lockdep_assert_held(&wq_pool_mutex);
 
@@ -3925,7 +3993,9 @@ static struct pool_workqueue *alloc_unbound_pwq(struct workqueue_struct *wq,
 		return NULL;
 	}
 
-	init_pwq(pwq, wq, pool);
+    init_pwq(pwq, wq, pool);
+
+    pr_fn_end_on(stack_depth);
 	return pwq;
 }
 
@@ -4035,6 +4105,8 @@ apply_wqattrs_prepare(struct workqueue_struct *wq,
 	struct workqueue_attrs *new_attrs, *tmp_attrs;
 	int node;
 
+    pr_fn_start_on(stack_depth);
+
 	lockdep_assert_held(&wq_pool_mutex);
 
 	ctx = kzalloc(struct_size(ctx, pwq_tbl, nr_node_ids), GFP_KERNEL);
@@ -4087,7 +4159,10 @@ apply_wqattrs_prepare(struct workqueue_struct *wq,
 	ctx->attrs = new_attrs;
 
 	ctx->wq = wq;
-	free_workqueue_attrs(tmp_attrs);
+    free_workqueue_attrs(tmp_attrs);
+
+    pr_fn_end_on(stack_depth);
+
 	return ctx;
 
 out_free:
@@ -4135,7 +4210,9 @@ static void apply_wqattrs_unlock(void)
 static int apply_workqueue_attrs_locked(struct workqueue_struct *wq,
 					const struct workqueue_attrs *attrs)
 {
-	struct apply_wqattrs_ctx *ctx;
+    struct apply_wqattrs_ctx *ctx;
+
+    pr_fn_start_on(stack_depth);
 
 	/* only unbound workqueues can change attributes */
 	if (WARN_ON(!(wq->flags & WQ_UNBOUND)))
@@ -4155,7 +4232,9 @@ static int apply_workqueue_attrs_locked(struct workqueue_struct *wq,
 
 	/* the ctx has been prepared successfully, let's commit it */
 	apply_wqattrs_commit(ctx);
-	apply_wqattrs_cleanup(ctx);
+    apply_wqattrs_cleanup(ctx);
+
+    pr_fn_end_on(stack_depth);
 
 	return 0;
 }
@@ -4182,12 +4261,15 @@ int apply_workqueue_attrs(struct workqueue_struct *wq,
 			  const struct workqueue_attrs *attrs)
 {
 	int ret;
+    pr_fn_start_on(stack_depth);
 
 	lockdep_assert_cpus_held();
 
 	mutex_lock(&wq_pool_mutex);
 	ret = apply_workqueue_attrs_locked(wq, attrs);
-	mutex_unlock(&wq_pool_mutex);
+    mutex_unlock(&wq_pool_mutex);
+
+    pr_fn_end_on(stack_depth);
 
 	return ret;
 }
@@ -4226,6 +4308,7 @@ static void wq_update_unbound_numa(struct workqueue_struct *wq, int cpu,
     pr_fn_start_on(stack_depth);
     pr_view_on(stack_depth, "%20s : %s\n", wq->name);
     pr_view_on(stack_depth, "%20s : %d\n", wq_numa_enabled);
+    pr_view_on(stack_depth, "%20s : %d\n", node);
 
 	lockdep_assert_held(&wq_pool_mutex);
 
@@ -4291,22 +4374,29 @@ static int alloc_and_link_pwqs(struct workqueue_struct *wq)
     pr_fn_start_on(stack_depth);
 
 	if (!(wq->flags & WQ_UNBOUND)) {
-		wq->cpu_pwqs = alloc_percpu(struct pool_workqueue);
+        wq->cpu_pwqs = alloc_percpu(struct pool_workqueue);	//nr_cpu * size
 		if (!wq->cpu_pwqs)
 			return -ENOMEM;
 
-		for_each_possible_cpu(cpu) {
-			struct pool_workqueue *pwq =
-				per_cpu_ptr(wq->cpu_pwqs, cpu);
-			struct worker_pool *cpu_pools =
-				per_cpu(cpu_worker_pools, cpu);
+        pr_view_on(stack_depth, "%20s : %p\n", wq->cpu_pwqs);
+        pr_view_on(stack_depth, "%20s : %d\n", nr_cpu_ids);
+        pr_view_on(stack_depth, "%20s : %X\n", cpu_possible_mask->bits[0]);
+
+        for_each_possible_cpu(cpu) {
+            struct pool_workqueue *pwq = per_cpu_ptr(wq->cpu_pwqs, cpu);
+            //struct worker_pool *cpu_pools = per_cpu(cpu_worker_pools, cpu);
+            struct worker_pool *cpu_pools = cpu_worker_pools[cpu];
 
 			init_pwq(pwq, wq, &cpu_pools[highpri]);
 
 			mutex_lock(&wq->mutex);
 			link_pwq(pwq);
-			mutex_unlock(&wq->mutex);
-		}
+            mutex_unlock(&wq->mutex);
+
+            pr_view_on(stack_depth, "%30s : %d\n", cpu);
+            pr_view_on(stack_depth, "%30s : %p\n", cpu_pools);
+            pr_view_on(stack_depth, "%30s : %d\n", cpu_pools->id);
+        }
 		return 0;
 	}
 
@@ -4418,6 +4508,7 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	vsnprintf(wq->name, sizeof(wq->name), fmt, args);
 	va_end(args);
 
+    pr_view_on(stack_depth, "%20s : %p\n", wq);
     pr_view_on(stack_depth, "%20s : %s\n", wq->name);
 
 	max_active = max_active ?: WQ_DFL_ACTIVE;
@@ -4432,6 +4523,10 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	INIT_LIST_HEAD(&wq->flusher_queue);
 	INIT_LIST_HEAD(&wq->flusher_overflow);
 	INIT_LIST_HEAD(&wq->maydays);
+
+    pr_view_on(stack_depth, "%20s : 0x%X\n", wq->flags);
+    pr_view_on(stack_depth, "%20s : %d\n", max_active);
+    pr_view_on(stack_depth, "%20s : %d\n", wq->saved_max_active);
 
     //lock 의존성 코드 점검 등록.
 	wq_init_lockdep(wq);
@@ -4455,12 +4550,17 @@ struct workqueue_struct *alloc_workqueue(const char *fmt,
 	 */
 	mutex_lock(&wq_pool_mutex);
 
-#if 0
 	mutex_lock(&wq->mutex);
-    for_each_pwq(pwq, wq)	//(head) != wq error
+    //list_for_each_entry_rcu((pwq), &(wq)->pwqs, pwqs_node, lockdep_is_held(&(wq->mutex)))
+    //list_for_each_entry_rcu(pwq, &wq->pwqs, pwqs_node, lockdep_is_held(&wq->mutex))
+    //list_for_each_entry(pwq, &wq->pwqs, pwqs_node) {
+    for_each_pwq(pwq, wq) {
+        pr_view_on(stack_depth, "%10s : %p\n", wq);
+        pr_view_on(stack_depth, "%10s : %p\n", pwq);
         pwq_adjust_max_active(pwq);	//pwq->max_active을 조정하고 inactive_works을 worklist에 등록.
-	mutex_unlock(&wq->mutex);
-#endif
+        pr_out_on(stack_depth, "\n");
+    }
+    mutex_unlock(&wq->mutex);
 
     //workqueue_struct를 workqueues 링크드 리스트 헤더에 연결.
 	list_add_tail_rcu(&wq->list, &workqueues);
@@ -4838,6 +4938,8 @@ static void show_pwq(struct pool_workqueue *pwq)
 	bool has_in_flight = false, has_pending = false;
 	int bkt;
 
+    pr_fn_start_on(stack_depth);
+
 	pr_info("  pwq %d:", pool->id);
 	pr_cont_pool_info(pool);
 
@@ -4900,6 +5002,84 @@ static void show_pwq(struct pool_workqueue *pwq)
 		}
 		pr_cont("\n");
 	}
+
+    pr_fn_end_on(stack_depth);
+}
+
+static void _show_pwq_all(struct pool_workqueue *pwq)
+{
+    struct worker_pool *pool = pwq->pool;
+    struct work_struct *work;
+    struct worker *worker;
+    bool has_in_flight = false, has_pending = false;
+    int bkt;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_info("  pwq %d:", pool->id);
+    pr_cont_pool_info(pool);
+
+    pr_cont(" active=%d/%d refcnt=%d%s\n",
+        pwq->nr_active, pwq->max_active, pwq->refcnt,
+        !list_empty(&pwq->mayday_node) ? " MAYDAY" : "");
+
+    hash_for_each(pool->busy_hash, bkt, worker, hentry) {
+        if (worker->current_pwq == pwq) {
+            has_in_flight = true;
+            break;
+        }
+    }
+    if (has_in_flight) {
+        bool comma = false;
+
+        pr_info("    in-flight:");
+        hash_for_each(pool->busy_hash, bkt, worker, hentry) {
+            if (worker->current_pwq != pwq)
+                continue;
+
+            pr_cont("%s %d%s:%ps", comma ? "," : "",
+                task_pid_nr(worker->task),
+                worker->rescue_wq ? "(RESCUER)" : "",
+                worker->current_func);
+            list_for_each_entry(work, &worker->scheduled, entry)
+                pr_cont_work(false, work);
+            comma = true;
+        }
+        pr_cont("\n");
+    }
+
+    list_for_each_entry(work, &pool->worklist, entry) {
+        if (get_work_pwq(work) == pwq) {
+            has_pending = true;
+            break;
+        }
+    }
+    if (has_pending) {
+        bool comma = false;
+
+        pr_info("    pending:");
+        list_for_each_entry(work, &pool->worklist, entry) {
+            if (get_work_pwq(work) != pwq)
+                continue;
+
+            pr_cont_work(comma, work);
+            comma = !(*work_data_bits(work) & WORK_STRUCT_LINKED);
+        }
+        pr_cont("\n");
+    }
+
+    if (!list_empty(&pwq->inactive_works)) {
+        bool comma = false;
+
+        pr_info("    inactive:");
+        list_for_each_entry(work, &pwq->inactive_works, entry) {
+            pr_cont_work(comma, work);
+            comma = !(*work_data_bits(work) & WORK_STRUCT_LINKED);
+        }
+        pr_cont("\n");
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -4912,16 +5092,20 @@ void show_one_workqueue(struct workqueue_struct *wq)
 	bool idle = true;
 	unsigned long flags;
 
+    pr_fn_start_on(stack_depth);
+
 	for_each_pwq(pwq, wq) {
-		if (pwq->nr_active || !list_empty(&pwq->inactive_works)) {
+        if (pwq->nr_active || !list_empty(&pwq->inactive_works)) {
 			idle = false;
-			break;
+            break;
 		}
 	}
-	if (idle) /* Nothing to print for idle workqueue */
-		return;
+    pr_view_on(stack_depth, "%20s : %d\n", idle);
 
-	pr_info("workqueue %s: flags=0x%x\n", wq->name, wq->flags);
+    if (idle) /* Nothing to print for idle workqueue */
+        return;
+
+    pr_info("workqueue %s: flags=0x%x\n", wq->name, wq->flags);
 
 	for_each_pwq(pwq, wq) {
 		raw_spin_lock_irqsave(&pwq->pool->lock, flags);
@@ -4944,6 +5128,30 @@ void show_one_workqueue(struct workqueue_struct *wq)
         //touch_nmi_watchdog();
 	}
 
+    pr_fn_end_on(stack_depth);
+}
+
+static void _show_one_workqueue_all(struct workqueue_struct *wq)
+{
+    struct pool_workqueue *pwq;
+    bool idle;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %s\n", wq->name);
+    pr_view_on(stack_depth, "%20s : 0x%X\n", wq->flags);
+
+    for_each_pwq(pwq, wq) {
+        pr_view_on(stack_depth, "%30s : %d\n", pwq->nr_active);
+        pr_view_on(stack_depth, "%30s : %d\n", list_empty(&pwq->inactive_works));
+        idle = (!pwq->nr_active && list_empty(&pwq->inactive_works)) ? true : false;
+        pr_view_on(stack_depth, "%30s : %d\n", idle);
+
+        //show_pwq(pwq);
+        _show_pwq_all(pwq);
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -4988,7 +5196,104 @@ next_pool:
 	 * hard lockup.
 	 */
     //touch_nmi_watchdog();
+}
 
+static void _show_attrs_info(struct workqueue_attrs *attrs)
+{
+    pr_fn_start_on(stack_depth);
+    if (!attrs)
+        return;
+
+    pr_view_on(stack_depth, "%30s : %d\n", attrs->nice);
+    pr_view_on(stack_depth, "%30s : 0x%X\n", attrs->cpumask->bits[0]);
+    pr_view_on(stack_depth, "%30s : %d\n", attrs->no_numa);
+
+    pr_fn_end_on(stack_depth);
+}
+
+static void _show_pool_info(struct worker_pool *pool)
+{
+    struct worker *worker;
+    bool idle_list;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", pool);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->id);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->node);
+
+    pr_view_on(stack_depth, "%20s : %p\n", pool->attrs);
+    _show_attrs_info(pool->attrs);
+
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_workers);
+    pr_view_on(stack_depth, "%20s : %d\n", pool->nr_idle);
+    pr_view_on(stack_depth, "%20s : %p\n", pool->manager);
+
+    idle_list = !list_empty(&pool->idle_list);
+    pr_view_on(stack_depth, "%20s : %d\n", idle_list);
+    list_for_each_entry(worker, &pool->idle_list, entry) {
+        pr_view_on(stack_depth, "%20s : %p\n", worker);
+        pr_view_on(stack_depth, "%20s : %p\n", worker->task);
+    }
+
+    pr_fn_end_on(stack_depth);
+}
+
+static void _show_pwq_info(struct pool_workqueue *pwq)
+{
+    struct worker_pool *pool = pwq->pool;
+    struct work_struct *work;
+    struct worker *worker;
+    bool has_in_flight = false, has_pending = false, has_inactive;
+    int bkt;
+    struct pool_workqueue *pwq_get;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%20s : %p\n", pwq);
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->pool);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->id);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->cpu);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->node);
+
+    pr_view_on(stack_depth, "%20s : %p\n", pwq->pool->attrs);
+    _show_attrs_info(pwq->pool->attrs);
+
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->nr_active);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->max_active);
+    pr_view_on(stack_depth, "%20s : %d\n", pwq->refcnt);
+
+    pr_view_on(stack_depth, "%30s : %d\n", has_in_flight);
+    hash_for_each(pool->busy_hash, bkt, worker, hentry) {
+        has_in_flight = (worker->current_pwq == pwq) ? true : false;
+        pr_view_on(stack_depth, "%30s : %d\n", has_in_flight);
+        pr_view_on(stack_depth, "%30s : %p\n", worker);
+        pr_view_on(stack_depth, "%30s : %p\n", worker->current_pwq);
+    }
+
+    pr_view_on(stack_depth, "%30s : %d\n", has_pending);
+    list_for_each_entry(work, &pool->worklist, entry) {
+        pwq_get = get_work_pwq(work);	//work->data
+        has_pending = (pwq_get == pwq) ? true : false;
+        pr_view_on(stack_depth, "%30s : %d\n", has_pending);
+        pr_view_on(stack_depth, "%30s : %p\n", work);
+        pr_view_on(stack_depth, "%30s : %p\n", pwq_get);
+        if (!pwq_get)
+            break;
+    }
+
+    has_inactive = !list_empty(&pwq->inactive_works);
+    pr_view_on(stack_depth, "%30s : %d\n", has_inactive);
+    if (has_inactive) {
+        list_for_each_entry(work, &pwq->inactive_works, entry) {
+            pr_view_on(stack_depth, "%30s : %p\n", work);
+            pr_view_on(stack_depth, "%30s : 0x%X\n", work->data);
+            pr_view_on(stack_depth, "%30s : %p\n", work->func);
+        }
+    }
+
+    pr_fn_end_on(stack_depth);
 }
 
 /**
@@ -4999,22 +5304,124 @@ next_pool:
  */
 void show_all_workqueues(void)
 {
+        struct workqueue_struct *wq;
+        struct worker_pool *pool;
+        int pi;
+
+        rcu_read_lock();
+
+        pr_info("Showing busy workqueues and worker pools:\n");
+
+        list_for_each_entry_rcu(wq, &workqueues, list)
+                show_one_workqueue(wq);
+
+        for_each_pool(pool, pi)
+                show_one_worker_pool(pool);
+
+        rcu_read_unlock();
+}
+
+void show_all_pool_info(void)
+{
+    struct worker_pool *pool;
+    int idx, cpu;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "--------- for_each_cpu_worker_pool() ---------\n");
+    for_each_possible_cpu(cpu) {
+        pr_view_on(stack_depth, "%10s : %d\n", cpu);
+        //cpu_worker_pools
+        for_each_cpu_worker_pool(pool, cpu)
+            _show_pool_info(pool);
+    }
+
+    pr_out_on(stack_depth, "-------------- for_each_pool() -------------\n");
+    //cpu_worker_pools
+    for_each_pool(pool, idx) {
+        pr_view_on(stack_depth, "%20s : %d\n", idx);
+        _show_pool_info(pool);
+    }
+
+    pr_fn_end_on(stack_depth);
+}
+
+void show_all_unbound_info(void)
+{
+    struct worker_pool *pool;
+    int idx;
+
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "------- hash_for_each(unbound_pool_hash) ------\n");
+    //NUMA_NODE
+    pr_view_on(stack_depth, "%20s : %p\n", unbound_pool_hash);
+    pr_view_on(stack_depth, "%20s : %d\n", HASH_SIZE(unbound_pool_hash));
+
+    hash_for_each(unbound_pool_hash, idx, pool, hash_node) {
+        pr_view_on(stack_depth, "%20s : %d\n", idx);
+        _show_pool_info(pool);
+    }
+
+    pr_fn_end_on(stack_depth);
+}
+
+
+void show_all_workqueues_info(void)
+{
 	struct workqueue_struct *wq;
-	struct worker_pool *pool;
-	int pi;
+    struct pool_workqueue *pwq;
+
+    pr_fn_start_on(stack_depth);
 
 	rcu_read_lock();
 
-	pr_info("Showing busy workqueues and worker pools:\n");
+    pr_out_on(stack_depth, "--------- list_for_each_entry_rcu(wq) ---------\n");
+    list_for_each_entry_rcu(wq, &workqueues, list) {
+        pr_view_on(stack_depth, "%20s : %p\n", wq);
+        pr_view_on(stack_depth, "%20s : %s\n", wq->name);
+        pr_view_on(stack_depth, "%20s : %p\n", wq->unbound_attrs);
+        _show_attrs_info(wq->unbound_attrs);
 
-	list_for_each_entry_rcu(wq, &workqueues, list)
-		show_one_workqueue(wq);
+        pr_out_on(stack_depth, "---------- for_each_pwq(pwq, wq) ----------\n");
+        //per cpu
+        for_each_pwq(pwq, wq)
+            _show_pwq_info(pwq);
+    }
 
-	for_each_pool(pool, pi)
-		show_one_worker_pool(pool);
+    rcu_read_unlock();
 
-	rcu_read_unlock();
+    pr_fn_end_on(stack_depth);
 }
+
+void show_insert_work_result(void)
+{
+    struct workqueue_struct *wq;
+    struct pool_workqueue *pwq, *pwq_get;
+
+    pr_fn_start_on(stack_depth);
+
+    list_for_each_entry_rcu(wq, &workqueues, list) {
+        //list_for_each_entry(pwq, &wq->pwqs, pwqs_node) {
+        for_each_pwq(pwq, wq) {
+            struct worker_pool *pool = pwq->pool;
+            struct work_struct *work;
+            list_for_each_entry(work, &pool->worklist, entry) {
+                pwq_get = get_work_pwq(work);
+                pr_view_on(stack_depth, "%20s : %p\n", wq);
+                pr_view_on(stack_depth, "%20s : %p\n", pwq);
+                pr_view_on(stack_depth, "%20s : %p\n", pwq_get);
+                pr_out_on(stack_depth, "\n");
+                if (pwq == pwq_get)
+                    _show_pool_info(pool);
+                if (!pwq_get)
+                    break;
+            }
+        }
+    }
+    pr_fn_end_on(stack_depth);
+}
+
 
 /* used to show worker information through /proc/PID/{comm,stat,status} */
 void wq_worker_comm(char *buf, size_t size, struct task_struct *task)
@@ -6117,6 +6524,7 @@ void __init workqueue_init_early(void)
 	cpumask_copy(wq_unbound_cpumask, housekeeping_cpumask(HK_TYPE_WQ));
 	cpumask_and(wq_unbound_cpumask, wq_unbound_cpumask, housekeeping_cpumask(HK_TYPE_DOMAIN));
 
+    pr_view_on(stack_depth, "%30s : %d\n", nr_cpu_ids);
     pr_view_on(stack_depth, "%30s : %X\n", cpu_possible_mask->bits[0]);
     pr_view_on(stack_depth, "%30s : %X\n", cpu_online_mask->bits[0]);
     pr_view_on(stack_depth, "%30s : %X\n", cpu_present_mask->bits[0]);
@@ -6128,6 +6536,7 @@ void __init workqueue_init_early(void)
 	for_each_possible_cpu(cpu) {
 		struct worker_pool *pool;
 
+        pr_view_on(stack_depth, "%10s : %d\n", cpu);
         i = 0;
         //cpu_worker_pools
 		for_each_cpu_worker_pool(pool, cpu) {
@@ -6141,7 +6550,12 @@ void __init workqueue_init_early(void)
 			mutex_lock(&wq_pool_mutex);
             BUG_ON(worker_pool_assign_id(pool));
 			mutex_unlock(&wq_pool_mutex);
-		}
+
+            pr_view_on(stack_depth, "%30s : %d\n", pool->cpu);
+            pr_view_on(stack_depth, "%30s : %d\n", pool->node);
+            pr_view_on(stack_depth, "%30s : %d\n", pool->attrs->nice);
+            pr_view_on(stack_depth, "%30s : %d\n", pool->id);
+        }
 	}
 
 	/* create default unbound and ordered wq attrs */
@@ -6230,14 +6644,25 @@ void __init workqueue_init(void)
 
 	/* create the initial workers */
 	for_each_online_cpu(cpu) {
+        pr_view_on(stack_depth, "%10s : %d\n", cpu);
+
 		for_each_cpu_worker_pool(pool, cpu) {
-			pool->flags &= ~POOL_DISASSOCIATED;
+            pr_view_on(stack_depth, "%20s : %p\n", pool);
+            pr_view_on(stack_depth, "%20s : %d\n", pool->id);
+
+            pool->flags &= ~POOL_DISASSOCIATED;
             BUG_ON(!create_worker(pool));
-		}
+            pr_out_on(stack_depth, "\n");
+        }
 	}
 
-    hash_for_each(unbound_pool_hash, bkt, pool, hash_node)
+    hash_for_each(unbound_pool_hash, bkt, pool, hash_node) {
+        pr_view_on(stack_depth, "%20s : %d\n", bkt);
+        pr_view_on(stack_depth, "%20s : %p\n", pool);
+        pr_view_on(stack_depth, "%20s : %d\n", pool->id);
         BUG_ON(!create_worker(pool));
+        pr_out_on(stack_depth, "\n");
+    }
 
 	wq_online = true;
 	wq_watchdog_init();

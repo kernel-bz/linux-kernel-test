@@ -43,7 +43,7 @@ void test_setup_arch(void)
 
 void test_sched_init(void)
 {
-    nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
+    //nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
 
     //592 lines
     boot_cpu_init();		//kernel/cpu.c
@@ -91,63 +91,12 @@ void test_sched_init_smp(void)
     sched_init_smp();
 }
 
-static void wq_func_test(struct work_struct *work)
-{
-    pr_fn_start_on(stack_depth);
-    pr_view_on(stack_depth, "%20s : %p\n", work);
-    pr_fn_end_on(stack_depth);
-}
-
-static DECLARE_WORK(work_test, wq_func_test);
-//static DECLARE_DELAYED_WORK(work_test2, wq_func_test2);
-
-static void wq_test(void)
-{
-    pr_fn_start_on(stack_depth);
-
-    bool ret;
-    ret = queue_work(system_long_wq, &work_test);
-    if (!ret)
-        goto _end;
-
-    long result;
-    int cpu = 0;
-    result = work_on_cpu(cpu, &work_test, NULL);
-    if (result < 0)
-        goto _end;
-
-    //result = schedule_on_each_cpu(&work_test);
-
-_end:
-    pr_view_on(stack_depth, "%20s : %d\n", ret);
-    pr_view_on(stack_depth, "%20s : %ld\n", result);
-
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_NR_COLORS);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_FLAG_BASE);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_CANCELING);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_SHIFT);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_LEFT);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_BITS);
-    pr_view_on(stack_depth, "%20s : %d\n", WORK_OFFQ_POOL_NONE);
-    pr_view_on(stack_depth, "%20s : %d\n", INT_MAX);
-
-    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_NO_POOL);
-
-    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_FLAG_BITS);
-    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_FLAG_MASK);
-    pr_view_on(stack_depth, "%30s : 0x%llX\n", WORK_STRUCT_WQ_DATA_MASK);
-
-    pr_fn_end_on(stack_depth);
-}
-
 void test_workqueue_init(void)
 {
     radix_tree_init();
 
     workqueue_init_early();
     workqueue_init();
-
-    wq_test();
 }
 
 /*

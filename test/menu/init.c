@@ -41,8 +41,8 @@ static int _init_menu(int asize)
     printf("1: setup_arch test.\n");
     printf("2: numa_init test.\n");
     printf("3: sched_init test.\n");
-    printf("4: workqueue_init test.\n");
-    printf("5: rcu_init test.\n");
+    printf("4: rcu_init test.\n");
+    printf("5: workqueue_init test.\n");
 
     printf("6: sched_init_smp test.\n");
     printf("7: sched_domain info(tl).\n");
@@ -68,8 +68,8 @@ void menu_start_kernel(void)
         , test_numa_init
 
         , test_sched_init
-        , test_workqueue_init
         , test_rcu_init
+        , test_workqueue_init
 
         //rest_init(), kernel_init
         , test_sched_init_smp

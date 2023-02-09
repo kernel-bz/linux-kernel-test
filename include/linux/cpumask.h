@@ -41,13 +41,14 @@ typedef struct cpumask { DECLARE_BITMAP(bits, NR_CPUS); } cpumask_t;
 #define nr_cpu_ids		1U
 #else
 //extern unsigned int nr_cpu_ids;
-unsigned int nr_cpu_ids;
+#define nr_cpu_ids 		NR_CPUS
 #endif
 
 #ifdef CONFIG_CPUMASK_OFFSTACK
 /* Assuming NR_CPUS is huge, a runtime limit is more efficient.  Also,
  * not all bits may be allocated. */
-#define nr_cpumask_bits	nr_cpu_ids
+//#define nr_cpumask_bits	nr_cpu_ids
+#define nr_cpumask_bits	((unsigned int)NR_CPUS)
 #else
 #define nr_cpumask_bits	((unsigned int)NR_CPUS)
 #endif

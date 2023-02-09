@@ -21,8 +21,9 @@ void menu_algorithm(void);
 void menu_config(void);
 void menu_start_kernel(void);
 void menu_sched_test(void);
-void menu_drivers(void);
 void menu_mm_test(void);
+void menu_wq_test(void);
+void menu_drivers(void);
 
 //test/config/
 void config_view(void);

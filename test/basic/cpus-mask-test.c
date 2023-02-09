@@ -45,7 +45,6 @@ void cpus_mask_test(void)
 {
     pr_fn_start(stack_depth);
 
-    nr_cpu_ids = NR_CPUS;
     _cpus_mask_info();
 
     unsigned int i, nr = BITS_TO_LONGS(nr_cpumask_bits);
