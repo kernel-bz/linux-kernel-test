@@ -201,7 +201,8 @@ SOURCES += \
     kernel/sched/core_sched.c \
     kernel/workqueue.c \
     test/algorithm/hlist01.c \
-    test/menu/wq.c
+    test/menu/wq.c \
+    kernel/kthread.c
 
 HEADERS += \
     include/test/test.h \

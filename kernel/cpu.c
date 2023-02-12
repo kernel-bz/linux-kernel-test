@@ -1540,8 +1540,8 @@ static struct cpuhp_step cpuhp_hp_states[] = {
 	},
 	[CPUHP_AP_WORKQUEUE_ONLINE] = {
 		.name			= "workqueue:online",
-        //.startup.single		= workqueue_online_cpu,
-        //.teardown.single	= workqueue_offline_cpu,
+        .startup.single		= workqueue_online_cpu,
+        .teardown.single	= workqueue_offline_cpu,
 	},
 	[CPUHP_AP_RCUTREE_ONLINE] = {
 		.name			= "RCU/tree:online",

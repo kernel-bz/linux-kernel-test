@@ -6,10 +6,10 @@
 #include <linux/sched.h>
 
 __printf(4, 5)
-static struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
+struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 					   void *data,
 					   int node,
-                                           const char namefmt[], ...) {}
+                                           const char namefmt[], ...);
 
 /**
  * kthread_create - create a kthread on the current node
