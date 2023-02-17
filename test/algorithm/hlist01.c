@@ -66,7 +66,6 @@ void hlist_test01(void)
     struct _worker_pool *pool;
     int target_node = NUMA_NO_NODE;	//-1
     u32 hash;
-    int bkt;
 
     pr_fn_start_on(stack_depth);
 
@@ -113,11 +112,9 @@ void hlist_test01(void)
     //collision
     //hash_add(unbound_pool_hash, &pool->hash_node, hash);
 
-    struct _worker_pool *tmp;
-    //#define hash_for_each_possible(name, obj, member, key)
-    //hash_for_each_possible(unbound_pool_hash, pool, hash_node, hash) {
-    hash_for_each_possible_safe(unbound_pool_hash, pool, tmp, hash_node, hash) {
+    //int bkt;
     //hash_for_each(unbound_pool_hash, bkt, pool, hash_node) {
+    hash_for_each_possible(unbound_pool_hash, pool, hash_node, hash) {
         pool->refcnt++;
         pr_view_on(stack_depth, "%20s : %d\n", pool->id);
         pr_view_on(stack_depth, "%20s : %d\n", pool->refcnt);

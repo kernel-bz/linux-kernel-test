@@ -42,7 +42,7 @@ struct rcu_exp_work {
  */
 struct rcu_node {
 	raw_spinlock_t __private lock;	/* Root rcu_node's lock protects */
-					/*  some rcu_state fields as well as */
+                    /*  some _rcu_state fields as well as */
 					/*  following. */
 	unsigned long gp_seq;	/* Track rsp->rcu_gp_seq. */
 	unsigned long gp_seq_needed; /* Track furthest future GP request. */
@@ -289,7 +289,7 @@ do {									\
  * CPUs and by CONFIG_RCU_FANOUT.  Small systems will have a "hierarchy"
  * consisting of a single rcu_node.
  */
-struct rcu_state {
+struct _rcu_state {
 	struct rcu_node node[NUM_RCU_NODES];	/* Hierarchy. */
 	struct rcu_node *level[RCU_NUM_LVLS + 1];
 						/* Hierarchy levels (+1 to */
@@ -354,11 +354,11 @@ struct rcu_state {
 						/*  GP pre-initialization. */
 };
 
-/* Values for rcu_state structure's gp_flags field. */
+/* Values for _rcu_state structure's gp_flags field. */
 #define RCU_GP_FLAG_INIT 0x1	/* Need grace-period initialization. */
 #define RCU_GP_FLAG_FQS  0x2	/* Need grace-period quiescent-state forcing. */
 
-/* Values for rcu_state structure's gp_state field. */
+/* Values for _rcu_state structure's gp_state field. */
 #define RCU_GP_IDLE	 0	/* Initial state and no GP in progress. */
 #define RCU_GP_WAIT_GPS  1	/* Wait for grace-period start. */
 #define RCU_GP_DONE_GPS  2	/* Wait done for grace-period start. */
@@ -382,7 +382,7 @@ static const char * const gp_state_names[] = {
 };
 
 /*
- * In order to export the rcu_state name to the tracing tools, it
+ * In order to export the _rcu_state name to the tracing tools, it
  * needs to be added in the __tracepoint_string section.
  * This requires defining a separate variable tp_<sname>_varname
  * that points to the string being used, and this will allow

@@ -89,16 +89,16 @@ static DEFINE_PER_CPU_SHARED_ALIGNED(struct rcu_data, rcu_data) = {
     .dynticks_nmi_nesting = DYNTICK_IRQ_NONIDLE,
     .dynticks = ATOMIC_INIT(RCU_DYNTICK_CTRL_CTR),
 };
-struct rcu_state rcu_state = {
-    .level = { &rcu_state.node[0] },
+struct _rcu_state _rcu_state = {
+    .level = { &_rcu_state.node[0] },
     .gp_state = RCU_GP_IDLE,
     .gp_seq = (0UL - 300UL) << RCU_SEQ_CTR_SHIFT,
-    .barrier_mutex = __MUTEX_INITIALIZER(rcu_state.barrier_mutex),
+    .barrier_mutex = __MUTEX_INITIALIZER(_rcu_state.barrier_mutex),
     .name = RCU_NAME,
     .abbr = RCU_ABBR,
-    .exp_mutex = __MUTEX_INITIALIZER(rcu_state.exp_mutex),
-    .exp_wake_mutex = __MUTEX_INITIALIZER(rcu_state.exp_wake_mutex),
-    .ofl_lock = __RAW_SPIN_LOCK_UNLOCKED(rcu_state.ofl_lock),
+    .exp_mutex = __MUTEX_INITIALIZER(_rcu_state.exp_mutex),
+    .exp_wake_mutex = __MUTEX_INITIALIZER(_rcu_state.exp_wake_mutex),
+    .ofl_lock = __RAW_SPIN_LOCK_UNLOCKED(_rcu_state.ofl_lock),
 };
 
 /* Dump rcu_node combining tree at boot to verify correct setup. */
@@ -235,7 +235,7 @@ static void adjust_jiffies_till_sched_qs(void)
 
 //3333 lines
 /*
- * Helper function for rcu_init() that initializes the rcu_state structure.
+ * Helper function for rcu_init() that initializes the _rcu_state structure.
  */
 static void __init rcu_init_one(void)
 {
@@ -265,15 +265,15 @@ static void __init rcu_init_one(void)
     /* Initialize the level-tracking arrays. */
 
     for (i = 1; i < rcu_num_lvls; i++)
-        rcu_state.level[i] =
-            rcu_state.level[i - 1] + num_rcu_lvl[i - 1];
+        _rcu_state.level[i] =
+            _rcu_state.level[i - 1] + num_rcu_lvl[i - 1];
     rcu_init_levelspread(levelspread, num_rcu_lvl);
 
     /* Initialize the elements themselves, starting from the leaves. */
 
     for (i = rcu_num_lvls - 1; i >= 0; i--) {
         cpustride *= levelspread[i];
-        rnp = rcu_state.level[i];
+        rnp = _rcu_state.level[i];
         pr_view_on(stack_depth, "%25s : %d\n", i);
         pr_view_on(stack_depth, "%25s : %d\n", cpustride);
         for (j = 0; j < num_rcu_lvl[i]; j++, rnp++) {
@@ -285,9 +285,9 @@ static void __init rcu_init_one(void)
             raw_spin_lock_init(&rnp->fqslock);
             //lockdep_set_class_and_name(&rnp->fqslock,
             //               &rcu_fqs_class[i], fqs[i]);
-            rnp->gp_seq = rcu_state.gp_seq;
-            rnp->gp_seq_needed = rcu_state.gp_seq;
-            rnp->completedqs = rcu_state.gp_seq;
+            rnp->gp_seq = _rcu_state.gp_seq;
+            rnp->gp_seq_needed = _rcu_state.gp_seq;
+            rnp->completedqs = _rcu_state.gp_seq;
             rnp->qsmask = 0;
             rnp->qsmaskinit = 0;
             rnp->grplo = j * cpustride;
@@ -301,7 +301,7 @@ static void __init rcu_init_one(void)
             } else {
                 rnp->grpnum = j % levelspread[i - 1];
                 rnp->grpmask = BIT(rnp->grpnum);
-                rnp->parent = rcu_state.level[i - 1] +
+                rnp->parent = _rcu_state.level[i - 1] +
                           j / levelspread[i - 1];
             }
             rnp->level = i;
@@ -315,8 +315,8 @@ static void __init rcu_init_one(void)
         }
     }
 
-    //init_swait_queue_head(&rcu_state.gp_wq);
-    //init_swait_queue_head(&rcu_state.expedited_wq);
+    //init_swait_queue_head(&_rcu_state.gp_wq);
+    //init_swait_queue_head(&_rcu_state.expedited_wq);
     rnp = rcu_first_leaf_node();
     for_each_possible_cpu(i) {
         while (i > rnp->grphi)
@@ -331,7 +331,7 @@ static void __init rcu_init_one(void)
 /*
  * Compute the rcu_node tree geometry from kernel parameters.  This cannot
  * replace the definitions in tree.h because those are needed to size
- * the ->node array in the rcu_state structure.
+ * the ->node array in the _rcu_state structure.
  */
 static void __init rcu_init_geometry(void)
 {
