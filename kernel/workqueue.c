@@ -5415,6 +5415,7 @@ static void _show_pool_info(struct worker_pool *pool)
         if (!worker)
             break;
         pr_view_on(stack_depth, "%30s : %d\n", worker->id);
+        pr_view_on(stack_depth, "%30s : %s\n", worker->desc);
         pr_view_on(stack_depth, "%30s : %p\n", worker->task);
     }
 
@@ -5451,6 +5452,7 @@ static void _show_pwq_info(struct pool_workqueue *pwq)
         pr_view_on(stack_depth, "%35s : %d\n", has_in_flight);
         pr_view_on(stack_depth, "%35s : %p\n", worker);
         pr_view_on(stack_depth, "%35s : %d\n", worker->id);
+        pr_view_on(stack_depth, "%35s : %s\n", worker->desc);
         pr_view_on(stack_depth, "%35s : %p\n", pwq);
         pr_view_on(stack_depth, "%35s : %p\n", worker->current_pwq);
     }
