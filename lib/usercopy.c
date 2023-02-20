@@ -51,7 +51,8 @@ EXPORT_SYMBOL(_copy_to_user);
  *  * 1: The buffer was full of zero bytes.
  *  * -EFAULT: access to userspace failed.
  */
-int check_zeroed_user(const void __user *from, size_t size)
+//int check_zeroed_user(const void __user *from, size_t size)
+int check_zeroed_user(const void *from, size_t size)
 {
 	unsigned long val;
 	uintptr_t align = (uintptr_t) from % sizeof(unsigned long);

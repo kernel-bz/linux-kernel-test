@@ -85,7 +85,7 @@ extern int __read_mostly node_reclaim_distance;
 #endif
 
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
-DECLARE_PER_CPU(int, numa_node);
+static DECLARE_PER_CPU(int, numa_node);
 
 #ifndef __numa_node_id
 /* Returns the number of the current Node. */

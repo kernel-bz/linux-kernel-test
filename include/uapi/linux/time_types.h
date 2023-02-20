@@ -11,7 +11,7 @@ struct __kernel_timespec_ {
     long long               tv_nsec;                /* nanoseconds */
 };
 
-struct __kernel_itimerspec {
+struct __kernel_itimerspec_ {
     struct __kernel_timespec_ it_interval;    /* timer period */
     struct __kernel_timespec_ it_value;       /* timer expiration */
 };
@@ -30,7 +30,7 @@ struct __kernel_old_timeval_ {
 };
 #endif
 
-struct __kernel_sock_timeval {
+struct __kernel_sock_timeval_ {
 	__s64 tv_sec;
 	__s64 tv_usec;
 };

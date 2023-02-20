@@ -965,7 +965,7 @@ int put_old_timespec32(const struct timespec64 *ts, void __user *uts)
 EXPORT_SYMBOL_GPL(put_old_timespec32);
 
 int get_itimerspec64(struct itimerspec64 *it,
-			const struct __kernel_itimerspec __user *uit)
+            const struct __kernel_itimerspec_ __user *uit)
 {
 	int ret;
 
@@ -980,7 +980,7 @@ int get_itimerspec64(struct itimerspec64 *it,
 EXPORT_SYMBOL_GPL(get_itimerspec64);
 
 int put_itimerspec64(const struct itimerspec64 *it,
-			struct __kernel_itimerspec __user *uit)
+            struct __kernel_itimerspec_ __user *uit)
 {
 	int ret;
 

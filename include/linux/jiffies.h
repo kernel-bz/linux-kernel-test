@@ -87,7 +87,7 @@ extern int register_refined_jiffies(long clock_tick_rate);
  */
 extern u64 __cacheline_aligned_in_smp jiffies_64;
 //extern unsigned long volatile __cacheline_aligned_in_smp __jiffy_arch_data jiffies;
-unsigned long volatile jiffies;
+static unsigned long volatile jiffies;
 
 #if (BITS_PER_LONG < 64)
 u64 get_jiffies_64(void);

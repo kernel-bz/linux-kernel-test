@@ -918,6 +918,9 @@ struct device_node *__of_find_node_by_full_path(struct device_node *node,
 {
     pr_fn_start_on(stack_depth);
 
+    if (!node)
+        return NULL;
+
     pr_view_on(stack_depth, "%20s : %s\n", node->name);
     pr_view_on(stack_depth, "%20s : %s\n", path);
 

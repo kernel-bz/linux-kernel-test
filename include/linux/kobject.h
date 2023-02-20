@@ -193,7 +193,7 @@ struct sock;
  * can add new environment variables, or filter out the uevents if so
  * desired.
  */
-struct kset {
+static struct kset {
 	struct list_head list;
 	spinlock_t list_lock;
 	struct kobject kobj;

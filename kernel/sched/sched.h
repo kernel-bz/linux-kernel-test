@@ -1622,13 +1622,13 @@ static inline struct sched_domain *lowest_flag_domain(int cpu, int flag)
 	return sd;
 }
 
-DECLARE_PER_CPU(struct sched_domain __rcu *, sd_llc);
-DECLARE_PER_CPU(int, sd_llc_size);
-DECLARE_PER_CPU(int, sd_llc_id);
-DECLARE_PER_CPU(struct sched_domain_shared __rcu *, sd_llc_shared);
-DECLARE_PER_CPU(struct sched_domain __rcu *, sd_numa);
-DECLARE_PER_CPU(struct sched_domain __rcu *, sd_asym_packing);
-DECLARE_PER_CPU(struct sched_domain __rcu *, sd_asym_cpucapacity);
+static DECLARE_PER_CPU(struct sched_domain __rcu *, sd_llc);
+static DECLARE_PER_CPU(int, sd_llc_size);
+static DECLARE_PER_CPU(int, sd_llc_id);
+static DECLARE_PER_CPU(struct sched_domain_shared __rcu *, sd_llc_shared);
+static DECLARE_PER_CPU(struct sched_domain __rcu *, sd_numa);
+static DECLARE_PER_CPU(struct sched_domain __rcu *, sd_asym_packing);
+static DECLARE_PER_CPU(struct sched_domain __rcu *, sd_asym_cpucapacity);
 extern struct static_key_false sched_asym_cpucapacity;
 
 struct sched_group_capacity {
@@ -2598,7 +2598,7 @@ static inline u64 irq_time_read(int cpu)
 #endif /* CONFIG_IRQ_TIME_ACCOUNTING */
 
 #ifdef CONFIG_CPU_FREQ
-DECLARE_PER_CPU(struct update_util_data __rcu *, cpufreq_update_util_data);
+static DECLARE_PER_CPU(struct update_util_data __rcu *, cpufreq_update_util_data);
 
 /**
  * cpufreq_update_util - Take a note about CPU utilization changes.

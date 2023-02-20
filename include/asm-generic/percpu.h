@@ -17,7 +17,7 @@
  */
 #ifndef __per_cpu_offset
 //extern unsigned long __per_cpu_offset[NR_CPUS];
-unsigned long __per_cpu_offset[NR_CPUS];
+static unsigned long __per_cpu_offset[NR_CPUS];
 
 #define per_cpu_offset(x) (__per_cpu_offset[x])
 #endif

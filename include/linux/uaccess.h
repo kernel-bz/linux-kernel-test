@@ -8,7 +8,7 @@
 #include <uapi/asm-generic/errno-base.h>
 
 #define USER_MEM (1024*1024)
-void *__user_addr_min, *__user_addr_max;
+static void *__user_addr_min, *__user_addr_max;
 
 static inline void __chk_user_ptr(const volatile void *p, size_t size)
 {
@@ -38,16 +38,16 @@ static void volatile_memcpy(volatile char *to, const volatile char *from,
 		*(to++) = *(from++);
 }
 
-static inline int copy_from_user(void *to, const void __user volatile *from,
-				 unsigned long n)
+//static inline int copy_from_user(void *to, const void __user volatile *from, unsigned long n)
+static inline int copy_from_user(void *to, const void volatile *from, unsigned long n)
 {
 	__chk_user_ptr(from, n);
 	volatile_memcpy(to, from, n);
 	return 0;
 }
 
-static inline int copy_to_user(void __user volatile *to, const void *from,
-			       unsigned long n)
+//static inline int copy_to_user(void __user volatile *to, const void *from, unsigned long n)
+static inline int copy_to_user(void volatile *to, const void *from, unsigned long n)
 {
 	__chk_user_ptr(to, n);
 	volatile_memcpy(to, from, n);
@@ -56,14 +56,15 @@ static inline int copy_to_user(void __user volatile *to, const void *from,
 
 
 //233 lines
-extern __must_check int check_zeroed_user(const void __user *from, size_t size);
+//extern __must_check int check_zeroed_user(const void __user *from, size_t size);
+extern __must_check int check_zeroed_user(const void *from, size_t size);
 
 
 
 //282 lines
 static __always_inline __must_check int
-copy_struct_from_user(void *dst, size_t ksize, const void __user *src,
-              size_t usize)
+//copy_struct_from_user(void *dst, size_t ksize, const void __user *src, size_t usize)
+copy_struct_from_user(void *dst, size_t ksize, const void *src, size_t usize)
 {
     size_t size = min(ksize, usize);
     size_t rest = max(ksize, usize) - size;

@@ -5535,8 +5535,8 @@ LIST_HEAD(task_groups);
 static struct kmem_cache *task_group_cache __read_mostly;
 #endif
 
-DECLARE_PER_CPU(cpumask_var_t, load_balance_mask);
-DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
+static DECLARE_PER_CPU(cpumask_var_t, load_balance_mask);
+static DECLARE_PER_CPU(cpumask_var_t, select_idle_mask);
 
 //init/main.c:
 //  start_kernel()

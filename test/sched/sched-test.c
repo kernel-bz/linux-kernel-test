@@ -20,7 +20,7 @@
 #include <kernel/sched/sched.h>
 #include <uapi/linux/prctl.h>
 
-struct task_struct *current_task;
+static struct task_struct *current_task;
 
 struct task_group *sched_test_tg_select(void)
 {

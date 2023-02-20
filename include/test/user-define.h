@@ -179,8 +179,7 @@ static inline void account_group_exec_runtime(struct task_struct *tsk,
 
 //kernel/printk/printk.c
 static int preferred_console = -1;
-int console_set_on_cmdline;
-EXPORT_SYMBOL(console_set_on_cmdline);
+static int console_set_on_cmdline;
 
 #define FW_BUG		"[Firmware Bug]: "
 #define FW_WARN		"[Firmware Warn]: "

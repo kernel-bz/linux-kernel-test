@@ -23,7 +23,7 @@
 struct user_namespace { };
 //kernel/user.c
 //extern struct user_namespace init_user_ns;
-struct user_namespace init_user_ns;
+static struct user_namespace init_user_ns;
 
 typedef struct {
 	uid_t val;
