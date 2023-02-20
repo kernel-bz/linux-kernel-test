@@ -13,12 +13,18 @@ Linux Kernel 소스를 user application(qt project)에서 실행 및 분석(디�
     docs/kanalyzer-menu-guide.pdf
 
 
-qt5와 urcu 패키지가 설치 되어 있어야 합니다.
+qt와 urcu 패키지가 설치 되어 있어야 합니다.
 
 
-2. qt5 설치
+2. qt 설치
 
+    우분투 배포본 버전 18.04에서 설치:
+    
     $ sudo apt-get install build-essential qtcreator qt5-default qt5-doc
+    
+    우분투 배포본 버전 22.04에서 설치:
+    
+    $ sudo apt-get install build-essential qtcreator qtbase5-dev qt5-qmake cmake qt6-base-dev
 
 
 3. userspace RCU 설치
@@ -35,13 +41,7 @@ qt5와 urcu 패키지가 설치 되어 있어야 합니다.
 
     소스에 대한 자세한 설명은 아래의 출판 서적을 참고 하시기 바랍니다.
     
-    책제목: "리눅스 커널 소스 해설2 [소스 실행 분석기]"
-    
-    알라딘: https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=266746032
-    
-    교보문고: http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9788997750153&orderClick=LET&Kc=
-    
-    예스24: http://www.yes24.com/Product/Goods/97963286
+    책제목: "리눅스 커널 소스 해설2 [소스 실행 분석기]"    
     
     커널연구회: https://www.kernel.bz/product/Books-15
         
