@@ -5433,6 +5433,10 @@ static void _show_pwq_info(struct pool_workqueue *pwq)
 
     pr_fn_start_on(stack_depth);
 
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(*pwq));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(*pwq));
+    //pr_view_on(stack_depth, "%30s : %d\n", __alignof__(struct pool_workqueue));
+
     pr_view_on(stack_depth, "%20s : %p\n", pwq);
     pr_view_on(stack_depth, "%20s : %p\n", pwq->pool);
     pr_view_on(stack_depth, "%20s : %d\n", pwq->pool->id);

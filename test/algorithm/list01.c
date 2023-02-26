@@ -10,7 +10,7 @@
 #include <linux/list.h>
 #include "test/debug.h"
 
-#if 0
+/**
 //include/linux/stddef.h
 #define offsetof(TYPE, MEMBER) ((unsigned long) &((TYPE *)0)->MEMBER)
 
@@ -34,12 +34,12 @@ static inline void INIT_LIST_HEAD(struct list_head *list)
 	list->next = list;
 	list->prev = list;
 }
-#endif
+*/
 
 static struct fox {
-	unsigned long tail_length;
-	unsigned long weight;
-	int			  is_fantastic;
+    unsigned long 		tail_length;
+    unsigned long 		weight;
+    int			  		is_fantastic;
 	struct list_head	list;
 };
 

@@ -169,17 +169,60 @@ DEFINE_STRUCT_TEST(test3) = {
 #define for_test_class_range(class, _from, _to) \
         for (class = (_from); class <= (_to); class++)
 
+
+#define DEFINE_STRUCT_ALIGN(name, align) \
+const struct test_class name##_class \
+        __aligned(align) __section(#name)
+
+DEFINE_STRUCT_ALIGN(align4_1, 16);		//1 << 4
+DEFINE_STRUCT_ALIGN(align4_2, 16);
+DEFINE_STRUCT_ALIGN(align4_3, 16);
+DEFINE_STRUCT_ALIGN(align8_1, 256);		//1 << 8
+DEFINE_STRUCT_ALIGN(align8_2, 256);
+DEFINE_STRUCT_ALIGN(align8_3, 256);
+DEFINE_STRUCT_ALIGN(align12_1, 1 << 12);
+DEFINE_STRUCT_ALIGN(align12_2, 1 << 12);
+DEFINE_STRUCT_ALIGN(align12_3, 1 << 12);
+
 void basic_struct_test2(void)
 {
-    printf("size=%d\n", sizeof(test1_class));
-    printf("%p\n", &test1_class);
-    printf("%p\n", &test2_class);
-    printf("%p\n\n", &test3_class);
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(test1_class));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(struct test_class));
+
+    pr_view_on(stack_depth, "%20s : %p\n", &test1_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &test2_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &test3_class);
 
     struct test_class *test_class;
     for_test_class_range(test_class, &test1_class, &test3_class)
-            printf("%p\n", test_class);
+            pr_view_on(stack_depth, "%30s : %p\n", test_class);
 
-    printf("%d\n", &test3_class - &test1_class);
+    pr_view_on(stack_depth, "%30s : %d\n", &test3_class - &test1_class);
+
+    pr_out_on(stack_depth, "\n");
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(align4_1_class));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(align4_1_class));
+    pr_view_on(stack_depth, "%20s : %p\n", &align4_1_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align4_2_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align4_3_class);
+    pr_view_on(stack_depth, "%30s : %d\n\n", &align4_3_class - &align4_1_class);
+
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(align8_1_class));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(align8_1_class));
+    pr_view_on(stack_depth, "%20s : %p\n", &align8_1_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align8_2_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align8_3_class);
+    pr_view_on(stack_depth, "%30s : %d\n\n", &align8_3_class - &align8_1_class);
+
+    pr_view_on(stack_depth, "%30s : %d\n", sizeof(align12_1_class));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(align12_1_class));
+    pr_view_on(stack_depth, "%20s : %p\n", &align12_1_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align12_2_class);
+    pr_view_on(stack_depth, "%20s : %p\n", &align12_3_class);
+    pr_view_on(stack_depth, "%30s : %d\n", &align12_3_class - &align12_1_class);
+
+    pr_fn_end_on(stack_depth);
 }
 
