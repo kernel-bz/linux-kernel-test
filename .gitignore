@@ -57,4 +57,4 @@ build-*
 build/
 
 # git
-.patch
+*.patch
