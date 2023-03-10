@@ -34,6 +34,7 @@ void list_test01(void);
 void list_test02(void);
 void list_test03(void);
 void list_test04(void);
+void list_test05(void);
 void lib_list_sort_test(void);
 void rbtree_test01(void);
 void rbtree_test02(void);

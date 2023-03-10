@@ -202,7 +202,8 @@ SOURCES += \
     kernel/workqueue.c \
     test/algorithm/hlist01.c \
     test/menu/wq.c \
-    kernel/kthread.c
+    kernel/kthread.c \
+    test/algorithm/list05.c
 
 HEADERS += \
     include/test/test.h \
