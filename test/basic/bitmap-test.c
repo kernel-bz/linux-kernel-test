@@ -96,6 +96,7 @@ static void _bitmap_test_03(void)
 {
     const u32 nbits = 80;
     unsigned long idx;
+    int nr_weight;
 
     pr_fn_start_on(stack_depth);
 
@@ -107,6 +108,9 @@ static void _bitmap_test_03(void)
     __set_bit(30, bitv);
 
     bits_printf(bitv, nbits);
+
+    nr_weight = __bitmap_weight(bitv, nbits);
+    pr_view_on(stack_depth, "%20s : %d\n", nr_weight);
 
     idx = find_first_bit(bitv, nbits);
     pr_view_on(stack_depth, "%20s : %u\n", idx);
