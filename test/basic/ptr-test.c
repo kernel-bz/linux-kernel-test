@@ -87,6 +87,55 @@ struct attr2 {
 struct attr attr_struct;
 struct attr2 attr2_struct;
 
+/**
+ * 데이터 타입별 포인터 연산을 확인하기 위한 _ptr_type_cast_test() 함수 추가
+ */
+static void _ptr_type_cast_test(void)
+{
+    pr_fn_start(stack_depth);
+
+    char a;
+    int b;
+    long c;
+
+    char *pa = &a;
+    int *pb = &b;
+    long *pc = &c;
+    void *pd;
+
+    pr_view(stack_depth, "%20s : %p\n", pa);
+    pr_view(stack_depth, "%20s : %p\n", ++pa);		//1
+    pr_view(stack_depth, "%20s : %p\n", pa + 1);	//offset 1
+
+    pr_view(stack_depth, "%20s : %p\n", pb);
+    pr_view(stack_depth, "%20s : %p\n", ++pb);		//4
+    pr_view(stack_depth, "%20s : %p\n", pb + 1);	//offset 4
+
+    pr_view(stack_depth, "%20s : %p\n", pc);
+    pr_view(stack_depth, "%20s : %p\n", ++pc);		//8
+    pr_view(stack_depth, "%20s : %p\n", pc + 1);	//offset 8
+
+    pr_out(stack_depth, "\n");
+    //포인터 데이터 타입을 (void *)로 형변환 하면 포인터 연산 offset은 1로 됨.
+
+    pd = (void*)pa;
+    pr_view(stack_depth, "%20s : %p\n", pd);
+    pr_view(stack_depth, "%20s : %p\n", ++pd);		//1(1)
+    pr_view(stack_depth, "%20s : %p\n", pd + 1);	//offset 1
+
+    pd = (void*)pb;
+    pr_view(stack_depth, "%20s : %p\n", pd);
+    pr_view(stack_depth, "%20s : %p\n", ++pd);		//4(1)
+    pr_view(stack_depth, "%20s : %p\n", pd + 1);	//offset 1
+
+    pd = (void*)pc;
+    pr_view(stack_depth, "%20s : %p\n", pd);
+    pr_view(stack_depth, "%20s : %p\n", ++pd);		//8(1)
+    pr_view(stack_depth, "%20s : %p\n", pd + 1);	//offset 1
+
+    pr_fn_end(stack_depth);
+}
+
 static void _ptr_offsetof_test(void)
 {
     pr_fn_start(stack_depth);
@@ -116,6 +165,8 @@ static void _ptr_offsetof_test(void)
     pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, c));
     pr_view(stack_depth, "%30s : %d\n", offsetofend(struct sample2, d));
     pr_view(stack_depth, "%30s : %d\n\n", offsetofend(struct sample2, e));
+
+    _ptr_type_cast_test();
 
     pr_fn_end(stack_depth);
 }
