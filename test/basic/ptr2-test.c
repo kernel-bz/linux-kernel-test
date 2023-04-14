@@ -24,9 +24,10 @@
 #endif
 
 struct data {
-    struct data *next;
     int a;
+    struct data *next;
 };
+
 struct data *head0 = NULL;
 struct data *head1 = NULL;
 struct data *head2 = NULL;
@@ -35,9 +36,9 @@ struct data **tails = &head0;
 
 //include/linux/rcu_segcblist.h
 struct dslist {
+    int len;
     struct data *head;
     struct data **tails[4];
-    int len;
 };
 
 #define DSLIST_INIT(n) \
@@ -60,8 +61,8 @@ static void data_add(struct dslist *ds, struct data *head, int idx, int a)
 
     *tails = dp;
     tails = &dp->next;
-    //pr_out(stack_depth, "dp: %p, %p, %p\n", dp, &dp->next, &dp);
-
+    pr_out(stack_depth, "idx: %d, dp: %p, %p, size: %u, %u\n",
+                            idx, dp, &dp->next, sizeof(*dp), sizeof(*ds));
     ds->head = head;
     *ds->tails[idx] = dp;
     ds->tails[idx] = &dp->next;
@@ -73,7 +74,7 @@ static void data_print(struct data *head)
     struct data *d;
 
     for (d = head; d; d = d->next)
-        pr_view(stack_depth, "%10s : %d\n", d->a);
+        pr_out(stack_depth, "data: %04d, %p\n", d->a, d);
 
     pr_fn_end(stack_depth);
 }
@@ -107,6 +108,7 @@ void basic_ptr2_test(void)
     data_print(head2);
     data_print(head3);
 
-    ds = container_of(ds->tails[1], struct dslist, head);
-    data_print(ds->head);
+    ds = container_of(head2, struct dslist, head);
+    //data_print(ds->head);
+    data_print(&ds->head);
 }

@@ -13,7 +13,7 @@ DEFINES += _POSIX_SOURCE \
 LIBS += -lpthread -lurcu
 
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
-#        -save-temps=obj \
+        -save-temps=obj \
         -Wvariadic-macros
 
 INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ \
