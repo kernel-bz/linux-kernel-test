@@ -62,6 +62,40 @@ static struct _worker_pool *_alloc_init_pool(int val)
 
 void hlist_test01(void)
 {
+    pr_fn_start_on(stack_depth);
+
+    //struct hlist_head name[8] == 1 << 3 == 2^3
+    static DEFINE_HASHTABLE(hash_table, 3);
+    u32 i, key = 0, index;
+    u32 count[ARRAY_SIZE(hash_table)] = {0, };
+
+    for (i = 0; i < 800; i++) {
+        key = i;
+        index = hash_min(key, HASH_BITS(hash_table));
+        count[index]++;
+    }
+
+    for (i = 0; i < ARRAY_SIZE(hash_table); i++)
+        pr_out_on(stack_depth, "i=%u, count=%u\n", i, count[i]);
+
+    for (i = 0; i < ARRAY_SIZE(hash_table); i++)
+        count[i] = 0;
+
+    pr_out_on(stack_depth, "\n");
+    for (i = 0; i < 800; i++) {
+        key = jhash_1word(key, i);
+        index = hash_min(key, HASH_BITS(hash_table));
+        count[index]++;
+    }
+    for (i = 0; i < ARRAY_SIZE(hash_table); i++)
+        pr_out_on(stack_depth, "i=%u, count=%u\n", i, count[i]);
+
+    pr_fn_end_on(stack_depth);
+}
+
+
+void hlist_test02(void)
+{
     struct workqueue_attrs *attrs = alloc_workqueue_attrs();
     struct _worker_pool *pool;
     int target_node = NUMA_NO_NODE;	//-1
@@ -100,7 +134,8 @@ void hlist_test01(void)
     hash_add(unbound_pool_hash, &pool->hash_node, hash);
     pr_view_on(stack_depth, "%40s : %d\n", hash_min(hash, HASH_BITS(unbound_pool_hash)));
 
-    hash_add(unbound_pool_hash, &pool->hash_node, hash);
+    //collision
+    //hash_add(unbound_pool_hash, &pool->hash_node, hash);
 
     pool = _alloc_init_pool(2);
     if (!pool)

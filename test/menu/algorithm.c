@@ -142,12 +142,13 @@ static int _algo_struct_menu(int asize)
     printf(" 5: Linked List Test05.\n");
     printf(" 6: List Sort Test.\n");
     printf(" 7: Hash List Test01.\n");
-    printf(" 8: Red-Black Tree Test01.\n");
-    printf(" 9: Red-Black Tree Test02.\n");
-    printf("10: Red-Black Tree Test03.\n");
-    printf("11: XArray Test -->\n");
-    printf("12: Maple Tree Test -->\n");
-    printf("13: help.\n");
+    printf(" 8: Hash List Test02.\n");
+    printf(" 9: Red-Black Tree Test01.\n");
+    printf("10: Red-Black Tree Test02.\n");
+    printf("11: Red-Black Tree Test03.\n");
+    printf("12: XArray Test -->\n");
+    printf("13: Maple Tree Test -->\n");
+    printf("14: help.\n");
     printf("\n");
 
     printf("Enter Menu Number[0,%d]: ", asize - 1);
@@ -167,6 +168,7 @@ void menu_algorithm(void)
         , list_test05
         , lib_list_sort_test
         , hlist_test01
+        , hlist_test02
         , rbtree_test01
         , rbtree_test02
         , rbtree_test03
