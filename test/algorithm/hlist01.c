@@ -14,6 +14,9 @@
 
 #include "test/debug.h"
 #include "test/user-types.h"
+
+#include "lib/list-test.c"
+
 //include/linux/types.h
 /**
 struct hlist_head {
@@ -93,8 +96,39 @@ void hlist_test01(void)
     pr_fn_end_on(stack_depth);
 }
 
-
+/**
+ * @brief hlist_test02
+ * struct hlist_test_struct {
+ * 	  	int data;
+ *		struct hlist_node list;
+ *	};
+ */
 void hlist_test02(void)
+{
+    //refer: hlist_test_for_each_entry() in the lib/list-test.c
+    struct hlist_test_struct entries[5], *cur;
+    HLIST_HEAD(list);
+    int i = 0;
+
+    entries[0].data = 0;
+    hlist_add_head(&entries[0].list, &list);
+    for (i = 1; i < 5; ++i) {
+        entries[i].data = i;
+        hlist_add_behind(&entries[i].list, &entries[i-1].list);
+    }
+
+    i = 0;
+
+    //cur == pos
+    //(pos, head, member)
+    hlist_for_each_entry(cur, &list, list) {
+        //KUNIT_EXPECT_EQ(test, cur->data, i);
+        pr_out_on(stack_depth, "i=%u, data=%d\n", i, cur->data);
+        i++;
+    }
+}
+
+void hlist_test03(void)
 {
     struct workqueue_attrs *attrs = alloc_workqueue_attrs();
     struct _worker_pool *pool;

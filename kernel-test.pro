@@ -13,7 +13,7 @@ DEFINES += _POSIX_SOURCE \
 LIBS += -lpthread -lurcu
 
 QMAKE_CFLAGS += -w -Wno-unused-parameter -finstrument-functions \
-        -save-temps=obj \
+#        -save-temps=obj \
         -Wvariadic-macros
 
 INCLUDEPATH += include/ lib/ lib/traceevent/ scripts/ \
@@ -203,7 +203,9 @@ SOURCES += \
     test/algorithm/hlist01.c \
     test/menu/wq.c \
     kernel/kthread.c \
-    test/algorithm/list05.c
+    test/algorithm/list05.c \
+    lib/list-test.c \
+    lib/list-test.c
 
 HEADERS += \
     include/test/test.h \
@@ -668,7 +670,13 @@ HEADERS += \
     include/linux/byteorder/generic.h \
     include/asm-generic/unaligned.h \
     include/linux/rbtree_types.h \
-    include/linux/rcuwait.h
+    include/linux/rcuwait.h \
+    include/kunit/test.h \
+    include/kunit/assert.h \
+    include/kunit/resource.h \
+    include/kunit/test-bug.h \
+    include/kunit/try-catch.h \
+    include/kunit/visibility.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \
