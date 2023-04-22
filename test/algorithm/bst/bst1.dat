@@ -1,0 +1,12 @@
+insert boy 23
+insert emerald 70
+insert cola 30
+insert dog 40
+insert ace 10
+insert bug 27
+insert boy 90
+print
+get boy
+get emerald
+get dog
+get hohoho

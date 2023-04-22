@@ -1,0 +1,15 @@
+insert xboy 23
+insert xemerald 70
+insert xcola 30
+insert xdog 40
+insert xace 10
+insert xboy 90
+print
+rankget 4
+delete xcola
+delete xemerald
+print
+get xboy
+get xemerald
+get xdog
+get xhohoho
