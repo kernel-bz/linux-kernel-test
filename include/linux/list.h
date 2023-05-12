@@ -934,7 +934,7 @@ static inline void list_del_range(struct list_head *begin,
 }
 
 /**
- * list_for_each_from	-	iterate over a list from one of its nodes
+ * list_for_each_from	-	iterate over a list from one of its Nodes
  * @pos:  the &struct list_head to use as a loop cursor, from where to start
  * @head: the head for your list.
  */

@@ -415,7 +415,7 @@ retry_ipi:
 }
 
 /*
- * Select the nodes that the upcoming expedited grace period needs
+ * Select the Nodes that the upcoming expedited grace period needs
  * to wait for.
  */
 static void sync_rcu_exp_select_cpus(void)

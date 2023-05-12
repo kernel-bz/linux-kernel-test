@@ -292,7 +292,7 @@ static void reverse_nodes(struct device_node *parent)
 		child = child->sibling;
 	}
 
-	/* Reverse the nodes in the child list */
+	/* Reverse the Nodes in the child list */
 	child = parent->child;
 	parent->child = NULL;
 	while (child) {
@@ -307,7 +307,7 @@ static void reverse_nodes(struct device_node *parent)
 /**
  * unflatten_dt_nodes - Alloc and populate a device_node from the flat tree
  * @blob: The parent device tree blob
- * @mem: Memory chunk to use for allocating device nodes and properties
+ * @mem: Memory chunk to use for allocating device Nodes and properties
  * @dad: Parent struct device_node
  * @nodepp: The device_node tree created by the call
  *
@@ -332,10 +332,10 @@ static int unflatten_dt_nodes(const void *blob,
 
 	/*
 	 * We're unflattening device sub-tree if @dad is valid. There are
-	 * possibly multiple nodes in the first level of depth. We need
+	 * possibly multiple Nodes in the first level of depth. We need
 	 * set @depth to 1 to make fdt_next_node() happy as it bails
 	 * immediately when negative @depth is found. Otherwise, the device
-	 * nodes except the first one won't be unflattened successfully.
+	 * Nodes except the first one won't be unflattened successfully.
 	 */
 	if (dad)
 		depth = initial_depth = 1;
@@ -389,7 +389,7 @@ static int unflatten_dt_nodes(const void *blob,
  *
  * unflattens a device-tree, creating the
  * tree of struct device_node. It also fills the "name" and "type"
- * pointers of the nodes so the normal device-tree walking functions
+ * pointers of the Nodes so the normal device-tree walking functions
  * can be used.
  * @blob: The blob to expand
  * @dad: Parent device node
@@ -478,7 +478,7 @@ static DEFINE_MUTEX(of_fdt_unflatten_mutex);
  *
  * unflattens the device-tree passed by the firmware, creating the
  * tree of struct device_node. It also fills the "name" and "type"
- * pointers of the nodes so the normal device-tree walking functions
+ * pointers of the Nodes so the normal device-tree walking functions
  * can be used.
  *
  * Returns NULL on failure or the memory chunk containing the unflattened
@@ -700,11 +700,11 @@ int __init of_scan_flat_dt(int (*it)(unsigned long node,
 }
 
 /**
- * of_scan_flat_dt_subnodes - scan sub-nodes of a node call callback on each.
+ * of_scan_flat_dt_subnodes - scan sub-Nodes of a node call callback on each.
  * @it: callback function
  * @data: context data pointer
  *
- * This function is used to scan sub-nodes of a node.
+ * This function is used to scan sub-Nodes of a node.
  */
 int __init of_scan_flat_dt_subnodes(unsigned long parent,
 				    int (*it)(unsigned long node,
@@ -1056,7 +1056,7 @@ u64 __init dt_mem_next_cell(int s, const __be32 **cellp)
 }
 
 /**
- * early_init_dt_scan_memory - Look for and parse memory nodes
+ * early_init_dt_scan_memory - Look for and parse memory Nodes
  */
 int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 				     int depth, void *data)
@@ -1066,7 +1066,7 @@ int __init early_init_dt_scan_memory(unsigned long node, const char *uname,
 	int l;
 	bool hotpluggable;
 
-    /* We are scanning "memory" nodes only */
+    /* We are scanning "memory" Nodes only */
 	if (type == NULL || strcmp(type, "memory") != 0)
 		return 0;
 
@@ -1335,7 +1335,7 @@ bool __init early_init_dt_scan(void *params)
  *
  * unflattens the device-tree passed by the firmware, creating the
  * tree of struct device_node. It also fills the "name" and "type"
- * pointers of the nodes so the normal device-tree walking functions
+ * pointers of the Nodes so the normal device-tree walking functions
  * can be used.
  */
 void __init unflatten_device_tree(void)
@@ -1348,7 +1348,7 @@ void __init unflatten_device_tree(void)
 	__unflatten_device_tree(initial_boot_params, NULL, &of_root,
 				early_init_dt_alloc_memory_arch, false);
 
-	/* Get pointer to "/chosen" and "/aliases" nodes for use everywhere */
+	/* Get pointer to "/chosen" and "/aliases" Nodes for use everywhere */
     of_alias_scan(early_init_dt_alloc_memory_arch);
 
     //unittest_unflatten_overlay_base();
@@ -1361,7 +1361,7 @@ void __init unflatten_device_tree(void)
  *
  * Copies and unflattens the device-tree passed by the firmware, creating the
  * tree of struct device_node. It also fills the "name" and "type"
- * pointers of the nodes so the normal device-tree walking functions
+ * pointers of the Nodes so the normal device-tree walking functions
  * can be used. This should only be used when the FDT memory has not been
  * reserved such is the case when the FDT is built-in to the kernel init
  * section. If the FDT memory is reserved already then unflatten_device_tree

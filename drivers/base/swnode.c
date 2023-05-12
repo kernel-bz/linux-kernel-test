@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Software nodes for the firmware node framework.
+ * Software Nodes for the firmware node framework.
  *
  * Copyright (C) 2018, Intel Corporation
  * Author: Heikki Krogerus <heikki.krogerus@linux.intel.com>
@@ -748,20 +748,20 @@ out_err:
 }
 
 /**
- * software_node_register_nodes - Register an array of software nodes
- * @nodes: Zero terminated array of software nodes to be registered
+ * software_node_register_nodes - Register an array of software Nodes
+ * @Nodes: Zero terminated array of software Nodes to be registered
  *
- * Register multiple software nodes at once.
+ * Register multiple software Nodes at once.
  */
-int software_node_register_nodes(const struct software_node *nodes)
+int software_node_register_nodes(const struct software_node *Nodes)
 {
 	int ret;
 	int i;
 
-	for (i = 0; nodes[i].name; i++) {
-		ret = software_node_register(&nodes[i]);
+	for (i = 0; Nodes[i].name; i++) {
+		ret = software_node_register(&Nodes[i]);
 		if (ret) {
-			software_node_unregister_nodes(nodes);
+			software_node_unregister_nodes(Nodes);
 			return ret;
 		}
 	}
@@ -771,18 +771,18 @@ int software_node_register_nodes(const struct software_node *nodes)
 EXPORT_SYMBOL_GPL(software_node_register_nodes);
 
 /**
- * software_node_unregister_nodes - Unregister an array of software nodes
- * @nodes: Zero terminated array of software nodes to be unregistered
+ * software_node_unregister_nodes - Unregister an array of software Nodes
+ * @Nodes: Zero terminated array of software Nodes to be unregistered
  *
- * Unregister multiple software nodes at once.
+ * Unregister multiple software Nodes at once.
  */
-void software_node_unregister_nodes(const struct software_node *nodes)
+void software_node_unregister_nodes(const struct software_node *Nodes)
 {
 	struct swnode *swnode;
 	int i;
 
-	for (i = 0; nodes[i].name; i++) {
-		swnode = software_node_to_swnode(&nodes[i]);
+	for (i = 0; Nodes[i].name; i++) {
+		swnode = software_node_to_swnode(&Nodes[i]);
 		if (swnode)
 			fwnode_remove_software_node(&swnode->fwnode);
 	}

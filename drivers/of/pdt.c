@@ -210,6 +210,6 @@ void __init of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops)
 	of_root->child = of_pdt_build_tree(of_root,
 				of_pdt_prom_ops->getchild(of_root->phandle));
 
-	/* Get pointer to "/chosen" and "/aliases" nodes for use everywhere */
+	/* Get pointer to "/chosen" and "/aliases" Nodes for use everywhere */
 	of_alias_scan(kernel_tree_alloc);
 }

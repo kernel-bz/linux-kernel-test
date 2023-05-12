@@ -440,7 +440,7 @@ typedef void *acpi_handle;	/* Actually a ptr to a NS Node */
 
 #define ACPI_TIME_AFTER(a, b)           ((s64)((b) - (a)) < 0)
 
-/* Owner IDs are used to track namespace nodes for selective deletion */
+/* Owner IDs are used to track namespace Nodes for selective deletion */
 
 typedef u16 acpi_owner_id;
 #define ACPI_OWNER_ID_MAX               0xFFF	/* 4095 possible owner IDs */

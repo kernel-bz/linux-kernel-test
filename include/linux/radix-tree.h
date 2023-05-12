@@ -144,7 +144,7 @@ struct radix_tree_iter {
  *
  * Note that the value returned by radix_tree_tag_get() may not be relied upon
  * if only the RCU read lock is held.  Functions to set/clear tags and to
- * delete nodes running concurrently with it may affect its result such that
+ * delete Nodes running concurrently with it may affect its result such that
  * two consecutive reads in the same locked section may return different
  * values.  If reliability is required, modification functions must also be
  * excluded from concurrency.

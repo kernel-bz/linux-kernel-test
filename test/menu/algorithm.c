@@ -144,9 +144,9 @@ static int _algo_struct_menu(int asize)
     printf(" 7: Hash List Test01.\n");
     printf(" 8: Hash List Test02.\n");
     printf(" 9: Hash List Test03.\n");
-    printf("10: Red-Black Tree Test01.\n");
-    printf("11: Red-Black Tree Test02.\n");
-    printf("12: Red-Black Tree Test03.\n");
+    printf("10: Red-Black Tree Test01(basic)\n");
+    printf("11: Red-Black Tree Test02(augment)\n");
+    printf("12: Red-Black Tree Test03(all).\n");
     printf("13: XArray Test -->\n");
     printf("14: Maple Tree Test -->\n");
     printf("15: help.\n");

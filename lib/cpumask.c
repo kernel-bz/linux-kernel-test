@@ -227,7 +227,7 @@ unsigned int cpumask_local_spread(unsigned int i, int node)
 				return cpu;
 
 		for_each_cpu(cpu, cpu_online_mask) {
-			/* Skip NUMA nodes, done above. */
+			/* Skip NUMA Nodes, done above. */
 			if (cpumask_test_cpu(cpu, cpumask_of_node(node)))
 				continue;
 

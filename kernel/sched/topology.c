@@ -850,7 +850,7 @@ int group_balance_cpu(struct sched_group *sg)
  *
  * We want to construct domains and groups to represent this. The way we go
  * about doing this is to build the domains on 'hops'. For each NUMA level we
- * construct the mask of all nodes reachable in @level hops.
+ * construct the mask of all Nodes reachable in @level hops.
  *
  * For the above NUMA topology that gives 3 levels:
  *
@@ -864,7 +864,7 @@ int group_balance_cpu(struct sched_group *sg)
  *
  *
  * As can be seen; things don't nicely line up as with the regular topology.
- * When we iterate a domain in child domain chunks some nodes can be
+ * When we iterate a domain in child domain chunks some Nodes can be
  * represented multiple times -- hence the "overlap" naming for this part of
  * the topology.
  *
@@ -909,7 +909,7 @@ int group_balance_cpu(struct sched_group *sg)
  *   | /     |
  *   2 ----- 3
  *
- * This topology is asymmetric, nodes 1,2 are fully connected, but nodes 0,3
+ * This topology is asymmetric, Nodes 1,2 are fully connected, but Nodes 0,3
  * are not.
  *
  * This leads to a few particularly weird cases where the sched_domain's are
@@ -1752,22 +1752,22 @@ bool find_numa_distance(int distance)
 
 /*
  * A system can have three types of NUMA topology:
- * NUMA_DIRECT: all nodes are directly connected, or not a NUMA system
- * NUMA_GLUELESS_MESH: some nodes reachable through intermediary nodes
- * NUMA_BACKPLANE: nodes can reach other nodes through a backplane
+ * NUMA_DIRECT: all Nodes are directly connected, or not a NUMA system
+ * NUMA_GLUELESS_MESH: some Nodes reachable through intermediary Nodes
+ * NUMA_BACKPLANE: Nodes can reach other Nodes through a backplane
  *
  * The difference between a glueless mesh topology and a backplane
  * topology lies in whether communication between not directly
- * connected nodes goes through intermediary nodes (where programs
+ * connected Nodes goes through intermediary Nodes (where programs
  * could run), or through backplane controllers. This affects
  * placement of programs.
  *
  * The type of topology can be discerned with the following tests:
- * - If the maximum distance between any nodes is 1 hop, the system
+ * - If the maximum distance between any Nodes is 1 hop, the system
  *   is directly connected.
- * - If for two nodes A and B, located N > 1 hops away from each other,
+ * - If for two Nodes A and B, located N > 1 hops away from each other,
  *   there is an intermediary node C, which is < N hops away from both
- *   nodes A and B, the system is a glueless mesh.
+ *   Nodes A and B, the system is a glueless mesh.
  */
 static void init_numa_topology_type(void)
 {
@@ -1785,7 +1785,7 @@ static void init_numa_topology_type(void)
 
 	for_each_online_node(a) {
 		for_each_online_node(b) {
-			/* Find two nodes furthest removed from each other. */
+			/* Find two Nodes furthest removed from each other. */
 			if (node_distance(a, b) < n)
 				continue;
 
@@ -1918,7 +1918,7 @@ void sched_init_numa(void)
         return;
     /*
      * Now for each level, construct a mask per node which contains all
-     * CPUs of nodes that are that many hops away from us.
+     * CPUs of Nodes that are that many hops away from us.
      */
     for (i = 0; i < level; i++) {
         sched_domains_numa_masks[i] =
@@ -2377,7 +2377,7 @@ build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr *att
     //pr_topology_info_tl_sd(cpu_map);
 
     pr_out_on(stack_depth, "Calculate CPU capacity ========================\n");
-    /* Calculate CPU capacity for physical packages and nodes */
+    /* Calculate CPU capacity for physical packages and Nodes */
     for (i = nr_cpumask_bits-1; i >= 0; i--) {
         pr_out_on(stack_depth, "-------------------------------------------\n");
         pr_view_on(stack_depth, "%10s : cpu: %d\n", i);

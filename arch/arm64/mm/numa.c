@@ -71,7 +71,7 @@ static void __init setup_node_to_cpumask_map(void)
         }
 
         /* cpumask_of_node() will now work */
-        pr_debug("Node to cpumask map for %u nodes\n", nr_node_ids);
+        pr_debug("Node to cpumask map for %u Nodes\n", nr_node_ids);
 }
 
 

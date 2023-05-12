@@ -477,9 +477,9 @@ struct of_intc_desc {
 
 /**
  * of_irq_init - Scan and init matching interrupt controllers in DT
- * @matches: 0 terminated array of nodes to match and init function to call
+ * @matches: 0 terminated array of Nodes to match and init function to call
  *
- * This function scans the device tree for matching interrupt controller nodes,
+ * This function scans the device tree for matching interrupt controller Nodes,
  * and calls their initialization functions in order with parents first.
  */
 void __init of_irq_init(const struct of_device_id *matches)

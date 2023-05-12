@@ -24,7 +24,7 @@
  * reference count of the previous klist_node and increments the count of
  * the next klist_node. It then drops the lock and returns.
  *
- * There are primitives for adding and removing nodes to/from a klist.
+ * There are primitives for adding and removing Nodes to/from a klist.
  * When deleting, klist_del() will simply decrement the reference count.
  * Only when the count goes to 0 is the node removed from the list.
  * klist_remove() will try to delete the node from the list and block until
@@ -38,7 +38,7 @@
 #include <linux/sched.h>
 
 /*
- * Use the lowest bit of n_klist to mark deleted nodes and exclude
+ * Use the lowest bit of n_klist to mark deleted Nodes and exclude
  * dead ones from iteration.
  */
 #define KNODE_DEAD		1LU

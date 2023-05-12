@@ -16,8 +16,8 @@
  * struct of_dev_auxdata - lookup table entry for device names & platform_data
  * @compatible: compatible value of node to match against node
  * @phys_addr: Start address of registers to match against node
- * @name: Name to assign for matching nodes
- * @platform_data: platform_data to assign for matching nodes
+ * @name: Name to assign for matching Nodes
+ * @platform_data: platform_data to assign for matching Nodes
  *
  * This lookup table allows the caller of of_platform_populate() to override
  * the names of devices when creating devices from the device tree.  The table

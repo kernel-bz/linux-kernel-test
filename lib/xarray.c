@@ -474,7 +474,7 @@ static void xas_destroy(struct xa_state *xas)
  * @xas: XArray operation state.
  * @gfp: Memory allocation flags.
  *
- * If we need to add new nodes to the XArray, we try to allocate memory
+ * If we need to add new Nodes to the XArray, we try to allocate memory
  * with GFP_NOWAIT while holding the lock, which will usually succeed.
  * If it fails, @xas is flagged as needing memory to continue.  The caller
  * should drop the lock and call xas_nomem().  If xas_nomem() succeeds,
@@ -482,7 +482,7 @@ static void xas_destroy(struct xa_state *xas)
  *
  * Forward progress is guaranteed as one node is allocated here and
  * stored in the xa_state where it will be found by xas_alloc().  More
- * nodes will likely be found in the slab allocator, but we do not tie
+ * Nodes will likely be found in the slab allocator, but we do not tie
  * them up here.
  *
  * Return: true if memory was needed, and was successfully allocated.
@@ -813,7 +813,7 @@ static void xas_delete_node(struct xa_state *xas)
 }
 
 /**
- * xas_free_nodes() - Free this node and all nodes that it references
+ * xas_free_nodes() - Free this node and all Nodes that it references
  * @xas: Array operation state.
  * @top: Node to free
  *
@@ -857,7 +857,7 @@ static void xas_free_nodes(struct xa_state *xas, struct xa_node *top)
 }
 
 /*
- * xas_expand adds nodes to the head of the tree until it has reached
+ * xas_expand adds Nodes to the head of the tree until it has reached
  * sufficient height to be able to contain @xas->xa_index
  */
 static int xas_expand(struct xa_state *xas, void *head)
@@ -1482,7 +1482,7 @@ static void node_set_marks(struct xa_node *node, unsigned int offset,
  * @gfp: Memory allocation flags.
  *
  * This function should be called before calling xas_split().
- * If necessary, it will allocate new nodes (and fill them with @entry)
+ * If necessary, it will allocate new Nodes (and fill them with @entry)
  * to prepare for the upcoming split of an entry of @order size into
  * entries of the order stored in the @xas.
  *
@@ -2949,7 +2949,7 @@ EXPORT_SYMBOL(xa_extract);
 /**
  * xa_delete_node() - Private interface for workingset code.
  * @node: Node to be removed from the tree.
- * @update: Function to call to update ancestor nodes.
+ * @update: Function to call to update ancestor Nodes.
  *
  * Context: xa_lock must be held on entry and will not be released.
  */

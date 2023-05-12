@@ -327,7 +327,7 @@ void xa_main_test(void)
     printf("single_thread_tests()...\n");
     single_thread_tests(long_run);
 
-	/* Free any remaining preallocated nodes */
+	/* Free any remaining preallocated Nodes */
 	radix_tree_cpu_dead(0);
 
     printf("benchmark()...\n");

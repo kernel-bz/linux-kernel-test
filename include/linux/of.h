@@ -133,7 +133,7 @@ static inline struct device_node *of_node_get(struct device_node *node)
 static inline void of_node_put(struct device_node *node) { }
 #endif /* !CONFIG_OF_DYNAMIC */
 
-/* Pointer for first entry in chain of all nodes. */
+/* Pointer for first entry in chain of all Nodes. */
 extern struct device_node *of_root;
 extern struct device_node *of_chosen;
 extern struct device_node *of_aliases;

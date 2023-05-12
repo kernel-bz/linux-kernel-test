@@ -15,59 +15,27 @@
 #include <linux/rbtree_augmented.h>
 #include <linux/random_.h>
 
+#include "test/algorithm/rbtree/rbtest.h"
+
 #define NodeCnt     8
+static struct rb_test_struct Nodes[NodeCnt];
 
-struct rb_test {
-	u32 key;
-	struct rb_node rb;
-
-	///following fields used for testing augmented rbtree functionality
-	u32 val;
-	u32 augmented;
-};
-
-static struct rb_root root = RB_ROOT;
-static struct rb_test Nodes[NodeCnt];
-
-static void rbtree_insert(struct rb_test *node, struct rb_root *root)
-{
-	struct rb_node **new = &root->rb_node, *parent = NULL;
-	u32 key = node->key;
-	unsigned int level = 0;
-
-	while (*new) {
-		parent = *new;
-		level++;
-		///container_of(ptr, type, member)
-		if (key < rb_entry(parent, struct rb_test, rb)->key)
-			new = &parent->rb_left;
-		else
-			new = &parent->rb_right;
-	}
-
-    if (level > 3)
-        printf("search level=%d\n",level);
-
-	rb_link_node(&node->rb, parent, new);
-	rb_insert_color(&node->rb, root);
-}
-
-static inline void rbtree_erase(struct rb_test *node, struct rb_root *root)
+static inline void rbtree_erase(struct rb_test_struct *node, struct rb_root *root)
 {
 	rb_erase(&node->rb, root);
 }
 
-static inline u32 augment_recompute(struct rb_test *node)
+static inline u32 augment_recompute(struct rb_test_struct *node)
 {
 	u32 max = node->val, child_augmented;
 	if (node->rb.rb_left) {
-		child_augmented = rb_entry(node->rb.rb_left, struct rb_test,
+        child_augmented = rb_entry(node->rb.rb_left, struct rb_test_struct,
 					   rb)->augmented;
 		if (max < child_augmented)
 			max = child_augmented;
 	}
 	if (node->rb.rb_right) {
-		child_augmented = rb_entry(node->rb.rb_right, struct rb_test,
+        child_augmented = rb_entry(node->rb.rb_right, struct rb_test_struct,
 					   rb)->augmented;
 		if (max < child_augmented)
 			max = child_augmented;
@@ -75,19 +43,19 @@ static inline u32 augment_recompute(struct rb_test *node)
 	return max;
 }
 
-RB_DECLARE_CALLBACKS_MAX(static, augment_callbacks, struct rb_test, rb,
+RB_DECLARE_CALLBACKS_MAX(static, augment_callbacks, struct rb_test_struct, rb,
 		     u32, augmented, augment_recompute)
 
-static void rbtree_insert_augmented(struct rb_test *node, struct rb_root *root)
+static void rbtree_insert_augmented(struct rb_test_struct *node, struct rb_root *root)
 {
 	struct rb_node **new = &root->rb_node, *rb_parent = NULL;
 	u32 key = node->key;
 	u32 val = node->val;
-	struct rb_test *parent;
+    struct rb_test_struct *parent;
 
 	while (*new) {
 		rb_parent = *new;
-		parent = rb_entry(rb_parent, struct rb_test, rb);
+        parent = rb_entry(rb_parent, struct rb_test_struct, rb);
 		if (parent->augmented < val)
 			parent->augmented = val;
 		if (key < parent->key)
@@ -98,10 +66,10 @@ static void rbtree_insert_augmented(struct rb_test *node, struct rb_root *root)
 
 	node->augmented = val;
 	rb_link_node(&node->rb, rb_parent, new);
-	rb_insert_augmented(&node->rb, root, &augment_callbacks);
+    rb_insert_augmented(&node->rb, root, &augment_callbacks);
 }
 
-static void rbtree_erase_augmented(struct rb_test *node, struct rb_root *root)
+static void rbtree_erase_augmented(struct rb_test_struct *node, struct rb_root *root)
 {
 	rb_erase_augmented(&node->rb, root, &augment_callbacks);
 }
@@ -119,162 +87,54 @@ static int black_path_count(struct rb_node *rb)
 	return count;
 }
 
-static void rbtree_search_postorder_foreach(int nr_nodes)
+static void rbtree_nodes_init(void)
 {
-	struct rb_test *cur, *n;
-	int count = 0;
-	rbtree_postorder_for_each_entry_safe(cur, n, &root, rb)
-		count++;
-
-    WARN_ON_ONCE(count != nr_nodes);
-}
-
-static void rbtree_search_postorder(int nr_nodes)
-{
-	struct rb_node *rb;
-	int count = 0;
-	for (rb = rb_first_postorder(&root); rb; rb = rb_next_postorder(rb))
-		count++;
-
-    WARN_ON_ONCE(count != nr_nodes);
-}
-
-static void rbtree_search(int nr_nodes)
-{
-	struct rb_node *rb;
-	int count = 0, blacks = 0;
-	u32 prev_key = 0;
-
-	printf("rbtree_search ----------------------------------\n");
-
-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-		struct rb_test *node = rb_entry(rb, struct rb_test, rb);
-
-        /**
-		WARN_ON_ONCE(node->key < prev_key);
-		WARN_ON_ONCE(is_red(rb) && (!rb_parent(rb) || is_red(rb_parent(rb))));
-		if (!count)
-			blacks = black_path_count(rb);
-		else
-			WARN_ON_ONCE((!rb->rb_left || !rb->rb_right) && blacks != black_path_count(rb));
-		*/
-
-		prev_key = node->key;
-		printf("%d: 0x%X: %d\n", count, &node->rb, prev_key);
-		count++;
-	}
-	printf("\n");
-
-    WARN_ON_ONCE(count != nr_nodes);
-	///WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root))) - 1);
-
-    rbtree_search_postorder(nr_nodes);
-    rbtree_search_postorder_foreach(nr_nodes);
-}
-
-static void rbtree_search_augmented(int nr_nodes)
-{
-	struct rb_node *rb;
-
-	rbtree_search(nr_nodes);
-	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-		struct rb_test *node = rb_entry(rb, struct rb_test, rb);
-		///WARN_ON_ONCE(node->augmented != augment_recompute(node));
-	}
-}
-
-static void rbtree_nodes_init(int idx)
-{
-    int keys[3][8] = { { 10, 20, 30, 40, 50, 60, 70, 80 },
-                       { 80, 70, 60, 50, 40, 30, 20, 10 },
-                       { 10, 30, 20, 50, 40, 25, 22, 35 } };
+    int keys[2][8] = { {  10,  20,  30,  40,  50,  60,  70,  80 },
+                       { 100, 200, 300, 400, 500, 600, 700, 800 } };
 	int i;
-
-    printf("rbtree_nodes_init(%d) ==============================\n", idx);
 	for (i = 0; i < NodeCnt; i++) {
-		Nodes[i].key = keys[idx][i];
-		printf("%d: 0x%X: %d\n", i, &Nodes[i].rb, keys[idx][i]);
+        Nodes[i].key = keys[0][i];
+        Nodes[i].val = keys[1][i];
 	}
 }
 
-static int rbtree_test(void)
+static void rbtree_nodes_travel(struct rb_root *root)
 {
-	int j;
-    //struct timeval time1, time2, time3;
-    time_t time1, time2, time3;  ///long int
-
-    printf("rbtree insert testing...wait...\n");
-    //gettimeofday(&time1);
-    time(&time1);
-
-    for (j = 0; j < NodeCnt; j++)
-		rbtree_insert(Nodes + j, &root);
-
-    rbtree_search(NodeCnt);
-
-    printf("rbtree erase testing...wait...\n");
-
-	for (j = 0; j < NodeCnt; j++)
-		rbtree_erase(Nodes + j, &root);
-
-    rbtree_search(0);
-
-    //gettimeofday(&time2);	//error
-    //time3.tv_sec = time2.tv_sec - time1.tv_sec;
-    //time3.tv_usec = time2.tv_usec - time1.tv_usec;
-    //printf("*runtime: %d sec %d usec\n\n", time3.tv_sec, time3.tv_usec);
-    time(&time2);
-    time3 = time2 - time1;
-    printf("*runtime: %d seconds\n", time3);
-
-	return 0;
+    int keys[8] = { 10,  20,  30,  40,  50,  60,  70,  80 };
+    int i;
+    for (i = 0; i < NodeCnt; i++) {
+        rb_test_search(root, keys[i]);
+    }
 }
 
-
-static int rbtree_augmented_test(void)
+static void rbtree_augmented_test(struct rb_root *root)
 {
-	int j;
-    //struct timeval time1, time2, time3;
-    time_t time1, time2, time3;  ///long int
+    int i;
 
-	printf("augmented rbtree insert testing...wait...\n");
-    //gettimeofday(&time1);
-    time(&time1);
+    for (i = 0; i < NodeCnt; i++)
+        rbtree_insert_augmented(Nodes + i, root);
 
-    for (j = 0; j < NodeCnt; j++)
-        rbtree_insert_augmented(Nodes + j, &root);
+    rbtree_nodes_travel(root);
 
-    rbtree_search(NodeCnt);
+    rb_test_output(root);
 
-    printf("augmented rbtree erase testing...wait...\n");
+    rb_test_output_postorder(root);
 
-    for (j = 0; j < NodeCnt; j++)
-        rbtree_erase_augmented(Nodes + j, &root);
+    for (i = 0; i < NodeCnt; i++)
+        rbtree_erase_augmented(Nodes + i, root);
 
-    rbtree_search(0);
-
-    time(&time2);
-    time3 = time2 - time1;
-    printf("*runtime: %d seconds\n", time3);
-
-	return 0;
 }
 
 void rbtree_test02(void)
 {
-    int i;
+    struct rb_root rb_test_root = RB_ROOT;
 
-    printf("datatype size: u16=%d, u32=%d, u64=%d\n",
-        sizeof(u16), sizeof(u32), sizeof(u64));
+    pr_fn_start(stack_depth);
 
-    printf("Nodes Size: %d / %d, Count: %d\n",
-        sizeof(Nodes), sizeof(Nodes[0]), sizeof(Nodes)/sizeof(Nodes[0]));
+    rbtree_nodes_init();
 
-    for (i=0; i<3; i++) {
-        rbtree_nodes_init(i);
-        rbtree_test();
-        rbtree_augmented_test();
-    }
-    printf("test end.\n");
+    rbtree_augmented_test(&rb_test_root);
+
+    pr_fn_end(stack_depth);
 }
 

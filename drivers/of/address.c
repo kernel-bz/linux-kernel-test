@@ -518,7 +518,7 @@ static int of_translate_one(struct device_node *parent, struct of_bus *bus,
 	 * below the current cannot be converted to CPU physical ones.
 	 * Unfortunately, while this is very clear in the spec, it's not
 	 * what Apple understood, and they do have things like /uni-n or
-	 * /ht nodes with no "ranges" property and a lot of perfectly
+	 * /ht Nodes with no "ranges" property and a lot of perfectly
 	 * useable mapped devices below them. Thus we treat the absence of
 	 * "ranges" as equivalent to an empty "ranges" property which means
 	 * a 1:1 translation at that level. It's up to the caller not to try

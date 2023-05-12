@@ -388,7 +388,7 @@ static inline void __nodes_fold(nodemask_t *dstp, const nodemask_t *origp,
 #endif /* MAX_NUMNODES */
 
 /*
- * Bitmasks that are kept for all the nodes.
+ * Bitmasks that are kept for all the Nodes.
  */
 enum node_states {
 	N_POSSIBLE,		/* The node could become online at some point */
@@ -406,7 +406,7 @@ enum node_states {
 
 /*
  * The following particular system nodemasks and operations
- * on them manage all possible and online nodes.
+ * on them manage all possible and online Nodes.
  */
 
 extern nodemask_t node_states[NR_NODE_STATES];

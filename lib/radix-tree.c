@@ -71,12 +71,12 @@ struct kmem_cache *radix_tree_node_cachep;
 #define IDA_PRELOAD_SIZE	(IDA_MAX_PATH * 2 - 1)
 
 /*
- * Per-cpu pool of preloaded nodes
+ * Per-cpu pool of preloaded Nodes
  */
 struct radix_tree_preload {
 	unsigned nr;
-	/* nodes->parent points to next preallocated node */
-	struct radix_tree_node *nodes;
+	/* Nodes->parent points to next preallocated node */
+	struct radix_tree_node *Nodes;
 };
 static DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
 
@@ -282,8 +282,8 @@ radix_tree_node_alloc(gfp_t gfp_mask, struct radix_tree_node *parent,
 		 */
 		rtp = this_cpu_ptr(&radix_tree_preloads);
 		if (rtp->nr) {
-			ret = rtp->nodes;
-			rtp->nodes = ret->parent;
+			ret = rtp->Nodes;
+			rtp->Nodes = ret->parent;
 			rtp->nr--;
 		}
 		/*
@@ -313,7 +313,7 @@ void radix_tree_node_rcu_free(struct rcu_head *head)
 			container_of(head, struct radix_tree_node, rcu_head);
 
 	/*
-	 * Must only free zeroed nodes into the slab.  We can be left with
+	 * Must only free zeroed Nodes into the slab.  We can be left with
 	 * non-NULL entries by radix_tree_free_nodes, so clear the entries
 	 * and tags here.
 	 */
@@ -361,8 +361,8 @@ static __must_check int __radix_tree_preload(gfp_t gfp_mask, unsigned nr)
 		preempt_disable();
 		rtp = this_cpu_ptr(&radix_tree_preloads);
 		if (rtp->nr < nr) {
-			node->parent = rtp->nodes;
-			rtp->nodes = node;
+			node->parent = rtp->Nodes;
+			rtp->Nodes = node;
 			rtp->nr++;
 		} else {
 			kmem_cache_free(radix_tree_node_cachep, node);
@@ -609,7 +609,7 @@ static bool delete_node(struct radix_tree_root *root,
  *	Create, if necessary, and return the node and slot for an item
  *	at position @index in the radix tree @root.
  *
- *	Until there is more than one item in the tree, no nodes are
+ *	Until there is more than one item in the tree, no Nodes are
  *	allocated and @root->xa_head is used as a direct slot instead of
  *	pointing to a node, in which case *@nodep will be NULL.
  *
@@ -665,7 +665,7 @@ static int __radix_tree_create(struct radix_tree_root *root,
 }
 
 /*
- * Free any nodes below this node.  The tree is presumed to not need
+ * Free any Nodes below this node.  The tree is presumed to not need
  * shrinking, and any user data in the tree is presumed to not need a
  * destructor called on it.  If we need to add a destructor, we can
  * add that functionality later.  Note that we may not clear tags or
@@ -760,7 +760,7 @@ EXPORT_SYMBOL(radix_tree_insert);
  *	Lookup and return the item at position @index in the radix
  *	tree @root.
  *
- *	Until there is more than one item in the tree, no nodes are
+ *	Until there is more than one item in the tree, no Nodes are
  *	allocated and @root->xa_head is used as a direct slot instead of
  *	pointing to a node, in which case *@nodep will be NULL.
  */
@@ -830,7 +830,7 @@ EXPORT_SYMBOL(radix_tree_lookup_slot);
  *	Lookup the item at the position @index in the radix tree @root.
  *
  *	This function can be called under rcu_read_lock, however the caller
- *	must manage lifetimes of leaf nodes (eg. RCU may also be used to free
+ *	must manage lifetimes of leaf Nodes (eg. RCU may also be used to free
  *	them safely). No RCU barriers are required to access or modify the
  *	returned item, however.
  */
@@ -1608,12 +1608,12 @@ int radix_tree_cpu_dead(unsigned int cpu)
 	struct radix_tree_preload *rtp;
 	struct radix_tree_node *node;
 
-	/* Free per-cpu pool of preloaded nodes */
+	/* Free per-cpu pool of preloaded Nodes */
     //rtp = &per_cpu(radix_tree_preloads, cpu);
     rtp = &radix_tree_preloads;
     while (rtp->nr) {
-		node = rtp->nodes;
-		rtp->nodes = node->parent;
+		node = rtp->Nodes;
+		rtp->Nodes = node->parent;
 		kmem_cache_free(radix_tree_node_cachep, node);
 		rtp->nr--;
 	}

@@ -1111,7 +1111,7 @@ static inline void xa_release(struct xarray *xa, unsigned long index)
  * tree increases, the less tall the tree needs to be.  But that needs to be
  * balanced against the memory consumption of each node.  On a 64-bit system,
  * xa_node is currently 576 bytes, and we get 7 of them per 4kB page.  If we
- * doubled the number of slots per node, we'd get only 3 nodes per 4kB page.
+ * doubled the number of slots per node, we'd get only 3 Nodes per 4kB page.
  */
 #ifndef XA_CHUNK_SHIFT
 //#define XA_CHUNK_SHIFT		(CONFIG_BASE_SMALL ? 4 : 6)
@@ -1347,9 +1347,9 @@ void xa_delete_node(struct xa_node *, xa_update_node_t);
  * single entry in the array at index 0, there are no allocated xa_nodes to
  * point to, and so we store %NULL in @xa_node.  @xa_node is set to
  * the value %XAS_RESTART if the xa_state is not walked to the correct
- * position in the tree of nodes for this operation.  If an error occurs
+ * position in the tree of Nodes for this operation.  If an error occurs
  * during an operation, it is set to an %XAS_ERROR value.  If we run off the
- * end of the allocated nodes, it is set to %XAS_BOUNDS.
+ * end of the allocated Nodes, it is set to %XAS_BOUNDS.
  */
 struct xa_state {
 	struct xarray *xa;

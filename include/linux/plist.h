@@ -15,7 +15,7 @@
  *
  * Based on simple lists (include/linux/list.h).
  *
- * This is a priority-sorted list of nodes; each node has a
+ * This is a priority-sorted list of Nodes; each node has a
  * priority from INT_MIN (highest) to INT_MAX (lowest).
  *
  * Addition is O(K), removal is O(1), change of priority of a node is
@@ -24,9 +24,9 @@
  *
  * This list is really a list of lists:
  *
- *  - The tier 1 list is the prio_list, different priority nodes.
+ *  - The tier 1 list is the prio_list, different priority Nodes.
  *
- *  - The tier 2 list is the node_list, serialized nodes.
+ *  - The tier 2 list is the node_list, serialized Nodes.
  *
  * Simple ASCII art explanation:
  *
@@ -42,11 +42,11 @@
  * |->|nl|<->|nl|<->|nl|<->|nl|<->|nl|<->|nl|<-|
  * |-------------------------------------------|
  *
- * The nodes on the prio_list list are sorted by priority to simplify
- * the insertion of new nodes. There are no nodes with duplicate
+ * The Nodes on the prio_list list are sorted by priority to simplify
+ * the insertion of new Nodes. There are no Nodes with duplicate
  * priorites on the list.
  *
- * The nodes on the node_list are ordered by priority and can contain
+ * The Nodes on the node_list are ordered by priority and can contain
  * entries which have the same priority. Those entries are ordered
  * FIFO
  *

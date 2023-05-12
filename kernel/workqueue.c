@@ -4432,7 +4432,7 @@ int apply_workqueue_attrs(struct workqueue_struct *wq,
  * correct.
  *
  * Note that when the last allowed CPU of a NUMA node goes offline for a
- * workqueue with a cpumask spanning multiple nodes, the workers which were
+ * workqueue with a cpumask spanning multiple Nodes, the workers which were
  * already executing the work items for the workqueue will lose their CPU
  * affinity and may execute on any CPU.  This is similar to how per-cpu
  * workqueues behave on CPU_DOWN.  If a workqueue user wants strict
@@ -4948,7 +4948,7 @@ bool current_is_workqueue_rescuer(void)
  * Note that both per-cpu and unbound workqueues may be associated with
  * multiple pool_workqueues which have separate congested states.  A
  * workqueue being congested on one CPU doesn't mean the workqueue is also
- * contested on other CPUs / NUMA nodes.
+ * contested on other CPUs / NUMA Nodes.
  *
  * Return:
  * %true if congested, %false otherwise.
@@ -6772,7 +6772,7 @@ void __init workqueue_init_early(void)
 		/*
 		 * An ordered wq should have only one pwq as ordering is
 		 * guaranteed by max_active which is enforced by pwqs.
-		 * Turn off NUMA so that dfl_pwq is used for all nodes.
+		 * Turn off NUMA so that dfl_pwq is used for all Nodes.
 		 */
 		BUG_ON(!(attrs = alloc_workqueue_attrs()));
 		attrs->nice = std_nice[i];

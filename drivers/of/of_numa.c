@@ -52,7 +52,7 @@ static int __init of_numa_parse_memory_nodes(void)
 		if (r == -EINVAL)
 			/*
 			 * property doesn't exist if -EINVAL, continue
-			 * looking for more memory nodes with
+			 * looking for more memory Nodes with
 			 * "numa-node-id" property
 			 */
 			continue;
@@ -165,7 +165,7 @@ int of_node_to_nid(struct device_node *device)
 	/*
 	 * If numa=off passed on command line, or with a defective
 	 * device tree, the nid may not be in the set of possible
-	 * nodes.  Check for this case and return NUMA_NO_NODE.
+	 * Nodes.  Check for this case and return NUMA_NO_NODE.
 	 */
 	if (!r && nid < MAX_NUMNODES && node_possible(nid))
 		return nid;

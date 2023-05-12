@@ -2009,7 +2009,7 @@ int cpuhp_smt_enable(void)
 	cpu_maps_update_begin();
 	cpu_smt_control = CPU_SMT_ENABLED;
 	for_each_present_cpu(cpu) {
-		/* Skip online CPUs and CPUs on offline nodes */
+		/* Skip online CPUs and CPUs on offline Nodes */
 		if (cpu_online(cpu) || !node_online(cpu_to_node(cpu)))
 			continue;
 		ret = _cpu_up(cpu, 0, CPUHP_ONLINE);

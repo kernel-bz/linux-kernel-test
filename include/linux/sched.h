@@ -1131,7 +1131,7 @@ struct task_struct {
 	 * faults_memory: Exponential decaying average of faults on a per-node
 	 * basis. Scheduling placement decisions are made based on these
 	 * counts. The values remain static for the duration of a PTE scan.
-	 * faults_cpu: Track the nodes the process was running on when a NUMA
+	 * faults_cpu: Track the Nodes the process was running on when a NUMA
 	 * hinting fault was incurred.
 	 * faults_memory_buffer and faults_cpu_buffer: Record faults per node
 	 * during the current scan window. When the scan completes, the counts

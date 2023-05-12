@@ -65,7 +65,7 @@ EXPORT_SYMBOL(of_find_device_by_node);
  * each applicable node.
  *
  * Note: sparc doesn't use these routines because it has a different
- * mechanism for creating devices from device tree nodes.
+ * mechanism for creating devices from device tree Nodes.
  */
 
 /**
@@ -74,7 +74,7 @@ EXPORT_SYMBOL(of_find_device_by_node);
  *
  * This routine will first try using the translated bus address to
  * derive a unique name. If it cannot, then it will prepend names from
- * parent nodes until a unique name can be derived.
+ * parent Nodes until a unique name can be derived.
  */
 static void of_device_make_bus_id(struct device *dev)
 {
@@ -86,7 +86,7 @@ static void of_device_make_bus_id(struct device *dev)
 
     pr_view_on(stack_depth, "%20s : %p\n", node);
 
-	/* Construct the name, using parent nodes if necessary to ensure uniqueness */
+	/* Construct the name, using parent Nodes if necessary to ensure uniqueness */
 	while (node->parent) {
 		/*
 		 * If the address can be translated, then that is as much
@@ -362,13 +362,13 @@ static const struct of_dev_auxdata *of_dev_lookup(const struct of_dev_auxdata *l
 /**
  * of_platform_bus_create() - Create a device for a node and its children.
  * @bus: device node of the bus to instantiate
- * @matches: match table for bus nodes
- * @lookup: auxdata table for matching id and platform_data with device nodes
+ * @matches: match table for bus Nodes
+ * @lookup: auxdata table for matching id and platform_data with device Nodes
  * @parent: parent for new device, or NULL for top level.
  * @strict: require compatible property
  *
  * Creates a platform_device for the provided device_node, and optionally
- * recursively create devices for all the child nodes.
+ * recursively create devices for all the child Nodes.
  */
 static int of_platform_bus_create(struct device_node *bus,
 				  const struct of_device_id *matches,
@@ -391,7 +391,7 @@ static int of_platform_bus_create(struct device_node *bus,
 		return 0;
 	}
 
-	/* Skip nodes for which we don't want to create devices */
+	/* Skip Nodes for which we don't want to create devices */
 	if (unlikely(of_match_node(of_skipped_node_table, bus))) {
 		pr_debug("%s() - skipping %pOF node\n", __func__, bus);
 		return 0;
@@ -439,7 +439,7 @@ static int of_platform_bus_create(struct device_node *bus,
 /**
  * of_platform_bus_probe() - Probe the device-tree for platform buses
  * @root: parent of the first level to probe or NULL for the root of the tree
- * @matches: match table for bus nodes
+ * @matches: match table for bus Nodes
  * @parent: parent to hook devices from, NULL for toplevel
  *
  * Note that children of the provided root are not instantiated as devices
@@ -481,12 +481,12 @@ EXPORT_SYMBOL(of_platform_bus_probe);
  * of_platform_populate() - Populate platform_devices from device tree data
  * @root: parent of the first level to probe or NULL for the root of the tree
  * @matches: match table, NULL to use the default
- * @lookup: auxdata table for matching id and platform_data with device nodes
+ * @lookup: auxdata table for matching id and platform_data with device Nodes
  * @parent: parent to hook devices from, NULL for toplevel
  *
  * Similar to of_platform_bus_probe(), this function walks the device tree
- * and creates devices from nodes.  It differs in that it follows the modern
- * convention of requiring all device nodes to have a 'compatible' property,
+ * and creates devices from Nodes.  It differs in that it follows the modern
+ * convention of requiring all device Nodes to have a 'compatible' property,
  * and it is suitable for creating devices which are children of the root
  * node (of_platform_bus_probe will only create children of the root which
  * are selected by the @matches argument).
@@ -583,7 +583,7 @@ int of_platform_device_destroy(struct device *dev, void *data)
 	if (!dev->of_node || !of_node_check_flag(dev->of_node, OF_POPULATED))
 		return 0;
 
-	/* Recurse for any nodes that were treated as busses */
+	/* Recurse for any Nodes that were treated as busses */
 	if (of_node_check_flag(dev->of_node, OF_POPULATED_BUS))
 		device_for_each_child(dev, NULL, of_platform_device_destroy);
 
@@ -607,7 +607,7 @@ EXPORT_SYMBOL_GPL(of_platform_device_destroy);
  *
  * Complementary to of_platform_populate(), this function removes children
  * of the given device (and, recurrently, their children) that have been
- * created from their respective device tree nodes (and only those,
+ * created from their respective device tree Nodes (and only those,
  * leaving others - eg. manually created - unharmed).
  */
 void of_platform_depopulate(struct device *parent)
@@ -676,7 +676,7 @@ static int devm_of_platform_match(struct device *dev, void *res, void *data)
  *
  * Complementary to devm_of_platform_populate(), this function removes children
  * of the given device (and, recurrently, their children) that have been
- * created from their respective device tree nodes (and only those,
+ * created from their respective device tree Nodes (and only those,
  * leaving others - eg. manually created - unharmed).
  */
 void devm_of_platform_depopulate(struct device *dev)

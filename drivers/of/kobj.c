@@ -22,7 +22,7 @@ int of_node_is_attached(struct device_node *node)
 #ifndef CONFIG_OF_DYNAMIC
 static void of_node_release(struct kobject *kobj)
 {
-	/* Without CONFIG_OF_DYNAMIC, no nodes gets freed */
+	/* Without CONFIG_OF_DYNAMIC, no Nodes gets freed */
 }
 #endif /* CONFIG_OF_DYNAMIC */
 

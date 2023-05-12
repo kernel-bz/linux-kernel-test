@@ -137,7 +137,7 @@ err_fail:
 	return err;
 }
 
-/* compare nodes taking into account that 'name' strips out the @ part */
+/* compare Nodes taking into account that 'name' strips out the @ part */
 static int node_name_cmp(const struct device_node *dn1,
 		const struct device_node *dn2)
 {

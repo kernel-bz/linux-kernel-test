@@ -49,7 +49,7 @@ static const char *of_stdout_options;
 struct kset *of_kset;
 
 /*
- * Used to protect the of_aliases, to hold off addition of nodes to sysfs.
+ * Used to protect the of_aliases, to hold off addition of Nodes to sysfs.
  * This mutex must be held whenever modifications are being made to the
  * device tree. The of_{attach,detach}_node() and
  * of_{add,remove,update}_property() helpers make sure this happens.
@@ -239,12 +239,12 @@ void __init of_core_init(void)
 
 	of_populate_phandle_cache();
 
-	/* Create the kset, and register existing nodes */
+	/* Create the kset, and register existing Nodes */
 	mutex_lock(&of_mutex);
 	of_kset = kset_create_and_add("devicetree", NULL, firmware_kobj);
 	if (!of_kset) {
 		mutex_unlock(&of_mutex);
-		pr_err("failed to register existing nodes\n");
+		pr_err("failed to register existing Nodes\n");
 		return;
 	}
 	for_each_of_allnodes(np)
@@ -778,7 +778,7 @@ EXPORT_SYMBOL(of_get_next_child);
  *	@prev:	previous child of the parent node, or NULL to get first
  *
  *      This function is like of_get_next_child(), except that it
- *      automatically skips any disabled nodes (i.e. status = "disabled").
+ *      automatically skips any disabled Nodes (i.e. status = "disabled").
  */
 struct device_node *of_get_next_available_child(const struct device_node *node,
 	struct device_node *prev)
@@ -804,7 +804,7 @@ struct device_node *of_get_next_available_child(const struct device_node *node,
 EXPORT_SYMBOL(of_get_next_available_child);
 
 /**
- *	of_get_next_cpu_node - Iterate on cpu nodes
+ *	of_get_next_cpu_node - Iterate on cpu Nodes
  *	@prev:	previous child of the /cpus node, or NULL to get first
  *
  *	Returns a cpu node pointer with refcount incremented, use of_node_put()
@@ -2233,8 +2233,8 @@ struct device_node *of_find_next_cache_node(const struct device_node *np)
 	if (cache_node)
 		return cache_node;
 
-	/* OF on pmac has nodes instead of properties named "l2-cache"
-	 * beneath CPU nodes.
+	/* OF on pmac has Nodes instead of properties named "l2-cache"
+	 * beneath CPU Nodes.
 	 */
 	if (IS_ENABLED(CONFIG_PPC_PMAC) && of_node_is_type(np, "cpu"))
 		for_each_child_of_node(np, child)

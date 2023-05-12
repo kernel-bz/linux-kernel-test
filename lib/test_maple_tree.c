@@ -224,14 +224,14 @@ static noinline void check_new_node(struct maple_tree *mt)
 
 	struct maple_node *mn, *mn2, *mn3;
 	struct maple_alloc *smn;
-	struct maple_node *nodes[100];
+	struct maple_node *Nodes[100];
 	int i, j, total;
 
 	MA_STATE(mas, mt, 0, 0);
 
-	/* Try allocating 3 nodes */
+	/* Try allocating 3 Nodes */
 	mtree_lock(mt);
-	/* request 3 nodes to be allocated. */
+	/* request 3 Nodes to be allocated. */
 	mas_node_count(&mas, 3);
 	/* Allocation request of 3. */
 	MT_BUG_ON(mt, mas_alloc_req(&mas) != 3);
@@ -270,9 +270,9 @@ static noinline void check_new_node(struct maple_tree *mt)
 	ma_free_rcu(mn);
 	mas.node = MAS_START;
 	mas_nomem(&mas, GFP_KERNEL);
-	/* Allocate 3 nodes, will fail. */
+	/* Allocate 3 Nodes, will fail. */
 	mas_node_count(&mas, 3);
-	/* Drop the lock and allocate 3 nodes. */
+	/* Drop the lock and allocate 3 Nodes. */
 	mas_nomem(&mas, GFP_KERNEL);
 	/* Ensure 3 are allocated. */
 	MT_BUG_ON(mt, mas_allocated(&mas) != 3);
@@ -368,13 +368,13 @@ static noinline void check_new_node(struct maple_tree *mt)
 		MT_BUG_ON(mt, !mas_nomem(&mas, GFP_KERNEL));
 		for (j = 0; j <= i/2; j++) {
 			MT_BUG_ON(mt, mas_allocated(&mas) != i - j);
-			nodes[j] = mas_pop_node(&mas);
+			Nodes[j] = mas_pop_node(&mas);
 			MT_BUG_ON(mt, mas_allocated(&mas) != i - j - 1);
 		}
 
 		while (j) {
 			j--;
-			mas_push_node(&mas, (struct maple_enode *)nodes[j]);
+			mas_push_node(&mas, (struct maple_enode *)Nodes[j]);
 			MT_BUG_ON(mt, mas_allocated(&mas) != i - j);
 		}
 		MT_BUG_ON(mt, mas_allocated(&mas) != i);
@@ -392,7 +392,7 @@ static noinline void check_new_node(struct maple_tree *mt)
 	/* Set allocation request. */
 	total = 500;
 	mas_node_count(&mas, total);
-	/* Drop the lock and allocate the nodes. */
+	/* Drop the lock and allocate the Nodes. */
 	mas_nomem(&mas, GFP_KERNEL);
 	MT_BUG_ON(mt, !mas.alloc);
 	i = 1;
@@ -34629,7 +34629,7 @@ STORE, 140501948112896, 140501948116991, // ffff8c3385968c78
 	mt_validate(mt);
 	mtree_destroy(mt);
 
-	/* This test found issues with retry moving rebalanced nodes so the
+	/* This test found issues with retry moving rebalanced Nodes so the
 	 * incorrect parent pivot was updated.
 	 */
 	mt_set_non_kernel(999);
@@ -34642,7 +34642,7 @@ STORE, 140501948112896, 140501948116991, // ffff8c3385968c78
 	mtree_destroy(mt);
 
 	/* This test found issues with deleting all entries in a node when
-	 * surrounded by entries in the next nodes, then deleting the entries
+	 * surrounded by entries in the next Nodes, then deleting the entries
 	 * surrounding the node filled with deleted entries.
 	 */
 	mt_set_non_kernel(999);
@@ -35253,13 +35253,13 @@ static noinline void check_ranges(struct maple_tree *mt)
 	 * 3. Overwrite the start of a range
 	 * 4. Overwrite the end of a range
 	 * 5. Overwrite the entire range
-	 * 6. Overwrite a range that causes multiple parent nodes to be
+	 * 6. Overwrite a range that causes multiple parent Nodes to be
 	 * combined
-	 * 7. Overwrite a range that causes multiple parent nodes and part of
+	 * 7. Overwrite a range that causes multiple parent Nodes and part of
 	 * root to be combined
 	 * 8. Overwrite the whole tree
 	 * 9. Try to overwrite the zero entry of an alloc tree.
-	 * 10. Write a range larger than a nodes current pivot
+	 * 10. Write a range larger than a Nodes current pivot
 	 */
 
 	mt_set_non_kernel(50);

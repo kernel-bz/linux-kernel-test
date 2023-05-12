@@ -205,7 +205,9 @@ SOURCES += \
     kernel/kthread.c \
     test/algorithm/list05.c \
     lib/list-test.c \
-    lib/list-test.c
+    lib/list-test.c \
+    lib/rbtree_test.c \
+    test/algorithm/rbtree/rbtest.c
 
 HEADERS += \
     include/test/test.h \
@@ -676,7 +678,9 @@ HEADERS += \
     include/kunit/resource.h \
     include/kunit/test-bug.h \
     include/kunit/try-catch.h \
-    include/kunit/visibility.h
+    include/kunit/visibility.h \
+    test/algorithm/rbtree/rbtest.h \
+    test/algorithm/rbtree/rbtest.h
 
 DISTFILES += \
     docs/study/completion-wait.txt \

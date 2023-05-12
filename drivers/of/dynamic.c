@@ -4,7 +4,7 @@
  *
  * On some platforms, the device tree can be manipulated at runtime.
  * The routines in this section support adding, removing and changing
- * device tree nodes.
+ * device tree Nodes.
  */
 
 #define pr_fmt(fmt)	"OF: " fmt
@@ -331,7 +331,7 @@ void of_node_release(struct kobject *kobj)
 {
 	struct device_node *node = kobj_to_device_node(kobj);
 
-	/* We should never be releasing nodes that haven't been detached. */
+	/* We should never be releasing Nodes that haven't been detached. */
 	if (!of_node_check_flag(node, OF_DETACHED)) {
 		pr_err("ERROR: Bad of_node_put() on %pOF\n", node);
 		dump_stack();

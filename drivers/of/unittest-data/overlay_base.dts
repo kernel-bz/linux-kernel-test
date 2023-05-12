@@ -6,9 +6,9 @@
  * Base device tree that overlays will be applied against.
  *
  * Do not add any properties in node "/".
- * Do not add any nodes other than "/testcase-data-2" in node "/".
+ * Do not add any Nodes other than "/testcase-data-2" in node "/".
  * Do not add anything that would result in dtc creating node "/__fixups__".
- * dtc will create nodes "/__symbols__" and "/__local_fixups__".
+ * dtc will create Nodes "/__symbols__" and "/__local_fixups__".
  */
 
 / {

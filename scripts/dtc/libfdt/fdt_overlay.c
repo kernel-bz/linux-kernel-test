@@ -358,7 +358,7 @@ static int overlay_update_local_references(void *fdto, uint32_t delta)
  *
  * This is part of the device tree overlay application process, when
  * you want all the phandles in the overlay to point to the actual
- * base dt nodes.
+ * base dt Nodes.
  *
  * returns:
  *      0 on success
@@ -418,7 +418,7 @@ static int overlay_fixup_one_phandle(void *fdt, void *fdto,
  *
  * This is part of the device tree overlay application process, when
  * you want all the phandles in the overlay to point to the actual
- * base dt nodes.
+ * base dt Nodes.
  *
  * returns:
  *      0 on success
@@ -496,11 +496,11 @@ static int overlay_fixup_phandle(void *fdt, void *fdto, int symbols_off,
  * @fdto: Device tree overlay blob
  *
  * overlay_fixup_phandles() resolves all the overlay phandles pointing
- * to nodes in the base device tree.
+ * to Nodes in the base device tree.
  *
  * This is one of the steps of the device tree overlay application
  * process, when you want all the phandles in the overlay to point to
- * the actual base dt nodes.
+ * the actual base dt Nodes.
  *
  * returns:
  *      0 on success

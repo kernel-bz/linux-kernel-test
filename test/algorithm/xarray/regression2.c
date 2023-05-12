@@ -115,7 +115,7 @@ void regression2_test(void)
 	radix_tree_gang_lookup_tag_slot(&mt_tree, (void ***)pages, start, end,
 		PAGECACHE_TAG_TOWRITE);
 
-	/* We remove all the remained nodes */
+	/* We remove all the remained Nodes */
 	free(radix_tree_delete(&mt_tree, max_slots));
 
 	BUG_ON(!radix_tree_empty(&mt_tree));

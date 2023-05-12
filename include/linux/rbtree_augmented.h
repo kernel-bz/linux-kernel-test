@@ -67,7 +67,7 @@ rb_insert_augmented_cached(struct rb_node *node,
  *
  * RBSTATIC:    'static' or empty
  * RBNAME:      name of the rb_augment_callbacks structure
- * RBSTRUCT:    struct type of the tree nodes
+ * RBSTRUCT:    struct type of the tree Nodes
  * RBFIELD:     name of struct rb_node field within RBSTRUCT
  * RBAUGMENTED: name of field within RBSTRUCT holding data for subtree
  * RBCOMPUTE:   name of function that recomputes the RBAUGMENTED data
@@ -108,11 +108,11 @@ RBSTATIC const struct rb_augment_callbacks RBNAME = {			\
 
 /*
  * Template for declaring augmented rbtree callbacks,
- * computing RBAUGMENTED scalar as max(RBCOMPUTE(node)) for all subtree nodes.
+ * computing RBAUGMENTED scalar as max(RBCOMPUTE(node)) for all subtree Nodes.
  *
  * RBSTATIC:    'static' or empty
  * RBNAME:      name of the rb_augment_callbacks structure
- * RBSTRUCT:    struct type of the tree nodes
+ * RBSTRUCT:    struct type of the tree Nodes
  * RBFIELD:     name of struct rb_node field within RBSTRUCT
  * RBTYPE:      type of the RBAUGMENTED field
  * RBAUGMENTED: name of RBTYPE field within RBSTRUCT holding data for subtree

@@ -136,7 +136,7 @@ static inline struct platform_device *platform_device_register_resndata(
  * dropped.
  *
  * This interface is primarily intended for use with legacy drivers which
- * probe hardware directly.  Because such drivers create sysfs device nodes
+ * probe hardware directly.  Because such drivers create sysfs device Nodes
  * themselves, rather than letting system infrastructure handle such device
  * enumeration tasks, they don't fully conform to the Linux driver model.
  * In particular, when such drivers are built as modules, they can't be

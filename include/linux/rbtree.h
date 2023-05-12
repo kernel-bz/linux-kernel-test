@@ -29,7 +29,7 @@
 
 #define RB_EMPTY_ROOT(root)  (READ_ONCE((root)->rb_node) == NULL)
 
-/* 'empty' nodes are nodes that are known not to be inserted in an rbtree */
+/* 'empty' Nodes are Nodes that are known not to be inserted in an rbtree */
 #define RB_EMPTY_NODE(node)  \
 	((node)->__rb_parent_color == (unsigned long)(node))
 #define RB_CLEAR_NODE(node)  \
@@ -40,7 +40,7 @@ extern void rb_insert_color(struct rb_node *, struct rb_root *);
 extern void rb_erase(struct rb_node *, struct rb_root *);
 
 
-/* Find logical next and previous nodes in a tree */
+/* Find logical next and previous Nodes in a tree */
 extern struct rb_node *rb_next(const struct rb_node *);
 extern struct rb_node *rb_prev(const struct rb_node *);
 extern struct rb_node *rb_first(const struct rb_root *);
@@ -94,7 +94,7 @@ static inline void rb_link_node_rcu(struct rb_node *node, struct rb_node *parent
  *
  * Note, however, that it cannot handle other modifications that re-order the
  * rbtree it is iterating over. This includes calling rb_erase() on @pos, as
- * rb_erase() may rebalance the tree, causing us to miss some nodes.
+ * rb_erase() may rebalance the tree, causing us to miss some Nodes.
  */
 #define rbtree_postorder_for_each_entry_safe(pos, n, root, field) \
 	for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field); \

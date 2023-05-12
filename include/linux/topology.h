@@ -59,10 +59,10 @@ int arch_update_cpu_topology(void);
 
 #ifndef RECLAIM_DISTANCE
 /*
- * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
+ * If the distance between Nodes in a system is larger than RECLAIM_DISTANCE
  * (in whatever arch specific measurement units returned by node_distance())
  * and node_reclaim_mode is enabled then the VM will only call node_reclaim()
- * on nodes within this distance.
+ * on Nodes within this distance.
  */
 #define RECLAIM_DISTANCE 30
 #endif
@@ -76,7 +76,7 @@ int arch_update_cpu_topology(void);
  * AMD EPYC machines use this because even though the 2-hop distance
  * is 32 (3.2x slower than a local memory access) performance actually
  * *improves* if allowed to reclaim memory and load balance tasks
- * between NUMA nodes 2-hops apart.
+ * between NUMA Nodes 2-hops apart.
  */
 extern int __read_mostly node_reclaim_distance;
 

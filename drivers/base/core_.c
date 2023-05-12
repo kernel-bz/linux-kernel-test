@@ -3019,7 +3019,7 @@ EXPORT_SYMBOL_GPL(device_destroy);
  *
  * Renaming devices is racy at many levels, symlinks and other stuff are not
  * replaced atomically, and you get a "move" uevent, but it's not easy to
- * connect the event to the old and new device. Device nodes are not renamed at
+ * connect the event to the old and new device. Device Nodes are not renamed at
  * all, there isn't even support for that in the kernel now.
  *
  * In the meantime, during renaming, your target name might be taken by another

@@ -34,7 +34,7 @@ struct kmem_cache_node {
         unsigned int free_limit;
         unsigned int colour_next;       /* Per-node cache coloring */
         struct array_cache *shared;     /* shared per node */
-        struct alien_cache **alien;     /* on other nodes */
+        struct alien_cache **alien;     /* on other Nodes */
         unsigned long next_reap;        /* updated without locking */
         int free_touched;               /* updated without locking */
 #endif

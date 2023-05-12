@@ -122,7 +122,7 @@ extern int stack_depth;
         printf(format, #args, args);				\
     } while (0)
 
-#define pr_view_on(level, format, args)			\
+#define pr_view_enable(level, format, args)			\
     do {											\
         if (!DebugEnable) break;					\
         pr_view(level, format, args);				\
@@ -146,7 +146,7 @@ extern int stack_depth;
         printf("%d--> %s()...\n", level, __func__);	\
     } while (0)
 
-#define pr_fn_start_on(level)					\
+#define pr_fn_start_enable(level)					\
     do {											\
         if (!DebugEnable) break;					\
         pr_fn_start(level);							\
@@ -169,7 +169,7 @@ extern int stack_depth;
         printf("%d<-- %s().\n\n", level, __func__);	\
     } while (0)
 
-#define pr_fn_end_on(level)						\
+#define pr_fn_end_enable(level)						\
     do {											\
         if (!DebugEnable) break;					\
         pr_fn_end(level);							\

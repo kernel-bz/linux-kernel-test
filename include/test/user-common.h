@@ -10,6 +10,8 @@ extern "C" {
 #include "test/user-define.h"
 #include <linux/atomic.h>
 
+#include <sys/time.h>
+#include <time.h>
 
 //include/linux/atomic-fallback.h
 //#ifdef atomic_try_cmpxchg
@@ -55,8 +57,16 @@ atomic_add_unless_(atomic_t *v, int a, int u)
 }
 #define atomic_add_unless atomic_add_unless_
 
+static inline unsigned long get_time_nsec()
+{
+    struct timespec time;
+    unsigned long nsec;
 
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    nsec = time.tv_sec * 1000000000UL + time.tv_nsec;
 
+    return nsec;
+}
 
 #ifdef __cplusplus
 }

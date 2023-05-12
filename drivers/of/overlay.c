@@ -40,7 +40,7 @@
  * subtree node also exists in the live devicetree.  When a node in the overlay
  * subtree does not exist at the same level in the live devicetree, target->np
  * points to a newly allocated node, and all subsequent targets in the subtree
- * will be newly allocated nodes.
+ * will be newly allocated Nodes.
  */
 struct target {
 	struct device_node *np;
@@ -48,7 +48,7 @@ struct target {
 };
 
 /**
- * struct fragment - info about fragment nodes in overlay expanded device tree
+ * struct fragment - info about fragment Nodes in overlay expanded device tree
  * @target:	target of the overlay operation
  * @overlay:	pointer to the __overlay__ node
  */
@@ -62,9 +62,9 @@ struct fragment {
  * @id:			changeset identifier
  * @ovcs_list:		list on which we are located
  * @fdt:		FDT that was unflattened to create @overlay_tree
- * @overlay_tree:	expanded device tree that contains the fragment nodes
+ * @overlay_tree:	expanded device tree that contains the fragment Nodes
  * @count:		count of fragment structures
- * @fragments:		fragment nodes in the overlay expanded device tree
+ * @fragments:		fragment Nodes in the overlay expanded device tree
  * @symbols_fragment:	last element of @fragments[] is the  __symbols__ node
  * @cset:		changeset to apply fragments to live device tree
  */
@@ -129,7 +129,7 @@ static BLOCKING_NOTIFIER_HEAD(overlay_notify_chain);
  * of_overlay_notifier_register() - Register notifier for overlay operations
  * @nb:		Notifier block to register
  *
- * Register for notification on overlay operations on device tree nodes. The
+ * Register for notification on overlay operations on device tree Nodes. The
  * reported actions definied by @of_reconfig_change. The notifier callback
  * furthermore receives a pointer to the affected device tree node.
  *
@@ -384,7 +384,7 @@ static int add_changeset_property(struct overlay_changeset *ovcs,
  * If @node already exists in @target, and the existing node has
  * a phandle, the overlay node is not allowed to have a phandle.
  *
- * If @node has child nodes, add the children recursively via
+ * If @node has child Nodes, add the children recursively via
  * build_changeset_next_level().
  *
  * NOTE_1: A live devicetree created from a flattened device tree (FDT) will
@@ -397,10 +397,10 @@ static int add_changeset_property(struct overlay_changeset *ovcs,
  *       the full path in node->full_name.  Even though it expects the overlay
  *       to not contain the full path, it uses kbasename() to remove the
  *       full path should it exist.  It also uses kbasename() in comparisons
- *       to nodes in the live devicetree so that it can apply an overlay to
+ *       to Nodes in the live devicetree so that it can apply an overlay to
  *       a live devicetree created from Open Firmware.
  *
- * NOTE_2: Multiple mods of created nodes not supported.
+ * NOTE_2: Multiple mods of created Nodes not supported.
  *
  * Returns 0 on success, -ENOMEM if memory allocation failure, or -EINVAL if
  * invalid @overlay.
@@ -468,8 +468,8 @@ static int add_changeset_node(struct overlay_changeset *ovcs,
  * @target:		where to place @overlay_node in live tree
  * @overlay_node:	node from within an overlay device tree fragment
  *
- * Add the properties (if any) and nodes (if any) from @overlay_node to the
- * @ovcs->cset changeset.  If an added node has child nodes, they will
+ * Add the properties (if any) and Nodes (if any) from @overlay_node to the
+ * @ovcs->cset changeset.  If an added node has child Nodes, they will
  * be added recursively.
  *
  * Do not allow symbols node to have any children.
@@ -624,7 +624,7 @@ static int changeset_dup_entry_check(struct overlay_changeset *ovcs)
  * build_changeset() - populate overlay changeset in @ovcs from @ovcs->fragments
  * @ovcs:	Overlay changeset
  *
- * Create changeset @ovcs->cset to contain the nodes and properties of the
+ * Create changeset @ovcs->cset to contain the Nodes and properties of the
  * overlay device tree fragments in @ovcs->fragments[].  If an error occurs,
  * any portions of the changeset that were successfully created will remain
  * in @ovcs->cset.
@@ -719,11 +719,11 @@ static struct device_node *find_target(struct device_node *info_node)
  * init_overlay_changeset() - initialize overlay changeset from overlay tree
  * @ovcs:	Overlay changeset to build
  * @fdt:	the FDT that was unflattened to create @tree
- * @tree:	Contains all the overlay fragments and overlay fixup nodes
+ * @tree:	Contains all the overlay fragments and overlay fixup Nodes
  *
  * Initialize @ovcs.  Populate @ovcs->fragments with node information from
- * the top level of @tree.  The relevant top level nodes are the fragment
- * nodes and the __symbols__ node.  Any other top level node will be ignored.
+ * the top level of @tree.  The relevant top level Nodes are the fragment
+ * Nodes and the __symbols__ node.  Any other top level node will be ignored.
  *
  * Returns 0 on success, -ENOMEM if memory allocation failure, -EINVAL if error
  * detected in @tree, or -ENOSPC if idr_alloc() error.
@@ -762,7 +762,7 @@ static int init_overlay_changeset(struct overlay_changeset *ovcs,
 
 	cnt = 0;
 
-	/* fragment nodes */
+	/* fragment Nodes */
 	for_each_child_of_node(tree, node) {
 		overlay_node = of_get_child_by_name(node, "__overlay__");
 		if (overlay_node) {

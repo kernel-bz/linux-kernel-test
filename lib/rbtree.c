@@ -20,15 +20,15 @@
  *  3) All leaves (NULL) are black
  *  4) Both children of every red node are black
  *  5) Every simple path from root to leaves contains the same number
- *     of black nodes.
+ *     of black Nodes.
  *
  *  4 and 5 give the O(log n) guarantee, since 4 implies you cannot have two
- *  consecutive red nodes in a path and every red node is therefore followed by
- *  a black. So if B is the number of black nodes on every simple path (as per
+ *  consecutive red Nodes in a path and every red node is therefore followed by
+ *  a black. So if B is the number of black Nodes on every simple path (as per
  *  5), then the longest possible path due to 4 is 2B.
  *
- *  We shall indicate color with case, where black nodes are uppercase and red
- *  nodes will be lowercase. Unknown color nodes shall be drawn as red within
+ *  We shall indicate color with case, where black Nodes are uppercase and red
+ *  Nodes will be lowercase. Unknown color Nodes shall be drawn as red within
  *  parentheses and have some accompanying text comment.
  */
 
@@ -105,7 +105,7 @@ __rb_insert(struct rb_node *node, struct rb_root *root,
 		 * If there is a black parent, we are done.
 		 * Otherwise, take some corrective action as,
 		 * per 4), we don't want a red root or two
-		 * consecutive red nodes.
+         * consecutive red Nodes.
 		 */
 		if(rb_is_black(parent))
 			break;
@@ -550,7 +550,7 @@ void rb_replace_node(struct rb_node *victim, struct rb_node *new,
 	/* Copy the pointers/colour from the victim to the replacement */
 	*new = *victim;
 
-	/* Set the surrounding nodes to point to the replacement */
+    /* Set the surrounding Nodes to point to the replacement */
 	if (victim->rb_left)
 		rb_set_parent(victim->rb_left, new);
 	if (victim->rb_right)

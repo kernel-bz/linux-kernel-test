@@ -102,7 +102,7 @@ static int _drivers_menu(int asize)
     printf("1: DTB Set FileName.\n");
     printf("2: DTB Read From File.\n");
     printf("3: DTB Hex Dump.\n");
-    printf("4: DTB print all nodes.\n");
+    printf("4: DTB print all Nodes.\n");
     printf("5: Device Tree Test -->\n");
     printf("6: help.\n");
     printf("\n");

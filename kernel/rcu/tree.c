@@ -383,7 +383,7 @@ static void __init rcu_init_geometry(void)
     }
 
     /*
-     * Compute number of nodes that can be handled an rcu_node tree
+     * Compute number of Nodes that can be handled an rcu_node tree
      * with the given number of levels.
      */
     rcu_capacity[0] = rcu_fanout_leaf;

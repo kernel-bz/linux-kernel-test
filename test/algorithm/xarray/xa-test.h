@@ -58,6 +58,6 @@ unsigned long shift_maxindex(unsigned int shift);
 int radix_tree_cpu_dead(unsigned int cpu);
 struct radix_tree_preload {
 	unsigned nr;
-	struct radix_tree_node *nodes;
+	struct radix_tree_node *Nodes;
 };
 extern struct radix_tree_preload radix_tree_preloads;

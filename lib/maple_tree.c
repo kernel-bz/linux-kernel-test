@@ -10,7 +10,7 @@
  * DOC: Interesting implementation details of the Maple Tree
  *
  * Each node type has a number of slots for entries and a number of slots for
- * pivots.  In the case of dense nodes, the pivots are implied by the position
+ * pivots.  In the case of dense Nodes, the pivots are implied by the position
  * and are simply the slot index + the minimum of the node.
  *
  * In regular B-Tree terms, pivots are called keys.  The term pivot is used to
@@ -20,7 +20,7 @@
  * the same index.
  *
  *
- * The following illustrates the layout of a range64 nodes slots and pivots.
+ * The following illustrates the layout of a range64 Nodes slots and pivots.
  *
  *
  *  Slots -> | 0 | 1 | 2 | ... | 12 | 13 | 14 | 15 |
@@ -36,8 +36,8 @@
  *           └─  Implied minimum
  *
  * Slot contents:
- *  Internal (non-leaf) nodes contain pointers to other nodes.
- *  Leaf nodes contain entries.
+ *  Internal (non-leaf) Nodes contain pointers to other Nodes.
+ *  Leaf Nodes contain entries.
  *
  * The location of interest is often referred to as an offset.  All offsets have
  * a slot, but the last offset has an implied pivot from the node above (or
@@ -134,7 +134,7 @@ struct maple_subtree_state {
 	struct ma_state *l;		/* New left side of subtree */
 	struct ma_state *m;		/* New middle of subtree (rare) */
 	struct ma_state *r;		/* New right side of subtree */
-	struct ma_topiary *free;	/* nodes to be freed */
+	struct ma_topiary *free;	/* Nodes to be freed */
 	struct ma_topiary *destroy;	/* Nodes to be destroyed (walked and freed) */
 	struct maple_big_node *bn;
 };
@@ -145,15 +145,15 @@ static inline struct maple_node *mt_alloc_one(gfp_t gfp)
 	return kmem_cache_alloc(maple_node_cache, gfp | __GFP_ZERO);
 }
 
-static inline int mt_alloc_bulk(gfp_t gfp, size_t size, void **nodes)
+static inline int mt_alloc_bulk(gfp_t gfp, size_t size, void **Nodes)
 {
 	return kmem_cache_alloc_bulk(maple_node_cache, gfp | __GFP_ZERO, size,
-				     nodes);
+				     Nodes);
 }
 
-static inline void mt_free_bulk(size_t size, void __rcu **nodes)
+static inline void mt_free_bulk(size_t size, void __rcu **Nodes)
 {
-	kmem_cache_free_bulk(maple_node_cache, size, (void **)nodes);
+	kmem_cache_free_bulk(maple_node_cache, size, (void **)Nodes);
 }
 
 static void mt_free_rcu(struct rcu_head *head)
@@ -353,7 +353,7 @@ static inline bool mt_is_alloc(struct maple_tree *mt)
 
 /*
  * The Parent Pointer
- * Excluding root, the parent pointer is 256B aligned like all other tree nodes.
+ * Excluding root, the parent pointer is 256B aligned like all other tree Nodes.
  * When storing a 32 or 64 bit values, the offset can fit into 4 bits.  The 16
  * bit values need an extra bit to store the offset.  This extra bit comes from
  * a reuse of the last bit in the node type.  This is possible by using bit 1 to
@@ -361,9 +361,9 @@ static inline bool mt_is_alloc(struct maple_tree *mt)
  *
  * Note types:
  *  0x??1 = Root
- *  0x?00 = 16 bit nodes
- *  0x010 = 32 bit nodes
- *  0x110 = 64 bit nodes
+ *  0x?00 = 16 bit Nodes
+ *  0x010 = 32 bit Nodes
+ *  0x110 = 64 bit Nodes
  *
  * Slot size and alignment
  *  0x??1 : Root
@@ -546,15 +546,15 @@ static inline bool mte_dead_node(const struct maple_enode *enode)
 }
 
 /*
- * mas_allocated() - Get the number of nodes allocated in a maple state.
+ * mas_allocated() - Get the number of Nodes allocated in a maple state.
  * @mas: The maple state
  *
  * The ma_state alloc member is overloaded to hold a pointer to the first
- * allocated node or to the number of requested nodes to allocate.  If bit 0 is
- * set, then the alloc contains the number of requested nodes.  If there is an
- * allocated node, then the total allocated nodes is in that node.
+ * allocated node or to the number of requested Nodes to allocate.  If bit 0 is
+ * set, then the alloc contains the number of requested Nodes.  If there is an
+ * allocated node, then the total allocated Nodes is in that node.
  *
- * Return: The total number of nodes allocated
+ * Return: The total number of Nodes allocated
  */
 static inline unsigned long mas_allocated(const struct ma_state *mas)
 {
@@ -925,7 +925,7 @@ static inline unsigned char ma_meta_gap(struct maple_node *mn,
 }
 
 /*
- * ma_set_meta_gap() - Set the largest gap location in a nodes metadata
+ * ma_set_meta_gap() - Set the largest gap location in a Nodes metadata
  * @mn: The maple node
  * @mn: The maple node type
  * @offset: The location of the largest gap.
@@ -940,8 +940,8 @@ static inline void ma_set_meta_gap(struct maple_node *mn, enum maple_type mt,
 }
 
 /*
- * mat_add() - Add a @dead_enode to the ma_topiary of a list of dead nodes.
- * @mat - the ma_topiary, a linked list of dead nodes.
+ * mat_add() - Add a @dead_enode to the ma_topiary of a list of dead Nodes.
+ * @mat - the ma_topiary, a linked list of dead Nodes.
  * @dead_enode - the node to be marked as dead and added to the tail of the list
  *
  * Add the @dead_enode to the linked list in @mat.
@@ -964,9 +964,9 @@ static void mte_destroy_walk(struct maple_enode *, struct maple_tree *);
 static inline void mas_free(struct ma_state *mas, struct maple_enode *used);
 
 /*
- * mas_mat_free() - Free all nodes in a dead list.
+ * mas_mat_free() - Free all Nodes in a dead list.
  * @mas - the maple state
- * @mat - the ma_topiary linked list of dead nodes to free.
+ * @mat - the ma_topiary linked list of dead Nodes to free.
  *
  * Free walk a dead list.
  */
@@ -982,9 +982,9 @@ static void mas_mat_free(struct ma_state *mas, struct ma_topiary *mat)
 }
 
 /*
- * mas_mat_destroy() - Free all nodes and subtrees in a dead list.
+ * mas_mat_destroy() - Free all Nodes and subtrees in a dead list.
  * @mas - the maple state
- * @mat - the ma_topiary linked list of dead nodes to free.
+ * @mat - the ma_topiary linked list of dead Nodes to free.
  *
  * Destroy walk a dead list.
  */
@@ -1220,7 +1220,7 @@ done:
 }
 
 /*
- * mas_alloc_nodes() - Allocate nodes into a maple state
+ * mas_alloc_nodes() - Allocate Nodes into a maple state
  * @mas: The maple state
  * @gfp: The GFP Flags
  */
@@ -1320,10 +1320,10 @@ static inline void mas_free(struct ma_state *mas, struct maple_enode *used)
 }
 
 /*
- * mas_node_count() - Check if enough nodes are allocated and request more if
- * there is not enough nodes.
+ * mas_node_count() - Check if enough Nodes are allocated and request more if
+ * there is not enough Nodes.
  * @mas: The maple state
- * @count: The number of nodes needed
+ * @count: The number of Nodes needed
  */
 static void mas_node_count(struct ma_state *mas, int count)
 {
@@ -1365,7 +1365,7 @@ static inline struct maple_enode *mas_start(struct ma_state *mas)
         pr_view_on(stack_depth, "%15s: %p\n", root);
         pr_view_on(stack_depth, "%15s: %lu\n", mas->index);
 
-		/* Tree with nodes */
+		/* Tree with Nodes */
 		if (likely(xa_is_node(root))) {
 			mas->node = mte_safe_root(root);
             pr_view_on(stack_depth, "%15s: %p\n", mas->node);
@@ -1669,7 +1669,7 @@ ascend:
 }
 
 /*
- * mas_update_gap() - Update a nodes gaps and propagate up if necessary.
+ * mas_update_gap() - Update a Nodes gaps and propagate up if necessary.
  * @mas - the maple state.
  */
 static inline void mas_update_gap(struct ma_state *mas)
@@ -1703,7 +1703,7 @@ static inline void mas_update_gap(struct ma_state *mas)
 }
 
 /*
- * mas_adopt_children() - Set the parent pointer of all nodes in @parent to
+ * mas_adopt_children() - Set the parent pointer of all Nodes in @parent to
  * @parent with the slot encoded.
  * @mas - the maple state (for the tree)
  * @parent - the maple encoded node containing the children.
@@ -1729,7 +1729,7 @@ static inline void mas_adopt_children(struct ma_state *mas,
  * mas_replace() - Replace a maple node in the tree with mas->node.  Uses the
  * parent encoding to locate the maple node in the tree.
  * @mas - the ma_state to use for operations.
- * @advanced - boolean to adopt the child nodes and free the old node (false) or
+ * @advanced - boolean to adopt the child Nodes and free the old node (false) or
  * leave the node (true) and handle the adoption and free elsewhere.
  */
 static inline void mas_replace(struct ma_state *mas, bool advanced)
@@ -1903,9 +1903,9 @@ static inline int mab_calc_split(struct ma_state *mas,
 	/*
 	 * Although extremely rare, it is possible to enter what is known as the 3-way
 	 * split scenario.  The 3-way split comes about by means of a store of a range
-	 * that overwrites the end and beginning of two full nodes.  The result is a set
-	 * of entries that cannot be stored in 2 nodes.  Sometimes, these two nodes can
-	 * also be located in different parent nodes which are also full.  This can
+	 * that overwrites the end and beginning of two full Nodes.  The result is a set
+	 * of entries that cannot be stored in 2 Nodes.  Sometimes, these two Nodes can
+	 * also be located in different parent Nodes which are also full.  This can
 	 * carry upwards all the way to the root in the worst case.
 	 */
 	if (unlikely(mab_middle_node(bn, split, slot_count))) {
@@ -2096,7 +2096,7 @@ static inline void mas_descend_adopt(struct ma_state *mas)
 
 	/*
 	 * At each level there may be up to 3 correct parent pointers which indicates
-	 * the new nodes which need to be walked to find any new nodes at a lower level.
+	 * the new Nodes which need to be walked to find any new Nodes at a lower level.
 	 */
 
 	for (i = 0; i < 3; i++) {
@@ -2309,7 +2309,7 @@ static inline struct maple_enode *mte_node_or_none(struct maple_enode *enode)
  * mas_wr_node_walk() - Find the correct offset for the index in the @mas.
  * @wr_mas: The maple write state
  *
- * Uses mas_slot_locked() and does not need to worry about dead nodes.
+ * Uses mas_slot_locked() and does not need to worry about dead Nodes.
  */
 static inline void mas_wr_node_walk(struct ma_wr_state *wr_mas)
 {
@@ -2468,7 +2468,7 @@ static inline void mast_rebalance_prev(struct maple_subtree_state *mast,
 }
 
 /*
- * mast_sibling_rebalance_right() - Rebalance from nodes with the same parents.
+ * mast_sibling_rebalance_right() - Rebalance from Nodes with the same parents.
  * Check the right side, then the left.  Data is copied into the @mast->bn.
  * @mast: The maple_subtree_state.
  */
@@ -2497,7 +2497,7 @@ static inline int mas_prev_node(struct ma_state *mas, unsigned long min);
 static inline int mas_next_node(struct ma_state *mas, struct maple_node *node,
 				unsigned long max);
 /*
- * mast_cousin_rebalance_right() - Rebalance from nodes with different parents.
+ * mast_cousin_rebalance_right() - Rebalance from Nodes with different parents.
  * Check the right side, then the left.  Data is copied into the @mast->bn.
  * @mast: The maple_subtree_state.
  */
@@ -2532,12 +2532,12 @@ bool mast_cousin_rebalance_right(struct maple_subtree_state *mast, bool free)
 }
 
 /*
- * mast_ascend_free() - Add current original maple state nodes to the free list
+ * mast_ascend_free() - Add current original maple state Nodes to the free list
  * and ascend.
  * @mast: the maple subtree state.
  *
- * Ascend the original left and right sides and add the previous nodes to the
- * free list.  Set the slots to point to the correct location in the new nodes.
+ * Ascend the original left and right sides and add the previous Nodes to the
+ * free list.  Set the slots to point to the correct location in the new Nodes.
  */
 static inline void
 mast_ascend_free(struct maple_subtree_state *mast)
@@ -2560,7 +2560,7 @@ mast_ascend_free(struct maple_subtree_state *mast)
 		mast->orig_r->last = mast->orig_r->index;
 	/*
 	 * The node may not contain the value so set slot to ensure all
-	 * of the nodes contents are freed or destroyed.
+	 * of the Nodes contents are freed or destroyed.
 	 */
 	if (mast->orig_r->max < mast->orig_r->last)
 		mast->orig_r->offset = mas_data_end(mast->orig_r) + 1;
@@ -2593,7 +2593,7 @@ static inline struct maple_enode
 }
 
 /*
- * mas_mab_to_node() - Set up right and middle nodes
+ * mas_mab_to_node() - Set up right and middle Nodes
  *
  * @mas: the maple state that contains the allocations.
  * @b_node: the node which contains the data.
@@ -2719,7 +2719,7 @@ static inline void mte_mid_split_check(struct maple_enode **l,
 }
 
 /*
- * mast_set_split_parents() - Helper function to set three nodes parents.  Slot
+ * mast_set_split_parents() - Helper function to set three Nodes parents.  Slot
  * is taken from @mast->l.
  * @mast - the maple subtree state
  * @left - the left node
@@ -2758,8 +2758,8 @@ static inline void mast_set_split_parents(struct maple_subtree_state *mast,
 /*
  * mas_wmb_replace() - Write memory barrier and replace
  * @mas: The maple state
- * @free: the maple topiary list of nodes to free
- * @destroy: The maple topiary list of nodes to destroy (walk and free)
+ * @free: the maple topiary list of Nodes to free
+ * @destroy: The maple topiary list of Nodes to destroy (walk and free)
  *
  * Updates gap as necessary.
  */
@@ -2767,7 +2767,7 @@ static inline void mas_wmb_replace(struct ma_state *mas,
 				   struct ma_topiary *free,
 				   struct ma_topiary *destroy)
 {
-	/* All nodes must see old data as dead prior to replacing that data */
+	/* All Nodes must see old data as dead prior to replacing that data */
 	smp_wmb();
 
 	/* Insert the new data in the tree */
@@ -2811,7 +2811,7 @@ static inline void mast_new_root(struct maple_subtree_state *mast,
 }
 
 /*
- * mast_cp_to_nodes() - Copy data out to nodes.
+ * mast_cp_to_nodes() - Copy data out to Nodes.
  * @mast: The maple subtree state
  * @left: The left encoded maple node
  * @middle: The middle encoded maple node
@@ -3017,7 +3017,7 @@ dead_node:
 }
 
 /*
- * mas_spanning_rebalance() - Rebalance across two nodes which may not be peers.
+ * mas_spanning_rebalance() - Rebalance across two Nodes which may not be peers.
  * @mas: The starting maple state
  * @mast: The maple_subtree_state, keeps track of 4 maple states.
  * @count: The estimated count of iterations needed.
@@ -3026,7 +3026,7 @@ dead_node:
  * is hit.  First @b_node is split into two entries which are inserted into the
  * next iteration of the loop.  @b_node is returned populated with the final
  * iteration. @mas is used to obtain allocations.  orig_l_mas keeps track of the
- * nodes that will remain active by using orig_l_mas->index and orig_l_mas->last
+ * Nodes that will remain active by using orig_l_mas->index and orig_l_mas->last
  * to account of what has been copied into the new sub-tree.  The update of
  * orig_l_mas->last is used in mas_consume to find the slots that will need to
  * be either freed or destroyed.  orig_l_mas->depth keeps track of the height of
@@ -3070,9 +3070,9 @@ static int mas_spanning_rebalance(struct ma_state *mas,
 
 	/*
 	 * Each level of the tree is examined and balanced, pushing data to the left or
-	 * right, or rebalancing against left or right nodes is employed to avoid
+	 * right, or rebalancing against left or right Nodes is employed to avoid
 	 * rippling up the tree to limit the amount of churn.  Once a new sub-section of
-	 * the tree is created, there may be a mix of new and old nodes.  The old nodes
+	 * the tree is created, there may be a mix of new and old Nodes.  The old Nodes
 	 * will have the incorrect parent pointers and currently be in two trees: the
 	 * original tree and the partially new tree.  To remedy the parent pointers in
 	 * the old tree, the new data is swapped into the active tree and a walk down
@@ -3126,7 +3126,7 @@ static int mas_spanning_rebalance(struct ma_state *mas,
 			if (!mast_cousin_rebalance_right(mast, true))
 				break;
 
-		/* rebalancing from other nodes may require another loop. */
+		/* rebalancing from other Nodes may require another loop. */
 		if (!count)
 			count++;
 	}
@@ -3168,7 +3168,7 @@ new_root:
  * @mas: The maple state
  * @b_node: The big maple node.
  *
- * Rebalance two nodes into a single node or two new nodes that are sufficient.
+ * Rebalance two Nodes into a single node or two new Nodes that are sufficient.
  * Continue upwards until tree is sufficient.
  *
  * Return: the number of elements in b_node during the last loop.
@@ -3396,7 +3396,7 @@ static inline bool mas_split_final_node(struct maple_subtree_state *mast,
  * mast_fill_bnode() - Copy data into the big node in the subtree state
  * @mast: The maple subtree state
  * @mas: the maple state
- * @skip: The number of entries to skip for new nodes insertion.
+ * @skip: The number of entries to skip for new Nodes insertion.
  */
 static inline void mast_fill_bnode(struct maple_subtree_state *mast,
 					 struct ma_state *mas,
@@ -3447,7 +3447,7 @@ static inline void mast_fill_bnode(struct maple_subtree_state *mast,
 
 /*
  * mast_split_data() - Split the data in the subtree state big node into regular
- * nodes.
+ * Nodes.
  * @mast: The maple subtree state
  * @mas: The maple state
  * @split: The location to split the big node
@@ -3587,7 +3587,7 @@ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
 	 * and avoiding a 'jitter' event where a tree is expanded to make room
 	 * for an entry followed by a contraction when the entry is removed.  To
 	 * accomplish the balance, there are empty slots remaining in both left
-	 * and right nodes after a split.
+	 * and right Nodes after a split.
 	 */
 	MA_STATE(l_mas, mas->tree, mas->index, mas->last);
 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
@@ -3631,7 +3631,7 @@ static int mas_split(struct ma_state *mas, struct maple_big_node *b_node)
         /*
 		 * Another way that 'jitter' is avoided is to terminate a split up early if the
 		 * left or right node has space to spare.  This is referred to as "pushing left"
-		 * or "pushing right" and is similar to the B* tree, except the nodes left or
+		 * or "pushing right" and is similar to the B* tree, except the Nodes left or
 		 * right can rarely be reused due to RCU, but the ripple upwards is halted which
 		 * is a significant savings.
 		 */
@@ -3916,7 +3916,7 @@ static inline void mas_wr_walk_traverse(struct ma_wr_state *wr_mas)
  * mas_wr_walk() - Walk the tree for a write.
  * @wr_mas: The maple write state
  *
- * Uses mas_slot_locked() and does not need to worry about dead nodes.
+ * Uses mas_slot_locked() and does not need to worry about dead Nodes.
  *
  * Return: True if it's contained in a node, false on spanning write.
  */
@@ -4132,7 +4132,7 @@ done:
 }
 /*
  * mas_spanning_store() - Create a subtree with the store operation completed
- * and new nodes where necessary, then place the sub-tree in the actual tree.
+ * and new Nodes where necessary, then place the sub-tree in the actual tree.
  * Note that mas is expected to point to the node which caused the store to
  * span.
  * @wr_mas: The maple write state
@@ -4156,13 +4156,13 @@ static inline int mas_wr_spanning_store(struct ma_wr_state *wr_mas)
 	MA_WR_STATE(l_wr_mas, &l_mas, wr_mas->entry);
 
 	/*
-	 * A store operation that spans multiple nodes is called a spanning
+	 * A store operation that spans multiple Nodes is called a spanning
 	 * store and is handled early in the store call stack by the function
 	 * mas_is_span_wr().  When a spanning store is identified, the maple
 	 * state is duplicated.  The first maple state walks the left tree path
 	 * to ``index``, the duplicate walks the right tree path to ``last``.
-	 * The data in the two nodes are combined into a single node, two nodes,
-	 * or possibly three nodes (see the 3-way split above).  A ``NULL``
+	 * The data in the two Nodes are combined into a single node, two Nodes,
+	 * or possibly three Nodes (see the 3-way split above).  A ``NULL``
 	 * written to the last entry of a node is considered a spanning store as
 	 * a rebalance is required for the operation to complete and an overflow
 	 * of data may happen.
@@ -5063,7 +5063,7 @@ none:
  * Set the @mas->node to the next entry and the range_start to
  * the beginning value for the entry.  Does not check beyond @limit.
  * Sets @mas->index and @mas->last to the limit if it is hit.
- * Restarts on dead nodes.
+ * Restarts on dead Nodes.
  *
  * Return: the next entry or %NULL.
  */
@@ -5222,7 +5222,7 @@ static bool mas_rev_awalk(struct ma_state *mas, unsigned long size)
 	    return true;
 
 	if (ma_is_dense(type)) {
-		/* dense nodes. */
+		/* dense Nodes. */
 		mas->offset = (unsigned char)(mas->index - mas->min);
 		return true;
 	}
@@ -6036,10 +6036,10 @@ retry:
  * @mas: The maple state
  * @nr_entries: The number of expected entries.
  *
- * This will attempt to pre-allocate enough nodes to store the expected number
+ * This will attempt to pre-allocate enough Nodes to store the expected number
  * of entries.  The allocations will occur using the bulk allocator interface
  * for speed.  Please call mas_destroy() on the @mas after inserting the entries
- * to ensure any unused nodes are freed.
+ * to ensure any unused Nodes are freed.
  *
  * Return: 0 on success, -ENOMEM if memory could not be allocated.
  */
@@ -6057,7 +6057,7 @@ int mas_expected_entries(struct ma_state *mas, unsigned long nr_entries)
 	 * not going to be used until the entire tree is populated.  For
 	 * performance reasons, it is best to use a bulk load with RCU disabled.
 	 * This allows for optimistic splitting that favours the left and reuse
-	 * of nodes during the operation.
+	 * of Nodes during the operation.
 	 */
 
 	/* Optimize splitting for bulk insert in-order */
@@ -6075,7 +6075,7 @@ int mas_expected_entries(struct ma_state *mas, unsigned long nr_entries)
 
 	/* Leaves */
 	nr_nodes = DIV_ROUND_UP(nr_nodes, MAPLE_RANGE64_SLOTS - 1);
-	/* Internal nodes */
+	/* Internal Nodes */
 	nr_nodes += DIV_ROUND_UP(nr_nodes, nonleaf_cap);
 	mas_node_count(mas, nr_nodes);
 
@@ -6093,7 +6093,7 @@ int mas_expected_entries(struct ma_state *mas, unsigned long nr_entries)
  * @mas: The maple state
  *
  * Upon completion, check the left-most node and rebalance against the node to
- * the right if necessary.  Frees any allocated nodes associated with this maple
+ * the right if necessary.  Frees any allocated Nodes associated with this maple
  * state.
  */
 void mas_destroy(struct ma_state *mas)
@@ -6149,7 +6149,7 @@ void *mas_next(struct ma_state *mas, unsigned long max)
 		mas->node = MAS_START;
 
 	if (mas_is_start(mas))
-		mas_walk(mas); /* Retries on dead nodes handled by mas_walk */
+		mas_walk(mas); /* Retries on dead Nodes handled by mas_walk */
 
 	if (mas_is_ptr(mas)) {
 		if (!mas->index) {
@@ -6162,7 +6162,7 @@ void *mas_next(struct ma_state *mas, unsigned long max)
 	if (mas->last == ULONG_MAX)
 		return NULL;
 
-	/* Retries on dead nodes handled by mas_next_entry */
+	/* Retries on dead Nodes handled by mas_next_entry */
 	return mas_next_entry(mas, max);
 }
 EXPORT_SYMBOL_GPL(mas_next);
@@ -6194,7 +6194,7 @@ EXPORT_SYMBOL_GPL(mt_next);
  *
  * Must hold rcu_read_lock or the write lock.
  * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
- * searchable nodes.
+ * searchable Nodes.
  *
  * Return: the previous value or %NULL.
  */
@@ -6308,7 +6308,7 @@ void *mas_find(struct ma_state *mas, unsigned long max)
 	if (unlikely(!mas_searchable(mas)))
 		return NULL;
 
-	/* Retries on dead nodes handled by mas_next_entry */
+	/* Retries on dead Nodes handled by mas_next_entry */
 	return mas_next_entry(mas, max);
 }
 
@@ -6354,7 +6354,7 @@ void *mas_find_rev(struct ma_state *mas, unsigned long min)
 	if (mas->index < min)
 		return NULL;
 
-	/* Retries on dead nodes handled by mas_next_entry */
+	/* Retries on dead Nodes handled by mas_next_entry */
 	return mas_prev_entry(mas, min);
 }
 EXPORT_SYMBOL_GPL(mas_find);
@@ -6697,7 +6697,7 @@ void *mtree_erase(struct maple_tree *mt, unsigned long index)
 EXPORT_SYMBOL(mtree_erase);
 
 /**
- * __mt_destroy() - Walk and free all nodes of a locked maple tree.
+ * __mt_destroy() - Walk and free all Nodes of a locked maple tree.
  * @mt: The maple tree
  *
  * Note: Does not handle locking.

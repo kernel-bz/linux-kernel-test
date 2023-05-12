@@ -60,7 +60,7 @@
 #define FDT_ERR_BADSTRUCTURE	11
 	/* FDT_ERR_BADSTRUCTURE: Given device tree has a corrupt
 	 * structure block or other serious error (e.g. misnested
-	 * nodes, or subnodes preceding properties). */
+	 * Nodes, or subnodes preceding properties). */
 #define FDT_ERR_BADLAYOUT	12
 	/* FDT_ERR_BADLAYOUT: For read-write functions, the given
 	 * device tree has it's sub-blocks in an order that the
@@ -497,7 +497,7 @@ int fdt_path_offset_namelen(const void *fdt, const char *path, int namelen);
  * fdt_path_offset() finds a node of a given path in the device tree.
  * Each path component may omit the unit address portion, but the
  * results of this are undefined if any such path component is
- * ambiguous (that is if there are multiple nodes at the relevant
+ * ambiguous (that is if there are multiple Nodes at the relevant
  * level matching the given component, differentiated only by unit
  * address).
  *
@@ -936,9 +936,9 @@ int fdt_node_depth(const void *fdt, int nodeoffset);
 int fdt_parent_offset(const void *fdt, int nodeoffset);
 
 /**
- * fdt_node_offset_by_prop_value - find nodes with a given property value
+ * fdt_node_offset_by_prop_value - find Nodes with a given property value
  * @fdt: pointer to the device tree blob
- * @startoffset: only find nodes after this offset
+ * @startoffset: only find Nodes after this offset
  * @propname: property name to check
  * @propval: property value to search for
  * @proplen: length of the value in propval
@@ -948,7 +948,7 @@ int fdt_parent_offset(const void *fdt, int nodeoffset);
  * value is of length proplen and has value equal to propval; or if
  * startoffset is -1, the very first such node in the tree.
  *
- * To iterate through all nodes matching the criterion, the following
+ * To iterate through all Nodes matching the criterion, the following
  * idiom can be used:
  *	offset = fdt_node_offset_by_prop_value(fdt, -1, propname,
  *					       propval, proplen);
@@ -1024,9 +1024,9 @@ int fdt_node_check_compatible(const void *fdt, int nodeoffset,
 			      const char *compatible);
 
 /**
- * fdt_node_offset_by_compatible - find nodes with a given 'compatible' value
+ * fdt_node_offset_by_compatible - find Nodes with a given 'compatible' value
  * @fdt: pointer to the device tree blob
- * @startoffset: only find nodes after this offset
+ * @startoffset: only find Nodes after this offset
  * @compatible: 'compatible' string to match against
  *
  * fdt_node_offset_by_compatible() returns the offset of the first
@@ -1034,7 +1034,7 @@ int fdt_node_check_compatible(const void *fdt, int nodeoffset,
  * lists the given compatible string; or if startoffset is -1, the
  * very first such node in the tree.
  *
- * To iterate through all nodes matching the criterion, the following
+ * To iterate through all Nodes matching the criterion, the following
  * idiom can be used:
  *	offset = fdt_node_offset_by_compatible(fdt, -1, compatible);
  *	while (offset != -FDT_ERR_NOTFOUND) {
@@ -1539,7 +1539,7 @@ int fdt_del_mem_rsv(void *fdt, int n);
  * with a name equal to one of the given node's siblings.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1565,7 +1565,7 @@ int fdt_set_name(void *fdt, int nodeoffset, const char *name);
  * does not already exist.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1596,7 +1596,7 @@ int fdt_setprop(void *fdt, int nodeoffset, const char *name,
  * property data is returned.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1627,7 +1627,7 @@ int fdt_setprop_placeholder(void *fdt, int nodeoffset, const char *name,
  * not already exist.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1662,7 +1662,7 @@ static inline int fdt_setprop_u32(void *fdt, int nodeoffset, const char *name,
  * not already exist.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1708,7 +1708,7 @@ static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
  * new property with that value if it does not already exist.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1738,7 +1738,7 @@ static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
  * property if it does not already exist.
  *
  * This function may insert or delete data from the blob, and will
- * therefore change the offsets of some existing nodes.
+ * therefore change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1768,7 +1768,7 @@ static inline int fdt_setprop_cell(void *fdt, int nodeoffset, const char *name,
  * given node, creating the property if it does not already exist.
  *
  * This function may insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1799,7 +1799,7 @@ int fdt_appendprop(void *fdt, int nodeoffset, const char *name,
  * value if it does not already exist.
  *
  * This function may insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1834,7 +1834,7 @@ static inline int fdt_appendprop_u32(void *fdt, int nodeoffset,
  * value if it does not already exist.
  *
  * This function may insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1879,7 +1879,7 @@ static inline int fdt_appendprop_cell(void *fdt, int nodeoffset,
  * with that value if it does not already exist.
  *
  * This function may insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1914,7 +1914,7 @@ static inline int fdt_appendprop_cell(void *fdt, int nodeoffset,
  * Cell sizes are determined by parent's #address-cells and #size-cells.
  *
  * This function may insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1943,7 +1943,7 @@ int fdt_appendprop_addrrange(void *fdt, int parent, int nodeoffset,
  * fdt_del_property() will delete the given property.
  *
  * This function will delete data from the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -1986,7 +1986,7 @@ int fdt_add_subnode_namelen(void *fdt, int parentoffset,
  * should include the unit address, if any).
  *
  * This function will insert data into the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
 
  * returns:
  *	structure block offset of the created nodeequested subnode (>=0), on
@@ -2017,7 +2017,7 @@ int fdt_add_subnode(void *fdt, int parentoffset, const char *name);
  * subnodes if any, from the blob.
  *
  * This function will delete data from the blob, and will therefore
- * change the offsets of some existing nodes.
+ * change the offsets of some existing Nodes.
  *
  * returns:
  *	0, on success
@@ -2045,7 +2045,7 @@ int fdt_del_node(void *fdt, int nodeoffset);
  * returns:
  *	0, on success
  *	-FDT_ERR_NOSPACE, there's not enough space in the base device tree
- *	-FDT_ERR_NOTFOUND, the overlay points to some inexistant nodes or
+ *	-FDT_ERR_NOTFOUND, the overlay points to some inexistant Nodes or
  *		properties in the base DT
  *	-FDT_ERR_BADPHANDLE,
  *	-FDT_ERR_BADOVERLAY,

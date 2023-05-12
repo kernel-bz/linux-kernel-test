@@ -17,11 +17,11 @@
 /* #define CONFIG_DEBUG_MAPLE_TREE_VERBOSE */
 
 /*
- * Allocated nodes are mutable until they have been inserted into the tree,
+ * Allocated Nodes are mutable until they have been inserted into the tree,
  * at which time they cannot change their type until they have been removed
  * from the tree and an RCU grace period has passed.
  *
- * Removed nodes have their ->parent set to point to themselves.  RCU readers
+ * Removed Nodes have their ->parent set to point to themselves.  RCU readers
  * check ->parent before relying on the value that they loaded from the
  * slots array.  This lets us reuse the slots array for the RCU head.
  *
@@ -50,8 +50,8 @@
  * is a pointer to the tree itself.  No more bits are available in this pointer
  * (on m68k, the data structure may only be 2-byte aligned).
  *
- * Internal non-root nodes can only have maple_range_* nodes as parents.  The
- * parent pointer is 256B aligned like all other tree nodes.  When storing a 32
+ * Internal non-root Nodes can only have maple_range_* Nodes as parents.  The
+ * parent pointer is 256B aligned like all other tree Nodes.  When storing a 32
  * or 64 bit values, the offset can fit into 4 bits.  The 16 bit values need an
  * extra bit to store the offset.  This extra bit comes from a reuse of the last
  * bit in the node type.  This is possible by using bit 1 to indicate if bit 2
@@ -63,9 +63,9 @@
  *
  *  Node types:
  *   0x??1 = Root
- *   0x?00 = 16 bit nodes
- *   0x010 = 32 bit nodes
- *   0x110 = 64 bit nodes
+ *   0x?00 = 16 bit Nodes
+ *   0x010 = 32 bit Nodes
+ *   0x110 = 64 bit Nodes
  *
  *  Slot size and location in the parent pointer:
  *   type  : slot location
@@ -94,7 +94,7 @@ struct maple_metadata {
 };
 
 /*
- * Leaf nodes do not store pointers to nodes, they store user data.  Users may
+ * Leaf Nodes do not store pointers to Nodes, they store user data.  Users may
  * store almost any bit pattern.  As noted above, the optimisation of storing an
  * entry at 0 in the root pointer cannot be done for data which have the bottom
  * two bits set to '10'.  We also reserve values with the bottom two bits set to
@@ -104,7 +104,7 @@ struct maple_metadata {
  * is not an error, it may lead to confusion if you're testing for an error with
  * mas_is_err().
  *
- * Non-leaf nodes store the type of the node pointed to (enum maple_type in bits
+ * Non-leaf Nodes store the type of the node pointed to (enum maple_type in bits
  * 3-6), bit 2 is reserved.  That leaves bits 0-1 unused for now.
  *
  * In regular B-Tree terms, pivots are called keys.  The term pivot is used to
@@ -216,8 +216,8 @@ typedef struct { /* nothing */ } lockdep_map_p;
  *
  * Another use of flags are to indicate global states of the tree.  This is the
  * case with the MAPLE_USE_RCU flag, which indicates the tree is currently in
- * RCU mode.  This mode was added to allow the tree to reuse nodes instead of
- * re-allocating and RCU freeing nodes when there is a single user.
+ * RCU mode.  This mode was added to allow the tree to reuse Nodes instead of
+ * re-allocating and RCU freeing Nodes when there is a single user.
  */
 struct maple_tree {
     union {
@@ -272,9 +272,9 @@ struct maple_tree {
  * Nodes are 256 bytes in size and are also aligned to 256 bytes, giving us 8
  * low bits for our own purposes.  Nodes are currently of 4 types:
  * 1. Single pointer (Range is 0-0)
- * 2. Non-leaf Allocation Range nodes
- * 3. Non-leaf Range nodes
- * 4. Leaf Range nodes All nodes consist of a number of node slots,
+ * 2. Non-leaf Allocation Range Nodes
+ * 3. Non-leaf Range Nodes
+ * 4. Leaf Range Nodes All Nodes consist of a number of node slots,
  *    pivots, and a parent pointer.
  */
 
@@ -300,10 +300,10 @@ struct maple_node {
 };
 
 /*
- * More complicated stores can cause two nodes to become one or three and
+ * More complicated stores can cause two Nodes to become one or three and
  * potentially alter the height of the tree.  Either half of the tree may need
  * to be rebalanced against the other.  The ma_topiary struct is used to track
- * which nodes have been 'cut' from the tree so that the change can be done
+ * which Nodes have been 'cut' from the tree so that the change can be done
  * safely at a later date.  This is done to support RCU.
  */
 struct ma_topiary {
@@ -352,14 +352,14 @@ static inline bool mtree_empty(const struct maple_tree *mt)
  * errno.  Bit 2 (the 'unallocated slots' bit) is clear.  Bits 3-6 indicate the
  * node type.
  *
- * state->alloc either has a request number of nodes or an allocated node.  If
- * stat->alloc has a requested number of nodes, the first bit will be set (0x1)
+ * state->alloc either has a request number of Nodes or an allocated node.  If
+ * stat->alloc has a requested number of Nodes, the first bit will be set (0x1)
  * and the remaining bits are the value.  If state->alloc is a node, then the
  * node will be of type maple_alloc.  maple_alloc has MAPLE_NODE_SLOTS - 1 for
- * storing more allocated nodes, a total number of nodes allocated, and the
- * node_count in this node.  node_count is the number of allocated nodes in this
+ * storing more allocated Nodes, a total number of Nodes allocated, and the
+ * node_count in this node.  node_count is the number of allocated Nodes in this
  * node.  The scaling beyond MAPLE_NODE_SLOTS - 1 is handled by storing further
- * nodes into state->alloc->slot[0]'s node.  Nodes are taken from state->alloc
+ * Nodes into state->alloc->slot[0]'s node.  Nodes are taken from state->alloc
  * by removing a node from the state->alloc node until state->alloc->node_count
  * is 1, when state->alloc is returned and the state->alloc->slot[0] is promoted
  * to state->alloc.  Nodes are pushed onto state->alloc by putting the current
@@ -382,7 +382,7 @@ struct ma_state {
     struct maple_enode *node;	/* The node containing this entry */
     unsigned long min;		/* The minimum index of this node - implied pivot min */
     unsigned long max;		/* The maximum index of this node - implied pivot max */
-    struct maple_alloc *alloc;	/* Allocated nodes for this operation */
+    struct maple_alloc *alloc;	/* Allocated Nodes for this operation */
     unsigned char depth;		/* depth of tree descent during write */
     unsigned char offset;
     unsigned char mas_flags;

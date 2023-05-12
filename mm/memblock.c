@@ -1016,7 +1016,7 @@ static bool should_skip_region(struct memblock_region *m, int nid, int flags)
 {
 	int m_nid = memblock_get_region_node(m);
 
-	/* only memory regions are associated with nodes, check it */
+	/* only memory regions are associated with Nodes, check it */
 	if (nid != NUMA_NO_NODE && nid != m_nid)
 		return true;
 
@@ -1038,7 +1038,7 @@ static bool should_skip_region(struct memblock_region *m, int nid, int flags)
 /**
  * __next_mem_range - next function for for_each_free_mem_range() etc.
  * @idx: pointer to u64 loop variable
- * @nid: node selector, %NUMA_NO_NODE for all nodes
+ * @nid: node selector, %NUMA_NO_NODE for all Nodes
  * @flags: pick from blocks based on memory attributes
  * @type_a: pointer to memblock_type from where the range is taken
  * @type_b: pointer to memblock_type which excludes memory from being taken
@@ -1145,7 +1145,7 @@ void __init_memblock __next_mem_range(u64 *idx, int nid,
  * __next_mem_range_rev - generic next function for for_each_*_range_rev()
  *
  * @idx: pointer to u64 loop variable
- * @nid: node selector, %NUMA_NO_NODE for all nodes
+ * @nid: node selector, %NUMA_NO_NODE for all Nodes
  * @flags: pick from blocks based on memory attributes
  * @type_a: pointer to memblock_type from where the range is taken
  * @type_b: pointer to memblock_type which excludes memory from being taken

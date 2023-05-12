@@ -1212,12 +1212,12 @@ static void update_node_properties(struct device_node *np,
 }
 
 /**
- *	attach_node_and_children - attaches nodes
+ *	attach_node_and_children - attaches Nodes
  *	and its children to live tree.
  *	CAUTION: misleading function name - if node @np already exists in
  *	the live tree then children of @np are *not* attached to the live
- *	tree.  This works for the current test devicetree nodes because such
- *	nodes do not have child nodes.
+ *	tree.  This works for the current test devicetree Nodes because such
+ *	Nodes do not have child Nodes.
  *
  *	@np:	Node to attach to live tree
  */
@@ -2531,7 +2531,7 @@ static __init void of_unittest_overlay_high_level(void)
 
 	/*
 	 * overlay 'overlay_base' is not allowed to have root
-	 * properties, so only need to splice nodes into main device tree.
+	 * properties, so only need to splice Nodes into main device tree.
 	 *
 	 * root node of *overlay_base_root will not be freed, it is lost
 	 * memory.
