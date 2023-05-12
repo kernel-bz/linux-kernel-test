@@ -122,9 +122,6 @@ SOURCES += \
     drivers/base/core_.c \
     arch/arm64/mm/numa.c \
     test/basic/cpus-mask-test.c \
-    test/algorithm/rbtree03.c \
-    test/algorithm/rbtree02.c \
-    test/algorithm/rbtree01.c \
     test/algorithm/list04.c \
     test/algorithm/list03.c \
     test/algorithm/list02.c \
@@ -207,7 +204,10 @@ SOURCES += \
     lib/list-test.c \
     lib/list-test.c \
     lib/rbtree_test.c \
-    test/algorithm/rbtree/rbtest.c
+    test/algorithm/rbtree/rbtest.c \
+    test/algorithm/rbtree/rbtree01.c \
+    test/algorithm/rbtree/rbtree02.c \
+    test/algorithm/rbtree/rbtree03.c
 
 HEADERS += \
     include/test/test.h \

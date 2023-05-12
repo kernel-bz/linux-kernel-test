@@ -298,9 +298,9 @@ int rbtree_test_all(void)
     time2 = get_time_nsec();
     time = time2 - time1;
 
-    pr_view(stack_depth, "Test2 Total(cached): %10s : %llu(ns)\n", time);
+    pr_view(stack_depth, "Test2 Total(cached)      : %10s : %llu(ns)\n", time);
     time = div_u64(time, perf_loops);
-    pr_view(stack_depth, "Test2 Step(cached) : %10s : %llu(ns)\n\n", time);
+    pr_view(stack_depth, "Test2 Step(cached)       : %10s : %llu(ns)\n\n", time);
 
 	for (i = 0; i < nnodes; i++)
         insert(Nodes + i, &root);
@@ -317,9 +317,9 @@ int rbtree_test_all(void)
     time2 = get_time_nsec();
     time = time2 - time1;
 
-    pr_view(stack_depth, "Test3 Total(loop): %10s : %llu(ns)\n", time);
+    pr_view(stack_depth, "Test3 Total(loop)        : %10s : %llu(ns)\n", time);
     time = div_u64(time, perf_loops);
-    pr_view(stack_depth, "Test3 Step(loop) : %10s : %llu(ns)\n\n", time);
+    pr_view(stack_depth, "Test3 Step(loop)         : %10s : %llu(ns)\n\n", time);
 
     //time1 = get_cycles();
     time1 = get_time_nsec();
@@ -331,9 +331,9 @@ int rbtree_test_all(void)
     time2 = get_time_nsec();
     time = time2 - time1;
 
-    pr_view(stack_depth, "Test4 Total(first): %10s : %llu(ns)\n", time);
+    pr_view(stack_depth, "Test4 Total(first)       : %10s : %llu(ns)\n", time);
     time = div_u64(time, perf_loops);
-    pr_view(stack_depth, "Test4 Step(first) : %10s : %llu(ns)\n\n", time);
+    pr_view(stack_depth, "Test4 Step(first)        : %10s : %llu(ns)\n\n", time);
 
     //time1 = get_cycles();
     time1 = get_time_nsec();
@@ -402,9 +402,9 @@ int rbtree_test_all(void)
     time2 = get_time_nsec();
     time = time2 - time1;
 
-    pr_view(stack_depth, "Test7 Total(cached): %10s : %llu(ns)\n", time);
+    pr_view(stack_depth, "Test7 Total(cached)      : %10s : %llu(ns)\n", time);
     time = div_u64(time, perf_loops);
-    pr_view(stack_depth, "Test7 Step(cached) : %10s : %llu(ns)\n\n", time);
+    pr_view(stack_depth, "Test7 Step(cached)       : %10s : %llu(ns)\n\n", time);
 
 	for (i = 0; i < check_loops; i++) {
 		init();
