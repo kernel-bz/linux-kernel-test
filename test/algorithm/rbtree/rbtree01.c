@@ -30,7 +30,7 @@ void rbtree_test01(void)
 
     rb_test_output(&rb_test_root);
 
-    key = 4;
+    key = 30;
     rbs = rb_test_search(&rb_test_root, key);
     if (rbs) {
         pr_view(stack_depth, "%5s : rb_erase(): %d\n", key);

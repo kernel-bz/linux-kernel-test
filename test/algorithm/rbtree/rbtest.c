@@ -36,11 +36,11 @@ void rb_test_insert(struct rb_test_struct *node, struct rb_root *root)
 void rb_test_init(int cnt, struct rb_test_struct *node, struct rb_root *root)
 {
     int i;
-    for (i = 0; i < cnt; i++) {
+    for (i = 1; i <= cnt; i++) {
         node = malloc(sizeof(*node));
-        node->key = i;
-        node->val = i;
-        node->augmented = i;
+        node->key = i * 10;
+        node->val = i * 100;
+        node->augmented = i * 100;
         rb_test_insert(node, root);
     }
 }
