@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * test_ida.c: Test the IDA API
+ * lib/test_ida.c: Test the IDA API
  * Copyright (c) 2016-2018 Microsoft Corporation
  * Copyright (c) 2018 Oracle Corporation
  * Author: Matthew Wilcox <willy@infradead.org>

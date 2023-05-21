@@ -21,6 +21,10 @@
 #undef XA_DEBUG
 //#include "../../../lib/test_xarray.c"
 
+u64	index_first = 0;
+u64 index_last = 3;
+u64 index_step = 1;
+
 #define XA_BUG_ON(xa, x) do {							\
     if (x) {											\
         _pr_warn("BUG at xa=%p:%s:%d\n", xa, __func__, __LINE__);	\
@@ -110,7 +114,7 @@ void xa_debug_node_print(struct xarray *xa)
     pr_out_on(stack_depth, ">>> %s\n", "xa_node total outputs...");
     xas_for_each(&xas, entry, ULONG_MAX) {
         if (onode != xas.xa_node) {
-            printf("\n\t[ parent=%p, prev=%p, node=%p, next=%p ]\n"
+            printf("\n\n\t[ parent=%p, prev=%p, node=%p, next=%p ]\n"
                    , xas.xa_node->parent
                    , xas.xa_node->prev
                    , xas.xa_node
@@ -127,10 +131,9 @@ void xa_debug_node_print(struct xarray *xa)
     }
     xa_unlock(xa);
 
-    pr_view_on(stack_depth, "%40s : %u\n",
-                        xa_to_node(xa_head(xa))->count);
-    pr_view_on(stack_depth, "%40s : %u\n",
-                        xa_to_node(xa_head(xa))->nr_values);
+    pr_out_on(stack_depth, "\n");
+    pr_view_on(stack_depth, "%40s : %u\n", xa_to_node(xa_head(xa))->count);
+    pr_view_on(stack_depth, "%40s : %u\n", xa_to_node(xa_head(xa))->nr_values);
 
     pr_fn_end_on(stack_depth);
 }
@@ -222,6 +225,14 @@ void xa_constants_view(void)
                , index, value, p, internal, entry);
     }
 
+    __fpurge(stdin);
+    printf("Input first index for testing: ");
+    scanf("%d", &index_first);
+    printf("Input last index for testing: ");
+    scanf("%d", &index_last);
+    printf("Input step size for testing: ");
+    scanf("%d", &index_step);
+
     pr_fn_end(stack_depth);
 }
 
@@ -243,7 +254,7 @@ static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, in
     xa_debug_node_print(xa);
 
     void *entry;
-    index = first;
+    index = (last - first) / 2;
     //for (index = first; index <= last; index += step) {
         pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_find() testing...");
         pr_view_on(stack_depth, "%10s : %u\n", index);
@@ -259,53 +270,46 @@ static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, in
         XA_BUG_ON(xa, xa_to_value(entry) != index);
     //}
 
-    //xa_debug_node_print(xa);
+    xa_debug_node_print(xa);
 
     pr_fn_end_on(stack_depth);
 }
 
 void xarray_test_simple(void)
 {
-    int first, last, step;
-
     pr_fn_start_on(stack_depth);
 
-    __fpurge(stdin);
-    printf("Input first index for testing: ");
-    scanf("%d", &first);
-    printf("Input last index for testing: ");
-    scanf("%d", &last);
-    printf("Input step size for testing: ");
-    scanf("%d", &step);
-
-    pr_view_on(stack_depth, "%s : %p\n", &xa1);
+    pr_view_on(stack_depth, "%10s : %p\n", &xa1);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_first);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_last);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_step);
 
     radix_tree_init();
 
-    _xa_store_find_erase_test(&xa1, first, last, step);
+    _xa_store_find_erase_test(&xa1, index_first, index_last, index_step);
 
     pr_fn_end_on(stack_depth);
 }
 
 void xarray_test_store_range(void)
 {
-    unsigned long first, last, index;
+    unsigned long index;
 
     pr_fn_start_on(stack_depth);
 
+    pr_view_on(stack_depth, "%10s : %p\n", &xa1);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_first);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_last);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_step);
+
     __fpurge(stdin);
-    printf("Enter range first index: ");
-    scanf("%lu", &first);
-    printf("Enter range last index: ");
-    scanf("%lu", &last);
     printf("Enter index to find: ");
     scanf("%lu", &index);
 
-    pr_view_on(stack_depth, "%10s : %p\n", &xa1);
-
     radix_tree_init();
 
-    xa_store_range(&xa1, first, last, xa_mk_value(first & LONG_MAX), GFP_KERNEL);
+    xa_store_range(&xa1, index_first, index_last
+                   , xa_mk_value(index_first & LONG_MAX), GFP_KERNEL);
 
     xa_debug_node_print_range(&xa1);
 

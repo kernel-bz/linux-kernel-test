@@ -17,6 +17,11 @@
 
 #define DUMMY_PTR	((void *)0x10)
 
+//test/xarray/xarray-test.c
+extern u64 index_first;
+extern u64 index_last;
+extern u64 index_step;
+
 int item_idr_free(int id, void *p, void *data)
 {
 	struct item *item = p;
@@ -570,47 +575,53 @@ static void _idr_simple_test(void)
     DEFINE_IDR(idr);
     struct item *item;
 
-    printf("idr_alloc()..........................\n");
-    for (i = 0; i < 10; i++) {
-        order = i * 10;
+    pr_fn_start_on(stack_depth);
+
+    pr_out_on(stack_depth, "idr_alloc()..........................\n");
+    for (i = index_first; i <= index_last; i += index_step) {
+        order = i;
         struct item *item = item_create(i, order);
         id = idr_alloc(&idr, item, 0, 0, GFP_KERNEL);
-        printf("i=%u, id=%u\n", i, id);
+        pr_out_on(stack_depth, "i=%u, id=%u\n", i, id);
     }
 
-    printf("idr_for_each_entry().................\n");
+    pr_out_on(stack_depth, "idr_for_each_entry().................\n");
     idr_for_each_entry(&idr, item, id) {
-        printf("id=%u, item->index=%lu, order=%u\n",
-                id, item->index, item->order);
+        pr_out_on("id=%u, item->index=%lu, order=%u\n",
+                    id, item->index, item->order);
     }
 
-    printf("idr_find()...........................\n");
+    xa_debug_node_print(&idr.idr_rt);
+
+    pr_out_on(stack_depth, "idr_find()...........................\n");
     //idr_init_base(&idr, 5);
-    id = 7;
+    id = index_last;
     item = (struct item *)idr_find(&idr, id);
     if (item)
-        printf("found id=%d, item->index=%lu, order=%u\n",
-                id, item->index, item->order);
+        pr_out_on(stack_depth, "found id=%d, item->index=%lu, order=%u\n",
+                    id, item->index, item->order);
     else
-        printf("Not found(id=%u)\n", id);
+        pr_out_on(stack_depth, "Not found(id=%u)\n", id);
 
-    printf("idr_remove().........................\n");
+    pr_out_on(stack_depth, "idr_remove().........................\n");
     idr_remove(&idr, id);
     item = (struct item *)idr_find(&idr, id);
     if (item)
-        printf("found id=%d, item->index=%lu, order=%u\n",
-                id, item->index, item->order);
+        pr_out_on(stack_depth, "found id=%d, item->index=%lu, order=%u\n",
+                    id, item->index, item->order);
     else
-        printf("Not found(id=%u)\n", id);
+        pr_out_on(stack_depth, "Not found(id=%u)\n", id);
 
-    printf("idr_destroy()........................\n");
+    pr_out_on(stack_depth, "idr_destroy()........................\n");
     idr_for_each(&idr, item_idr_free, &idr);
         idr_destroy(&idr);
 
     if (idr_is_empty(&idr))
-        printf("idr is empty.\n");
+        pr_out_on(stack_depth, "idr is empty.\n");
     else
-        printf("idr is not empty.\n");
+        pr_out_on(stack_depth, "idr is NOT empty.\n");
+
+    pr_fn_end_on(stack_depth);
 }
 
 static void _ida_simple_test(void)
@@ -618,39 +629,50 @@ static void _ida_simple_test(void)
     int i, id;
     DEFINE_IDA(ida);
 
-    printf("ida_alloc()..........................\n");
-    for (i = 0; i < 10; i++) {
+    pr_fn_start_on(stack_depth);
+
+    pr_view_on(stack_depth, "%10s : %llu\n", index_first);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_last);
+    pr_view_on(stack_depth, "%10s : %llu\n", index_step);
+
+    pr_out(stack_depth, "ida_alloc()..........................\n");
+    for (i = index_first; i <= index_last; i += index_step) {
         id = ida_alloc(&ida, GFP_KERNEL);
-        printf("id=%d\n", id);
+        pr_view_on(stack_depth, "%10s : %d\n", id);
     }
 
-    printf("ida_free()...........................\n");
-    ida_free(&ida, 3);
-    ida_free(&ida, 5);
+    pr_out(stack_depth, "ida_free()..........................\n");
+    ida_free(&ida, index_first);
+    ida_free(&ida, index_last);
 
-    for (i = 0; i < 5; i++) {
+    //xa_debug_node_print(&ida.xa);
+
+    for (i = index_first; i <= index_last; i += index_step) {
         id = ida_alloc(&ida, GFP_KERNEL);
-        printf("id=%d\n", id);
+        pr_view_on(stack_depth, "%10s : %d\n", id);
     }
 
-    printf("ida_destroy()........................\n");
+    //xa_debug_node_print(&ida.xa);
+
+    pr_out(stack_depth, "ida_destroy()........................\n");
     ida_destroy(&ida);
 
     if (ida_is_empty(&ida))
-        printf("ida is empty.\n");
+        pr_out(stack_depth, "ida is empty.\n");
     else
-        printf("ida is not empty.\n");
-}
+        pr_out(stack_depth, "ida is NOT empty.\n");
 
-
-void idr_simple_test(void)
-{
-    radix_tree_init();
-    _idr_simple_test();
+    pr_fn_end_on(stack_depth);
 }
 
 void ida_simple_test(void)
 {
     radix_tree_init();
     _ida_simple_test();
+}
+
+void idr_simple_test(void)
+{
+    radix_tree_init();
+    _idr_simple_test();
 }

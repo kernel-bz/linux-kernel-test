@@ -41,8 +41,8 @@ static int _algo_xarray_menu(int asize)
     printf(" 4: XArray Marks Test.\n");
     printf(" 5: XArray Check Test.\n");
     printf(" 6: XArray MultiOrder Test.\n");
-    printf(" 7: IDR Simple Test.\n");
-    printf(" 8: IDA Simple Test.\n");
+    printf(" 7: IDA Simple Test.\n");
+    printf(" 8: IDR Simple Test.\n");
     printf(" 9: IDR, IDA Check Test.\n");
     printf("10: help.\n");
     printf("\n");
@@ -64,8 +64,8 @@ static void _algo_xarray_test(void)
         , xarray_test_run
         , xa_multiorder_test
         //, xa_main_test		//error
-        , idr_simple_test
         , ida_simple_test
+        , idr_simple_test
         //, idr_ida_main_test	//error
         , lib_ida_test
         , _algo_struct_help
