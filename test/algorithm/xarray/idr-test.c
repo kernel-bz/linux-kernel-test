@@ -585,6 +585,7 @@ static void _idr_simple_test(void)
         pr_out_on(stack_depth, "i=%u, id=%u\n", i, id);
     }
 
+    //0, 1, 2, 3, 4, 5, 6, 7
     pr_out_on(stack_depth, "idr_for_each_entry().................\n");
     idr_for_each_entry(&idr, item, id) {
         pr_out_on("id=%u, item->index=%lu, order=%u\n",
@@ -642,8 +643,10 @@ static void _ida_simple_test(void)
     }
 
     pr_out(stack_depth, "ida_free()..........................\n");
-    ida_free(&ida, index_first);
-    ida_free(&ida, index_last);
+    ida_free(&ida, index_first);	//0
+    ida_free(&ida, index_last);		//7
+
+    //(0), 1, 2, 3, 4, 5, 6, (7)
 
     //xa_debug_node_print(&ida.xa);
 
@@ -651,6 +654,8 @@ static void _ida_simple_test(void)
         id = ida_alloc(&ida, GFP_KERNEL);
         pr_view_on(stack_depth, "%10s : %d\n", id);
     }
+    //0, 7, 8, 9, 10, 11, 12, 13
+    //0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13
 
     //xa_debug_node_print(&ida.xa);
 

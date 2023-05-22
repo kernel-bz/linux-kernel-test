@@ -41,6 +41,7 @@ static void ida_check_alloc(struct ida *ida)
         IDA_BUG_ON(ida, ida_alloc(ida, GFP_KERNEL) != i);
         //printf("%d, ", i);
     }
+    //[0..9999]
 
 	ida_free(ida, 20);
 	ida_free(ida, 21);
@@ -48,13 +49,14 @@ static void ida_check_alloc(struct ida *ida)
 		id = ida_alloc(ida, GFP_KERNEL);
 		IDA_BUG_ON(ida, id < 0);
         if (i == 2)
-            IDA_BUG_ON(ida, id != 10000);
+            IDA_BUG_ON(ida, id != 10000);  //[0..20.21....10000]
     }
 
     for (i = 0; i < 5000; i++)
-        ida_free(ida, i);
+        ida_free(ida, i);		//[0..4999] [5000...10000]
 
     IDA_BUG_ON(ida, ida_alloc_min(ida, 5000, GFP_KERNEL) != 10001);
+    //[5000...10000..10001]
     ida_destroy(ida);
 
 	IDA_BUG_ON(ida, !ida_is_empty(ida));
@@ -118,7 +120,8 @@ static void ida_check_max(struct ida *ida)
 	unsigned long i, j;
 
 	for (j = 1; j < 65537; j *= 2) {
-		unsigned long base = (1UL << 31) - j;
+        unsigned long base = (1UL << 31) - j;
+        //2^31(2G), ....... 0
 		for (i = 0; i < j; i++) {
 			IDA_BUG_ON(ida, ida_alloc_min(ida, base, GFP_KERNEL) !=
 					base + i);
@@ -138,7 +141,9 @@ static void ida_check_conv(struct ida *ida)
 	unsigned long i;
 
 	for (i = 0; i < IDA_BITMAP_BITS * 2; i += IDA_BITMAP_BITS) {
-		IDA_BUG_ON(ida, ida_alloc_min(ida, i + 1, GFP_KERNEL) != i + 1);
+        //i+1....-->
+        IDA_BUG_ON(ida, ida_alloc_min(ida, i + 1, GFP_KERNEL) != i + 1);
+        //i+BITS_PER_LONG....==>
 		IDA_BUG_ON(ida, ida_alloc_min(ida, i + BITS_PER_LONG,
 					GFP_KERNEL) != i + BITS_PER_LONG);
 		ida_free(ida, i + 1);
