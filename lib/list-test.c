@@ -808,7 +808,7 @@ static struct kunit_suite list_test_module = {
 
 struct hlist_test_struct {
 	int data;
-	struct hlist_node list;
+    struct hlist_node list;
 };
 
 static void hlist_test_init(struct kunit *test)
@@ -1009,8 +1009,8 @@ static void hlist_test_entry(struct kunit *test)
 	struct hlist_test_struct test_struct;
 
 	KUNIT_EXPECT_PTR_EQ(test, &test_struct,
-			    hlist_entry(&(test_struct.list),
-				struct hlist_test_struct, list));
+                hlist_entry(&(test_struct.list),
+                struct hlist_test_struct, list));
 }
 
 static void hlist_test_entry_safe(struct kunit *test)
@@ -1018,8 +1018,8 @@ static void hlist_test_entry_safe(struct kunit *test)
 	struct hlist_test_struct test_struct;
 
 	KUNIT_EXPECT_PTR_EQ(test, &test_struct,
-			    hlist_entry_safe(&(test_struct.list),
-				struct hlist_test_struct, list));
+                hlist_entry_safe(&(test_struct.list),
+                struct hlist_test_struct, list));
 
 	KUNIT_EXPECT_PTR_EQ(test, NULL,
 			    hlist_entry_safe((struct hlist_node *)NULL,
@@ -1038,7 +1038,7 @@ static void hlist_test_for_each(struct kunit *test)
 
 	hlist_for_each(cur, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
-		i++;
+        i++;
 	}
 
 	KUNIT_EXPECT_EQ(test, i, 3);
@@ -1073,7 +1073,7 @@ static void hlist_test_for_each_entry(struct kunit *test)
 	int i = 0;
 
 	entries[0].data = 0;
-	hlist_add_head(&entries[0].list, &list);
+    hlist_add_head(&entries[0].list, &list);
 	for (i = 1; i < 5; ++i) {
 		entries[i].data = i;
 		hlist_add_behind(&entries[i].list, &entries[i-1].list);
@@ -1081,7 +1081,7 @@ static void hlist_test_for_each_entry(struct kunit *test)
 
 	i = 0;
 
-	hlist_for_each_entry(cur, &list, list) {
+    hlist_for_each_entry(cur, &list, list) {
 		KUNIT_EXPECT_EQ(test, cur->data, i);
 		i++;
 	}
@@ -1096,10 +1096,10 @@ static void hlist_test_for_each_entry_continue(struct kunit *test)
 	int i = 0;
 
 	entries[0].data = 0;
-	hlist_add_head(&entries[0].list, &list);
+    hlist_add_head(&entries[0].list, &list);
 	for (i = 1; i < 5; ++i) {
 		entries[i].data = i;
-		hlist_add_behind(&entries[i].list, &entries[i-1].list);
+        hlist_add_behind(&entries[i].list, &entries[i-1].list);
 	}
 
 	/* We skip the first (zero-th) entry. */
@@ -1127,10 +1127,10 @@ static void hlist_test_for_each_entry_from(struct kunit *test)
 	int i = 0;
 
 	entries[0].data = 0;
-	hlist_add_head(&entries[0].list, &list);
+    hlist_add_head(&entries[0].list, &list);
 	for (i = 1; i < 5; ++i) {
 		entries[i].data = i;
-		hlist_add_behind(&entries[i].list, &entries[i-1].list);
+        hlist_add_behind(&entries[i].list, &entries[i-1].list);
 	}
 
 	i = 0;
@@ -1156,10 +1156,10 @@ static void hlist_test_for_each_entry_safe(struct kunit *test)
 	int i = 0;
 
 	entries[0].data = 0;
-	hlist_add_head(&entries[0].list, &list);
+    hlist_add_head(&entries[0].list, &list);
 	for (i = 1; i < 5; ++i) {
 		entries[i].data = i;
-		hlist_add_behind(&entries[i].list, &entries[i-1].list);
+        hlist_add_behind(&entries[i].list, &entries[i-1].list);
 	}
 
 	i = 0;

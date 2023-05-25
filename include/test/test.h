@@ -44,6 +44,7 @@ void lib_sort_test(void);
 void hlist_test01(void);
 void hlist_test02(void);
 void hlist_test03(void);
+void hlist_test04(void);
 
 void lib_ida_test(void);
 void lib_xarray_test(void);

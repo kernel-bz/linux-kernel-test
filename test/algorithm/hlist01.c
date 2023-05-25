@@ -96,22 +96,15 @@ void hlist_test01(void)
     pr_fn_end_on(stack_depth);
 }
 
-/**
- * @brief hlist_test02
- * struct hlist_test_struct {
- * 	  	int data;
- *		struct hlist_node list;
- *	};
- */
 void hlist_test02(void)
 {
     //refer: hlist_test_for_each_entry() in the lib/list-test.c
     struct hlist_test_struct entries[5], *cur;
-    HLIST_HEAD(list);
+    HLIST_HEAD(hash_head);
     int i = 0;
 
     entries[0].data = 0;
-    hlist_add_head(&entries[0].list, &list);
+    hlist_add_head(&entries[0].list, &hash_head);
     for (i = 1; i < 5; ++i) {
         entries[i].data = i;
         hlist_add_behind(&entries[i].list, &entries[i-1].list);
@@ -121,14 +114,57 @@ void hlist_test02(void)
 
     //cur == pos
     //(pos, head, member)
-    hlist_for_each_entry(cur, &list, list) {
-        //KUNIT_EXPECT_EQ(test, cur->data, i);
+    hlist_for_each_entry(cur, &hash_head, list) {
         pr_out_on(stack_depth, "i=%u, data=%d\n", i, cur->data);
         i++;
     }
 }
 
 void hlist_test03(void)
+{
+    u32 hkey1 = 3;
+    u32 hkey2 = 6;
+    struct hlist_test_struct entries1[6], entries2[6];
+    struct hlist_test_struct *cur;
+    int i, idx;
+
+    pr_fn_start_on(stack_depth);
+
+    DEFINE_HASHTABLE(hash_table, 3); 	//[8] == 2^3
+    hash_init(hash_table);
+
+    pr_view_on(stack_depth, "%30s : %u\n", hkey1);
+    pr_view_on(stack_depth, "%30s : %u\n", hkey2);
+    pr_view_on(stack_depth, "%30s : %d\n", ARRAY_SIZE(hash_table));	//HASH_SIZE
+    pr_view_on(stack_depth, "%30s : %d\n", HASH_BITS(hash_table));	//ilog2
+    pr_view_on(stack_depth, "%40s : %d\n", hash_min(hkey1, HASH_BITS(hash_table)));
+    pr_view_on(stack_depth, "%40s : %d\n", hash_min(hkey2, HASH_BITS(hash_table)));
+
+    idx = 0;
+    for (i = 1; i < 10; i += 2) {
+        entries1[idx].data = i;
+        hash_add(hash_table, &entries1[idx].list, hkey1);
+        idx++;
+    }
+    idx = 0;
+    for (i = 0; i < 10; i += 2) {
+        entries2[idx].data = i;
+        hash_add(hash_table, &entries2[idx].list, hkey2);
+        idx++;
+    }
+
+    hash_for_each_possible(hash_table, cur, list, hkey1)
+        pr_view_on(stack_depth, "%20s : %d\n", cur->data);
+
+    pr_out(stack_depth, "\n");
+
+    hash_for_each_possible(hash_table, cur, list, hkey2)
+        pr_view_on(stack_depth, "%20s : %d\n", cur->data);
+
+    pr_fn_end_on(stack_depth);
+}
+
+void hlist_test04(void)
 {
     struct workqueue_attrs *attrs = alloc_workqueue_attrs();
     struct _worker_pool *pool;
