@@ -254,7 +254,8 @@ static void _xa_store_find_erase_test(struct xarray *xa, int first, int last, in
     xa_debug_node_print(xa);
 
     void *entry;
-    index = (last - first) / 2;
+    //index = (last - first) / 2;
+    index = last;
     //for (index = first; index <= last; index += step) {
         pr_out_on(stack_depth, ">>> %u: %s\n", index, "xa_find() testing...");
         pr_view_on(stack_depth, "%10s : %u\n", index);

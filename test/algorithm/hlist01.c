@@ -74,6 +74,7 @@ void hlist_test01(void)
 
     for (i = 0; i < 800; i++) {
         key = i;
+        //[0..7]
         index = hash_min(key, HASH_BITS(hash_table));
         count[index]++;
     }
@@ -87,6 +88,7 @@ void hlist_test01(void)
     pr_out_on(stack_depth, "\n");
     for (i = 0; i < 800; i++) {
         key = jhash_1word(key, i);
+        //[0..7]
         index = hash_min(key, HASH_BITS(hash_table));
         count[index]++;
     }
@@ -142,13 +144,13 @@ void hlist_test03(void)
 
     idx = 0;
     for (i = 1; i < 10; i += 2) {
-        entries1[idx].data = i;
+        entries1[idx].data = i;	//[1, 3, 5, 7, 9] --> 9, 7, 5, 3, 1
         hash_add(hash_table, &entries1[idx].list, hkey1);
         idx++;
     }
     idx = 0;
     for (i = 0; i < 10; i += 2) {
-        entries2[idx].data = i;
+        entries2[idx].data = i;	//[0, 2, 4, 6, 8] --> 8, 6, 4, 2, 0
         hash_add(hash_table, &entries2[idx].list, hkey2);
         idx++;
     }
