@@ -239,12 +239,13 @@ void mt_debug_wr_mas_print(struct ma_wr_state *wr_mas)
 
     mt_debug_mas_print(wr_mas->mas);
 
-    pr_view_on(stack_depth, "%20s : %d\n", wr_mas->type);
     pr_view_on(stack_depth, "%20s : %p\n", wr_mas->node);
+    pr_view_on(stack_depth, "%20s : %d\n", wr_mas->type);
     pr_view_on(stack_depth, "%20s : %lu\n", wr_mas->r_min);
     pr_view_on(stack_depth, "%20s : %lu\n", wr_mas->r_max);
     pr_view_on(stack_depth, "%20s : %d\n", wr_mas->offset_end);
     pr_view_on(stack_depth, "%20s : %d\n", wr_mas->node_end);
+    pr_view_on(stack_depth, "%20s : %lu\n", wr_mas->end_piv);
     pr_view_on(stack_depth, "%20s : %p\n", wr_mas->entry);
     pr_view_on(stack_depth, "%20s : %p\n", wr_mas->content);
 

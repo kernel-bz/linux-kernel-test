@@ -16,6 +16,7 @@ void mtree_info(void)
     unsigned int offset;
     pr_fn_start_on(stack_depth);
 
+    pr_view_on(stack_depth, "%20s: %lu\n", sizeof(struct maple_node));
     pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node));
     pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node.mr64));
     pr_view_on(stack_depth, "%20s: %lu\n", sizeof(node.ma64));
@@ -31,6 +32,7 @@ void mtree_info(void)
     pr_view(stack_depth, "%30s: %u\n", MAPLE_ARANGE64_SLOTS);
     pr_view(stack_depth, "%30s: %u\n", MAPLE_ARANGE64_META_MAX);
     pr_view(stack_depth, "%30s: %u\n", MAPLE_ALLOC_SLOTS);
+    pr_view(stack_depth, "%30s: %u\n", MAPLE_BIG_NODE_SLOTS);
 
     pr_fn_end_on(stack_depth);
 }

@@ -43,6 +43,10 @@
 #define MAPLE_ALLOC_SLOTS	(MAPLE_NODE_SLOTS - 2)
 #endif /* defined(CONFIG_64BIT) || defined(BUILD_VDSO32_64) */
 
+//lib/maple_tree.c
+#define MAPLE_BIG_NODE_SLOTS	(MAPLE_RANGE64_SLOTS * 2 + 2)
+
+
 #define MAPLE_NODE_MASK		255UL
 
 /*
@@ -74,8 +78,8 @@
  *   0x010 : 32 bit values, type in 0-2, slot in 3-6
  *   0x110 : 64 bit values, type in 0-2, slot in 3-6
  */
-typedef struct maple_enode *maple_enode; /* encoded node */
-typedef struct maple_pnode *maple_pnode; /* parent node */
+//typedef struct maple_enode *maple_enode; /* encoded node */
+//typedef struct maple_pnode *maple_pnode; /* parent node */
 
 
 /*
