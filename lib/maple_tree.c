@@ -3810,6 +3810,7 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
     pr_view_on(stack_depth, "%20s: %p\n", mas->node);
     pr_view_on(stack_depth, "%20s: %lu\n", mas->index);
     pr_view_on(stack_depth, "%20s: %p\n", contents);
+    pr_view_on(stack_depth, "%20s: %d\n", slot);
 
     if (mas->index) {
 		if (contents) {
@@ -3820,7 +3821,9 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 		pivots[slot++] = mas->index - 1;
 	}
 
-	rcu_assign_pointer(slots[slot], entry);
+    pr_view_on(stack_depth, "%20s: %d\n", slot);
+
+    rcu_assign_pointer(slots[slot], entry);
 	mas->offset = slot;
 	pivots[slot] = mas->last;
 	if (mas->last != ULONG_MAX)
@@ -3828,7 +3831,9 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
 	mas->depth = 1;
 	mas_set_height(mas);
 
-	/* swap the new root into the tree */
+    pr_view_on(stack_depth, "%20s: %d\n", slot);
+
+    /* swap the new root into the tree */
 	rcu_assign_pointer(mas->tree->ma_root, mte_mk_root(mas->node));
 	ma_set_meta(node, maple_leaf_64, 0, slot);
 
@@ -3836,7 +3841,6 @@ static inline int mas_root_expand(struct ma_state *mas, void *entry)
     pr_view_on(stack_depth, "%20s: %p\n", mas->tree->ma_root);
     pr_view_on(stack_depth, "%20s: %u\n", mas->offset);
     pr_view_on(stack_depth, "%20s: %lu\n", mas->last);
-    pr_view_on(stack_depth, "%20s: %d\n", slot);
 
     pr_fn_end_on(stack_depth);
 	return slot;
