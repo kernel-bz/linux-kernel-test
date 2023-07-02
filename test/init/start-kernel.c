@@ -91,6 +91,18 @@ void test_sched_init_smp(void)
     sched_init_smp();
 }
 
+
+/*
+start_kernel(void)
+    workqueue_init_early();
+
+    arch_call_rest_init();
+        rest_init();
+            pid = user_mode_thread(kernel_init, NULL, CLONE_FS);
+            {kernel_init}
+                kernel_init_freeable();
+                    workqueue_init();
+*/
 void test_workqueue_init(void)
 {
     radix_tree_init();

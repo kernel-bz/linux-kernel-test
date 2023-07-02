@@ -6720,6 +6720,9 @@ void __init workqueue_init_early(void)
 
     pr_fn_start_on(stack_depth);
 
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(struct pool_workqueue));
+    pr_view_on(stack_depth, "%30s : %d\n", __alignof__(long long));
+
     BUILD_BUG_ON(__alignof__(struct pool_workqueue) < __alignof__(long long));
 
 	BUG_ON(!alloc_cpumask_var(&wq_unbound_cpumask, GFP_KERNEL));
@@ -6731,6 +6734,7 @@ void __init workqueue_init_early(void)
     pr_view_on(stack_depth, "%30s : %X\n", cpu_online_mask->bits[0]);
     pr_view_on(stack_depth, "%30s : %X\n", cpu_present_mask->bits[0]);
     pr_view_on(stack_depth, "%30s : %X\n", cpu_active_mask->bits[0]);
+    pr_view_on(stack_depth, "%30s : %X\n", wq_unbound_cpumask->bits[0]);
 
 	pwq_cache = KMEM_CACHE(pool_workqueue, SLAB_PANIC);
 
